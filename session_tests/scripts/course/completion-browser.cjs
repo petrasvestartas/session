@@ -80,8 +80,18 @@ const hash=b=>crypto.createHash('sha256').update(b).digest('hex');
    await page.keyboard.press('c');await capture('rows-color');const tint=await pixel(left,y);assert(tint[2]>tint[0]+80);
    await page.keyboard.press('c');assert.equal((await capture('rows-color-back')).pixels,initial.pixels);assert.deepEqual(errors,[]);
   }
+  if(process.argv.includes('--geometry')){
+   await mode('geometry');const initial=await capture('geometry');
+   for(const [key,name] of [['r','reveal'],['w','lines'],['o','faces'],['p','projection']]){
+    await page.keyboard.press(key);assert.notEqual((await capture('geometry-'+name)).pixels,initial.pixels);
+    await page.keyboard.press(key);assert.equal((await capture('geometry-'+name+'-back')).pixels,initial.pixels);
+   }
+   await page.keyboard.press('ArrowRight');assert.notEqual((await capture('geometry-orbit')).pixels,initial.pixels);
+   await page.keyboard.press('ArrowLeft');assert.equal((await capture('geometry-orbit-back')).pixels,initial.pixels);
+   assert.deepEqual(errors,[]);
+  }
   record.adapter=await page.evaluate(async()=>{const a=await navigator.gpu.requestAdapter();return {...a.info,vendor:a.info.vendor,architecture:a.info.architecture,description:a.info.description};});await page.close();
  }
- fs.writeFileSync(path.join(out,'result.json'),JSON.stringify({scope:'Cumulative candidates (camera/rows only when explicitly requested); actual adapter recorded per viewport; upright emulation is not physical-phone acceptance',browser:browser.version(),args,checkerSha256:hash(fs.readFileSync(__filename)),cases},null,2));
+ fs.writeFileSync(path.join(out,'result.json'),JSON.stringify({scope:'Cumulative candidates (camera/rows/geometry only when explicitly requested); actual adapter recorded per viewport; upright emulation is not physical-phone acceptance',browser:browser.version(),args,checkerSha256:hash(fs.readFileSync(__filename)),cases},null,2));
  }catch(e){fs.writeFileSync(path.join(out,'failure.json'),JSON.stringify({error:String(e.stack),cases},null,2));throw e;}finally{await browser.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

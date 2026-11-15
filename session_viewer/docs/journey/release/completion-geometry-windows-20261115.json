@@ -1,0 +1,1784 @@
+{
+  "status": "candidate; complete renderer teaching and whole-course acceptance pending",
+  "subjects": [
+    "frame",
+    "painting",
+    "mathematics",
+    "dock",
+    "camera",
+    "rows",
+    "geometry"
+  ],
+  "independentBuild": "Own build.rs and transitive shader inputs; no inherited OUT_DIR",
+  "wasmCheck": {
+    "scope": "Seven-subject renderer wasm and full production native test-module compile after renderer adapter extraction",
+    "commands": [
+      {
+        "name": "tooling",
+        "exitCode": 0
+      },
+      {
+        "name": "geometry-assemble",
+        "exitCode": 0
+      },
+      {
+        "name": "geometry-check",
+        "exitCode": 0
+      },
+      {
+        "name": "production-native-tests",
+        "exitCode": 0
+      }
+    ],
+    "failure": null,
+    "postguards": "passed",
+    "browser": "pending"
+  },
+  "browserBuild": {
+    "scope": "Seven cumulative subjects; real renderer optimized browser build with independent shader build script",
+    "commands": [
+      {
+        "name": "cargo",
+        "exitCode": 0
+      },
+      {
+        "name": "trunk",
+        "exitCode": 0
+      }
+    ],
+    "failure": null,
+    "postguards": "passed",
+    "browser": "pending"
+  },
+  "native": {
+    "passed": 185,
+    "ignored": 13,
+    "failed": 0,
+    "run": {
+      "scope": "Seven-subject native tests with two application-only test adapters registered later; full production test-module compile",
+      "commands": [
+        {
+          "name": "tooling",
+          "exitCode": 0
+        },
+        {
+          "name": "assemble",
+          "exitCode": 0
+        },
+        {
+          "name": "links",
+          "exitCode": 0
+        },
+        {
+          "name": "production-native-tests",
+          "exitCode": 0
+        },
+        {
+          "name": "native",
+          "exitCode": 0
+        }
+      ],
+      "failure": null,
+      "postguards": "passed",
+      "browser": "pending"
+    }
+  },
+  "browser": {
+    "scope": "Cumulative candidates (camera/rows/geometry only when explicitly requested); actual adapter recorded per viewport; upright emulation is not physical-phone acceptance",
+    "browser": "157.0.8103.51",
+    "args": [
+      "--enable-unsafe-webgpu",
+      "--ignore-gpu-blocklist",
+      "--use-angle=d3d11"
+    ],
+    "checkerSha256": "19a284186508fdc85ae5d9041cec53ab8a0c5919a5eb28b22574e56e000193a8",
+    "cases": [
+      {
+        "viewport": {
+          "width": 1280,
+          "height": 800
+        },
+        "frames": [
+          {
+            "name": "frame",
+            "file": "1280-frame.png",
+            "ink": 0,
+            "pixels": "f55a98174df0972266a64aec6e512816f4933b8c235e02e4ad75516ad0c5df55",
+            "sha256": "f9106d41500e37b39b7634d26646b3d9c092daa2125d0c95bfcdccf13bf938c1"
+          },
+          {
+            "name": "frame-resized",
+            "file": "1280-frame-resized.png",
+            "ink": 0,
+            "pixels": "f55a98174df0972266a64aec6e512816f4933b8c235e02e4ad75516ad0c5df55",
+            "sha256": "f9106d41500e37b39b7634d26646b3d9c092daa2125d0c95bfcdccf13bf938c1"
+          },
+          {
+            "name": "painting",
+            "file": "1280-painting.png",
+            "ink": 17633,
+            "pixels": "1b0aa84e5637dd750e23c7734b5736a373feb4cdf7b78201309338f1c8afa2f1",
+            "sha256": "e85d806a883b34c029a387dffadbf8ae0686cf1f4c74049aecace23008ce9aae"
+          },
+          {
+            "name": "math-1",
+            "file": "1280-math-1.png",
+            "ink": 8666,
+            "pixels": "69b067cee5a49d09d85d3dce75ba548e94a0db47f7977d3f03c5266c44a8942e",
+            "sha256": "1ce5c5cda5be183322e935ed410d947b3d57ae08d52d3368158b531290414007"
+          },
+          {
+            "name": "math-2",
+            "file": "1280-math-2.png",
+            "ink": 11630,
+            "pixels": "21e008dec073a7f6756ffd2a77e002c921f6247d5a52d3af6dc643679064626b",
+            "sha256": "387211b58e2372926ef9e31c919b5f1154cb8119a91afd4546aa7f8b46742371"
+          },
+          {
+            "name": "math-3",
+            "file": "1280-math-3.png",
+            "ink": 15333,
+            "pixels": "04bbc4435102b5ab5f2b87bab7c6aa20c24d66c5c29fb0d54b12a107d0e07bba",
+            "sha256": "0704801391792191b6e1638811105b4bd06103ba9d67420eb127579423ef1d15"
+          },
+          {
+            "name": "math-4",
+            "file": "1280-math-4.png",
+            "ink": 16935,
+            "pixels": "98eb0ad04c21ca328f484578bd65fe4710556aab9be62f6299ea7f5b41c98cf6",
+            "sha256": "cddd13c456298538c200569b86eb066dec8ebbcc60e0ab16685e297fbf8d33ee"
+          },
+          {
+            "name": "math-back",
+            "file": "1280-math-back.png",
+            "ink": 15333,
+            "pixels": "04bbc4435102b5ab5f2b87bab7c6aa20c24d66c5c29fb0d54b12a107d0e07bba",
+            "sha256": "0704801391792191b6e1638811105b4bd06103ba9d67420eb127579423ef1d15"
+          },
+          {
+            "name": "math-dark",
+            "file": "1280-math-dark.png",
+            "ink": 1016993,
+            "pixels": "3c12b631e20e88a17bfa9e13c2b248c10ea6ce8626e2d0d26174c51bdcc13688",
+            "sha256": "757d91e62e6291de37ee9dbe6eb4c8b8fdcfddd0f3c2ffe6b1e46027388c0b41"
+          },
+          {
+            "name": "math-light",
+            "file": "1280-math-light.png",
+            "ink": 15333,
+            "pixels": "04bbc4435102b5ab5f2b87bab7c6aa20c24d66c5c29fb0d54b12a107d0e07bba",
+            "sha256": "0704801391792191b6e1638811105b4bd06103ba9d67420eb127579423ef1d15"
+          },
+          {
+            "name": "math-slide-up",
+            "file": "1280-math-slide-up.png",
+            "ink": 8666,
+            "pixels": "69b067cee5a49d09d85d3dce75ba548e94a0db47f7977d3f03c5266c44a8942e",
+            "sha256": "1ce5c5cda5be183322e935ed410d947b3d57ae08d52d3368158b531290414007"
+          },
+          {
+            "name": "math-slide-down",
+            "file": "1280-math-slide-down.png",
+            "ink": 15333,
+            "pixels": "04bbc4435102b5ab5f2b87bab7c6aa20c24d66c5c29fb0d54b12a107d0e07bba",
+            "sha256": "0704801391792191b6e1638811105b4bd06103ba9d67420eb127579423ef1d15"
+          },
+          {
+            "name": "dock",
+            "file": "1280-dock.png",
+            "ink": 7167,
+            "pixels": "f470f6a8d45b24466adacd8f590749ae543c5c21a2d1ded0d6e8ed4fa2be9e39",
+            "sha256": "3355a0507f0d2717fdc2fe28446b9e4eb73485b9741e8077e2a01a8d9616e80d"
+          },
+          {
+            "name": "dock-hello",
+            "file": "1280-dock-hello.png",
+            "ink": 6017,
+            "pixels": "0afcdf0ffd6033c1e0359dbd1c8958e9399c2396b8c5b3f7e90b822654f4d603",
+            "sha256": "2cf327dff452c895942f1cb7e04d74cc1c5337220d199233ae045ab7683ae2ca"
+          },
+          {
+            "name": "dock-options",
+            "file": "1280-dock-options.png",
+            "ink": 6840,
+            "pixels": "0156b953963363c02022e218d5c021164b70bf7274b48325414abc10c94cf29b",
+            "sha256": "32d38fefd9774120c7b4fb2f615cbf9063aeec2eb4ed68032895e925380ba97a"
+          },
+          {
+            "name": "dock-blue",
+            "file": "1280-dock-blue.png",
+            "ink": 5939,
+            "pixels": "dd3594f63acc22287e91e6d1c68213762e7a01e64fc1754ea9dda560e215f2c4",
+            "sha256": "7fda5ae169cd4b3330d1dc0c8cbe3ade977db2449ffbe12a5dcb88d3d6a18d1d"
+          },
+          {
+            "name": "dock-clear",
+            "file": "1280-dock-clear.png",
+            "ink": 6715,
+            "pixels": "2a6e5baf75e770573e77191ba372c680c06c0b58ff822225e41cb533e470f735",
+            "sha256": "d6b61a17c4931760bf32d314aaa84bdbece1674949688eced1d3978e5c8c5483"
+          },
+          {
+            "name": "camera",
+            "file": "1280-camera.png",
+            "ink": 13652,
+            "pixels": "896f20c12fec007c6915946dc07353d786d3382c86b5b2494b5c0c36dc917f87",
+            "sha256": "4d383d406d0c4446735b1dce6fab7a3d0f43ad5a60d5247b847b977ff6420187"
+          },
+          {
+            "name": "camera-orbit",
+            "file": "1280-camera-orbit.png",
+            "ink": 13674,
+            "pixels": "5cc3b5a872ad61ea8c9eb0597abd169bd35dc4a948c096a989d847e1d4a976ff",
+            "sha256": "0ab5557c4fe0ee88efe1e19c5c395095114e0c9c6aed3ccdf3988ee9bff9325f"
+          },
+          {
+            "name": "camera-home",
+            "file": "1280-camera-home.png",
+            "ink": 12293,
+            "pixels": "90ca8b7d6209b1bd66b86d394d3396dcd7078d2e05bb2d3950e61c88cc3d1ada",
+            "sha256": "997a4f78debe04fcf5face8983a62e8f310ecbb1c1105b9580efdecdc781f6e1"
+          },
+          {
+            "name": "camera-projection",
+            "file": "1280-camera-projection.png",
+            "ink": 13652,
+            "pixels": "896f20c12fec007c6915946dc07353d786d3382c86b5b2494b5c0c36dc917f87",
+            "sha256": "4d383d406d0c4446735b1dce6fab7a3d0f43ad5a60d5247b847b977ff6420187"
+          },
+          {
+            "name": "camera-projection-back",
+            "file": "1280-camera-projection-back.png",
+            "ink": 12293,
+            "pixels": "90ca8b7d6209b1bd66b86d394d3396dcd7078d2e05bb2d3950e61c88cc3d1ada",
+            "sha256": "997a4f78debe04fcf5face8983a62e8f310ecbb1c1105b9580efdecdc781f6e1"
+          },
+          {
+            "name": "camera-zoom",
+            "file": "1280-camera-zoom.png",
+            "ink": 6256,
+            "pixels": "96bb63f2c22985617c3ab663a979705721824814ddff6c7da08129d3d43222bd",
+            "sha256": "333b5e23047a730dec9738e347a765d8e2ff1344fd01382fbbe24e82508316b5"
+          },
+          {
+            "name": "camera-fit",
+            "file": "1280-camera-fit.png",
+            "ink": 12293,
+            "pixels": "90ca8b7d6209b1bd66b86d394d3396dcd7078d2e05bb2d3950e61c88cc3d1ada",
+            "sha256": "997a4f78debe04fcf5face8983a62e8f310ecbb1c1105b9580efdecdc781f6e1"
+          },
+          {
+            "name": "camera-drag",
+            "file": "1280-camera-drag.png",
+            "ink": 12462,
+            "pixels": "f885ca8081cbb6d014eb2c7200c5f6d9081b374170604b5b7dbacec7170ef027",
+            "sha256": "78d61bfd2491837b2e4a5b5dc779d074c65a3a24f900ac045500d46752cc1ec4"
+          },
+          {
+            "name": "camera-drag-home",
+            "file": "1280-camera-drag-home.png",
+            "ink": 12293,
+            "pixels": "90ca8b7d6209b1bd66b86d394d3396dcd7078d2e05bb2d3950e61c88cc3d1ada",
+            "sha256": "997a4f78debe04fcf5face8983a62e8f310ecbb1c1105b9580efdecdc781f6e1"
+          },
+          {
+            "name": "rows",
+            "file": "1280-rows.png",
+            "ink": 20209,
+            "pixels": "42ae774c70ca004ac6746bbb7101777a1b85eca1ffe895210e62e00cf7ef9124",
+            "sha256": "f3df7f435ca5b1cde55f1d4c692723054dbfcf99e20469bdd89848164827135b"
+          },
+          {
+            "name": "rows-move",
+            "file": "1280-rows-move.png",
+            "ink": 20209,
+            "pixels": "ba00e3f8920302cdbab1fe93a93330827e2ef3380fbc70465f4e7b7ea19e95fa",
+            "sha256": "149ff4db8434330278784f6e0da7fbb65dd815e13fb6078fcda71b2303895866"
+          },
+          {
+            "name": "rows-move-back",
+            "file": "1280-rows-move-back.png",
+            "ink": 20209,
+            "pixels": "42ae774c70ca004ac6746bbb7101777a1b85eca1ffe895210e62e00cf7ef9124",
+            "sha256": "f3df7f435ca5b1cde55f1d4c692723054dbfcf99e20469bdd89848164827135b"
+          },
+          {
+            "name": "rows-hide",
+            "file": "1280-rows-hide.png",
+            "ink": 11941,
+            "pixels": "48213fa4acb30f5932eb0b6bdfd95dc341dc35b536361e0be0894d82035dd96f",
+            "sha256": "da5a6e6d70b53a24fdc2f59b937dd15402d9390a675e943684b475d9ac533596"
+          },
+          {
+            "name": "rows-show",
+            "file": "1280-rows-show.png",
+            "ink": 20209,
+            "pixels": "42ae774c70ca004ac6746bbb7101777a1b85eca1ffe895210e62e00cf7ef9124",
+            "sha256": "f3df7f435ca5b1cde55f1d4c692723054dbfcf99e20469bdd89848164827135b"
+          },
+          {
+            "name": "rows-reveal",
+            "file": "1280-rows-reveal.png",
+            "ink": 16159,
+            "pixels": "f03658f61a2c02456229dce28329ef44ba533892c3b90ebf8058072f15734d4e",
+            "sha256": "3882146a7f25b1dadcd0b068e176efa59a2433d49507244006d8f22ced0356c1"
+          },
+          {
+            "name": "rows-reveal-back",
+            "file": "1280-rows-reveal-back.png",
+            "ink": 20209,
+            "pixels": "42ae774c70ca004ac6746bbb7101777a1b85eca1ffe895210e62e00cf7ef9124",
+            "sha256": "f3df7f435ca5b1cde55f1d4c692723054dbfcf99e20469bdd89848164827135b"
+          },
+          {
+            "name": "rows-color",
+            "file": "1280-rows-color.png",
+            "ink": 20209,
+            "pixels": "09aa07e5718f3b473e4ddd8c4a36029b87fe71c11f8674b2ac1b484774d21416",
+            "sha256": "e8b9a86adb4d8b038a6ca9cc6dfa7da6f5f7b6a7f85fd35629cea594b8e5ade5"
+          },
+          {
+            "name": "rows-color-back",
+            "file": "1280-rows-color-back.png",
+            "ink": 20209,
+            "pixels": "42ae774c70ca004ac6746bbb7101777a1b85eca1ffe895210e62e00cf7ef9124",
+            "sha256": "f3df7f435ca5b1cde55f1d4c692723054dbfcf99e20469bdd89848164827135b"
+          },
+          {
+            "name": "geometry",
+            "file": "1280-geometry.png",
+            "ink": 15124,
+            "pixels": "6b8c2cbf0f63d4c5ad3dcd162372135ed26a4695d4f60db9cf90e74ef2c76bed",
+            "sha256": "2ee546863e221ac8af1000275c2a594cb4e10c8d5e5190074e66212c4a0ca738"
+          },
+          {
+            "name": "geometry-reveal",
+            "file": "1280-geometry-reveal.png",
+            "ink": 14773,
+            "pixels": "fa46fd11a41f090f3e50be2f01f0ddb7211fc23e2675a76a1c7a59fc9bd2eed8",
+            "sha256": "8eda5054b4bef41ad6d58f0f27577a0d68eebf41fe3ea741577f7a4b662995d0"
+          },
+          {
+            "name": "geometry-reveal-back",
+            "file": "1280-geometry-reveal-back.png",
+            "ink": 15124,
+            "pixels": "6b8c2cbf0f63d4c5ad3dcd162372135ed26a4695d4f60db9cf90e74ef2c76bed",
+            "sha256": "2ee546863e221ac8af1000275c2a594cb4e10c8d5e5190074e66212c4a0ca738"
+          },
+          {
+            "name": "geometry-lines",
+            "file": "1280-geometry-lines.png",
+            "ink": 13752,
+            "pixels": "b771da38a6c84c82d96a1b9bc9077688f5830fe998a5d0eb9e86d187fa6402ac",
+            "sha256": "66db219d457e191811ae549500cbee13658f1bf16ceae7ed4aa43819a8b76701"
+          },
+          {
+            "name": "geometry-lines-back",
+            "file": "1280-geometry-lines-back.png",
+            "ink": 15124,
+            "pixels": "6b8c2cbf0f63d4c5ad3dcd162372135ed26a4695d4f60db9cf90e74ef2c76bed",
+            "sha256": "2ee546863e221ac8af1000275c2a594cb4e10c8d5e5190074e66212c4a0ca738"
+          },
+          {
+            "name": "geometry-faces",
+            "file": "1280-geometry-faces.png",
+            "ink": 16883,
+            "pixels": "5d40bd71844c1a8a09799b8ebd89979033a030b472b6458b1591f45c2ee56321",
+            "sha256": "a36d311f1f1dc0e44cb2f3c698edb125487a74aa2f05adf35356a3992c54d96f"
+          },
+          {
+            "name": "geometry-faces-back",
+            "file": "1280-geometry-faces-back.png",
+            "ink": 15124,
+            "pixels": "6b8c2cbf0f63d4c5ad3dcd162372135ed26a4695d4f60db9cf90e74ef2c76bed",
+            "sha256": "2ee546863e221ac8af1000275c2a594cb4e10c8d5e5190074e66212c4a0ca738"
+          },
+          {
+            "name": "geometry-projection",
+            "file": "1280-geometry-projection.png",
+            "ink": 13631,
+            "pixels": "d36d4c0286503b5ab37f598c98724a46ddd22951b2dee91c3b1e516c4fdd1010",
+            "sha256": "b0dece4c5b2d675e247a9f7554b65b0ab58547725ee87334f7149c5cca1d9178"
+          },
+          {
+            "name": "geometry-projection-back",
+            "file": "1280-geometry-projection-back.png",
+            "ink": 15124,
+            "pixels": "6b8c2cbf0f63d4c5ad3dcd162372135ed26a4695d4f60db9cf90e74ef2c76bed",
+            "sha256": "2ee546863e221ac8af1000275c2a594cb4e10c8d5e5190074e66212c4a0ca738"
+          },
+          {
+            "name": "geometry-orbit",
+            "file": "1280-geometry-orbit.png",
+            "ink": 15293,
+            "pixels": "62598118867c02a7a4eda99ea3b7b5c73b127590412ac70ba57cc8ffe7dfe750",
+            "sha256": "eca944fdec64de603d96bb2bb7cd1bd22639ddb1a6748dc1e8985dbfee6d5b5c"
+          },
+          {
+            "name": "geometry-orbit-back",
+            "file": "1280-geometry-orbit-back.png",
+            "ink": 15124,
+            "pixels": "6b8c2cbf0f63d4c5ad3dcd162372135ed26a4695d4f60db9cf90e74ef2c76bed",
+            "sha256": "2ee546863e221ac8af1000275c2a594cb4e10c8d5e5190074e66212c4a0ca738"
+          }
+        ],
+        "errors": [],
+        "adapter": {
+          "vendor": "intel",
+          "architecture": "gen-12lp",
+          "description": ""
+        }
+      },
+      {
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "frames": [
+          {
+            "name": "frame",
+            "file": "390-frame.png",
+            "ink": 0,
+            "pixels": "5f1f6ddfb0461d630ae4a62bf8dbb694f6d558319b72b3e1da808564c0242349",
+            "sha256": "e3d2f429df21736f3a1559b99fd46ea6bcfa46d3c085e61ecd718c1d0ffb023b"
+          },
+          {
+            "name": "frame-resized",
+            "file": "390-frame-resized.png",
+            "ink": 0,
+            "pixels": "5f1f6ddfb0461d630ae4a62bf8dbb694f6d558319b72b3e1da808564c0242349",
+            "sha256": "e3d2f429df21736f3a1559b99fd46ea6bcfa46d3c085e61ecd718c1d0ffb023b"
+          },
+          {
+            "name": "painting",
+            "file": "390-painting.png",
+            "ink": 17633,
+            "pixels": "7fe234384dd92227dffb7078af248abbfca75d099716403afa6f65045672c57a",
+            "sha256": "c76bb0fd9b1a1cde164c2dd184485135f95a6291d46dc42338b68635df580ca2"
+          },
+          {
+            "name": "math-1",
+            "file": "390-math-1.png",
+            "ink": 2827,
+            "pixels": "19f79c0d5699628ef2c96773fe21d5ae0eb1108b69dc626f105b284ebb91da59",
+            "sha256": "9641960ceb63114c588723f89c2c3dca56767ee4a4548f15ea3edba17e63fd8f"
+          },
+          {
+            "name": "math-2",
+            "file": "390-math-2.png",
+            "ink": 3434,
+            "pixels": "cc87dc99ebc836426294ef4dc4c1aa01c0e9bac92fc1b7d53604b96ff9e34186",
+            "sha256": "7e4103c0c7975c5078245d7a162a77609e9e5c7595e955ea85cb158ce20db5c4"
+          },
+          {
+            "name": "math-3",
+            "file": "390-math-3.png",
+            "ink": 4209,
+            "pixels": "c96e8d6603e4733754b720130a934132ec03c0173d68aa9e2d55e87a390bead7",
+            "sha256": "c9c00a141d7e173c197a7dcb1ba5da0ccc01316fc07d2f93a9a82781dbb24096"
+          },
+          {
+            "name": "math-4",
+            "file": "390-math-4.png",
+            "ink": 4409,
+            "pixels": "fee2c5f8a80893cc636028aff4cb03eca72fbd2f08dfff391ecfe3c2f012a985",
+            "sha256": "9caea99f5f62d9ecc6e5a87294b60b1d16bee32613d16e804e1c5dc65995ee1b"
+          },
+          {
+            "name": "math-back",
+            "file": "390-math-back.png",
+            "ink": 4209,
+            "pixels": "c96e8d6603e4733754b720130a934132ec03c0173d68aa9e2d55e87a390bead7",
+            "sha256": "c9c00a141d7e173c197a7dcb1ba5da0ccc01316fc07d2f93a9a82781dbb24096"
+          },
+          {
+            "name": "math-dark",
+            "file": "390-math-dark.png",
+            "ink": 327956,
+            "pixels": "c58a0f2b893d9dbccaccadc4940c24b027b1e06c26cb8b55172446121117521a",
+            "sha256": "3f7fb729c277e12926eebc3a0a373376a692c2dfb4e0bd8fc17742f750730fd7"
+          },
+          {
+            "name": "math-light",
+            "file": "390-math-light.png",
+            "ink": 4209,
+            "pixels": "c96e8d6603e4733754b720130a934132ec03c0173d68aa9e2d55e87a390bead7",
+            "sha256": "c9c00a141d7e173c197a7dcb1ba5da0ccc01316fc07d2f93a9a82781dbb24096"
+          },
+          {
+            "name": "math-slide-up",
+            "file": "390-math-slide-up.png",
+            "ink": 2827,
+            "pixels": "19f79c0d5699628ef2c96773fe21d5ae0eb1108b69dc626f105b284ebb91da59",
+            "sha256": "9641960ceb63114c588723f89c2c3dca56767ee4a4548f15ea3edba17e63fd8f"
+          },
+          {
+            "name": "math-slide-down",
+            "file": "390-math-slide-down.png",
+            "ink": 4209,
+            "pixels": "c96e8d6603e4733754b720130a934132ec03c0173d68aa9e2d55e87a390bead7",
+            "sha256": "c9c00a141d7e173c197a7dcb1ba5da0ccc01316fc07d2f93a9a82781dbb24096"
+          },
+          {
+            "name": "dock",
+            "file": "390-dock.png",
+            "ink": 6276,
+            "pixels": "9ca9267429ada6cc3fed58d40e5aebf44b1451297538eb651d8645897a188c2c",
+            "sha256": "7334fe6f86a43fbbcf2bc1ff5e5debf2cea4734653a0d71539aaeb7a386f5b4a"
+          },
+          {
+            "name": "dock-hello",
+            "file": "390-dock-hello.png",
+            "ink": 5126,
+            "pixels": "1ca4004657f80f6589adf5581945617a2f7cb5b338a85b0220d68836fa21bd98",
+            "sha256": "d59f3dc421d704381823461e643e34876df3f5d521c5bdb8dddb8b0be60e15cc"
+          },
+          {
+            "name": "dock-options",
+            "file": "390-dock-options.png",
+            "ink": 5949,
+            "pixels": "95e2d950d9b53e6a30fa02f1dab4ce3a170dd321fc89432b75e040854708b76c",
+            "sha256": "cf26b368fe45032c1a6833682cdebf64536f2c10edf7f8b85efecbe657cfdda3"
+          },
+          {
+            "name": "dock-blue",
+            "file": "390-dock-blue.png",
+            "ink": 5048,
+            "pixels": "626c5ff4418226e069cce1f060ada183a8f876292be37ccbd4e380e8f26b11a8",
+            "sha256": "8eac09651c5301b229d930539fb7856e2159d0936d2ef44ec5735bbeb32694fb"
+          },
+          {
+            "name": "dock-clear",
+            "file": "390-dock-clear.png",
+            "ink": 5826,
+            "pixels": "255f6a966d15d875b40c3c886535fc91ef08f2843cce3f41091d75c366650f40",
+            "sha256": "cf572382e90c8e5386a7258169b33f2c32f85b50b8d44c23344812b96acb258f"
+          },
+          {
+            "name": "camera",
+            "file": "390-camera.png",
+            "ink": 9104,
+            "pixels": "74a50a02f55afd7425d65116ac01f2d347289999c5f9ac1804b9dafcc74606d0",
+            "sha256": "2959734b0f5600865b112f239de9cfaab6833569e0a80d371dc59f83004072f3"
+          },
+          {
+            "name": "camera-orbit",
+            "file": "390-camera-orbit.png",
+            "ink": 9116,
+            "pixels": "95982c2d4eba526bef3ea170a48e65a3f067c678288522fe5be8d916e24d2c57",
+            "sha256": "de1fb2c3b0a38d6720d5ba5d8db8243210d92fecc0da48471705f29884507e40"
+          },
+          {
+            "name": "camera-home",
+            "file": "390-camera-home.png",
+            "ink": 8574,
+            "pixels": "1ea10a7ef59ae8c288b5aca5f8a81e7a0f6350c0217bb943c219e78ca93a4627",
+            "sha256": "136912de7e79d804b0f448391b6c3eb60d6e2b1880724e4427c6228ed5bae6ea"
+          },
+          {
+            "name": "camera-projection",
+            "file": "390-camera-projection.png",
+            "ink": 9104,
+            "pixels": "74a50a02f55afd7425d65116ac01f2d347289999c5f9ac1804b9dafcc74606d0",
+            "sha256": "2959734b0f5600865b112f239de9cfaab6833569e0a80d371dc59f83004072f3"
+          },
+          {
+            "name": "camera-projection-back",
+            "file": "390-camera-projection-back.png",
+            "ink": 8574,
+            "pixels": "1ea10a7ef59ae8c288b5aca5f8a81e7a0f6350c0217bb943c219e78ca93a4627",
+            "sha256": "136912de7e79d804b0f448391b6c3eb60d6e2b1880724e4427c6228ed5bae6ea"
+          },
+          {
+            "name": "camera-zoom",
+            "file": "390-camera-zoom.png",
+            "ink": 4961,
+            "pixels": "240c760bc569dfd615d1bf642d0a6efa08e23366e17f2ca6b616dad102b1d871",
+            "sha256": "13505841d258cff50df4fa4384bd840d2ee0244cce6ad4d4492eb1639fe3b46c"
+          },
+          {
+            "name": "camera-fit",
+            "file": "390-camera-fit.png",
+            "ink": 8574,
+            "pixels": "1ea10a7ef59ae8c288b5aca5f8a81e7a0f6350c0217bb943c219e78ca93a4627",
+            "sha256": "136912de7e79d804b0f448391b6c3eb60d6e2b1880724e4427c6228ed5bae6ea"
+          },
+          {
+            "name": "camera-drag",
+            "file": "390-camera-drag.png",
+            "ink": 8670,
+            "pixels": "690b91f9083861a3db158bd2733097ebc07cbd47f5500b6b64e90a2434cd270f",
+            "sha256": "d392b984364ab39e59150c86a5f262c81fd960d3757e72bec787e9f736dc23c7"
+          },
+          {
+            "name": "camera-drag-home",
+            "file": "390-camera-drag-home.png",
+            "ink": 8574,
+            "pixels": "1ea10a7ef59ae8c288b5aca5f8a81e7a0f6350c0217bb943c219e78ca93a4627",
+            "sha256": "136912de7e79d804b0f448391b6c3eb60d6e2b1880724e4427c6228ed5bae6ea"
+          },
+          {
+            "name": "rows",
+            "file": "390-rows.png",
+            "ink": 13879,
+            "pixels": "82630c86bcc119873f160d15ba86f2d94469fa5214dd5a0726f121ff95219074",
+            "sha256": "daef61f54aeb65431c479c8acb40ca0097215a1fd44bec05ac44588faaae8f5f"
+          },
+          {
+            "name": "rows-move",
+            "file": "390-rows-move.png",
+            "ink": 13809,
+            "pixels": "72318f15aa065fda881e183c5e06ea03b8014f2ba5960b52e8486692e6707c14",
+            "sha256": "78301cf0c917bebca8bb429d814169739fd4755f9a82fe8826d2ebffccf19477"
+          },
+          {
+            "name": "rows-move-back",
+            "file": "390-rows-move-back.png",
+            "ink": 13879,
+            "pixels": "82630c86bcc119873f160d15ba86f2d94469fa5214dd5a0726f121ff95219074",
+            "sha256": "daef61f54aeb65431c479c8acb40ca0097215a1fd44bec05ac44588faaae8f5f"
+          },
+          {
+            "name": "rows-hide",
+            "file": "390-rows-hide.png",
+            "ink": 8741,
+            "pixels": "fdae22897750bf58be4a6e9cd6af131712ae5368dc3b2b7024e22baf66dd7e98",
+            "sha256": "5b104f435115a6bd4794684cc36cd15e5a60fa395b63c5329a47fd10542063e5"
+          },
+          {
+            "name": "rows-show",
+            "file": "390-rows-show.png",
+            "ink": 13879,
+            "pixels": "82630c86bcc119873f160d15ba86f2d94469fa5214dd5a0726f121ff95219074",
+            "sha256": "daef61f54aeb65431c479c8acb40ca0097215a1fd44bec05ac44588faaae8f5f"
+          },
+          {
+            "name": "rows-reveal",
+            "file": "390-rows-reveal.png",
+            "ink": 11359,
+            "pixels": "20a8910ec734a474e52cc90c2a34fe8dcf29c40a4268471fc3b60b0d55c82afb",
+            "sha256": "b67201aa5b56eb08d1d67b560f20ad6ffa9f77f21ab0b1b99a618d4923c3f7ab"
+          },
+          {
+            "name": "rows-reveal-back",
+            "file": "390-rows-reveal-back.png",
+            "ink": 13879,
+            "pixels": "82630c86bcc119873f160d15ba86f2d94469fa5214dd5a0726f121ff95219074",
+            "sha256": "daef61f54aeb65431c479c8acb40ca0097215a1fd44bec05ac44588faaae8f5f"
+          },
+          {
+            "name": "rows-color",
+            "file": "390-rows-color.png",
+            "ink": 13879,
+            "pixels": "8e8f4ad5ae4fb35d40d6c6a877d662bedfec5b8a1b329f5429bdd0f297ff765f",
+            "sha256": "177b3cc68dfc5bdcc760830ebbcc781e16a2a19dfa5e62911505f8f6828ca95c"
+          },
+          {
+            "name": "rows-color-back",
+            "file": "390-rows-color-back.png",
+            "ink": 13879,
+            "pixels": "82630c86bcc119873f160d15ba86f2d94469fa5214dd5a0726f121ff95219074",
+            "sha256": "daef61f54aeb65431c479c8acb40ca0097215a1fd44bec05ac44588faaae8f5f"
+          },
+          {
+            "name": "geometry",
+            "file": "390-geometry.png",
+            "ink": 4462,
+            "pixels": "8ce2b2d49026beef5e9124e18b6ff99cada5d09605f86065222941e2d9aaccf9",
+            "sha256": "0ad44f406a8e5a2d6c0014b66b3e7da48c78af2be074f132e7faf7a7557f4538"
+          },
+          {
+            "name": "geometry-reveal",
+            "file": "390-geometry-reveal.png",
+            "ink": 4423,
+            "pixels": "e85ded0d818f83626d7a16355ea2c1192c45f3cfb15942072093678fb10654b7",
+            "sha256": "179886e6d7d3abc0aae4583c58845820dc9a76a59bd1170779f91793c4523218"
+          },
+          {
+            "name": "geometry-reveal-back",
+            "file": "390-geometry-reveal-back.png",
+            "ink": 4462,
+            "pixels": "8ce2b2d49026beef5e9124e18b6ff99cada5d09605f86065222941e2d9aaccf9",
+            "sha256": "0ad44f406a8e5a2d6c0014b66b3e7da48c78af2be074f132e7faf7a7557f4538"
+          },
+          {
+            "name": "geometry-lines",
+            "file": "390-geometry-lines.png",
+            "ink": 3779,
+            "pixels": "183934b78023fcd4a71c3086b5b739cfc5431b9c80b5f23695447c932b3d2a59",
+            "sha256": "2f84cd4c3d1aa639eb44730dccf6461727ba8d2556c96e937d261d87fa995558"
+          },
+          {
+            "name": "geometry-lines-back",
+            "file": "390-geometry-lines-back.png",
+            "ink": 4462,
+            "pixels": "8ce2b2d49026beef5e9124e18b6ff99cada5d09605f86065222941e2d9aaccf9",
+            "sha256": "0ad44f406a8e5a2d6c0014b66b3e7da48c78af2be074f132e7faf7a7557f4538"
+          },
+          {
+            "name": "geometry-faces",
+            "file": "390-geometry-faces.png",
+            "ink": 5152,
+            "pixels": "a9e17133344790aa73607a2d1b356592704c3df6b9edb341b21960762f0c8301",
+            "sha256": "aada524a3d0e06610edd2c52ea14f68b474044cfa44535657dc4418a078fb132"
+          },
+          {
+            "name": "geometry-faces-back",
+            "file": "390-geometry-faces-back.png",
+            "ink": 4462,
+            "pixels": "8ce2b2d49026beef5e9124e18b6ff99cada5d09605f86065222941e2d9aaccf9",
+            "sha256": "0ad44f406a8e5a2d6c0014b66b3e7da48c78af2be074f132e7faf7a7557f4538"
+          },
+          {
+            "name": "geometry-projection",
+            "file": "390-geometry-projection.png",
+            "ink": 4496,
+            "pixels": "7bb950eefec7c7c4196ecdb0fc56a022abeace1e5868d0fc74c9fb417fad22fc",
+            "sha256": "5fbf706cc789135773de16781ca44c8ff0a87e9394288fe901d71bed9e2a8b32"
+          },
+          {
+            "name": "geometry-projection-back",
+            "file": "390-geometry-projection-back.png",
+            "ink": 4462,
+            "pixels": "8ce2b2d49026beef5e9124e18b6ff99cada5d09605f86065222941e2d9aaccf9",
+            "sha256": "0ad44f406a8e5a2d6c0014b66b3e7da48c78af2be074f132e7faf7a7557f4538"
+          },
+          {
+            "name": "geometry-orbit",
+            "file": "390-geometry-orbit.png",
+            "ink": 4554,
+            "pixels": "409dec97392cda9428eaafdcefa827a35033d8e805689bf4f8d12bd80ed4ef95",
+            "sha256": "3ef9a7c6f57a01d2c934163b7d119a901fcf175eb5065df21da9291ea9709184"
+          },
+          {
+            "name": "geometry-orbit-back",
+            "file": "390-geometry-orbit-back.png",
+            "ink": 4462,
+            "pixels": "8ce2b2d49026beef5e9124e18b6ff99cada5d09605f86065222941e2d9aaccf9",
+            "sha256": "0ad44f406a8e5a2d6c0014b66b3e7da48c78af2be074f132e7faf7a7557f4538"
+          }
+        ],
+        "errors": [],
+        "adapter": {
+          "vendor": "intel",
+          "architecture": "gen-12lp",
+          "description": ""
+        }
+      }
+    ]
+  },
+  "visualReview": {
+    "reviewedOriginalSceneImages": 12,
+    "sceneCaptures": 22,
+    "priorCapturesByteIdentical": 70,
+    "finding": "Reveal halves each sampled segment; repeated gaps are current production behavior. W hides curve strokes independently of solid borders.",
+    "scope": "Actual Intel Gen-12LP Chrome; upright desktop emulation, not physical-phone/touch acceptance"
+  },
+  "sourceEpochs": {
+    "wasmAndBrowser": {
+      "build.rs": "868449c0976bf081f2a3bdf270c1ca0842f923b33a9b9e34dfcb0804c7f5363f",
+      "src/camera.rs": "f03e501708e7db40d68daa484151033cae463850451513c34657f8f50207a0da",
+      "src/lib.rs": "0bcb9350dfd2d9e9780745784b20446cbc7fc5c42ee88526d6aec48e4dccf017",
+      "src/selftest.rs": "3953b90aeebec2ed4ef48f5c68bd17f02d2b08cd0bbcec0798930ca5bb836305",
+      "src/state.rs": "6f8f509dc481783573549079f6af298281251f8e1e1d98ec013e85a672f47876",
+      "src/text_quality.rs": "7fef20819989ace4919f20705cdda904656fe960ea557028e9a5dc7b34b68edc",
+      "src/app/agent.rs": "555a699f8286aaefa426d3a0f9704e1444f9a4af2ccb7105c41c40dadcb5455b",
+      "src/app/clipping.rs": "33047462339a5d4fe32742d38e1ca8e364aea126186fd107f1007fbf4158a8e1",
+      "src/app/cloud_query.rs": "96e5ea670b083218e2105e0f2ffa0578cc5c25050b8ce3ee790d00dc3c401f0c",
+      "src/app/coords.rs": "3b19ba73fee97ed22f48b7d5fe04bfc1090f1c31ca21c44265e936893a0e447c",
+      "src/app/cplane.rs": "5d111336f0eec327868d60ac582f053a2be2901010542146de791d3387ab43ff",
+      "src/app/decode.rs": "3bcfbaabd86e3c19ab8803c5955c580d9264ea72266ddc5d84b3833266dcc8a1",
+      "src/app/deform.rs": "fa4a31723cc29e85f01958ff780bcba97df8b063611547a725c5c0247c36aebe",
+      "src/app/edit.rs": "5fc69027ff1534a13a784eac4643f5150a06f92ac9bafa4f6005eb50cc5fe81c",
+      "src/app/feedback.rs": "ef9d81fa1e52d66955423c2644c03083649c595f75351a37f3cdd068609e5970",
+      "src/app/fetch.rs": "57d886ea78208f2bb19ffa13a1a252af18ccfddc7a17cd7c9432a981a1560fed",
+      "src/app/fonts.rs": "d51582cbb4566c5efb172401510ed2d33675a20a0b63f0a54d9218fa7ee14e6a",
+      "src/app/gizmo.rs": "397a00a8a1f4cda1f34ba244a40f5a842f27b1c83d7affc298d0f4276d396340",
+      "src/app/hierarchy.rs": "aa96dc988461e47c2ea0c2eb6dd9762033e1f6f2b7879fd021de74d5e190b26c",
+      "src/app/input.rs": "243af7f73eefdaf0f4ea25f2adf251f1a056ee52852a93a794336c1e595dec10",
+      "src/app/inspection.rs": "01897843f1f53ed9e90646d5e3607b68c691af70e1c84ca5c269319409c119ce",
+      "src/app/interactions.rs": "7fe230e0b3740ee6b8ad24e68880c004cc8e8e882d417ca1517694147c56973d",
+      "src/app/keys.rs": "28abcbf79f108564e48b4c61ee96b8521b69062d467d2c5c2ad787e6c230289a",
+      "src/app/knobs.rs": "b9dba07b897e6498d0a4210dca1b909365a82f46df32eb1a2e8dfd712889d99a",
+      "src/app/launch.rs": "f1bdd451838790b61b9a52ea2aaa3097bf7f68b5721fd7d7ca633ca3c915b5c9",
+      "src/app/layers.rs": "196e1a664f8d6db2611c1c0d581972741b864f8da80037b84a86c8f299cd4d3d",
+      "src/app/live.rs": "6d5a0f0ffc90647a8b4ccaec4a5b88818c6e36769b527f70f626337ab72b2c46",
+      "src/app/live_revision.rs": "91680efc998ea6d91d59bf46380fa938b3f1b9b8a3e9d4be7835096a6bb13c60",
+      "src/app/loader.rs": "6c22d3b5faeb00628e79a93c76a06b22a9ed3104a0f9f7aaa089efafd53899e6",
+      "src/app/manifest.rs": "c75d33f25078645cc91d71df05aa0c15e30c31f9bebc30522c67d875f5a91066",
+      "src/app/mesh_preview.rs": "f3d0f365cb0cee67d71d49b84c59d29b228e2a575c527ab0b5d3e9010a73130f",
+      "src/app/mod.rs": "7a73418bfd2fe185796a933313aac8ab8695e0e1212620d3699802bbb0b7943f",
+      "src/app/mode.rs": "8b8fd508c49537e0e360ba9de8295189bcd81623ac0f67ab61d7f45632fb811a",
+      "src/app/modeling.rs": "7aa4202bc1756cee495ce0f2daefe9c2c320e651294322898c03624b761f9e04",
+      "src/app/range_gate.rs": "7191b2de72b0b5e97074c977abbb9ee6b4d62c383f225c55148913528cb9ce1a",
+      "src/app/route.rs": "009e6ae7e824edebe981be1d31c30dabafb89ae227aec188113f680bfa6dc2b9",
+      "src/app/runtime.rs": "b43a4a1302f9f30cb9e7518ce96147bf12339992e281f830662b7e41dfe06c42",
+      "src/app/scene.rs": "f4ef36d31f2d9176ed6bc66a16e9871c8a8f175d74c3b22bb7d40d436265eebc",
+      "src/app/scene_display.rs": "d3de18bf2ec5b01cbcdeb7b80bab61ed85cebb937e4fc5d744de1f0c66f0e7c5",
+      "src/app/scene_instances.rs": "614aa01d7777e2715f35d53a009d28dcd5f1ba41e9ee59886a3c4474a41b37b9",
+      "src/app/scene_release.rs": "303762b672d80c9988dd590010870ae4aa06b52a6e41cdc23c9ebbfa23d35c41",
+      "src/app/scene_rows.rs": "d21f7804c6a58979381774fff193155e16b9b96c43c5f2cd0022eb3e4f1c7fb6",
+      "src/app/scene_sync.rs": "b43a8e86a8bae9e996db38320f6ba9f51906b542d1c6bc83a43c4fe2060e777c",
+      "src/app/scene_text.rs": "7294f84b7b73e0db7adbeb62ebab58020032c3d92e0cb6d4763a48f70e66e8d5",
+      "src/app/selection.rs": "3d635d3895cb8b9446d1b0b6771e6377c625985a599574fef0eee8f56cbe83cb",
+      "src/app/session_io.rs": "ca46739b5e8d4ff3fe5b5bd22b2d35ab76d0a55c0af3ec2a4ce38ec97c3b87be",
+      "src/app/sheet_query.rs": "9ff2b40923abe62148dbf2ac355ea7f6db00a3a0402a6f2cf1dbaacaa6916ab7",
+      "src/app/snap.rs": "174fe242e49e33d825acecf477d771a2ed4a7a0bdd7120c25938ee90241ec7cd",
+      "src/app/splitting.rs": "a0dbae4879d78824672f8fac79480a54eaeba01503a7083cc2b6bc0128605976",
+      "src/app/stream.rs": "17b125e85e513f0d16ee7bba163a178a41901a9e4205886b9227729ee5203299",
+      "src/app/surface_preview.rs": "d7527df1c881b721e3077a432f1a1e524b9cbc3e7b653d67d089f45dc4b0de02",
+      "src/app/touch.rs": "6e45e9c59952bcfb102bc98ac9cd0c243d042c52a623d330605ef6b1b3ac6460",
+      "src/app/validate.rs": "c7e6e4fbe33ea7af6898a18b92758df01f46cb43ea2aacd09d5da346a57623be",
+      "src/command_dock/mod.rs": "a54df69dcadec39f2d03f8f6e99025bd8737184d9ba9a6431f27f300ffe9ca25",
+      "src/command_dock/theme.rs": "2064473cf413d0be10ca1f71440db34e11912c30893a360f11e446a5ffa2099d",
+      "src/command_dock/view.rs": "2b6c7b55d1257a7be5736edd22e69194655b6e14d4dfbffe5c1c01e86456f204",
+      "src/engine/diagnostics.rs": "200a9208c5d9da41dee78c9279bd9a830a0b79d8f8885b9591d199323224b059",
+      "src/engine/mod.rs": "186b4e95cb195045359f380e27b7eafafb50af19f12113a46960c9e6b8de2198",
+      "src/engine/performance.rs": "9af6ad217229da7622056edc49ec89aa9c4ef01439e23d3aa1c3a1a4d0bae1cc",
+      "src/engine/text.rs": "a72f2c7bf9f0755c71a54e78ff83fb72257fc9c04dd2d0ec6b1aa76880943446",
+      "src/selftest/lifecycle.rs": "21a28b047fb48eeea41512ddff63199dffeb4a73f3c13369aa910a91f1cf95ec",
+      "src/selftest/oracle.rs": "30883e82ae484fdcf5b6abb70c02900bde7d721d097563659a711d738b201021",
+      "src/selftest/profile.rs": "3f00d2715d9b5b3498e07af727b4b13dfde6fcfba83c7fd0a945999ea9bbeff1",
+      "src/selftest/stroke_witness.rs": "d7d2bd03edc3e7f384eff7034cad2018b94f10732bd996dec34aa910d96b50e4",
+      "src/shaders/ambient_composite.wgsl": "15eab6b52a9dff22c38cb505ff7462b5b4cd6bdbe3e5223716902a231b9dd6d8",
+      "src/shaders/ambient_depth.wgsl": "80258c80084418bc9211c6c31438cc52d0944509a23418f9e9af4a7765d84cac",
+      "src/shaders/ambient_geometry.wgsl": "1c5912fa54065258945357e5d555d6c36a98076a46bc10c6cba4f1c7997e8ce5",
+      "src/shaders/arrow.wgsl": "cdfc4ae2bb668430f5742ba33213b96f584b2b9a5e6e317dafdf8beaf7c18662",
+      "src/shaders/background.wgsl": "ea62408626759db7cf4a3756d83dbbd5aead2621aeee028f4c54de4310ef2aa6",
+      "src/shaders/cap.wgsl": "1892c0314d7ed98949f6f56711e2cb002ec29b2c1c1c46ff9c4b31357ef7bde9",
+      "src/shaders/clip.wgsl": "975782a36e64719e00eba623a42f28a39919c03035a71525e384d97ad3837544",
+      "src/shaders/face_coverage.wgsl": "e4b37b7fa30f5cf6237a0aa7e20287ad36b3cdd07893e43899e2bc33fb1ddd16",
+      "src/shaders/glyph.wgsl": "f02c43132ae3cd3612262275c3dc71f751c0507e86a3ede948d0fd1fc2314cc4",
+      "src/shaders/grid.wgsl": "094166f31a5f73bcf7a3957f077a2e299362b1e66520d3325b93a81e8bc922ea",
+      "src/shaders/ink_visibility.wgsl": "17111b9fc09de6d3f344f39f83f31d4dfbb8c57f92fe1763f635f73cb0a3a475",
+      "src/shaders/matrix.wgsl": "0f319930e6a82b89909f4d71447b2d1b2d82cd11f2c4071f5f62e635e83ce620",
+      "src/shaders/normals.wgsl": "1776ddecbef8a7ca5454216697fb4d4aff07e631ea3452a885b6a47df8056733",
+      "src/shaders/physical.wgsl": "197265d033815c44654368907825505fd55b03ee29cbb3ffa7bf04d3a4dd6c35",
+      "src/shaders/plane.wgsl": "868de66d5ecfe9c614cc1c030169f97f7e502820d3b72cf4eb9831cd50414478",
+      "src/shaders/projected_triangle.wgsl": "3e569eabf25978668964bec693e0e250d8e634900fdd4d14808db6338a815b73",
+      "src/shaders/project_triangles.wgsl": "d430e2c245d94f667ebe20b3263c03f8ec61bb46c5e03c5229fa01c3f6b0bf94",
+      "src/shaders/ribbon.wgsl": "daaa9f018f0b1e5391cc1d3edc21d65457138602fdfb32f11340d0eb287cc89d",
+      "src/shaders/scan_triangle_tiles.wgsl": "d04d5a98009c0d253b4e5ef5c5751b8ee48239878e800753eb99e5f856e02ed0",
+      "src/shaders/scene.wgsl": "cd77cd9c125e2fd9cf80e33589d445f684e04cf11f80b9b7f763bad85a898505",
+      "src/shaders/slot_table.wgsl": "0837fcc793e41b6706c3e00b7dde58972fe4fa9364d3227c8f1f5a193a17fdcc",
+      "src/shaders/sphere.wgsl": "4a4bbdb2853a6525beab037611cb9b2135ce42ad881154b8ab1d46c8e2c24a4a",
+      "src/shaders/splat.wgsl": "375bed442852f6bd755df5f802bdfeed77fb8dd5a13ce87069d098aebba6d16f",
+      "src/shaders/splat_resolve.wgsl": "511ff9ed8a46fa07338d7335b8b8a54d4f808c06d8a823688d8d78e7360f417f",
+      "src/shaders/ssao.wgsl": "abc35b0b2547741b4d092f9778b74932a2e035b23125d7feddffe19a71bc765f",
+      "src/shaders/surface_outline.wgsl": "446689ea45e5cf0fd03011250271a296eddf4942ad9e0dfd4432c8b57b089885",
+      "src/shaders/text_outline.wgsl": "c06b165b85ee2a0bd20d0348f1aea3d1ce811a7fd76d66911380ef62fa8be03e",
+      "src/shaders/text_plane.wgsl": "8694a4d32e4676415b28fa4727bf4c1645862e80f4cc4e65e41c79ab1e5451c3",
+      "src/shaders/text_plate.wgsl": "5721973099036446bcd3310cb4ea28eb522b109009236602f4c00d757900b4cd",
+      "src/shaders/triangle.wgsl": "ea26805ce07269fb242562ea71dec4fee114794d5cf24d385c2f1c2e9516960b",
+      "src/shaders/triangle_tiles.wgsl": "21bf7777d18bf7e506f97c0a31d4ab5a64bf6e062ffe0698dd67402806876c0f",
+      "src/shaders/vector.wgsl": "687667c6a41be239a3ac75cbb2707ec567d156014c5564c8f7369b4cf62017bf",
+      "src/shaders/widget.wgsl": "4337efb0b24e1fa1116db7dc9fb6690e3745433168a704ff7edd71597416f8d0",
+      "src/state/box_select.rs": "3b0fda742185f5e1fac8836aa094707ccf7a66cba115300b52e1b40520c5c07d",
+      "src/state/clipping.rs": "0b49d749ae19ee39f8adf3a26607b3743b6e0ce7958eef7b86f56afba36d2148",
+      "src/state/cloud_query.rs": "5aa517e86ec917b672f38e4feb4e698c19addf6dbcd498987e777eb9c8ada999",
+      "src/state/drag.rs": "e94d90344c4cc68710cf5abcb2cdffc31aca7d7a53d0f3f49e093b0380a2e061",
+      "src/state/drawing.rs": "27029dc6c96a8679a8e2ebb4c612ab7db41b208bc77cf8376bbe513a9129f145",
+      "src/state/edit.rs": "ae99d6455cb03aacc2402cb5d8a6c292894add723f88453d145cd4a27bf866bd",
+      "src/state/features.rs": "ee1c73729eb9c1f04561f0be52fc1050332a0fba5726086bc25c68c1bb18e9f7",
+      "src/state/hydrate.rs": "5425a603e63bc9090e2f9e7cbc8e16afff75aa6a9382295fe1911b95a90e6b5f",
+      "src/state/number_box.rs": "c32afcd959720c2010f60127f2be1315f468f502146935d39468e9fa5f88b9c1",
+      "src/state/panel.rs": "64ab32057ea1909cb802154294d9e56f3d53c261ca5ea63d8b5ad9d3bf8078d9",
+      "src/state/sheet_query.rs": "fc2d5fff6c5e5d794ee31d4f438e71b87e1043f45b0c36439f837d7f0691d038",
+      "src/state/splitting.rs": "a8d8586f1b203bc82040a37b1d52b314fd3f03a9f1a5abb766999ea76d6f4924",
+      "src/state/text.rs": "fab03acef3a6796e15211bba69b00b60c9e512448d3ea34c7817d00c5763feb2",
+      "src/state/tool.rs": "044fd2c8f01f1ce7995d89f04022de261609f9e65e552b4d3485c74f190c2889",
+      "src/engine/gpu/ambient_warm.rs": "94bb4b260a7875b4c82be81acd8131e3cee556020f3cc5145608ec33d6f52585",
+      "src/engine/gpu/arena.rs": "7f0d4e53f55d3a1bf384da7ac7781766b8faf4e9f7038ab0dc2c29bb7f6e6441",
+      "src/engine/gpu/backdrop.rs": "0a676618e3c9f520eb6cb5151219b45bc696d79fa5085464fc85f84e64f5d76b",
+      "src/engine/gpu/buffers.rs": "8c14a571bdf888857fa499e6531f9091743ec6c09fe37ab12e373c3635eb94a7",
+      "src/engine/gpu/clip.rs": "5ccebbac50761e847fcfa3b4d1ed91f71592d425004ea004ab3a1013c1bbaeb4",
+      "src/engine/gpu/cloud.rs": "ebf520f190ed3924efa465cdeac6d743ee9c2f1db337067955ba08d96959e3a5",
+      "src/engine/gpu/context.rs": "b5e1471cc5d0789f4a8c0159b333ee317bb8d1cccc008540252329075c6fc9b8",
+      "src/engine/gpu/device.rs": "ced1cff229cd47c5cc3de6d7713b7049ce2181cac444226bd27053b397774a20",
+      "src/engine/gpu/faces.rs": "b48b373d830c28cb9e9456e421390d7f326b4910c9608f487dcf1834be78ff71",
+      "src/engine/gpu/frame.rs": "d12fdce6ebce0a847ba8a4a4367cae387895effa0646be5f1e9b4561f3a5691d",
+      "src/engine/gpu/glyphs.rs": "f992838e16e6792174214bd4ab67040e33026b9d471fad5b988ebd0597716970",
+      "src/engine/gpu/hull.rs": "81e121ee38f8fd6da3cc65207b1cc189b84037f231139ade5bda937a80bec9e3",
+      "src/engine/gpu/instance.rs": "476b05dea6ca50343301225bc0b583a93e2fc05a17d8efefd483eabec0e4de5d",
+      "src/engine/gpu/instanced.rs": "f6fe9bb471dcf30fcc81534c6b20ebfbc1755c9cb0cea0edadf6272ab9e673db",
+      "src/engine/gpu/lane.rs": "31ef04973f2e131bf6f50438cf2ee6feef2884c9c1e6dc5074abbc31f4968f06",
+      "src/engine/gpu/lod.rs": "75dc349e43f44ca3bbbcc26a88f7bc3d56189a4268b0a2e3523e7903e9148a08",
+      "src/engine/gpu/matrices.rs": "00f606b5056037de1bf3923c7874202bd1877af7591759713e48ca46a3d5a1de",
+      "src/engine/gpu/mod.rs": "78e923c54cf6d20f06bd87e2c7034c7692fce8627c1454151f80ac89c64aa5d4",
+      "src/engine/gpu/objects.rs": "e707af6d6bee8591fc9f16494a09ff27b5b10e38a29357e19ddec923e17229c9",
+      "src/engine/gpu/pacing.rs": "9e5916950f6658ad02b28aae1e009cfdc4546c4a4c4ba24c59c9194a7675b427",
+      "src/engine/gpu/pass.rs": "cce6cc842567b136d01ab84d8ef1e39a5b149063128a5df932babf6950c80dc6",
+      "src/engine/gpu/patch.rs": "00d8fae175ca925c7e48b8304c702550b1633f56747b4130ef22d6218cd97100",
+      "src/engine/gpu/pick.rs": "8dae0bfee0fd18e17ab90b1c0a61cb028af4d87bac29badb72a08c0325ea65f0",
+      "src/engine/gpu/planes.rs": "f0e509a16d84aa675ffd8c6b335a2a4f6074f120690881e4b1eae202a22e1f61",
+      "src/engine/gpu/present.rs": "a0d147bbae415b1cd1246cd030352d7168b7c5f4a7eba5f921298a954819698b",
+      "src/engine/gpu/render.rs": "024ab39d6ee379297f209120f510063dd0037cabc69780b9b0afb1a7e67b5921",
+      "src/engine/gpu/segments.rs": "f44565ff517b0a9bbc7d0248b537a46edde66861d24509f76abf6ee3b346550c",
+      "src/engine/gpu/slots.rs": "ef303f3f3e534502a9d90561955d840c091dcf9b2f1f69fea4f5540fbbfc18fd",
+      "src/engine/gpu/splat.rs": "20f52e37a011f07d683c1b24984e3747871c50917933dcc333fc4e3584d491cc",
+      "src/engine/gpu/ssao.rs": "48296a4b325001b1f196be479098c67a346e1a2d60e978cf2a0bd0bd5fd16fb1",
+      "src/engine/gpu/surface_outline.rs": "d04e0e0604e854b35b9a0e10c0c67c80067cb1d6e47642106846a176415030db",
+      "src/engine/gpu/targets.rs": "f16908f3fd299e876687d0894374a440820ed713d3adc57689765f9991d2f140",
+      "src/engine/gpu/text.rs": "ac22022ad4c3820c2a834ce060286094f24d7a0a7a30633eac4a26231cfa054a",
+      "src/engine/gpu/text_outline.rs": "8444903f4b6c8132375822bd8d95eb5e06b51e023cb3487a730e90c5b3b842a1",
+      "src/engine/gpu/text_plane.rs": "c359f7b06e9db8bdc940f880007cbee6e66f51feb8878e771454f9798cfdc524",
+      "src/engine/gpu/text_plate.rs": "b7ec607e1759845577f9c10596ebfea2377bef4f3777ced791f0592f6a71a9c1",
+      "src/engine/gpu/timing.rs": "9165356ffbe6773316ddcfa7bd4e68c7e7ecd36892eba36a7dcb9d8760ef8ccc",
+      "src/engine/gpu/triangle_tiles.rs": "af86fae3430024c5510a184813683adbb03e01ae10666cc05f3508dc789c1398",
+      "src/engine/gpu/ui.rs": "bcd2014f8a5c3cefae45889453d46c4d8080fe3885e2d2edaad1b294696907b2",
+      "src/engine/gpu/upload.rs": "d8a88e7f7fcd03c316981bdaddee78ec6f6986be87e69bcf0f298c9b172dab5f",
+      "src/engine/gpu/upload_padding.rs": "2717e93264332c30f966e0099dda529a2d6d966f57a8890ab357ef709463f9b0",
+      "src/engine/gpu/vectors.rs": "1d00e493774cb5b67c60555f484de5ba393a61cadf8349ca3aa82b085ecac04a",
+      "src/engine/gpu/view.rs": "eb0238ffaccef5a505b185d6233fe58233a395c0e24cb44788275a678148543c",
+      "src/engine/gpu/widget.rs": "89e1986353d281db23313eb5f3d3c294fd4a7b5e42c6051d76e22ecdf3a44003",
+      "src/engine/gpu/widget_mesh.rs": "89d73dd598c5a0f7639409e724f3df910c09f3ffcf21de16f0cbbd8e669c7306",
+      "src/engine/pipelines/bindings.rs": "7799e0467c095eea09730a0fc7c34847dfd8409dc1280ddda0bf171d35a77509",
+      "src/engine/pipelines/core.rs": "2d7a9e812382036850909b0b75cc0241d0cf7d71c6a4902e625ba61c20ceb1a5",
+      "src/engine/pipelines/geometry.rs": "131c639becd056cb0822ec409049173e1fdfd2154568abeb85fcc0f9026dc78a",
+      "src/engine/pipelines/layouts.rs": "def1eace1cc86a381eaf2f3cb018e7bce20c3e5367e9beab52c99c4202606836",
+      "src/engine/pipelines/mod.rs": "89152f3a33960399d63190132155ffb086bf07e3eb2fbd5c72ef503c7f81a22a",
+      "src/engine/text/application_tests.rs": "470c1e11cd9f6a6fb9b446f2ca53a364eb5b37b24ca02cd48382f77df3675ded",
+      "src/engine/gpu/backdrop/application_tests.rs": "b1249353f93138ce283e66d717d8670eed790f48ca26c9e53ab1a4f0bb3231ce",
+      "src/engine/gpu/clip/editing_tests.rs": "a2a33bd4ec7227c92019a4e9bb9f43e26e0e88839d470b45c9be81d842576e54",
+      "src/engine/gpu/clip/pipelines.rs": "483249eef637d0deff02d1e80d96ad5ab56247e18e76faeff2fdc26cd4fdab73",
+      "src/engine/gpu/clip/tests.rs": "f7bae7652025a8f4b05537e3a92956922c64f7d655998fd37b2119ac30e9c3a9",
+      "src/engine/gpu/hull/geometry.rs": "d61561311ba56516da9604a410e7a515a0a001511c729ce11793279791d66248",
+      "src/engine/gpu/hull/upload.rs": "2ddae15d6ea4ad10b1a6ca7710401517dd50d673bb9c9bd286f07da1aa230704",
+      "src/engine/gpu/instance/layout.rs": "c6d35c44b32b7d21d32083a90a52290a007934e96a4fd2efe09770911bccbb7d",
+      "src/engine/gpu/instance/validation.rs": "22bf66cc43893d3c550c43d35b622a5fc0a648cb85f254496ac6e40b5c26a3f6",
+      "src/engine/gpu/objects/gpu_tests.rs": "fac3f5ab10debc79e992896b40756f12d4aa7b8de8e0028a7dfdc19b9c3e006e",
+      "src/engine/gpu/objects/ink.rs": "bc6acfc40f024100e098d03f8a989559f985eae40bdc7162227e55d470e6d5e5",
+      "src/engine/gpu/objects/lane.rs": "82590ecc2d6016b1cbccda7b00e6dd3c2be6f80f15ed563162d7b911c77103f2",
+      "src/engine/gpu/objects/table.rs": "c1fad237cd2ffcf8402dd8a636105a1e3487b76290c97f690ce7ae3519778d7f",
+      "src/engine/gpu/splat/cloud_witness.rs": "e21b20cf6f512eda92957d41f81aa8b7154fa164884772ede0aa499443f2822a",
+      "src/engine/gpu/ssao/pipelines.rs": "3c87e0aa194178f974ba21f2b00e34394339dd9f0ce41a06fee52774b273b569",
+      "src/engine/gpu/ssao/tests.rs": "193e7577b6dabe892c02baee6fb25279fddb58640a8de66c73500b783234473f",
+      "src/engine/gpu/surface_outline/tests.rs": "99b0843e70ab243ba97eb8983f7685b66cb62af9fd22d4af3e68981bacf06f5c",
+      "src/engine/gpu/splat/cloud_witness/lod.rs": "982f3d3ef796d537386887d3a95610f9194580af04cabb1a7b54109121016175",
+      "src/app/command/mod.rs": "cac847942016bd4f01d5478dba67d45eb5dc45990a01ec41a969a6e7cad0b860",
+      "src/app/command/tests.rs": "4d808bd37ad46452c22146eb03a0d037059d2811237a10badd9624a26c589c3b",
+      "src/app/command/tool.rs": "0ffab8dd44bb77d4becb04a77f9c644fbd9bc750ccb9b6c983cd945dd068d19c",
+      "src/app/gesture/box_select.rs": "f52620890c23afa10a99d046a9985fccaa8b15639c972a46a0fae94a2bf88044",
+      "src/app/gesture/control.rs": "e58ecb9d4da6bda5216ac2693a3d319be7f9fc386f80afb2d6e5f8df012b2f22",
+      "src/app/gesture/gizmo.rs": "6ff5f1d9cbd6eb5830a0e80c46813699ec9a195bfc7f1476c342d064b6bd850c",
+      "src/app/gesture/mod.rs": "e018ed6014446a434e463e9aeccc63d09cdf6d652a0385123eff1310ae0135f5",
+      "src/app/gesture/object.rs": "009f27a8d77f8a767e90187456824324f27fb70d0256d30eb2af9503ad8806c5",
+      "src/app/inspection/source_memory.rs": "0828d7ad8d7b3c0ec05422be79edec175739a05e7f6fe94341d77aa10e12541d",
+      "src/app/scene_sync/allocation.rs": "ecb2566170adffa7450aced660683e5bf6bb5e910f95a3d8161ee4359b29ad13",
+      "src/app/scene_sync/commands_tests.rs": "59345b4f6b949658bbad2e664428ceda88af722b9b146cced8e7784e088d81f9",
+      "src/app/scene_sync/compaction.rs": "1f1e4598b7b7498f3ed7ed7baa9eb0656cf5d6baee2a92bae01400e5109d7f6a",
+      "src/app/scene_sync/editing_tests.rs": "0e8e6b90788ae1d45ddc2f03cbfaf5e807b1e7c9b47e66e97df70bbad8af8826",
+      "src/app/scene_sync/nodes.rs": "9c70230b1bd744d5c476938d594ae2be256c3b39b815b147707cb05759ddfbd4",
+      "src/app/scene_sync/notes.rs": "fa02d60b45d4f74823d75f6786780f7b24448cdf17664b9fdfa4e7f66f21a3ba",
+      "src/app/scene_sync/panel_tests.rs": "4beba4f873594d0aa0dc1836720ad18739c0124a13ad0c0884fff5e4095f17c4",
+      "src/app/scene_sync/preview.rs": "9df6f4543433ac9da0cdd853ae93ead478a40404a4b824096d22235c23341e8e",
+      "src/app/scene_sync/split_tests.rs": "ef2a718cb61c31593c0d5d255604635ce33ad7a1a639f9e0a408ec21dd9c6b70",
+      "src/app/scene_sync/testing.rs": "9716dce2aeebcced6e6aa72463950f0f4e1e17471942e23752b00ab52af943fa",
+      "src/app/scene_sync/tests.rs": "30b78b84c2cd80a13cdb33f4cc68bac04645a05596b74216999df4e98a9d22bf",
+      "src/app/scene_sync/tombs.rs": "28a67ed93264bb00966ce931838d1e5be57ec819e5bc7f562b1515a9a904d26d",
+      "src/app/stage/actions.rs": "b5ce046152cd3795108f9a252b80c36ddfe8c7feb1c34bd9144c8d356851464b",
+      "src/app/stage/application.rs": "ab577d5be11f02da1afb60304041db105649e17ea72e6af2b33bff6089973883",
+      "src/app/stage/check.rs": "af16790646943f02d4a57f6c7104578455adf480eed6932836336b9a3f9ff93d",
+      "src/app/stage/deck.rs": "b4628a578378372cf4cb5558bd45fa6de718f0cb41016622e37846a8be9d01b1",
+      "src/app/stage/draw.rs": "e0c095450c0fee8659a577be4fa41dff8609b81745ac4801a2f49ecb216ec43b",
+      "src/app/stage/eval.rs": "32d9122344a1b35e78050095f402d7651f2c88cdf3e78d2d75e5312bd19b1f21",
+      "src/app/stage/font.rs": "6645dbf2bedf6d3d372da3f8acf2b018bea725d89fa0291b7d62ffd8c17c500c",
+      "src/app/stage/geometry.rs": "8cf47a513ba7e62566d483960658b77c6af9ecd0b4c0c1eec00a9471ba71bc3f",
+      "src/app/stage/layout.rs": "4ebcd476d756971c9a613bc17f998a07b4bbfde1a4d851a6796259e47478c748",
+      "src/app/stage/math_mode.rs": "f5ec8940c700e141336d4e2633ea6c171dc1656cbea9fcaebc0ea0a3c5b6d4b1",
+      "src/app/stage/matrix.rs": "a478d50c41e1eb4966562107235664ee797f5567423aaa1bfccb0427544b55fd",
+      "src/app/stage/mod.rs": "ead4c2b8ea014474d43cbdee0c1fb848cb51f885927ebac9b98c0e021df669c4",
+      "src/app/stage/mode.rs": "4827d9f9debcc7319fb1dd955f04f269c6677f83ea77e904d85907fc78eb55c7",
+      "src/app/stage/morph.rs": "630f4c05c1becb397e9ca42a5f7a51a2db8329a56e648088c1d7ce613cab090d",
+      "src/app/stage/net.rs": "dee2ffb3e973e003859694001553c4ed1051665b8ec72efcbc1373ce07c0d555",
+      "src/app/stage/object.rs": "49ba380ec63351e3db9c8dd65c0680e0c09dc7494fcb02815df8c909c8eaefc6",
+      "src/app/stage/paint.rs": "be4eb804a3a204bf6393f4942d94849c85c665e09152cebcfb657c4e375d876e",
+      "src/app/stage/presentation.rs": "fdbf3e6afaa9749827c0b71ecd0e251e22f927acb43cd0150df3143c45acf51d",
+      "src/app/stage/presentation_tests.rs": "16449bda13f8f7c294eb0640613e45604a7e487fda2ad54cbd8eeb0270b5d78c",
+      "src/app/stage/run.rs": "92501f32ea13bebed0f35006be924709a1c719e803343886c0bf476ffcbf266a",
+      "src/app/stage/spatial.rs": "d57b839143759fc4194b357659ddcc11cce8ae1819e75cdc8d54918e5e8ae0b0",
+      "src/app/stage/tests.rs": "54bde7512f9757e27a6cd410768bda421a952921c6b5f70c3d558b5c18b15000",
+      "src/app/stage/tex.rs": "de2b9d5716171c01ec91111e140b0e20928d981bdf14654f2c3cc3f3542424d3",
+      "src/app/stage/tween.rs": "31f13764cc04bb045a1c6247f3cdceedfcb64734a69bc8531b116ec82b69c3c1",
+      "src/app/stage/view.rs": "f79d66cc48bd8a65fe811e59b4a8764e558745f021f80da4d79279aa749f7eec",
+      "src/app/ui/command_line.rs": "e1465627dfb1b6afa326bbed8ce025de3ec0daa4ec4f0d34504099475e3d1bc0",
+      "src/app/ui/graph.rs": "6ed37b504001f80ab29a864567ff78fa8125a997cf4b179d538e8b580c7f11b9",
+      "src/app/ui/layers.rs": "3ed1b04e06c3b56d6ff39c0880be39c0944dcb4fc5847bce2adb127050da96ba",
+      "src/app/ui/mod.rs": "0db2be8c3837d3ecec73ab13a186bd4c7021e6383084071640e0e618b892dc78",
+      "src/app/ui/number_box.rs": "d38b57f74e9bb3ea749111bff86d8ef67fab2bcdd1293664c487bab08619b7e7",
+      "src/app/ui/overlay.rs": "99e66230fe357a9922134146603afb7043628bff4a0a4e69b16fe52863812739",
+      "src/app/ui/phone.rs": "40633a8dc3394a6898d30d324b19912f7002505720777a94a5d3fd64a3d32182",
+      "src/app/ui/pointer.rs": "7172927a19316efaa813fff3b3963d68fb5228e968f2c6e9ee55bb26cd60323e",
+      "src/app/ui/theme.rs": "a45673d3ff48b2114846750a22e2ced36f22dbfd7b1e11752914ecbd54b71f3d",
+      "src/app/walk/application_tests.rs": "63a5e81fb99d2e5a3e3cf9b02494b6c2246f66bd0086abdc092eaf9779c5d4bb",
+      "src/app/walk/bounds.rs": "d096f1b8f4eb435d32fecc40ecd63ef3f966f364a2dc0ec2a4c44154e7f4529b",
+      "src/app/walk/brep.rs": "70445217fd807ad33298028463c53990c631a11730f3f0baa8eaf7f5cda3bcb5",
+      "src/app/walk/brep_edges.rs": "360e6c481e269853b2c6af4f8d9ff6b64d1a706871cb34d19361f550ff272d47",
+      "src/app/walk/brep_orient.rs": "7d819164969180839f1c344ca653e77ed0d8693f694702b85baf7047f2b37315",
+      "src/app/walk/brep_shapes.rs": "e8f417ea6574c5f3151401b62f674fe37bd825ea4cf1a3b23d8b3ea9381ef97a",
+      "src/app/walk/cloud.rs": "5f3b3760db3684a8ffc48758c7af5587b13801fac6ecef557d2931c326fc460e",
+      "src/app/walk/curves.rs": "fc35bdd392da229cca1d5a0fdce0e39b0432ea2f13338adf0ac323cd878f743a",
+      "src/app/walk/display.rs": "162ba279e5091ece84a831fbe8734b83dff3e159775b855a24cefabb0f95a685",
+      "src/app/walk/display_features.rs": "a9f2310994bdef6ead1789330e0d5e66779ef20507f8e0c8dc116ea4f5df1829",
+      "src/app/walk/encode.rs": "a925576401ada960e52a28d669f7bee634c5c4213cc74207846c3a5a22af3a83",
+      "src/app/walk/frames.rs": "6bbeba3f69a39d759cc45d80ad22a81686be5e31297d1f880b4ba778d760e1ee",
+      "src/app/walk/matrix.rs": "b6735b4df9b65e9d377f15ae371a410994693aa5043e3ca46c02676c79a70aeb",
+      "src/app/walk/mesh.rs": "a070c4a31a303339687adfffd579446e31f33d44c4a3a5c4ca49cd216265e060",
+      "src/app/walk/mesh_ink.rs": "8d9ac0dd2e5c4b4ac38ee3e1cb7fb39b99c10f399b4e45065f65d395265b9803",
+      "src/app/walk/mesh_topology.rs": "9a207b8d0152661e846568bbf5971c3c24fdf5b33e3d5bf4acf6b5e925846ddc",
+      "src/app/walk/mod.rs": "3da1c655191e8b6fcfd15a36e0ecc05fc03fb0726cf84eabd7fad923fa916d51",
+      "src/app/walk/plane.rs": "9be8bd22c56cb84393584e3fa969723563805be0350b49db1a9aea04ec58c30d",
+      "src/app/walk/points.rs": "af7baa2ff846c8ede26274635f105bd34377cf2aa63576424ff53da843d38330",
+      "src/app/walk/sheet.rs": "c5148556dd5a0ff2688c63316b89c53ac79fbb747bd8d70de706ed2fbbff115f",
+      "src/app/walk/cloud/resident.rs": "337a14826d548276740bfffa058365234c7a3b06b2b901297a2ccdb2a89462ba",
+      "src/app/walk/cloud/stream.rs": "b2921ade050399855b52ee401dcb2e17ddb878d10f87063362909dc385b011f8",
+      "src/app/ui/command_line/tests.rs": "f42ad65f70e9889f3d09e62bab1a04043f7f1d611f49ba7adb835394a3ed52e4",
+      "src/app/command/tool/choices.rs": "2b128f729985b18c0901ebe6dd8780d54abf701394b020da3c3408f3b2b3841f",
+      "src/app/command/tool/cut.rs": "f235a9a255206f1ab3bcf1aaa704a619a95a944fff11d8f1307d691ea0d2c84d",
+      "src/app/command/tool/gather.rs": "acb5cc3b8b424c5c0889fed4ccb994f3a13da0d4de10dcc0944f05fd932d913a",
+      "src/app/command/tool/options.rs": "b86ccb79060e5159fbba2cd57d7b0fd22c14ca8472ab499f03bdbd5e1971e938",
+      "src/app/command/tool/shape.rs": "54c275cb3c8e5fbd4c0e3ea4a47910ca1ffcd5e92405d8055ff5088e05f049e7",
+      "src/app/command/tool/surfacing.rs": "ef9ef71fcb065485333be2ad358e832de162c3acb30a754a73009b22fc8df7ce",
+      "src/app/command/verbs/add_edge.rs": "90e9e807c4a56b5b10bf5f1c3ad35326a5ffcda043043b62680068dc6b5585ed",
+      "src/app/command/verbs/add_group.rs": "193f4e783390255a028dc24581a66659b2c82602e20a67f06d42d70540b8c10d",
+      "src/app/command/verbs/arctic.rs": "04637eef3834bfb9c9d76d415d30f7803d857a267ad4472c91117dabbb374f39",
+      "src/app/command/verbs/area.rs": "9951cf47f2ba308fca8b14e79d0b21dd9de84ec71328f50c808bac970571b73e",
+      "src/app/command/verbs/arrow.rs": "cd80826f3f4170566ac9d72ee72fc24399c137a761282b1211392e1d2e187997",
+      "src/app/command/verbs/arrowhead.rs": "33d52b895d61bd9754cfdbc590e867bb60ce7efa3dc8f8a208e99ff1b6114c87",
+      "src/app/command/verbs/attributes.rs": "fb0300c25c2c5decebac7bfea8d7740e031fe58c16444c2bb36074f353bb7e19",
+      "src/app/command/verbs/block_with_hole.rs": "ef3b9abac04888315e6cb616f95cad7a296ffef58c5f3d417ed812379b2816e2",
+      "src/app/command/verbs/bounding_box.rs": "5baa3e329f91c9c6a2be572e4f8752e8f49effbbf564e3230bd00d8fbfb21479",
+      "src/app/command/verbs/box.rs": "0f6b98541d82ea317acd703a136d8a5962bee64fe5f07150db36945c4443e986",
+      "src/app/command/verbs/capsule.rs": "193edcbb4eff8c02c47ee461fdc0cee1ea7ad98777e882472dba3b5c1918e3f5",
+      "src/app/command/verbs/clipping_plane.rs": "400dc33be2b869ae93c0a981c17116fba56672dc6326ac50efb23ff71e7bc294",
+      "src/app/command/verbs/close.rs": "6ecb9cf60556c359550c1c85dab54700a98b31f9883dd9317e6d1129241a24c5",
+      "src/app/command/verbs/cone.rs": "c3021c10760195345f67555ed9db7920c58a0a7c19ad925f1a9bcb5d912e0992",
+      "src/app/command/verbs/construction_plane.rs": "078a4a7462a809f4b71978ac5579ecb8b9844eb41ccc9ad121a7efeab67aaa23",
+      "src/app/command/verbs/controls.rs": "12bf2eb1ef670991804bbefcab39aeb3f450037d96981f973494f403b88fd909",
+      "src/app/command/verbs/copy.rs": "eecc6b3b7ab0b379e8bfaa61e9be5210a13ab6e76917909ed6a0de6c34bcd257",
+      "src/app/command/verbs/curve.rs": "00f85352d925c0196603c314a63090d359081f5b5aaafe635356d4ec1dc4ded1",
+      "src/app/command/verbs/cylinder.rs": "8c69c4c8a45352d92b7963fa59a247594e67b9d5fee09b985f288fbdeb53744f",
+      "src/app/command/verbs/delete.rs": "c573604cbdc1487b2b94c8430ae04b4a2dae3421b11a6fdf02176de202d4ec19",
+      "src/app/command/verbs/dodecahedron.rs": "ce468793396a169f84b3c5454f931cfbeecfa6d07993604c1f4b7c192d0a431a",
+      "src/app/command/verbs/edge.rs": "fe7666c920dddffd7b9e195121966ea519aba55b7716f86b26ae3788b05e90c7",
+      "src/app/command/verbs/escape.rs": "0e7a4072d6a64c4e1b5c5b76cae3d3da6a563461379be9222ea035ad132965d1",
+      "src/app/command/verbs/explode.rs": "353e44e0cc9953f0e06aead9eeb42cfc9605bbcb8caa72941b945d16f732c7ac",
+      "src/app/command/verbs/extend.rs": "c86295b7fd4314a6ba86581c4ea12d142d0f867ff7698c4b542ce3b0ffe33de3",
+      "src/app/command/verbs/extrude.rs": "ebc559cd931a5803c1236d521509e929fa11f0e3b987e5eaa0167f2cd0ff2428",
+      "src/app/command/verbs/face.rs": "c5dc6a0907e7ce3239eb3396036c96c1370f2ff4e6a8df355d453660f8e05bc7",
+      "src/app/command/verbs/fit.rs": "b1181698ef63b6facb5c50203928959d9b5f54087dea0e0e76cf065567ec719d",
+      "src/app/command/verbs/geometry.rs": "596ebbcbed757f38facf666c91904d0446f988c218ae5184d41bce0b276e88b8",
+      "src/app/command/verbs/grid_snap.rs": "ab63e5d6f45c37d9b8b15ea8535d8386da1cdcce725b2a3398ccdc41e01b06c7",
+      "src/app/command/verbs/hide.rs": "c4a8c1c4fb3d20b2768e3903841ccfae51c8fd8fb7d6b30b1ec3ab61cbdca800",
+      "src/app/command/verbs/icosahedron.rs": "02407c66c611d0b1961e5726196cfe944082ab19fd4e49a11d22c7e40c458765",
+      "src/app/command/verbs/interactions.rs": "1a4836207a54e368ad3d91d6e53df5c089e4584b8ce53dc5bd7b0bcfe3750d0e",
+      "src/app/command/verbs/layers.rs": "a0168bfe8c941fee7fba32c9a259c9f847640f24baa958d38383948843f6db6f",
+      "src/app/command/verbs/length.rs": "64a425e2e952b2daa0ec729235f2702934bb81f472b17f8c140b26415a618204",
+      "src/app/command/verbs/length_bounding_box.rs": "654498f77d15404be2ef63a4a6f96138186e2eb4d4799bae01310e8b89439fb3",
+      "src/app/command/verbs/line.rs": "cce63f69a0a8c3dd422e67bf1fec62075bdd6aef55b0a9a79a6f53191d2a278e",
+      "src/app/command/verbs/loft.rs": "0bd5c5e9169fc10b067629df1567ba2abfbae68aba97148b226e2ad16e96f818",
+      "src/app/command/verbs/measure.rs": "004c72cbad5f8a24e7ae6141528997ce1e8deecb2e2caa22af68b34d5133c28d",
+      "src/app/command/verbs/measure_distance.rs": "2b3813e899954595d609de0357984c5b5f01a8f7f031e6320ccffde088001421",
+      "src/app/command/verbs/mod.rs": "9a9c55b6f4d0aa08a323a9dddb4d5a2a887114ca298c159f4e1e7815289b6e9f",
+      "src/app/command/verbs/move.rs": "884f591bcde1cb18537f34b02a6a271e921fcd44aec30eb0f3da69017fd57b3a",
+      "src/app/command/verbs/nurbs_curve_arc.rs": "c6b50ac35e93520029884440498e0d17f9c2daf09e82c2b77ed3db66f372d7a1",
+      "src/app/command/verbs/nurbs_curve_circle.rs": "207decf5247f2fec9b84cf70ff0319e2f646b3af082459825628a098729718d1",
+      "src/app/command/verbs/nurbs_curve_ellipse.rs": "5140c1af03b1e011512258bc60901b04cde23222a780829b0328d0e7518dcce0",
+      "src/app/command/verbs/nurbs_curve_parabola.rs": "47f3b6a61efdf230fb1d03658b44aacd5268e69d1a359d1cb40d8654d21542b7",
+      "src/app/command/verbs/nurbs_surface_4_points.rs": "20464c6908c865053e38d7a9eb953e05f00cb02112262296a1fb36817bdf8981",
+      "src/app/command/verbs/nurbs_surface_loft.rs": "108be02d75b82e2f5ac6f34c13dd46b638ccee81314bca8ad6051970d16a588f",
+      "src/app/command/verbs/nurbs_surface_network.rs": "7f94d0f5074736b627f761b7b812ff4abc05592fe9ec4bf142410f2cc9643854",
+      "src/app/command/verbs/nurbs_surface_revolve.rs": "b447738bee31531180d016dabf2e77d93e30583c85812485114f7bf34850276c",
+      "src/app/command/verbs/nurbs_surface_sweep1.rs": "aa18f91aa0a35fb3b552f3bd41bad8e9a2ed565751254adc58b511904b137b84",
+      "src/app/command/verbs/nurbs_surface_sweep2.rs": "750b15d8349ce66719eb982dfd85abd590a9f122cbbbf19b676d2ae2b5e04992",
+      "src/app/command/verbs/object.rs": "fcce94137a4f68c8e9c54617caaca0f7ede2828780203cf8413ef5fff76813b8",
+      "src/app/command/verbs/octahedron.rs": "203d8f4f5afb243be5ffcce6abdf3bf379d5abc8519b1c5b12aafaf10cca7f86",
+      "src/app/command/verbs/opacity.rs": "0db647dcb96fa436c851edb2ef728df150fc8ef0681aac483481f0ff1c286ab8",
+      "src/app/command/verbs/open.rs": "7b71238ac03238c84d483701c161649ecbabe1ed6681025c81408f8862f76b43",
+      "src/app/command/verbs/orient_3_points.rs": "943bea38cb8607eef2153cbaa1e20260a2a09531bd5d469a2bc525ed35cc9f9d",
+      "src/app/command/verbs/outline.rs": "537e232c2f91846dec99eb3e6e30e016f482577b1ef82a62c4f4f8a115566053",
+      "src/app/command/verbs/point.rs": "d77b9be0208a33c75ed0134e99ca50815f2613fbbeb728adb33c30ad14306b0a",
+      "src/app/command/verbs/polyline.rs": "15a7f496a783fe8864fbc1a090a1c3ea884a2cedff7320ecf0fb85136c59e93d",
+      "src/app/command/verbs/project_to_plane.rs": "11dc267a1a5d36b974f4723fca487c38c958cc3ac2a0f926e81f99507e6904bb",
+      "src/app/command/verbs/pyramid.rs": "a1de9a501bdaf8b12212a51da89160d5abb6d49f437529ed8582678ba31919cd",
+      "src/app/command/verbs/quad_sphere.rs": "d801aa84e8d8c513d89483113c3076389b14c67eb613aae40f7b970af13d96ba",
+      "src/app/command/verbs/redo.rs": "cc5ded7fc9d8c23b2e2638d5c48910a2ac6ad83a2815aa2976907d53511eded0",
+      "src/app/command/verbs/report.rs": "8b8e73ef4da70c6221cbec41e75f54db70a5d39df05ee29c19b35efb8afe9a63",
+      "src/app/command/verbs/rotate.rs": "814e405ba0eac925a1322fc88fa7918e0d436cc291f4ab322cb5ae6dca4911c8",
+      "src/app/command/verbs/save.rs": "d2ed39ab8cc2f6755f5155a75269a1a097988799f161fe174587927e90084ad5",
+      "src/app/command/verbs/scale.rs": "bc3f8280720976d74fd46bd4447da41ed63943c014dc62d2d75fbeada88ac5c2",
+      "src/app/command/verbs/selecting.rs": "49b3172f3487531566fae3e4c955d9a438a0e153cf37d7f29a622bc070a48d27",
+      "src/app/command/verbs/select_all.rs": "e263949a3a7f78ae516f1e3e4e0f53815a96547f0ffc39c0248cc258fd72ab8a",
+      "src/app/command/verbs/select_by_name.rs": "90d070cb338b3a721a4501e777bf9ff048cfc368fe5d98fd1facbab18531001c",
+      "src/app/command/verbs/select_lasso.rs": "dcef1e302ab9bea2353e2f85fa391b35117f6f7f97c153beb7901744a0571a7b",
+      "src/app/command/verbs/select_small.rs": "d4591b944daf9036df7f6854083adf9fb1f593e410d61ee141f1cdd98ee4ab5e",
+      "src/app/command/verbs/show.rs": "b55d0061a288fb54d8de3faf65e56df41a9ea98b3f2b353acb1802b9d52c9803",
+      "src/app/command/verbs/snap.rs": "e85c98cc314cab74c8b9bcb74cf1d32429e49b49c76cf2c83f8a2e929b35603d",
+      "src/app/command/verbs/sphere.rs": "75e2438143ed9c3f6875596c517211e14000f8525376bf166e52372e82f4ef91",
+      "src/app/command/verbs/split.rs": "8c029c76b77546dd5fb8831693397b48ef16852ed1379253c2a028349f99b54a",
+      "src/app/command/verbs/tetrahedron.rs": "f09e06bacd0c09b5b2c7b8b569c93267a4df5cf0fefab653868d154a0b02bd15",
+      "src/app/command/verbs/text.rs": "e083f13a0cb4da2a4fd6c3bf13e733bf81fa6768a563c7c74959d65c8ea5797f",
+      "src/app/command/verbs/torus.rs": "c64075764f74caf608a647bcfe27aa1537c4b85cc091071cf3728c457f288c08",
+      "src/app/command/verbs/trim.rs": "60c27bce49c24b3867c658171267e1c159c24e0c1293de34067711f2c7c4b72d",
+      "src/app/command/verbs/undo.rs": "6e82fd3e78bf7d00c006740fd49264bb5d83c18957758bec545fab9ca09210aa",
+      "src/app/command/verbs/view.rs": "a025bf0d864aeb1bfc1c993df44e112118c86e290797a687f22935a442f30e39",
+      "src/app/command/verbs/volume.rs": "310b7d44e53155c80a823aa411e758d3171a1c8b3a3bdbf273113c36430c0ad9",
+      "src/app/command/verbs/extend/reach.rs": "37f9ed15f0b4148bebc6788829a6fc8bca4a558201348c145cdbd670d5e18a34",
+      "src/app/command/verbs/trim/parts.rs": "d78d99b59d5da7cf85de9cff7d9b161ac01c3b107d6b50fd0a67966f4f4ba71b",
+      "examples/course/camera.rs": "dcd25888699330fcf22e4159d58123c0d326dcb73d7d06fbdee7da7a011bac33",
+      "examples/course/canvas.rs": "19f6ceb5da34fdbfd6c42e67e1f1d37e56baf8f19d5f449a2d1a297440402866",
+      "examples/course/dock.rs": "a727b0b8e691ddcf1b0658f7075afbaaa6d7d94ff7e1adb5ca9f3ef2c2734e03",
+      "examples/course/entry.rs": "d1b0ea53c532d17c4f7c740bf0599a6540dd3e4bc9bcb55b795f0186917a755e",
+      "examples/course/frame.rs": "0822766f543e741845e5112e8924622c1c4ee055da7add3b99b395c617a02941",
+      "examples/course/geometry.rs": "ba248e48caab0b842f23fab1c4190592688fcd739e8a8438d995d166c4735661",
+      "examples/course/index.html": "7da497aa70b34bd604cddbf2f700f61efebe5cccfdf9c9626a9aebbdf5f3df3b",
+      "examples/course/index.yaml": "5b022c8d09bc7f23d1dd5f808eac3d4e86e1bb83f4c035feccd8b3378f3e5f65",
+      "examples/course/mathematics.rs": "d81943c4fa1d21b359fe353917ad521d95841b49b8f8319867611045b7517291",
+      "examples/course/painting.rs": "d57c027f79370d3acce115da2b43aca2511c72421b4cd7f3cfb21c6a299749eb",
+      "examples/course/registration.rs": "3b86d10516f68f09ccfe40dc0b9f8be435a80aee826734cb2ffd45ad0fab1514",
+      "examples/course/rows.rs": "1664f4e51eac78320c8fe7bf8f0fd6555176f29c932959e6ea5594bb498614bf"
+    },
+    "native": {
+      "build.rs": "868449c0976bf081f2a3bdf270c1ca0842f923b33a9b9e34dfcb0804c7f5363f",
+      "src/camera.rs": "f03e501708e7db40d68daa484151033cae463850451513c34657f8f50207a0da",
+      "src/lib.rs": "0bcb9350dfd2d9e9780745784b20446cbc7fc5c42ee88526d6aec48e4dccf017",
+      "src/selftest.rs": "3953b90aeebec2ed4ef48f5c68bd17f02d2b08cd0bbcec0798930ca5bb836305",
+      "src/state.rs": "6f8f509dc481783573549079f6af298281251f8e1e1d98ec013e85a672f47876",
+      "src/text_quality.rs": "7fef20819989ace4919f20705cdda904656fe960ea557028e9a5dc7b34b68edc",
+      "src/app/agent.rs": "555a699f8286aaefa426d3a0f9704e1444f9a4af2ccb7105c41c40dadcb5455b",
+      "src/app/clipping.rs": "33047462339a5d4fe32742d38e1ca8e364aea126186fd107f1007fbf4158a8e1",
+      "src/app/cloud_query.rs": "96e5ea670b083218e2105e0f2ffa0578cc5c25050b8ce3ee790d00dc3c401f0c",
+      "src/app/coords.rs": "3b19ba73fee97ed22f48b7d5fe04bfc1090f1c31ca21c44265e936893a0e447c",
+      "src/app/cplane.rs": "5d111336f0eec327868d60ac582f053a2be2901010542146de791d3387ab43ff",
+      "src/app/decode.rs": "3bcfbaabd86e3c19ab8803c5955c580d9264ea72266ddc5d84b3833266dcc8a1",
+      "src/app/deform.rs": "fa4a31723cc29e85f01958ff780bcba97df8b063611547a725c5c0247c36aebe",
+      "src/app/edit.rs": "5fc69027ff1534a13a784eac4643f5150a06f92ac9bafa4f6005eb50cc5fe81c",
+      "src/app/feedback.rs": "ef9d81fa1e52d66955423c2644c03083649c595f75351a37f3cdd068609e5970",
+      "src/app/fetch.rs": "57d886ea78208f2bb19ffa13a1a252af18ccfddc7a17cd7c9432a981a1560fed",
+      "src/app/fonts.rs": "d51582cbb4566c5efb172401510ed2d33675a20a0b63f0a54d9218fa7ee14e6a",
+      "src/app/gizmo.rs": "397a00a8a1f4cda1f34ba244a40f5a842f27b1c83d7affc298d0f4276d396340",
+      "src/app/hierarchy.rs": "aa96dc988461e47c2ea0c2eb6dd9762033e1f6f2b7879fd021de74d5e190b26c",
+      "src/app/input.rs": "243af7f73eefdaf0f4ea25f2adf251f1a056ee52852a93a794336c1e595dec10",
+      "src/app/inspection.rs": "01897843f1f53ed9e90646d5e3607b68c691af70e1c84ca5c269319409c119ce",
+      "src/app/interactions.rs": "7fe230e0b3740ee6b8ad24e68880c004cc8e8e882d417ca1517694147c56973d",
+      "src/app/keys.rs": "28abcbf79f108564e48b4c61ee96b8521b69062d467d2c5c2ad787e6c230289a",
+      "src/app/knobs.rs": "b9dba07b897e6498d0a4210dca1b909365a82f46df32eb1a2e8dfd712889d99a",
+      "src/app/launch.rs": "f1bdd451838790b61b9a52ea2aaa3097bf7f68b5721fd7d7ca633ca3c915b5c9",
+      "src/app/layers.rs": "196e1a664f8d6db2611c1c0d581972741b864f8da80037b84a86c8f299cd4d3d",
+      "src/app/live.rs": "6d5a0f0ffc90647a8b4ccaec4a5b88818c6e36769b527f70f626337ab72b2c46",
+      "src/app/live_revision.rs": "91680efc998ea6d91d59bf46380fa938b3f1b9b8a3e9d4be7835096a6bb13c60",
+      "src/app/loader.rs": "6c22d3b5faeb00628e79a93c76a06b22a9ed3104a0f9f7aaa089efafd53899e6",
+      "src/app/manifest.rs": "c75d33f25078645cc91d71df05aa0c15e30c31f9bebc30522c67d875f5a91066",
+      "src/app/mesh_preview.rs": "f3d0f365cb0cee67d71d49b84c59d29b228e2a575c527ab0b5d3e9010a73130f",
+      "src/app/mod.rs": "7a73418bfd2fe185796a933313aac8ab8695e0e1212620d3699802bbb0b7943f",
+      "src/app/mode.rs": "8b8fd508c49537e0e360ba9de8295189bcd81623ac0f67ab61d7f45632fb811a",
+      "src/app/modeling.rs": "7aa4202bc1756cee495ce0f2daefe9c2c320e651294322898c03624b761f9e04",
+      "src/app/range_gate.rs": "7191b2de72b0b5e97074c977abbb9ee6b4d62c383f225c55148913528cb9ce1a",
+      "src/app/route.rs": "009e6ae7e824edebe981be1d31c30dabafb89ae227aec188113f680bfa6dc2b9",
+      "src/app/runtime.rs": "b43a4a1302f9f30cb9e7518ce96147bf12339992e281f830662b7e41dfe06c42",
+      "src/app/scene.rs": "f4ef36d31f2d9176ed6bc66a16e9871c8a8f175d74c3b22bb7d40d436265eebc",
+      "src/app/scene_display.rs": "d3de18bf2ec5b01cbcdeb7b80bab61ed85cebb937e4fc5d744de1f0c66f0e7c5",
+      "src/app/scene_instances.rs": "614aa01d7777e2715f35d53a009d28dcd5f1ba41e9ee59886a3c4474a41b37b9",
+      "src/app/scene_release.rs": "303762b672d80c9988dd590010870ae4aa06b52a6e41cdc23c9ebbfa23d35c41",
+      "src/app/scene_rows.rs": "d21f7804c6a58979381774fff193155e16b9b96c43c5f2cd0022eb3e4f1c7fb6",
+      "src/app/scene_sync.rs": "b43a8e86a8bae9e996db38320f6ba9f51906b542d1c6bc83a43c4fe2060e777c",
+      "src/app/scene_text.rs": "7294f84b7b73e0db7adbeb62ebab58020032c3d92e0cb6d4763a48f70e66e8d5",
+      "src/app/selection.rs": "3d635d3895cb8b9446d1b0b6771e6377c625985a599574fef0eee8f56cbe83cb",
+      "src/app/session_io.rs": "ca46739b5e8d4ff3fe5b5bd22b2d35ab76d0a55c0af3ec2a4ce38ec97c3b87be",
+      "src/app/sheet_query.rs": "9ff2b40923abe62148dbf2ac355ea7f6db00a3a0402a6f2cf1dbaacaa6916ab7",
+      "src/app/snap.rs": "174fe242e49e33d825acecf477d771a2ed4a7a0bdd7120c25938ee90241ec7cd",
+      "src/app/splitting.rs": "a0dbae4879d78824672f8fac79480a54eaeba01503a7083cc2b6bc0128605976",
+      "src/app/stream.rs": "17b125e85e513f0d16ee7bba163a178a41901a9e4205886b9227729ee5203299",
+      "src/app/surface_preview.rs": "d7527df1c881b721e3077a432f1a1e524b9cbc3e7b653d67d089f45dc4b0de02",
+      "src/app/touch.rs": "6e45e9c59952bcfb102bc98ac9cd0c243d042c52a623d330605ef6b1b3ac6460",
+      "src/app/validate.rs": "c7e6e4fbe33ea7af6898a18b92758df01f46cb43ea2aacd09d5da346a57623be",
+      "src/command_dock/mod.rs": "a54df69dcadec39f2d03f8f6e99025bd8737184d9ba9a6431f27f300ffe9ca25",
+      "src/command_dock/theme.rs": "2064473cf413d0be10ca1f71440db34e11912c30893a360f11e446a5ffa2099d",
+      "src/command_dock/view.rs": "2b6c7b55d1257a7be5736edd22e69194655b6e14d4dfbffe5c1c01e86456f204",
+      "src/engine/diagnostics.rs": "200a9208c5d9da41dee78c9279bd9a830a0b79d8f8885b9591d199323224b059",
+      "src/engine/mod.rs": "186b4e95cb195045359f380e27b7eafafb50af19f12113a46960c9e6b8de2198",
+      "src/engine/performance.rs": "9af6ad217229da7622056edc49ec89aa9c4ef01439e23d3aa1c3a1a4d0bae1cc",
+      "src/engine/text.rs": "a72f2c7bf9f0755c71a54e78ff83fb72257fc9c04dd2d0ec6b1aa76880943446",
+      "src/selftest/lifecycle.rs": "21a28b047fb48eeea41512ddff63199dffeb4a73f3c13369aa910a91f1cf95ec",
+      "src/selftest/oracle.rs": "30883e82ae484fdcf5b6abb70c02900bde7d721d097563659a711d738b201021",
+      "src/selftest/profile.rs": "3f00d2715d9b5b3498e07af727b4b13dfde6fcfba83c7fd0a945999ea9bbeff1",
+      "src/selftest/stroke_witness.rs": "d7d2bd03edc3e7f384eff7034cad2018b94f10732bd996dec34aa910d96b50e4",
+      "src/shaders/ambient_composite.wgsl": "15eab6b52a9dff22c38cb505ff7462b5b4cd6bdbe3e5223716902a231b9dd6d8",
+      "src/shaders/ambient_depth.wgsl": "80258c80084418bc9211c6c31438cc52d0944509a23418f9e9af4a7765d84cac",
+      "src/shaders/ambient_geometry.wgsl": "1c5912fa54065258945357e5d555d6c36a98076a46bc10c6cba4f1c7997e8ce5",
+      "src/shaders/arrow.wgsl": "cdfc4ae2bb668430f5742ba33213b96f584b2b9a5e6e317dafdf8beaf7c18662",
+      "src/shaders/background.wgsl": "ea62408626759db7cf4a3756d83dbbd5aead2621aeee028f4c54de4310ef2aa6",
+      "src/shaders/cap.wgsl": "1892c0314d7ed98949f6f56711e2cb002ec29b2c1c1c46ff9c4b31357ef7bde9",
+      "src/shaders/clip.wgsl": "975782a36e64719e00eba623a42f28a39919c03035a71525e384d97ad3837544",
+      "src/shaders/face_coverage.wgsl": "e4b37b7fa30f5cf6237a0aa7e20287ad36b3cdd07893e43899e2bc33fb1ddd16",
+      "src/shaders/glyph.wgsl": "f02c43132ae3cd3612262275c3dc71f751c0507e86a3ede948d0fd1fc2314cc4",
+      "src/shaders/grid.wgsl": "094166f31a5f73bcf7a3957f077a2e299362b1e66520d3325b93a81e8bc922ea",
+      "src/shaders/ink_visibility.wgsl": "17111b9fc09de6d3f344f39f83f31d4dfbb8c57f92fe1763f635f73cb0a3a475",
+      "src/shaders/matrix.wgsl": "0f319930e6a82b89909f4d71447b2d1b2d82cd11f2c4071f5f62e635e83ce620",
+      "src/shaders/normals.wgsl": "1776ddecbef8a7ca5454216697fb4d4aff07e631ea3452a885b6a47df8056733",
+      "src/shaders/physical.wgsl": "197265d033815c44654368907825505fd55b03ee29cbb3ffa7bf04d3a4dd6c35",
+      "src/shaders/plane.wgsl": "868de66d5ecfe9c614cc1c030169f97f7e502820d3b72cf4eb9831cd50414478",
+      "src/shaders/projected_triangle.wgsl": "3e569eabf25978668964bec693e0e250d8e634900fdd4d14808db6338a815b73",
+      "src/shaders/project_triangles.wgsl": "d430e2c245d94f667ebe20b3263c03f8ec61bb46c5e03c5229fa01c3f6b0bf94",
+      "src/shaders/ribbon.wgsl": "daaa9f018f0b1e5391cc1d3edc21d65457138602fdfb32f11340d0eb287cc89d",
+      "src/shaders/scan_triangle_tiles.wgsl": "d04d5a98009c0d253b4e5ef5c5751b8ee48239878e800753eb99e5f856e02ed0",
+      "src/shaders/scene.wgsl": "cd77cd9c125e2fd9cf80e33589d445f684e04cf11f80b9b7f763bad85a898505",
+      "src/shaders/slot_table.wgsl": "0837fcc793e41b6706c3e00b7dde58972fe4fa9364d3227c8f1f5a193a17fdcc",
+      "src/shaders/sphere.wgsl": "4a4bbdb2853a6525beab037611cb9b2135ce42ad881154b8ab1d46c8e2c24a4a",
+      "src/shaders/splat.wgsl": "375bed442852f6bd755df5f802bdfeed77fb8dd5a13ce87069d098aebba6d16f",
+      "src/shaders/splat_resolve.wgsl": "511ff9ed8a46fa07338d7335b8b8a54d4f808c06d8a823688d8d78e7360f417f",
+      "src/shaders/ssao.wgsl": "abc35b0b2547741b4d092f9778b74932a2e035b23125d7feddffe19a71bc765f",
+      "src/shaders/surface_outline.wgsl": "446689ea45e5cf0fd03011250271a296eddf4942ad9e0dfd4432c8b57b089885",
+      "src/shaders/text_outline.wgsl": "c06b165b85ee2a0bd20d0348f1aea3d1ce811a7fd76d66911380ef62fa8be03e",
+      "src/shaders/text_plane.wgsl": "8694a4d32e4676415b28fa4727bf4c1645862e80f4cc4e65e41c79ab1e5451c3",
+      "src/shaders/text_plate.wgsl": "5721973099036446bcd3310cb4ea28eb522b109009236602f4c00d757900b4cd",
+      "src/shaders/triangle.wgsl": "ea26805ce07269fb242562ea71dec4fee114794d5cf24d385c2f1c2e9516960b",
+      "src/shaders/triangle_tiles.wgsl": "21bf7777d18bf7e506f97c0a31d4ab5a64bf6e062ffe0698dd67402806876c0f",
+      "src/shaders/vector.wgsl": "687667c6a41be239a3ac75cbb2707ec567d156014c5564c8f7369b4cf62017bf",
+      "src/shaders/widget.wgsl": "4337efb0b24e1fa1116db7dc9fb6690e3745433168a704ff7edd71597416f8d0",
+      "src/state/box_select.rs": "3b0fda742185f5e1fac8836aa094707ccf7a66cba115300b52e1b40520c5c07d",
+      "src/state/clipping.rs": "0b49d749ae19ee39f8adf3a26607b3743b6e0ce7958eef7b86f56afba36d2148",
+      "src/state/cloud_query.rs": "5aa517e86ec917b672f38e4feb4e698c19addf6dbcd498987e777eb9c8ada999",
+      "src/state/drag.rs": "e94d90344c4cc68710cf5abcb2cdffc31aca7d7a53d0f3f49e093b0380a2e061",
+      "src/state/drawing.rs": "27029dc6c96a8679a8e2ebb4c612ab7db41b208bc77cf8376bbe513a9129f145",
+      "src/state/edit.rs": "ae99d6455cb03aacc2402cb5d8a6c292894add723f88453d145cd4a27bf866bd",
+      "src/state/features.rs": "ee1c73729eb9c1f04561f0be52fc1050332a0fba5726086bc25c68c1bb18e9f7",
+      "src/state/hydrate.rs": "5425a603e63bc9090e2f9e7cbc8e16afff75aa6a9382295fe1911b95a90e6b5f",
+      "src/state/number_box.rs": "c32afcd959720c2010f60127f2be1315f468f502146935d39468e9fa5f88b9c1",
+      "src/state/panel.rs": "64ab32057ea1909cb802154294d9e56f3d53c261ca5ea63d8b5ad9d3bf8078d9",
+      "src/state/sheet_query.rs": "fc2d5fff6c5e5d794ee31d4f438e71b87e1043f45b0c36439f837d7f0691d038",
+      "src/state/splitting.rs": "a8d8586f1b203bc82040a37b1d52b314fd3f03a9f1a5abb766999ea76d6f4924",
+      "src/state/text.rs": "fab03acef3a6796e15211bba69b00b60c9e512448d3ea34c7817d00c5763feb2",
+      "src/state/tool.rs": "044fd2c8f01f1ce7995d89f04022de261609f9e65e552b4d3485c74f190c2889",
+      "src/engine/gpu/ambient_warm.rs": "94bb4b260a7875b4c82be81acd8131e3cee556020f3cc5145608ec33d6f52585",
+      "src/engine/gpu/arena.rs": "7f0d4e53f55d3a1bf384da7ac7781766b8faf4e9f7038ab0dc2c29bb7f6e6441",
+      "src/engine/gpu/backdrop.rs": "0a676618e3c9f520eb6cb5151219b45bc696d79fa5085464fc85f84e64f5d76b",
+      "src/engine/gpu/buffers.rs": "8c14a571bdf888857fa499e6531f9091743ec6c09fe37ab12e373c3635eb94a7",
+      "src/engine/gpu/clip.rs": "5ccebbac50761e847fcfa3b4d1ed91f71592d425004ea004ab3a1013c1bbaeb4",
+      "src/engine/gpu/cloud.rs": "ebf520f190ed3924efa465cdeac6d743ee9c2f1db337067955ba08d96959e3a5",
+      "src/engine/gpu/context.rs": "b5e1471cc5d0789f4a8c0159b333ee317bb8d1cccc008540252329075c6fc9b8",
+      "src/engine/gpu/device.rs": "ced1cff229cd47c5cc3de6d7713b7049ce2181cac444226bd27053b397774a20",
+      "src/engine/gpu/faces.rs": "b48b373d830c28cb9e9456e421390d7f326b4910c9608f487dcf1834be78ff71",
+      "src/engine/gpu/frame.rs": "d12fdce6ebce0a847ba8a4a4367cae387895effa0646be5f1e9b4561f3a5691d",
+      "src/engine/gpu/glyphs.rs": "f992838e16e6792174214bd4ab67040e33026b9d471fad5b988ebd0597716970",
+      "src/engine/gpu/hull.rs": "81e121ee38f8fd6da3cc65207b1cc189b84037f231139ade5bda937a80bec9e3",
+      "src/engine/gpu/instance.rs": "476b05dea6ca50343301225bc0b583a93e2fc05a17d8efefd483eabec0e4de5d",
+      "src/engine/gpu/instanced.rs": "f6fe9bb471dcf30fcc81534c6b20ebfbc1755c9cb0cea0edadf6272ab9e673db",
+      "src/engine/gpu/lane.rs": "31ef04973f2e131bf6f50438cf2ee6feef2884c9c1e6dc5074abbc31f4968f06",
+      "src/engine/gpu/lod.rs": "75dc349e43f44ca3bbbcc26a88f7bc3d56189a4268b0a2e3523e7903e9148a08",
+      "src/engine/gpu/matrices.rs": "00f606b5056037de1bf3923c7874202bd1877af7591759713e48ca46a3d5a1de",
+      "src/engine/gpu/mod.rs": "78e923c54cf6d20f06bd87e2c7034c7692fce8627c1454151f80ac89c64aa5d4",
+      "src/engine/gpu/objects.rs": "e707af6d6bee8591fc9f16494a09ff27b5b10e38a29357e19ddec923e17229c9",
+      "src/engine/gpu/pacing.rs": "9e5916950f6658ad02b28aae1e009cfdc4546c4a4c4ba24c59c9194a7675b427",
+      "src/engine/gpu/pass.rs": "cce6cc842567b136d01ab84d8ef1e39a5b149063128a5df932babf6950c80dc6",
+      "src/engine/gpu/patch.rs": "00d8fae175ca925c7e48b8304c702550b1633f56747b4130ef22d6218cd97100",
+      "src/engine/gpu/pick.rs": "8dae0bfee0fd18e17ab90b1c0a61cb028af4d87bac29badb72a08c0325ea65f0",
+      "src/engine/gpu/planes.rs": "f0e509a16d84aa675ffd8c6b335a2a4f6074f120690881e4b1eae202a22e1f61",
+      "src/engine/gpu/present.rs": "a0d147bbae415b1cd1246cd030352d7168b7c5f4a7eba5f921298a954819698b",
+      "src/engine/gpu/render.rs": "024ab39d6ee379297f209120f510063dd0037cabc69780b9b0afb1a7e67b5921",
+      "src/engine/gpu/segments.rs": "f44565ff517b0a9bbc7d0248b537a46edde66861d24509f76abf6ee3b346550c",
+      "src/engine/gpu/slots.rs": "ef303f3f3e534502a9d90561955d840c091dcf9b2f1f69fea4f5540fbbfc18fd",
+      "src/engine/gpu/splat.rs": "20f52e37a011f07d683c1b24984e3747871c50917933dcc333fc4e3584d491cc",
+      "src/engine/gpu/ssao.rs": "48296a4b325001b1f196be479098c67a346e1a2d60e978cf2a0bd0bd5fd16fb1",
+      "src/engine/gpu/surface_outline.rs": "d04e0e0604e854b35b9a0e10c0c67c80067cb1d6e47642106846a176415030db",
+      "src/engine/gpu/targets.rs": "f16908f3fd299e876687d0894374a440820ed713d3adc57689765f9991d2f140",
+      "src/engine/gpu/text.rs": "ac22022ad4c3820c2a834ce060286094f24d7a0a7a30633eac4a26231cfa054a",
+      "src/engine/gpu/text_outline.rs": "8444903f4b6c8132375822bd8d95eb5e06b51e023cb3487a730e90c5b3b842a1",
+      "src/engine/gpu/text_plane.rs": "c359f7b06e9db8bdc940f880007cbee6e66f51feb8878e771454f9798cfdc524",
+      "src/engine/gpu/text_plate.rs": "b7ec607e1759845577f9c10596ebfea2377bef4f3777ced791f0592f6a71a9c1",
+      "src/engine/gpu/timing.rs": "9165356ffbe6773316ddcfa7bd4e68c7e7ecd36892eba36a7dcb9d8760ef8ccc",
+      "src/engine/gpu/triangle_tiles.rs": "af86fae3430024c5510a184813683adbb03e01ae10666cc05f3508dc789c1398",
+      "src/engine/gpu/ui.rs": "bcd2014f8a5c3cefae45889453d46c4d8080fe3885e2d2edaad1b294696907b2",
+      "src/engine/gpu/upload.rs": "d8a88e7f7fcd03c316981bdaddee78ec6f6986be87e69bcf0f298c9b172dab5f",
+      "src/engine/gpu/upload_padding.rs": "2717e93264332c30f966e0099dda529a2d6d966f57a8890ab357ef709463f9b0",
+      "src/engine/gpu/vectors.rs": "1d00e493774cb5b67c60555f484de5ba393a61cadf8349ca3aa82b085ecac04a",
+      "src/engine/gpu/view.rs": "eb0238ffaccef5a505b185d6233fe58233a395c0e24cb44788275a678148543c",
+      "src/engine/gpu/widget.rs": "89e1986353d281db23313eb5f3d3c294fd4a7b5e42c6051d76e22ecdf3a44003",
+      "src/engine/gpu/widget_mesh.rs": "89d73dd598c5a0f7639409e724f3df910c09f3ffcf21de16f0cbbd8e669c7306",
+      "src/engine/pipelines/bindings.rs": "7799e0467c095eea09730a0fc7c34847dfd8409dc1280ddda0bf171d35a77509",
+      "src/engine/pipelines/core.rs": "2d7a9e812382036850909b0b75cc0241d0cf7d71c6a4902e625ba61c20ceb1a5",
+      "src/engine/pipelines/geometry.rs": "131c639becd056cb0822ec409049173e1fdfd2154568abeb85fcc0f9026dc78a",
+      "src/engine/pipelines/layouts.rs": "def1eace1cc86a381eaf2f3cb018e7bce20c3e5367e9beab52c99c4202606836",
+      "src/engine/pipelines/mod.rs": "89152f3a33960399d63190132155ffb086bf07e3eb2fbd5c72ef503c7f81a22a",
+      "src/engine/text/application_tests.rs": "470c1e11cd9f6a6fb9b446f2ca53a364eb5b37b24ca02cd48382f77df3675ded",
+      "src/engine/gpu/backdrop/application_tests.rs": "b1249353f93138ce283e66d717d8670eed790f48ca26c9e53ab1a4f0bb3231ce",
+      "src/engine/gpu/clip/editing_tests.rs": "a2a33bd4ec7227c92019a4e9bb9f43e26e0e88839d470b45c9be81d842576e54",
+      "src/engine/gpu/clip/pipelines.rs": "483249eef637d0deff02d1e80d96ad5ab56247e18e76faeff2fdc26cd4fdab73",
+      "src/engine/gpu/clip/tests.rs": "f7bae7652025a8f4b05537e3a92956922c64f7d655998fd37b2119ac30e9c3a9",
+      "src/engine/gpu/hull/geometry.rs": "d61561311ba56516da9604a410e7a515a0a001511c729ce11793279791d66248",
+      "src/engine/gpu/hull/upload.rs": "2ddae15d6ea4ad10b1a6ca7710401517dd50d673bb9c9bd286f07da1aa230704",
+      "src/engine/gpu/instance/layout.rs": "c6d35c44b32b7d21d32083a90a52290a007934e96a4fd2efe09770911bccbb7d",
+      "src/engine/gpu/instance/validation.rs": "22bf66cc43893d3c550c43d35b622a5fc0a648cb85f254496ac6e40b5c26a3f6",
+      "src/engine/gpu/objects/gpu_tests.rs": "fac3f5ab10debc79e992896b40756f12d4aa7b8de8e0028a7dfdc19b9c3e006e",
+      "src/engine/gpu/objects/ink.rs": "bc6acfc40f024100e098d03f8a989559f985eae40bdc7162227e55d470e6d5e5",
+      "src/engine/gpu/objects/lane.rs": "82590ecc2d6016b1cbccda7b00e6dd3c2be6f80f15ed563162d7b911c77103f2",
+      "src/engine/gpu/objects/table.rs": "c1fad237cd2ffcf8402dd8a636105a1e3487b76290c97f690ce7ae3519778d7f",
+      "src/engine/gpu/splat/cloud_witness.rs": "e21b20cf6f512eda92957d41f81aa8b7154fa164884772ede0aa499443f2822a",
+      "src/engine/gpu/ssao/pipelines.rs": "3c87e0aa194178f974ba21f2b00e34394339dd9f0ce41a06fee52774b273b569",
+      "src/engine/gpu/ssao/tests.rs": "193e7577b6dabe892c02baee6fb25279fddb58640a8de66c73500b783234473f",
+      "src/engine/gpu/surface_outline/tests.rs": "99b0843e70ab243ba97eb8983f7685b66cb62af9fd22d4af3e68981bacf06f5c",
+      "src/engine/gpu/splat/cloud_witness/lod.rs": "982f3d3ef796d537386887d3a95610f9194580af04cabb1a7b54109121016175",
+      "src/app/command/mod.rs": "cac847942016bd4f01d5478dba67d45eb5dc45990a01ec41a969a6e7cad0b860",
+      "src/app/command/tests.rs": "4d808bd37ad46452c22146eb03a0d037059d2811237a10badd9624a26c589c3b",
+      "src/app/command/tool.rs": "0ffab8dd44bb77d4becb04a77f9c644fbd9bc750ccb9b6c983cd945dd068d19c",
+      "src/app/gesture/box_select.rs": "f52620890c23afa10a99d046a9985fccaa8b15639c972a46a0fae94a2bf88044",
+      "src/app/gesture/control.rs": "e58ecb9d4da6bda5216ac2693a3d319be7f9fc386f80afb2d6e5f8df012b2f22",
+      "src/app/gesture/gizmo.rs": "6ff5f1d9cbd6eb5830a0e80c46813699ec9a195bfc7f1476c342d064b6bd850c",
+      "src/app/gesture/mod.rs": "e018ed6014446a434e463e9aeccc63d09cdf6d652a0385123eff1310ae0135f5",
+      "src/app/gesture/object.rs": "009f27a8d77f8a767e90187456824324f27fb70d0256d30eb2af9503ad8806c5",
+      "src/app/inspection/source_memory.rs": "0828d7ad8d7b3c0ec05422be79edec175739a05e7f6fe94341d77aa10e12541d",
+      "src/app/scene_sync/allocation.rs": "ecb2566170adffa7450aced660683e5bf6bb5e910f95a3d8161ee4359b29ad13",
+      "src/app/scene_sync/commands_tests.rs": "59345b4f6b949658bbad2e664428ceda88af722b9b146cced8e7784e088d81f9",
+      "src/app/scene_sync/compaction.rs": "1f1e4598b7b7498f3ed7ed7baa9eb0656cf5d6baee2a92bae01400e5109d7f6a",
+      "src/app/scene_sync/editing_tests.rs": "0e8e6b90788ae1d45ddc2f03cbfaf5e807b1e7c9b47e66e97df70bbad8af8826",
+      "src/app/scene_sync/nodes.rs": "9c70230b1bd744d5c476938d594ae2be256c3b39b815b147707cb05759ddfbd4",
+      "src/app/scene_sync/notes.rs": "fa02d60b45d4f74823d75f6786780f7b24448cdf17664b9fdfa4e7f66f21a3ba",
+      "src/app/scene_sync/panel_tests.rs": "4beba4f873594d0aa0dc1836720ad18739c0124a13ad0c0884fff5e4095f17c4",
+      "src/app/scene_sync/preview.rs": "9df6f4543433ac9da0cdd853ae93ead478a40404a4b824096d22235c23341e8e",
+      "src/app/scene_sync/split_tests.rs": "ef2a718cb61c31593c0d5d255604635ce33ad7a1a639f9e0a408ec21dd9c6b70",
+      "src/app/scene_sync/testing.rs": "9716dce2aeebcced6e6aa72463950f0f4e1e17471942e23752b00ab52af943fa",
+      "src/app/scene_sync/tests.rs": "30b78b84c2cd80a13cdb33f4cc68bac04645a05596b74216999df4e98a9d22bf",
+      "src/app/scene_sync/tombs.rs": "28a67ed93264bb00966ce931838d1e5be57ec819e5bc7f562b1515a9a904d26d",
+      "src/app/stage/actions.rs": "b5ce046152cd3795108f9a252b80c36ddfe8c7feb1c34bd9144c8d356851464b",
+      "src/app/stage/application.rs": "ab577d5be11f02da1afb60304041db105649e17ea72e6af2b33bff6089973883",
+      "src/app/stage/check.rs": "af16790646943f02d4a57f6c7104578455adf480eed6932836336b9a3f9ff93d",
+      "src/app/stage/deck.rs": "b4628a578378372cf4cb5558bd45fa6de718f0cb41016622e37846a8be9d01b1",
+      "src/app/stage/draw.rs": "e0c095450c0fee8659a577be4fa41dff8609b81745ac4801a2f49ecb216ec43b",
+      "src/app/stage/eval.rs": "32d9122344a1b35e78050095f402d7651f2c88cdf3e78d2d75e5312bd19b1f21",
+      "src/app/stage/font.rs": "6645dbf2bedf6d3d372da3f8acf2b018bea725d89fa0291b7d62ffd8c17c500c",
+      "src/app/stage/geometry.rs": "8cf47a513ba7e62566d483960658b77c6af9ecd0b4c0c1eec00a9471ba71bc3f",
+      "src/app/stage/layout.rs": "4ebcd476d756971c9a613bc17f998a07b4bbfde1a4d851a6796259e47478c748",
+      "src/app/stage/math_mode.rs": "f5ec8940c700e141336d4e2633ea6c171dc1656cbea9fcaebc0ea0a3c5b6d4b1",
+      "src/app/stage/matrix.rs": "a478d50c41e1eb4966562107235664ee797f5567423aaa1bfccb0427544b55fd",
+      "src/app/stage/mod.rs": "ead4c2b8ea014474d43cbdee0c1fb848cb51f885927ebac9b98c0e021df669c4",
+      "src/app/stage/mode.rs": "4827d9f9debcc7319fb1dd955f04f269c6677f83ea77e904d85907fc78eb55c7",
+      "src/app/stage/morph.rs": "630f4c05c1becb397e9ca42a5f7a51a2db8329a56e648088c1d7ce613cab090d",
+      "src/app/stage/net.rs": "dee2ffb3e973e003859694001553c4ed1051665b8ec72efcbc1373ce07c0d555",
+      "src/app/stage/object.rs": "49ba380ec63351e3db9c8dd65c0680e0c09dc7494fcb02815df8c909c8eaefc6",
+      "src/app/stage/paint.rs": "be4eb804a3a204bf6393f4942d94849c85c665e09152cebcfb657c4e375d876e",
+      "src/app/stage/presentation.rs": "fdbf3e6afaa9749827c0b71ecd0e251e22f927acb43cd0150df3143c45acf51d",
+      "src/app/stage/presentation_tests.rs": "16449bda13f8f7c294eb0640613e45604a7e487fda2ad54cbd8eeb0270b5d78c",
+      "src/app/stage/run.rs": "92501f32ea13bebed0f35006be924709a1c719e803343886c0bf476ffcbf266a",
+      "src/app/stage/spatial.rs": "d57b839143759fc4194b357659ddcc11cce8ae1819e75cdc8d54918e5e8ae0b0",
+      "src/app/stage/tests.rs": "54bde7512f9757e27a6cd410768bda421a952921c6b5f70c3d558b5c18b15000",
+      "src/app/stage/tex.rs": "de2b9d5716171c01ec91111e140b0e20928d981bdf14654f2c3cc3f3542424d3",
+      "src/app/stage/tween.rs": "31f13764cc04bb045a1c6247f3cdceedfcb64734a69bc8531b116ec82b69c3c1",
+      "src/app/stage/view.rs": "f79d66cc48bd8a65fe811e59b4a8764e558745f021f80da4d79279aa749f7eec",
+      "src/app/ui/command_line.rs": "e1465627dfb1b6afa326bbed8ce025de3ec0daa4ec4f0d34504099475e3d1bc0",
+      "src/app/ui/graph.rs": "6ed37b504001f80ab29a864567ff78fa8125a997cf4b179d538e8b580c7f11b9",
+      "src/app/ui/layers.rs": "3ed1b04e06c3b56d6ff39c0880be39c0944dcb4fc5847bce2adb127050da96ba",
+      "src/app/ui/mod.rs": "0db2be8c3837d3ecec73ab13a186bd4c7021e6383084071640e0e618b892dc78",
+      "src/app/ui/number_box.rs": "d38b57f74e9bb3ea749111bff86d8ef67fab2bcdd1293664c487bab08619b7e7",
+      "src/app/ui/overlay.rs": "99e66230fe357a9922134146603afb7043628bff4a0a4e69b16fe52863812739",
+      "src/app/ui/phone.rs": "40633a8dc3394a6898d30d324b19912f7002505720777a94a5d3fd64a3d32182",
+      "src/app/ui/pointer.rs": "7172927a19316efaa813fff3b3963d68fb5228e968f2c6e9ee55bb26cd60323e",
+      "src/app/ui/theme.rs": "a45673d3ff48b2114846750a22e2ced36f22dbfd7b1e11752914ecbd54b71f3d",
+      "src/app/walk/application_tests.rs": "63a5e81fb99d2e5a3e3cf9b02494b6c2246f66bd0086abdc092eaf9779c5d4bb",
+      "src/app/walk/bounds.rs": "d096f1b8f4eb435d32fecc40ecd63ef3f966f364a2dc0ec2a4c44154e7f4529b",
+      "src/app/walk/brep.rs": "224d600103f49469924f89ed7eca6b714ca5934f1914823f620c3601983f7ce5",
+      "src/app/walk/brep_edges.rs": "360e6c481e269853b2c6af4f8d9ff6b64d1a706871cb34d19361f550ff272d47",
+      "src/app/walk/brep_orient.rs": "7d819164969180839f1c344ca653e77ed0d8693f694702b85baf7047f2b37315",
+      "src/app/walk/brep_shapes.rs": "e8f417ea6574c5f3151401b62f674fe37bd825ea4cf1a3b23d8b3ea9381ef97a",
+      "src/app/walk/cloud.rs": "5f3b3760db3684a8ffc48758c7af5587b13801fac6ecef557d2931c326fc460e",
+      "src/app/walk/curves.rs": "fc35bdd392da229cca1d5a0fdce0e39b0432ea2f13338adf0ac323cd878f743a",
+      "src/app/walk/display.rs": "162ba279e5091ece84a831fbe8734b83dff3e159775b855a24cefabb0f95a685",
+      "src/app/walk/display_features.rs": "a9f2310994bdef6ead1789330e0d5e66779ef20507f8e0c8dc116ea4f5df1829",
+      "src/app/walk/encode.rs": "a925576401ada960e52a28d669f7bee634c5c4213cc74207846c3a5a22af3a83",
+      "src/app/walk/frames.rs": "7258ac53c8eb9f7d0ec9d6de3e7ff97a719fd85e5c6c59356a82806b7ee1ec6e",
+      "src/app/walk/matrix.rs": "b6735b4df9b65e9d377f15ae371a410994693aa5043e3ca46c02676c79a70aeb",
+      "src/app/walk/mesh.rs": "a070c4a31a303339687adfffd579446e31f33d44c4a3a5c4ca49cd216265e060",
+      "src/app/walk/mesh_ink.rs": "8d9ac0dd2e5c4b4ac38ee3e1cb7fb39b99c10f399b4e45065f65d395265b9803",
+      "src/app/walk/mesh_topology.rs": "9a207b8d0152661e846568bbf5971c3c24fdf5b33e3d5bf4acf6b5e925846ddc",
+      "src/app/walk/mod.rs": "3da1c655191e8b6fcfd15a36e0ecc05fc03fb0726cf84eabd7fad923fa916d51",
+      "src/app/walk/plane.rs": "9be8bd22c56cb84393584e3fa969723563805be0350b49db1a9aea04ec58c30d",
+      "src/app/walk/points.rs": "af7baa2ff846c8ede26274635f105bd34377cf2aa63576424ff53da843d38330",
+      "src/app/walk/sheet.rs": "c5148556dd5a0ff2688c63316b89c53ac79fbb747bd8d70de706ed2fbbff115f",
+      "src/app/walk/cloud/resident.rs": "337a14826d548276740bfffa058365234c7a3b06b2b901297a2ccdb2a89462ba",
+      "src/app/walk/cloud/stream.rs": "b2921ade050399855b52ee401dcb2e17ddb878d10f87063362909dc385b011f8",
+      "src/app/ui/command_line/tests.rs": "f42ad65f70e9889f3d09e62bab1a04043f7f1d611f49ba7adb835394a3ed52e4",
+      "src/app/command/tool/choices.rs": "2b128f729985b18c0901ebe6dd8780d54abf701394b020da3c3408f3b2b3841f",
+      "src/app/command/tool/cut.rs": "f235a9a255206f1ab3bcf1aaa704a619a95a944fff11d8f1307d691ea0d2c84d",
+      "src/app/command/tool/gather.rs": "acb5cc3b8b424c5c0889fed4ccb994f3a13da0d4de10dcc0944f05fd932d913a",
+      "src/app/command/tool/options.rs": "b86ccb79060e5159fbba2cd57d7b0fd22c14ca8472ab499f03bdbd5e1971e938",
+      "src/app/command/tool/shape.rs": "54c275cb3c8e5fbd4c0e3ea4a47910ca1ffcd5e92405d8055ff5088e05f049e7",
+      "src/app/command/tool/surfacing.rs": "ef9ef71fcb065485333be2ad358e832de162c3acb30a754a73009b22fc8df7ce",
+      "src/app/command/verbs/add_edge.rs": "90e9e807c4a56b5b10bf5f1c3ad35326a5ffcda043043b62680068dc6b5585ed",
+      "src/app/command/verbs/add_group.rs": "193f4e783390255a028dc24581a66659b2c82602e20a67f06d42d70540b8c10d",
+      "src/app/command/verbs/arctic.rs": "04637eef3834bfb9c9d76d415d30f7803d857a267ad4472c91117dabbb374f39",
+      "src/app/command/verbs/area.rs": "9951cf47f2ba308fca8b14e79d0b21dd9de84ec71328f50c808bac970571b73e",
+      "src/app/command/verbs/arrow.rs": "cd80826f3f4170566ac9d72ee72fc24399c137a761282b1211392e1d2e187997",
+      "src/app/command/verbs/arrowhead.rs": "33d52b895d61bd9754cfdbc590e867bb60ce7efa3dc8f8a208e99ff1b6114c87",
+      "src/app/command/verbs/attributes.rs": "fb0300c25c2c5decebac7bfea8d7740e031fe58c16444c2bb36074f353bb7e19",
+      "src/app/command/verbs/block_with_hole.rs": "ef3b9abac04888315e6cb616f95cad7a296ffef58c5f3d417ed812379b2816e2",
+      "src/app/command/verbs/bounding_box.rs": "5baa3e329f91c9c6a2be572e4f8752e8f49effbbf564e3230bd00d8fbfb21479",
+      "src/app/command/verbs/box.rs": "0f6b98541d82ea317acd703a136d8a5962bee64fe5f07150db36945c4443e986",
+      "src/app/command/verbs/capsule.rs": "193edcbb4eff8c02c47ee461fdc0cee1ea7ad98777e882472dba3b5c1918e3f5",
+      "src/app/command/verbs/clipping_plane.rs": "400dc33be2b869ae93c0a981c17116fba56672dc6326ac50efb23ff71e7bc294",
+      "src/app/command/verbs/close.rs": "6ecb9cf60556c359550c1c85dab54700a98b31f9883dd9317e6d1129241a24c5",
+      "src/app/command/verbs/cone.rs": "c3021c10760195345f67555ed9db7920c58a0a7c19ad925f1a9bcb5d912e0992",
+      "src/app/command/verbs/construction_plane.rs": "078a4a7462a809f4b71978ac5579ecb8b9844eb41ccc9ad121a7efeab67aaa23",
+      "src/app/command/verbs/controls.rs": "12bf2eb1ef670991804bbefcab39aeb3f450037d96981f973494f403b88fd909",
+      "src/app/command/verbs/copy.rs": "eecc6b3b7ab0b379e8bfaa61e9be5210a13ab6e76917909ed6a0de6c34bcd257",
+      "src/app/command/verbs/curve.rs": "00f85352d925c0196603c314a63090d359081f5b5aaafe635356d4ec1dc4ded1",
+      "src/app/command/verbs/cylinder.rs": "8c69c4c8a45352d92b7963fa59a247594e67b9d5fee09b985f288fbdeb53744f",
+      "src/app/command/verbs/delete.rs": "c573604cbdc1487b2b94c8430ae04b4a2dae3421b11a6fdf02176de202d4ec19",
+      "src/app/command/verbs/dodecahedron.rs": "ce468793396a169f84b3c5454f931cfbeecfa6d07993604c1f4b7c192d0a431a",
+      "src/app/command/verbs/edge.rs": "fe7666c920dddffd7b9e195121966ea519aba55b7716f86b26ae3788b05e90c7",
+      "src/app/command/verbs/escape.rs": "0e7a4072d6a64c4e1b5c5b76cae3d3da6a563461379be9222ea035ad132965d1",
+      "src/app/command/verbs/explode.rs": "353e44e0cc9953f0e06aead9eeb42cfc9605bbcb8caa72941b945d16f732c7ac",
+      "src/app/command/verbs/extend.rs": "c86295b7fd4314a6ba86581c4ea12d142d0f867ff7698c4b542ce3b0ffe33de3",
+      "src/app/command/verbs/extrude.rs": "ebc559cd931a5803c1236d521509e929fa11f0e3b987e5eaa0167f2cd0ff2428",
+      "src/app/command/verbs/face.rs": "c5dc6a0907e7ce3239eb3396036c96c1370f2ff4e6a8df355d453660f8e05bc7",
+      "src/app/command/verbs/fit.rs": "b1181698ef63b6facb5c50203928959d9b5f54087dea0e0e76cf065567ec719d",
+      "src/app/command/verbs/geometry.rs": "596ebbcbed757f38facf666c91904d0446f988c218ae5184d41bce0b276e88b8",
+      "src/app/command/verbs/grid_snap.rs": "ab63e5d6f45c37d9b8b15ea8535d8386da1cdcce725b2a3398ccdc41e01b06c7",
+      "src/app/command/verbs/hide.rs": "c4a8c1c4fb3d20b2768e3903841ccfae51c8fd8fb7d6b30b1ec3ab61cbdca800",
+      "src/app/command/verbs/icosahedron.rs": "02407c66c611d0b1961e5726196cfe944082ab19fd4e49a11d22c7e40c458765",
+      "src/app/command/verbs/interactions.rs": "1a4836207a54e368ad3d91d6e53df5c089e4584b8ce53dc5bd7b0bcfe3750d0e",
+      "src/app/command/verbs/layers.rs": "a0168bfe8c941fee7fba32c9a259c9f847640f24baa958d38383948843f6db6f",
+      "src/app/command/verbs/length.rs": "64a425e2e952b2daa0ec729235f2702934bb81f472b17f8c140b26415a618204",
+      "src/app/command/verbs/length_bounding_box.rs": "654498f77d15404be2ef63a4a6f96138186e2eb4d4799bae01310e8b89439fb3",
+      "src/app/command/verbs/line.rs": "cce63f69a0a8c3dd422e67bf1fec62075bdd6aef55b0a9a79a6f53191d2a278e",
+      "src/app/command/verbs/loft.rs": "0bd5c5e9169fc10b067629df1567ba2abfbae68aba97148b226e2ad16e96f818",
+      "src/app/command/verbs/measure.rs": "004c72cbad5f8a24e7ae6141528997ce1e8deecb2e2caa22af68b34d5133c28d",
+      "src/app/command/verbs/measure_distance.rs": "2b3813e899954595d609de0357984c5b5f01a8f7f031e6320ccffde088001421",
+      "src/app/command/verbs/mod.rs": "9a9c55b6f4d0aa08a323a9dddb4d5a2a887114ca298c159f4e1e7815289b6e9f",
+      "src/app/command/verbs/move.rs": "884f591bcde1cb18537f34b02a6a271e921fcd44aec30eb0f3da69017fd57b3a",
+      "src/app/command/verbs/nurbs_curve_arc.rs": "c6b50ac35e93520029884440498e0d17f9c2daf09e82c2b77ed3db66f372d7a1",
+      "src/app/command/verbs/nurbs_curve_circle.rs": "207decf5247f2fec9b84cf70ff0319e2f646b3af082459825628a098729718d1",
+      "src/app/command/verbs/nurbs_curve_ellipse.rs": "5140c1af03b1e011512258bc60901b04cde23222a780829b0328d0e7518dcce0",
+      "src/app/command/verbs/nurbs_curve_parabola.rs": "47f3b6a61efdf230fb1d03658b44aacd5268e69d1a359d1cb40d8654d21542b7",
+      "src/app/command/verbs/nurbs_surface_4_points.rs": "20464c6908c865053e38d7a9eb953e05f00cb02112262296a1fb36817bdf8981",
+      "src/app/command/verbs/nurbs_surface_loft.rs": "108be02d75b82e2f5ac6f34c13dd46b638ccee81314bca8ad6051970d16a588f",
+      "src/app/command/verbs/nurbs_surface_network.rs": "7f94d0f5074736b627f761b7b812ff4abc05592fe9ec4bf142410f2cc9643854",
+      "src/app/command/verbs/nurbs_surface_revolve.rs": "b447738bee31531180d016dabf2e77d93e30583c85812485114f7bf34850276c",
+      "src/app/command/verbs/nurbs_surface_sweep1.rs": "aa18f91aa0a35fb3b552f3bd41bad8e9a2ed565751254adc58b511904b137b84",
+      "src/app/command/verbs/nurbs_surface_sweep2.rs": "750b15d8349ce66719eb982dfd85abd590a9f122cbbbf19b676d2ae2b5e04992",
+      "src/app/command/verbs/object.rs": "fcce94137a4f68c8e9c54617caaca0f7ede2828780203cf8413ef5fff76813b8",
+      "src/app/command/verbs/octahedron.rs": "203d8f4f5afb243be5ffcce6abdf3bf379d5abc8519b1c5b12aafaf10cca7f86",
+      "src/app/command/verbs/opacity.rs": "0db647dcb96fa436c851edb2ef728df150fc8ef0681aac483481f0ff1c286ab8",
+      "src/app/command/verbs/open.rs": "7b71238ac03238c84d483701c161649ecbabe1ed6681025c81408f8862f76b43",
+      "src/app/command/verbs/orient_3_points.rs": "943bea38cb8607eef2153cbaa1e20260a2a09531bd5d469a2bc525ed35cc9f9d",
+      "src/app/command/verbs/outline.rs": "537e232c2f91846dec99eb3e6e30e016f482577b1ef82a62c4f4f8a115566053",
+      "src/app/command/verbs/point.rs": "d77b9be0208a33c75ed0134e99ca50815f2613fbbeb728adb33c30ad14306b0a",
+      "src/app/command/verbs/polyline.rs": "15a7f496a783fe8864fbc1a090a1c3ea884a2cedff7320ecf0fb85136c59e93d",
+      "src/app/command/verbs/project_to_plane.rs": "11dc267a1a5d36b974f4723fca487c38c958cc3ac2a0f926e81f99507e6904bb",
+      "src/app/command/verbs/pyramid.rs": "a1de9a501bdaf8b12212a51da89160d5abb6d49f437529ed8582678ba31919cd",
+      "src/app/command/verbs/quad_sphere.rs": "d801aa84e8d8c513d89483113c3076389b14c67eb613aae40f7b970af13d96ba",
+      "src/app/command/verbs/redo.rs": "cc5ded7fc9d8c23b2e2638d5c48910a2ac6ad83a2815aa2976907d53511eded0",
+      "src/app/command/verbs/report.rs": "8b8e73ef4da70c6221cbec41e75f54db70a5d39df05ee29c19b35efb8afe9a63",
+      "src/app/command/verbs/rotate.rs": "814e405ba0eac925a1322fc88fa7918e0d436cc291f4ab322cb5ae6dca4911c8",
+      "src/app/command/verbs/save.rs": "d2ed39ab8cc2f6755f5155a75269a1a097988799f161fe174587927e90084ad5",
+      "src/app/command/verbs/scale.rs": "bc3f8280720976d74fd46bd4447da41ed63943c014dc62d2d75fbeada88ac5c2",
+      "src/app/command/verbs/selecting.rs": "49b3172f3487531566fae3e4c955d9a438a0e153cf37d7f29a622bc070a48d27",
+      "src/app/command/verbs/select_all.rs": "e263949a3a7f78ae516f1e3e4e0f53815a96547f0ffc39c0248cc258fd72ab8a",
+      "src/app/command/verbs/select_by_name.rs": "90d070cb338b3a721a4501e777bf9ff048cfc368fe5d98fd1facbab18531001c",
+      "src/app/command/verbs/select_lasso.rs": "dcef1e302ab9bea2353e2f85fa391b35117f6f7f97c153beb7901744a0571a7b",
+      "src/app/command/verbs/select_small.rs": "d4591b944daf9036df7f6854083adf9fb1f593e410d61ee141f1cdd98ee4ab5e",
+      "src/app/command/verbs/show.rs": "b55d0061a288fb54d8de3faf65e56df41a9ea98b3f2b353acb1802b9d52c9803",
+      "src/app/command/verbs/snap.rs": "e85c98cc314cab74c8b9bcb74cf1d32429e49b49c76cf2c83f8a2e929b35603d",
+      "src/app/command/verbs/sphere.rs": "75e2438143ed9c3f6875596c517211e14000f8525376bf166e52372e82f4ef91",
+      "src/app/command/verbs/split.rs": "8c029c76b77546dd5fb8831693397b48ef16852ed1379253c2a028349f99b54a",
+      "src/app/command/verbs/tetrahedron.rs": "f09e06bacd0c09b5b2c7b8b569c93267a4df5cf0fefab653868d154a0b02bd15",
+      "src/app/command/verbs/text.rs": "e083f13a0cb4da2a4fd6c3bf13e733bf81fa6768a563c7c74959d65c8ea5797f",
+      "src/app/command/verbs/torus.rs": "c64075764f74caf608a647bcfe27aa1537c4b85cc091071cf3728c457f288c08",
+      "src/app/command/verbs/trim.rs": "60c27bce49c24b3867c658171267e1c159c24e0c1293de34067711f2c7c4b72d",
+      "src/app/command/verbs/undo.rs": "6e82fd3e78bf7d00c006740fd49264bb5d83c18957758bec545fab9ca09210aa",
+      "src/app/command/verbs/view.rs": "a025bf0d864aeb1bfc1c993df44e112118c86e290797a687f22935a442f30e39",
+      "src/app/command/verbs/volume.rs": "310b7d44e53155c80a823aa411e758d3171a1c8b3a3bdbf273113c36430c0ad9",
+      "src/app/command/verbs/extend/reach.rs": "37f9ed15f0b4148bebc6788829a6fc8bca4a558201348c145cdbd670d5e18a34",
+      "src/app/command/verbs/trim/parts.rs": "d78d99b59d5da7cf85de9cff7d9b161ac01c3b107d6b50fd0a67966f4f4ba71b",
+      "examples/course/camera.rs": "dcd25888699330fcf22e4159d58123c0d326dcb73d7d06fbdee7da7a011bac33",
+      "examples/course/canvas.rs": "19f6ceb5da34fdbfd6c42e67e1f1d37e56baf8f19d5f449a2d1a297440402866",
+      "examples/course/dock.rs": "a727b0b8e691ddcf1b0658f7075afbaaa6d7d94ff7e1adb5ca9f3ef2c2734e03",
+      "examples/course/entry.rs": "d1b0ea53c532d17c4f7c740bf0599a6540dd3e4bc9bcb55b795f0186917a755e",
+      "examples/course/frame.rs": "0822766f543e741845e5112e8924622c1c4ee055da7add3b99b395c617a02941",
+      "examples/course/geometry.rs": "ba248e48caab0b842f23fab1c4190592688fcd739e8a8438d995d166c4735661",
+      "examples/course/index.html": "7da497aa70b34bd604cddbf2f700f61efebe5cccfdf9c9626a9aebbdf5f3df3b",
+      "examples/course/index.yaml": "5b022c8d09bc7f23d1dd5f808eac3d4e86e1bb83f4c035feccd8b3378f3e5f65",
+      "examples/course/mathematics.rs": "d81943c4fa1d21b359fe353917ad521d95841b49b8f8319867611045b7517291",
+      "examples/course/painting.rs": "d57c027f79370d3acce115da2b43aca2511c72421b4cd7f3cfb21c6a299749eb",
+      "examples/course/registration.rs": "3b86d10516f68f09ccfe40dc0b9f8be435a80aee826734cb2ffd45ad0fab1514",
+      "examples/course/rows.rs": "1664f4e51eac78320c8fe7bf8f0fd6555176f29c932959e6ea5594bb498614bf",
+      "src/app/walk/brep/application_tests.rs": "dd2f8092ef699facec614535e086abea51bacb2520704f18100365d23c0258eb",
+      "src/app/walk/frames/application_tests.rs": "d827d38a2a63fa1c0e486b9c1fd2ddb4fe9913b93a5c5d4ca478988e60534969"
+    }
+  },
+  "preservedFailures": [
+    "geometry-build01 missing stream adapter and Rc constructors",
+    "geometry-browser-build01 missing verification-project docs junction",
+    "geometry-native01 two tests require later application modules"
+  ],
+  "limitations": [
+    "Whole production native suite was compiled, not fully executed",
+    "13 native tests ignored; retain their GPU acceptance requirements",
+    "Application test adapters and streaming adapter are retained in production and registered in later cumulative subjects",
+    "All production source teaching, final parity, software WebGPU and hardware/device acceptance remain open"
+  ],
+  "documentation": {
+    "toolingTests": 64,
+    "strict": {
+      "scope": "Seven-subject tooling regression and strict documentation build",
+      "commands": [
+        {
+          "name": "tooling",
+          "exitCode": 0
+        },
+        {
+          "name": "strict-site",
+          "exitCode": 0
+        }
+      ],
+      "postguards": "passed",
+      "outputs": []
+    },
+    "browser": {
+      "passed": true,
+      "scope": "Course home plus seven candidate documentation routes and fixed build timestamp only; no viewer, hardware or subject acceptance",
+      "stamp": "2026-11-15T15:29:24.374Z",
+      "records": [
+        {
+          "route": "readme",
+          "viewport": {
+            "width": 1280,
+            "height": 800
+          },
+          "time": "2026-11-15T15:29:24.374Z",
+          "box": {
+            "x": 1058.078125,
+            "y": 774.609375,
+            "width": 185.921875,
+            "height": 21.390625
+          },
+          "file": "readme-1280.png"
+        },
+        {
+          "route": "frame",
+          "viewport": {
+            "width": 1280,
+            "height": 800
+          },
+          "time": "2026-11-15T15:29:24.374Z",
+          "box": {
+            "x": 1058.078125,
+            "y": 774.609375,
+            "width": 185.921875,
+            "height": 21.390625
+          },
+          "file": "frame-1280.png"
+        },
+        {
+          "route": "painting",
+          "viewport": {
+            "width": 1280,
+            "height": 800
+          },
+          "time": "2026-11-15T15:29:24.374Z",
+          "box": {
+            "x": 1058.078125,
+            "y": 774.609375,
+            "width": 185.921875,
+            "height": 21.390625
+          },
+          "file": "painting-1280.png"
+        },
+        {
+          "route": "mathematics",
+          "viewport": {
+            "width": 1280,
+            "height": 800
+          },
+          "time": "2026-11-15T15:29:24.374Z",
+          "box": {
+            "x": 1058.078125,
+            "y": 774.609375,
+            "width": 185.921875,
+            "height": 21.390625
+          },
+          "file": "mathematics-1280.png"
+        },
+        {
+          "route": "dock",
+          "viewport": {
+            "width": 1280,
+            "height": 800
+          },
+          "time": "2026-11-15T15:29:24.374Z",
+          "box": {
+            "x": 1058.078125,
+            "y": 774.609375,
+            "width": 185.921875,
+            "height": 21.390625
+          },
+          "file": "dock-1280.png"
+        },
+        {
+          "route": "camera",
+          "viewport": {
+            "width": 1280,
+            "height": 800
+          },
+          "time": "2026-11-15T15:29:24.374Z",
+          "box": {
+            "x": 1058.078125,
+            "y": 774.609375,
+            "width": 185.921875,
+            "height": 21.390625
+          },
+          "file": "camera-1280.png"
+        },
+        {
+          "route": "rows",
+          "viewport": {
+            "width": 1280,
+            "height": 800
+          },
+          "time": "2026-11-15T15:29:24.374Z",
+          "box": {
+            "x": 1058.078125,
+            "y": 774.609375,
+            "width": 185.921875,
+            "height": 21.390625
+          },
+          "file": "rows-1280.png"
+        },
+        {
+          "route": "geometry",
+          "viewport": {
+            "width": 1280,
+            "height": 800
+          },
+          "time": "2026-11-15T15:29:24.374Z",
+          "box": {
+            "x": 1058.078125,
+            "y": 774.609375,
+            "width": 185.921875,
+            "height": 21.390625
+          },
+          "file": "geometry-1280.png"
+        },
+        {
+          "route": "readme",
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "time": "2026-11-15T15:29:24.374Z",
+          "box": {
+            "x": 168.078125,
+            "y": 818.609375,
+            "width": 185.921875,
+            "height": 21.390625
+          },
+          "file": "readme-390.png"
+        },
+        {
+          "route": "frame",
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "time": "2026-11-15T15:29:24.374Z",
+          "box": {
+            "x": 168.078125,
+            "y": 818.609375,
+            "width": 185.921875,
+            "height": 21.390625
+          },
+          "file": "frame-390.png"
+        },
+        {
+          "route": "painting",
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "time": "2026-11-15T15:29:24.374Z",
+          "box": {
+            "x": 168.078125,
+            "y": 818.609375,
+            "width": 185.921875,
+            "height": 21.390625
+          },
+          "file": "painting-390.png"
+        },
+        {
+          "route": "mathematics",
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "time": "2026-11-15T15:29:24.374Z",
+          "box": {
+            "x": 168.078125,
+            "y": 818.609375,
+            "width": 185.921875,
+            "height": 21.390625
+          },
+          "file": "mathematics-390.png"
+        },
+        {
+          "route": "dock",
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "time": "2026-11-15T15:29:24.374Z",
+          "box": {
+            "x": 168.078125,
+            "y": 818.609375,
+            "width": 185.921875,
+            "height": 21.390625
+          },
+          "file": "dock-390.png"
+        },
+        {
+          "route": "camera",
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "time": "2026-11-15T15:29:24.374Z",
+          "box": {
+            "x": 168.078125,
+            "y": 818.609375,
+            "width": 185.921875,
+            "height": 21.390625
+          },
+          "file": "camera-390.png"
+        },
+        {
+          "route": "rows",
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "time": "2026-11-15T15:29:24.374Z",
+          "box": {
+            "x": 168.078125,
+            "y": 818.609375,
+            "width": 185.921875,
+            "height": 21.390625
+          },
+          "file": "rows-390.png"
+        },
+        {
+          "route": "geometry",
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "time": "2026-11-15T15:29:24.374Z",
+          "box": {
+            "x": 168.078125,
+            "y": 818.609375,
+            "width": 185.921875,
+            "height": 21.390625
+          },
+          "file": "geometry-390.png"
+        }
+      ],
+      "errors": []
+    }
+  }
+}

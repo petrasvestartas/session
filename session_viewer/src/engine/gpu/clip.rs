@@ -922,8 +922,8 @@ fn dot(a: [f64; 3], b: [f64; 3]) -> f64 {
 mod pipelines;
 use pipelines::*;
 
-#[cfg(test)]
-mod tests;
+#[cfg(test)] // register:application-tests
+mod tests; // register:application-tests
 
-#[cfg(test)]
-mod editing_tests;
+#[cfg(test)] // register:application-tests
+mod editing_tests; // register:application-tests

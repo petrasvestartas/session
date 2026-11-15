@@ -13,6 +13,8 @@ mod dock;
 mod camera;
 #[path = "rows.rs"]
 mod rows;
+#[path = "geometry.rs"]
+mod geometry;
 
 type Start = fn() -> Result<(), wasm_bindgen::JsValue>;
 pub(super) const STARTS: &[(&str, Start)] = &[
@@ -22,6 +24,7 @@ pub(super) const STARTS: &[(&str, Start)] = &[
     ("dock", dock::start),
     ("camera", camera::start),
     ("rows", rows::start),
+    ("geometry", geometry::start),
     ("viewer", crate::run_web),
 ];
 // --8<-- [end:course-registration]

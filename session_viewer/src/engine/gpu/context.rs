@@ -133,14 +133,7 @@ impl Gpu {
         window: Option<std::sync::Arc<winit::window::Window>>,
         size: (u32, u32),
     ) -> anyhow::Result<Self> {
-        let DeviceSetup {
-            surface,
-            device,
-            queue,
-            config,
-            device_type,
-            failure,
-        } = device::open(
+        let setup = device::open(
             window,
             size,
             device::Options {
@@ -152,10 +145,16 @@ impl Gpu {
                 },
                 timing: !cfg!(target_arch = "wasm32")
                     && view::knob("VIEWER_GPU_TIMING", "").is_some(),
-                diagnostic: crate::app::feedback::diagnostic,
+                diagnostic: crate::engine::diagnostics::diagnostic,
             },
         )
         .await?;
+        Ok(Self::from_setup(setup))
+    }
+
+    /// Build the renderer on an already opened device; the caller may own presentation.
+    pub fn from_setup(setup: DeviceSetup) -> Self {
+        let DeviceSetup { surface, device, queue, config, device_type, failure } = setup;
         crate::engine::performance::mark("device ready");
         let started = crate::engine::performance::now_ms();
         let ctx = GpuCtx::new(device, queue);
@@ -192,7 +191,7 @@ impl Gpu {
             config.height,
             config.format
         );
-        crate::app::feedback::phase("pipeline setup", started, 0, "GPU");
+        crate::engine::diagnostics::phase("pipeline setup", started, 0, "GPU");
         crate::engine::performance::mark("gpu built");
         let mut gpu = Self {
             #[cfg(target_arch = "wasm32")]
@@ -230,7 +229,7 @@ impl Gpu {
             failure,
         };
         gpu.rebind_ink(); // register:ink
-        Ok(gpu)
+        gpu
     }
 
     /// Prepare solid-scene first-frame paths while the prefetched body is still downloading.
@@ -249,7 +248,7 @@ impl Gpu {
         self.arena
             .prewarm(&self.ctx, &self.layouts, target, self.view.opacity >= 1.0);
         self.segments.prewarm(&self.ctx, &self.layouts, target);
-        crate::app::feedback::phase("first frame prewarm", started, 0, "GPU");
+        crate::engine::diagnostics::phase("first frame prewarm", started, 0, "GPU");
     }
 
     /// Append one upload to every lane.

@@ -41,6 +41,11 @@
       "subject": "production boundaries",
       "scope": "Full native test-module compilation and default wasm build; actual comparison-fixture browser startup/zoom/Fit/projection at desktop/upright",
       "path": "session_viewer/docs/journey/release/production-boundaries-windows-20261115.json"
+    },
+    {
+      "subject": "scene rendering",
+      "scope": "Seven cumulative modes;185 native pass/13ignored,92 browser captures,4retention tests; candidate teaching incomplete",
+      "path": "session_viewer/docs/journey/release/completion-geometry-windows-20261115.json"
     }
   ],
   "open": [

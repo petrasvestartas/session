@@ -874,5 +874,31 @@
       ],
       "errors": []
     }
+  },
+  "independentBuildClosure": {
+    "files": 68,
+    "tests": 4,
+    "run": {
+      "scope": "Rows checkpoint builds its own shader inputs with no inherited OUT_DIR; four tooling tests",
+      "commands": [
+        {
+          "name": "tooling",
+          "exitCode": 0
+        },
+        {
+          "name": "rows-assemble",
+          "exitCode": 0
+        },
+        {
+          "name": "rows-check",
+          "exitCode": 0
+        }
+      ],
+      "failure": null,
+      "postguards": "passed",
+      "browser": "pending"
+    },
+    "correction": "Own production build.rs plus projected_triangle.wgsl transitive include; no inherited OUT_DIR",
+    "priorEvidenceScope": "Previous native/browser evidence used the recorded controlled build environment; not proof of independent build closure"
   }
 }

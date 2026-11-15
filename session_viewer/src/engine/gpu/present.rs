@@ -5,7 +5,7 @@ use super::targets::{TextureSpec, texture};
 
 impl Gpu {
     /// Write this frame's uniforms and prepare the widget and text.
-    fn write_frame_uniforms(&mut self, input: &FrameInput) {
+    pub(crate) fn write_frame_uniforms(&mut self, input: &FrameInput) {
         let size = (self.config.width, self.config.height);
         let cx = FrameCx {
             view: &self.view,
@@ -72,7 +72,7 @@ impl Gpu {
         geometry |= self.live_points() > 0; // register:clouds
 
         if let Some(done) = self.performance.mark_startup(geometry) {
-            crate::app::feedback::phase("first frame encode", t0, 0, done);
+            crate::engine::diagnostics::phase("first frame encode", t0, 0, done);
             let completion =
                 (done == "geometry on screen").then(|| self.performance.completion_flag());
             self.ctx.queue.on_submitted_work_done(move || {

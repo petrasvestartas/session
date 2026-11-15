@@ -793,8 +793,8 @@ fn face_coverage(ctx: &GpuCtx, samples: u32) -> FaceCoverage {
     }
 }
 
-#[cfg(all(test, not(target_arch = "wasm32")))]
-mod tests;
+#[cfg(all(test, not(target_arch = "wasm32")))] // register:application-tests
+mod tests; // register:application-tests
 
 impl super::lane::Lane for SurfaceOutline {
     fn on_retarget(&mut self, ctx: &GpuCtx, _layouts: &Layouts, target: Target) {

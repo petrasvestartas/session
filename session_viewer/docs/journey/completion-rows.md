@@ -24,6 +24,10 @@ From `session_tests`, materialize a fresh checkpoint:
 node --import ./scripts/typescript.mjs scripts/course.ts completion-checkpoint rows ../session_viewer/target/learn-rows
 ```
 
+### Shader build inputs
+
+Cargo runs the retained production `build.rs` before compiling this checkpoint. It expands each shader's include directives once per shader, strips line comments and redundant whitespace, and writes generated WGSL beneath Cargo's own `OUT_DIR`. The `shader!` macro reads those generated files. Include `projected_triangle.wgsl` alongside the five pipeline helpers: ink visibility includes its layout. Supplying another checkout's generated shaders would conceal a missing dependency, so validation must also build with no inherited `OUT_DIR`.
+
 ### Ownership and allocation
 
 `GpuCtx` holds cloneable device and queue handles plus a shared pipeline cache. A device creates resources; a queue copies bytes and submits commands. Cloning a handle does not create a second GPU. `GrowBuf` records row length, capacity, stride and permitted usage. Growth allocates more space, copies existing bytes, and replaces the buffer handle. Any bind group referencing the old buffer must then be rebuilt. Keeping capacity separate from length allows an empty scene to retain reusable allocation.
@@ -74,4 +78,4 @@ A bind group holds a particular GPU buffer handle. Growth replaces that allocati
 
 ## Validation
 
-The six-subject retention suite passes three tests and the independent rows wasm checkpoint compiles. Full production native/default/tutorial wasm typechecks pass after the adapter extraction. The native suite passes 54 tests with one GPU-dependent test ignored. Browser checks pass 70 captures across all six modes, including exact row round trips. Whole-course acceptance remains pending; source equality and CPU inspection cannot substitute for them.
+The retention and shader-include suite passes four tests. The independent rows wasm checkpoint compiles with its own build script, without an inherited shader output directory. Full production native/default/tutorial wasm typechecks pass after the adapter extraction. The native suite passes 54 tests with one GPU-dependent test ignored. Browser checks pass 70 captures across all six modes, including exact row round trips. Whole-course acceptance remains pending; source equality and CPU inspection cannot substitute for them.

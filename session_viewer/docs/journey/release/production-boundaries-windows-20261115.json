@@ -1002,5 +1002,968 @@
       "newOrChanged": []
     }
   ],
-  "testPathCorrection": "Moved instance validation test now uses crate::engine::gpu::triangle_tiles; original native-test compilation failure retained"
+  "testPathCorrection": "Moved instance validation test now uses crate::engine::gpu::triangle_tiles; original native-test compilation failure retained",
+  "sceneConstructorRegression": {
+    "build": {
+      "scope": "Default production shader-independent build and packaging with docs asset junction",
+      "commands": [
+        {
+          "name": "cargo",
+          "exitCode": 0
+        },
+        {
+          "name": "trunk",
+          "exitCode": 0
+        }
+      ],
+      "failure": null,
+      "postguards": "passed",
+      "browser": "pending"
+    },
+    "browser": {
+      "scope": "Production runtime with the recorded comparison protobuf: startup, zoom, Fit and View command smoke test; not whole course/device acceptance",
+      "browser": "157.0.8103.51",
+      "cases": [
+        {
+          "viewport": {
+            "width": 1280,
+            "height": 800
+          },
+          "errors": [],
+          "frames": [
+            {
+              "name": "loaded",
+              "file": "1280-loaded.png",
+              "sha256": "2b8642518448e34fd13ece034023a9510d597ed880d58a4b5185e73787b07da0",
+              "pixels": "5749a6a615677850625ab00a95d5304747976a705866e102ea94d38d8b0f3266",
+              "ink": 188223
+            },
+            {
+              "name": "zoom",
+              "file": "1280-zoom.png",
+              "sha256": "e4266f4f2a05792fec329e7d311f39402651dec113b2e5c1a10db3915789e983",
+              "pixels": "f7ca337183d6bd8b888a7ebfdb2798999f12c7487b5e0d27ea3fe3300d81da56",
+              "ink": 142851
+            },
+            {
+              "name": "fit",
+              "file": "1280-fit.png",
+              "sha256": "92edb61ffce59780d1bb605a3fc806c6e57707c20dbd98b79dab4c73c987e59c",
+              "pixels": "b3348e119bff03f7f57d95d7bfcce948930ce7b0c55241cb1c01ea045987109b",
+              "ink": 174016
+            },
+            {
+              "name": "orthographic",
+              "file": "1280-orthographic.png",
+              "sha256": "67f86e2fded98596e047b94b1e5d3a0efa7920a41b50420478f469574eded7ae",
+              "pixels": "50f9b7c2864d227a566974fff6c34e8a68468afb3645dfca3d9a37d63940aebb",
+              "ink": 164984
+            }
+          ],
+          "lastCommandUi": {
+            "command": "",
+            "command_open": true,
+            "completion_rect": null,
+            "controls": [
+              {
+                "key": "command/input",
+                "label": "Command",
+                "rect": [
+                  86.375,
+                  774,
+                  1220,
+                  796
+                ]
+              },
+              {
+                "key": "command/collapse",
+                "label": "Collapse or expand history",
+                "rect": [
+                  1228,
+                  774.5,
+                  1244,
+                  795.5
+                ]
+              },
+              {
+                "key": "command/resize",
+                "label": "Drag to resize command history",
+                "rect": [
+                  0,
+                  766,
+                  1280,
+                  774
+                ]
+              }
+            ],
+            "edge_total": 0,
+            "edges": [],
+            "framework": "egui 0.34.3",
+            "hint": "Type a command \u00c2\u00b7 Up/Down browse \u00c2\u00b7 Tab completes \u00c2\u00b7 Enter executes \u00c2\u00b7 Esc cancels",
+            "history": [
+              "> Fit\nfitted",
+              "> View Orthographic\nView updated"
+            ],
+            "layers_open": false,
+            "number": "",
+            "number_error": "",
+            "number_rect": null,
+            "placeholder": "View updated",
+            "rows": [],
+            "scene_rect": [
+              0,
+              0,
+              1280,
+              770
+            ]
+          },
+          "report": {
+            "version": 1,
+            "tab": "cebc380e-3a19-46cc-86d0-52f42f716625",
+            "started": "2026-11-15T15:34:56.182Z",
+            "lastSeen": "2026-11-15T15:35:11.192Z",
+            "outcome": "ready",
+            "page": "http://127.0.0.1:8804/",
+            "browser": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.0.0 Safari/537.36",
+            "secureContext": true,
+            "webgpu": true,
+            "viewport": [
+              1280,
+              800
+            ],
+            "devicePixelRatio": 1,
+            "storage": true,
+            "events": [
+              {
+                "time": "2026-11-15T15:34:56.397Z",
+                "elapsedMs": 327.4000000357628,
+                "kind": "phase",
+                "message": "{\"bytes\":0,\"durationMs\":0.0,\"name\":\"pipeline creation\",\"source\":\"scan_blocks\"}"
+              },
+              {
+                "time": "2026-11-15T15:34:56.397Z",
+                "elapsedMs": 327.60000002384186,
+                "kind": "phase",
+                "message": "{\"bytes\":0,\"durationMs\":0.0,\"name\":\"pipeline creation\",\"source\":\"finish_offsets\"}"
+              },
+              {
+                "time": "2026-11-15T15:34:56.398Z",
+                "elapsedMs": 327.9000000357628,
+                "kind": "phase",
+                "message": "{\"bytes\":0,\"durationMs\":0.10000002384185791,\"name\":\"pipeline creation\",\"source\":\"ribbon.unselected\"}"
+              },
+              {
+                "time": "2026-11-15T15:34:56.398Z",
+                "elapsedMs": 328,
+                "kind": "phase",
+                "message": "{\"bytes\":0,\"durationMs\":0.0,\"name\":\"pipeline creation\",\"source\":\"ribbon\"}"
+              },
+              {
+                "time": "2026-11-15T15:34:56.398Z",
+                "elapsedMs": 328.10000002384186,
+                "kind": "phase",
+                "message": "{\"bytes\":0,\"durationMs\":1.899999976158142,\"name\":\"first frame prewarm\",\"source\":\"GPU\"}"
+              },
+              {
+                "time": "2026-11-15T15:34:56.398Z",
+                "elapsedMs": 328.2000000476837,
+                "kind": "milestone",
+                "message": "state ready"
+              },
+              {
+                "time": "2026-11-15T15:34:56.403Z",
+                "elapsedMs": 333.80000001192093,
+                "kind": "phase",
+                "message": "{\"bytes\":73,\"durationMs\":0.09999996423721313,\"name\":\"manifest\",\"source\":\"scenes/tutorial-check.yaml\"}"
+              },
+              {
+                "time": "2026-11-15T15:34:56.404Z",
+                "elapsedMs": 333.9000000357628,
+                "kind": "milestone",
+                "message": "manifest received"
+              },
+              {
+                "time": "2026-11-15T15:34:56.444Z",
+                "elapsedMs": 374.4000000357628,
+                "kind": "phase",
+                "message": "{\"bytes\":0,\"durationMs\":0.10000002384185791,\"name\":\"pipeline creation\",\"source\":\"background\"}"
+              },
+              {
+                "time": "2026-11-15T15:34:56.444Z",
+                "elapsedMs": 374.7000000476837,
+                "kind": "phase",
+                "message": "{\"bytes\":0,\"durationMs\":0.10000002384185791,\"name\":\"pipeline creation\",\"source\":\"grid\"}"
+              },
+              {
+                "time": "2026-11-15T15:34:56.446Z",
+                "elapsedMs": 376,
+                "kind": "milestone",
+                "message": "first frame"
+              },
+              {
+                "time": "2026-11-15T15:34:56.446Z",
+                "elapsedMs": 376.30000001192093,
+                "kind": "phase",
+                "message": "{\"bytes\":0,\"durationMs\":2.800000011920929,\"name\":\"first frame encode\",\"source\":\"first frame on screen\"}"
+              },
+              {
+                "time": "2026-11-15T15:34:56.483Z",
+                "elapsedMs": 413.10000002384186,
+                "kind": "phase",
+                "message": "{\"bytes\":18736,\"durationMs\":78.10000002384186,\"name\":\"download\",\"source\":\"pb/course-comparison.pb\"}"
+              },
+              {
+                "time": "2026-11-15T15:34:56.486Z",
+                "elapsedMs": 416.4000000357628,
+                "kind": "phase",
+                "message": "{\"bytes\":18736,\"durationMs\":3.099999964237213,\"name\":\"decode\",\"source\":\"pb/course-comparison.pb\"}"
+              },
+              {
+                "time": "2026-11-15T15:34:56.487Z",
+                "elapsedMs": 417,
+                "kind": "milestone",
+                "message": "scene posted"
+              },
+              {
+                "time": "2026-11-15T15:34:56.557Z",
+                "elapsedMs": 487.2000000476837,
+                "kind": "phase",
+                "message": "{\"bytes\":0,\"durationMs\":69.80000001192093,\"name\":\"walk\",\"source\":\"viewer comparison\"}"
+              },
+              {
+                "time": "2026-11-15T15:34:56.559Z",
+                "elapsedMs": 489.80000001192093,
+                "kind": "phase",
+                "message": "{\"bytes\":0,\"durationMs\":2.599999964237213,\"name\":\"upload\",\"source\":\"viewer comparison\"}"
+              },
+              {
+                "time": "2026-11-15T15:34:56.560Z",
+                "elapsedMs": 490.7000000476837,
+                "kind": "scene",
+                "message": "1 documents; 4 display rows"
+              },
+              {
+                "time": "2026-11-15T15:34:57.470Z",
+                "elapsedMs": 1400.9000000357628,
+                "kind": "milestone",
+                "message": "first frame on screen"
+              },
+              {
+                "time": "2026-11-15T15:34:57.478Z",
+                "elapsedMs": 1408.5,
+                "kind": "phase",
+                "message": "{\"bytes\":0,\"durationMs\":0.0,\"name\":\"pipeline creation\",\"source\":\"background\"}"
+              },
+              {
+                "time": "2026-11-15T15:34:57.478Z",
+                "elapsedMs": 1408.5,
+                "kind": "phase",
+                "message": "{\"bytes\":0,\"durationMs\":0.0,\"name\":\"pipeline creation\",\"source\":\"grid\"}"
+              },
+              {
+                "time": "2026-11-15T15:34:57.479Z",
+                "elapsedMs": 1409,
+                "kind": "milestone",
+                "message": "first geometry frame"
+              },
+              {
+                "time": "2026-11-15T15:34:57.479Z",
+                "elapsedMs": 1409.2000000476837,
+                "kind": "phase",
+                "message": "{\"bytes\":0,\"durationMs\":1.100000023841858,\"name\":\"first frame encode\",\"source\":\"geometry on screen\"}"
+              },
+              {
+                "time": "2026-11-15T15:34:57.493Z",
+                "elapsedMs": 1423.7000000476837,
+                "kind": "milestone",
+                "message": "geometry on screen"
+              }
+            ],
+            "phases": [
+              {
+                "bytes": 73,
+                "durationMs": 133.30000001192093,
+                "name": "download",
+                "source": "scenes/tutorial-check.yaml",
+                "elapsedMs": 215.80000001192093
+              },
+              {
+                "bytes": 0,
+                "durationMs": 5.699999988079071,
+                "name": "pipeline setup",
+                "source": "GPU",
+                "elapsedMs": 323.80000001192093
+              },
+              {
+                "bytes": 0,
+                "durationMs": 0.19999998807907104,
+                "name": "pipeline creation",
+                "source": "physical triangle",
+                "elapsedMs": 326.60000002384186
+              },
+              {
+                "bytes": 0,
+                "durationMs": 0.19999998807907104,
+                "name": "pipeline creation",
+                "source": "cs_main",
+                "elapsedMs": 326.9000000357628
+              },
+              {
+                "bytes": 0,
+                "durationMs": 0.09999996423721313,
+                "name": "pipeline creation",
+                "source": "fs_count",
+                "elapsedMs": 327
+              },
+              {
+                "bytes": 0,
+                "durationMs": 0,
+                "name": "pipeline creation",
+                "source": "fs_fill",
+                "elapsedMs": 327.2000000476837
+              },
+              {
+                "bytes": 0,
+                "durationMs": 0.09999996423721313,
+                "name": "pipeline creation",
+                "source": "scan_tiles",
+                "elapsedMs": 327.4000000357628
+              },
+              {
+                "bytes": 0,
+                "durationMs": 0,
+                "name": "pipeline creation",
+                "source": "scan_blocks",
+                "elapsedMs": 327.4000000357628
+              },
+              {
+                "bytes": 0,
+                "durationMs": 0,
+                "name": "pipeline creation",
+                "source": "finish_offsets",
+                "elapsedMs": 327.60000002384186
+              },
+              {
+                "bytes": 0,
+                "durationMs": 0.10000002384185791,
+                "name": "pipeline creation",
+                "source": "ribbon.unselected",
+                "elapsedMs": 327.9000000357628
+              },
+              {
+                "bytes": 0,
+                "durationMs": 0,
+                "name": "pipeline creation",
+                "source": "ribbon",
+                "elapsedMs": 328
+              },
+              {
+                "bytes": 0,
+                "durationMs": 1.899999976158142,
+                "name": "first frame prewarm",
+                "source": "GPU",
+                "elapsedMs": 328.10000002384186
+              },
+              {
+                "bytes": 73,
+                "durationMs": 0.09999996423721313,
+                "name": "manifest",
+                "source": "scenes/tutorial-check.yaml",
+                "elapsedMs": 333.80000001192093
+              },
+              {
+                "bytes": 0,
+                "durationMs": 0.10000002384185791,
+                "name": "pipeline creation",
+                "source": "background",
+                "elapsedMs": 374.4000000357628
+              },
+              {
+                "bytes": 0,
+                "durationMs": 0.10000002384185791,
+                "name": "pipeline creation",
+                "source": "grid",
+                "elapsedMs": 374.7000000476837
+              },
+              {
+                "bytes": 0,
+                "durationMs": 2.800000011920929,
+                "name": "first frame encode",
+                "source": "first frame on screen",
+                "elapsedMs": 376.30000001192093
+              },
+              {
+                "bytes": 18736,
+                "durationMs": 78.10000002384186,
+                "name": "download",
+                "source": "pb/course-comparison.pb",
+                "elapsedMs": 413.10000002384186
+              },
+              {
+                "bytes": 18736,
+                "durationMs": 3.099999964237213,
+                "name": "decode",
+                "source": "pb/course-comparison.pb",
+                "elapsedMs": 416.4000000357628
+              },
+              {
+                "bytes": 0,
+                "durationMs": 69.80000001192093,
+                "name": "walk",
+                "source": "viewer comparison",
+                "elapsedMs": 487.2000000476837
+              },
+              {
+                "bytes": 0,
+                "durationMs": 2.599999964237213,
+                "name": "upload",
+                "source": "viewer comparison",
+                "elapsedMs": 489.80000001192093
+              },
+              {
+                "bytes": 0,
+                "durationMs": 0,
+                "name": "pipeline creation",
+                "source": "background",
+                "elapsedMs": 1408.5
+              },
+              {
+                "bytes": 0,
+                "durationMs": 0,
+                "name": "pipeline creation",
+                "source": "grid",
+                "elapsedMs": 1408.5
+              },
+              {
+                "bytes": 0,
+                "durationMs": 1.100000023841858,
+                "name": "first frame encode",
+                "source": "geometry on screen",
+                "elapsedMs": 1409.2000000476837
+              }
+            ],
+            "resources": [
+              {
+                "url": "http://127.0.0.1:8804/scenes/tutorial-check.yaml",
+                "startMs": 82.10000002384186,
+                "durationMs": 24.30000001192093,
+                "transferBytes": 373,
+                "encodedBytes": 73,
+                "decodedBytes": 73
+              },
+              {
+                "url": "http://127.0.0.1:8804/pb/course-comparison.pb",
+                "startMs": 109.30000001192093,
+                "durationMs": 7.900000035762787,
+                "transferBytes": 19036,
+                "encodedBytes": 18736,
+                "decodedBytes": 18736
+              },
+              {
+                "url": "http://127.0.0.1:8804/session_viewer-1ad65c1f9573cc13_bg.wasm",
+                "startMs": 76,
+                "durationMs": 123.20000004768372,
+                "transferBytes": 10091881,
+                "encodedBytes": 10091581,
+                "decodedBytes": 10091581
+              },
+              {
+                "url": "http://127.0.0.1:8804/pb/course-comparison.pb",
+                "startMs": 335,
+                "durationMs": 77.10000002384186,
+                "transferBytes": 19036,
+                "encodedBytes": 18736,
+                "decodedBytes": 18736
+              }
+            ],
+            "liveReloads": 0,
+            "canvas": [
+              1280,
+              800
+            ],
+            "gpuAdapterInfo": {
+              "vendor": "intel",
+              "architecture": "gen-12lp",
+              "device": "",
+              "description": ""
+            },
+            "adapter": "AdapterInfo { name: \"\", vendor: 0, device: 0, device_type: Other, device_pci_bus_id: \"\", driver: \"\", driver_info: \"\", backend: BrowserWebGpu, subgroup_min_size: 4, subgroup_max_size: 128, transient_saves_memory: false }"
+          }
+        },
+        {
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "errors": [],
+          "frames": [
+            {
+              "name": "loaded",
+              "file": "390-loaded.png",
+              "sha256": "a8a9d5cb7939df7e1bbe421b47330c5dc4bedf1224b8bd824bca52869eb99fee",
+              "pixels": "10496f582085c8b2d482ce4e2f7fc1098b2f32dd9c9ae0bb227b5470f77dc2ba",
+              "ink": 69484
+            },
+            {
+              "name": "zoom",
+              "file": "390-zoom.png",
+              "sha256": "6bdc5ffe756f1fa6e3f1a4f92473e0c76c9321546e27fb3b1ab9d276dfb61133",
+              "pixels": "9334cb667ac92631780b53ee66f1b5c488ff450071957ef7da3b24c946da534b",
+              "ink": 53888
+            },
+            {
+              "name": "fit",
+              "file": "390-fit.png",
+              "sha256": "4a2e4db839cdb81406df11f3e4fb77c12fe5249547b50e873a345f9a4917782c",
+              "pixels": "7d9e438d35eaf8dd0236d54ba4e4c84fa89ee5d743e4a4ea8442c975df6191e3",
+              "ink": 67465
+            },
+            {
+              "name": "orthographic",
+              "file": "390-orthographic.png",
+              "sha256": "8b17cb53ff9715dd323f32124da8869d294cc37b0847e00793101e268eb81c4f",
+              "pixels": "9727e411f168c345afd6d20e91cda514b2617fc2946ce976bb15e135bf17a232",
+              "ink": 67451
+            }
+          ],
+          "lastCommandUi": {
+            "command": "",
+            "command_open": true,
+            "completion_rect": null,
+            "controls": [
+              {
+                "key": "command/input",
+                "label": "Command",
+                "rect": [
+                  86.375,
+                  818,
+                  330,
+                  840
+                ]
+              },
+              {
+                "key": "command/collapse",
+                "label": "Collapse or expand history",
+                "rect": [
+                  338,
+                  818.5,
+                  354,
+                  839.5
+                ]
+              },
+              {
+                "key": "command/resize",
+                "label": "Drag to resize command history",
+                "rect": [
+                  0,
+                  810,
+                  390,
+                  818
+                ]
+              }
+            ],
+            "edge_total": 0,
+            "edges": [],
+            "framework": "egui 0.34.3",
+            "hint": "Type a command \u00c2\u00b7 Up/Down browse \u00c2\u00b7 Tab completes \u00c2\u00b7 Enter executes \u00c2\u00b7 Esc cancels",
+            "history": [
+              "> Fit\nfitted",
+              "> View Orthographic\nView updated"
+            ],
+            "layers_open": false,
+            "number": "",
+            "number_error": "",
+            "number_rect": null,
+            "placeholder": "View updated",
+            "rows": [],
+            "scene_rect": [
+              0,
+              0,
+              390,
+              814
+            ]
+          },
+          "report": {
+            "version": 1,
+            "tab": "8cbbff0a-8119-44a0-8210-bb8d813bc503",
+            "started": "2026-11-15T15:35:14.382Z",
+            "lastSeen": "2026-11-15T15:35:29.388Z",
+            "outcome": "ready",
+            "page": "http://127.0.0.1:8804/",
+            "browser": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.0.0 Safari/537.36",
+            "secureContext": true,
+            "webgpu": true,
+            "viewport": [
+              390,
+              844
+            ],
+            "devicePixelRatio": 1,
+            "storage": true,
+            "events": [
+              {
+                "time": "2026-11-15T15:35:14.569Z",
+                "elapsedMs": 233.5,
+                "kind": "phase",
+                "message": "{\"bytes\":0,\"durationMs\":0.0,\"name\":\"pipeline creation\",\"source\":\"scan_blocks\"}"
+              },
+              {
+                "time": "2026-11-15T15:35:14.569Z",
+                "elapsedMs": 233.5,
+                "kind": "phase",
+                "message": "{\"bytes\":0,\"durationMs\":0.0,\"name\":\"pipeline creation\",\"source\":\"finish_offsets\"}"
+              },
+              {
+                "time": "2026-11-15T15:35:14.569Z",
+                "elapsedMs": 233.80000001192093,
+                "kind": "phase",
+                "message": "{\"bytes\":0,\"durationMs\":0.19999998807907104,\"name\":\"pipeline creation\",\"source\":\"ribbon.unselected\"}"
+              },
+              {
+                "time": "2026-11-15T15:35:14.569Z",
+                "elapsedMs": 234,
+                "kind": "phase",
+                "message": "{\"bytes\":0,\"durationMs\":0.09999996423721313,\"name\":\"pipeline creation\",\"source\":\"ribbon\"}"
+              },
+              {
+                "time": "2026-11-15T15:35:14.569Z",
+                "elapsedMs": 234,
+                "kind": "phase",
+                "message": "{\"bytes\":0,\"durationMs\":2.5,\"name\":\"first frame prewarm\",\"source\":\"GPU\"}"
+              },
+              {
+                "time": "2026-11-15T15:35:14.569Z",
+                "elapsedMs": 234.10000002384186,
+                "kind": "milestone",
+                "message": "state ready"
+              },
+              {
+                "time": "2026-11-15T15:35:14.575Z",
+                "elapsedMs": 240,
+                "kind": "phase",
+                "message": "{\"bytes\":73,\"durationMs\":0.0,\"name\":\"manifest\",\"source\":\"scenes/tutorial-check.yaml\"}"
+              },
+              {
+                "time": "2026-11-15T15:35:14.575Z",
+                "elapsedMs": 240.20000004768372,
+                "kind": "milestone",
+                "message": "manifest received"
+              },
+              {
+                "time": "2026-11-15T15:35:14.640Z",
+                "elapsedMs": 304.80000001192093,
+                "kind": "phase",
+                "message": "{\"bytes\":0,\"durationMs\":0.10000002384185791,\"name\":\"pipeline creation\",\"source\":\"background\"}"
+              },
+              {
+                "time": "2026-11-15T15:35:14.642Z",
+                "elapsedMs": 306.4000000357628,
+                "kind": "phase",
+                "message": "{\"bytes\":0,\"durationMs\":0.10000002384185791,\"name\":\"pipeline creation\",\"source\":\"grid\"}"
+              },
+              {
+                "time": "2026-11-15T15:35:14.643Z",
+                "elapsedMs": 308.10000002384186,
+                "kind": "milestone",
+                "message": "first frame"
+              },
+              {
+                "time": "2026-11-15T15:35:14.644Z",
+                "elapsedMs": 308.30000001192093,
+                "kind": "phase",
+                "message": "{\"bytes\":0,\"durationMs\":4.399999976158142,\"name\":\"first frame encode\",\"source\":\"first frame on screen\"}"
+              },
+              {
+                "time": "2026-11-15T15:35:14.659Z",
+                "elapsedMs": 324.10000002384186,
+                "kind": "phase",
+                "message": "{\"bytes\":18736,\"durationMs\":82.10000002384186,\"name\":\"download\",\"source\":\"pb/course-comparison.pb\"}"
+              },
+              {
+                "time": "2026-11-15T15:35:14.663Z",
+                "elapsedMs": 327.5,
+                "kind": "phase",
+                "message": "{\"bytes\":18736,\"durationMs\":3.100000023841858,\"name\":\"decode\",\"source\":\"pb/course-comparison.pb\"}"
+              },
+              {
+                "time": "2026-11-15T15:35:14.664Z",
+                "elapsedMs": 328.30000001192093,
+                "kind": "milestone",
+                "message": "scene posted"
+              },
+              {
+                "time": "2026-11-15T15:35:14.743Z",
+                "elapsedMs": 407.60000002384186,
+                "kind": "phase",
+                "message": "{\"bytes\":0,\"durationMs\":79.0,\"name\":\"walk\",\"source\":\"viewer comparison\"}"
+              },
+              {
+                "time": "2026-11-15T15:35:14.746Z",
+                "elapsedMs": 410.30000001192093,
+                "kind": "phase",
+                "message": "{\"bytes\":0,\"durationMs\":2.699999988079071,\"name\":\"upload\",\"source\":\"viewer comparison\"}"
+              },
+              {
+                "time": "2026-11-15T15:35:14.746Z",
+                "elapsedMs": 410.9000000357628,
+                "kind": "scene",
+                "message": "1 documents; 4 display rows"
+              },
+              {
+                "time": "2026-11-15T15:35:15.699Z",
+                "elapsedMs": 1363.300000011921,
+                "kind": "milestone",
+                "message": "first frame on screen"
+              },
+              {
+                "time": "2026-11-15T15:35:15.705Z",
+                "elapsedMs": 1369.300000011921,
+                "kind": "phase",
+                "message": "{\"bytes\":0,\"durationMs\":0.0,\"name\":\"pipeline creation\",\"source\":\"background\"}"
+              },
+              {
+                "time": "2026-11-15T15:35:15.705Z",
+                "elapsedMs": 1369.4000000357628,
+                "kind": "phase",
+                "message": "{\"bytes\":0,\"durationMs\":0.0,\"name\":\"pipeline creation\",\"source\":\"grid\"}"
+              },
+              {
+                "time": "2026-11-15T15:35:15.705Z",
+                "elapsedMs": 1369.800000011921,
+                "kind": "milestone",
+                "message": "first geometry frame"
+              },
+              {
+                "time": "2026-11-15T15:35:15.705Z",
+                "elapsedMs": 1370.2000000476837,
+                "kind": "phase",
+                "message": "{\"bytes\":0,\"durationMs\":1.199999988079071,\"name\":\"first frame encode\",\"source\":\"geometry on screen\"}"
+              },
+              {
+                "time": "2026-11-15T15:35:15.720Z",
+                "elapsedMs": 1384.7000000476837,
+                "kind": "milestone",
+                "message": "geometry on screen"
+              }
+            ],
+            "phases": [
+              {
+                "bytes": 73,
+                "durationMs": 109.19999998807907,
+                "name": "download",
+                "source": "scenes/tutorial-check.yaml",
+                "elapsedMs": 136.70000004768372
+              },
+              {
+                "bytes": 0,
+                "durationMs": 5.300000011920929,
+                "name": "pipeline setup",
+                "source": "GPU",
+                "elapsedMs": 228.9000000357628
+              },
+              {
+                "bytes": 0,
+                "durationMs": 0.09999996423721313,
+                "name": "pipeline creation",
+                "source": "physical triangle",
+                "elapsedMs": 231.80000001192093
+              },
+              {
+                "bytes": 0,
+                "durationMs": 0.20000004768371582,
+                "name": "pipeline creation",
+                "source": "cs_main",
+                "elapsedMs": 232.20000004768372
+              },
+              {
+                "bytes": 0,
+                "durationMs": 0.10000002384185791,
+                "name": "pipeline creation",
+                "source": "fs_count",
+                "elapsedMs": 232.70000004768372
+              },
+              {
+                "bytes": 0,
+                "durationMs": 0,
+                "name": "pipeline creation",
+                "source": "fs_fill",
+                "elapsedMs": 232.9000000357628
+              },
+              {
+                "bytes": 0,
+                "durationMs": 0.19999998807907104,
+                "name": "pipeline creation",
+                "source": "scan_tiles",
+                "elapsedMs": 233.4000000357628
+              },
+              {
+                "bytes": 0,
+                "durationMs": 0,
+                "name": "pipeline creation",
+                "source": "scan_blocks",
+                "elapsedMs": 233.5
+              },
+              {
+                "bytes": 0,
+                "durationMs": 0,
+                "name": "pipeline creation",
+                "source": "finish_offsets",
+                "elapsedMs": 233.5
+              },
+              {
+                "bytes": 0,
+                "durationMs": 0.19999998807907104,
+                "name": "pipeline creation",
+                "source": "ribbon.unselected",
+                "elapsedMs": 233.80000001192093
+              },
+              {
+                "bytes": 0,
+                "durationMs": 0.09999996423721313,
+                "name": "pipeline creation",
+                "source": "ribbon",
+                "elapsedMs": 234
+              },
+              {
+                "bytes": 0,
+                "durationMs": 2.5,
+                "name": "first frame prewarm",
+                "source": "GPU",
+                "elapsedMs": 234
+              },
+              {
+                "bytes": 73,
+                "durationMs": 0,
+                "name": "manifest",
+                "source": "scenes/tutorial-check.yaml",
+                "elapsedMs": 240
+              },
+              {
+                "bytes": 0,
+                "durationMs": 0.10000002384185791,
+                "name": "pipeline creation",
+                "source": "background",
+                "elapsedMs": 304.80000001192093
+              },
+              {
+                "bytes": 0,
+                "durationMs": 0.10000002384185791,
+                "name": "pipeline creation",
+                "source": "grid",
+                "elapsedMs": 306.4000000357628
+              },
+              {
+                "bytes": 0,
+                "durationMs": 4.399999976158142,
+                "name": "first frame encode",
+                "source": "first frame on screen",
+                "elapsedMs": 308.30000001192093
+              },
+              {
+                "bytes": 18736,
+                "durationMs": 82.10000002384186,
+                "name": "download",
+                "source": "pb/course-comparison.pb",
+                "elapsedMs": 324.10000002384186
+              },
+              {
+                "bytes": 18736,
+                "durationMs": 3.100000023841858,
+                "name": "decode",
+                "source": "pb/course-comparison.pb",
+                "elapsedMs": 327.5
+              },
+              {
+                "bytes": 0,
+                "durationMs": 79,
+                "name": "walk",
+                "source": "viewer comparison",
+                "elapsedMs": 407.60000002384186
+              },
+              {
+                "bytes": 0,
+                "durationMs": 2.699999988079071,
+                "name": "upload",
+                "source": "viewer comparison",
+                "elapsedMs": 410.30000001192093
+              },
+              {
+                "bytes": 0,
+                "durationMs": 0,
+                "name": "pipeline creation",
+                "source": "background",
+                "elapsedMs": 1369.300000011921
+              },
+              {
+                "bytes": 0,
+                "durationMs": 0,
+                "name": "pipeline creation",
+                "source": "grid",
+                "elapsedMs": 1369.4000000357628
+              },
+              {
+                "bytes": 0,
+                "durationMs": 1.199999988079071,
+                "name": "first frame encode",
+                "source": "geometry on screen",
+                "elapsedMs": 1370.2000000476837
+              }
+            ],
+            "resources": [
+              {
+                "url": "http://127.0.0.1:8804/scenes/tutorial-check.yaml",
+                "startMs": 27.100000023841858,
+                "durationMs": 15.300000011920929,
+                "transferBytes": 373,
+                "encodedBytes": 73,
+                "decodedBytes": 73
+              },
+              {
+                "url": "http://127.0.0.1:8804/session_viewer-1ad65c1f9573cc13_bg.wasm",
+                "startMs": 21.900000035762787,
+                "durationMs": 93.39999997615814,
+                "transferBytes": 10091881,
+                "encodedBytes": 10091581,
+                "decodedBytes": 10091581
+              },
+              {
+                "url": "http://127.0.0.1:8804/pb/course-comparison.pb",
+                "startMs": 44,
+                "durationMs": 40.5,
+                "transferBytes": 19036,
+                "encodedBytes": 18736,
+                "decodedBytes": 18736
+              },
+              {
+                "url": "http://127.0.0.1:8804/pb/course-comparison.pb",
+                "startMs": 241.9000000357628,
+                "durationMs": 79.69999998807907,
+                "transferBytes": 19036,
+                "encodedBytes": 18736,
+                "decodedBytes": 18736
+              }
+            ],
+            "liveReloads": 0,
+            "canvas": [
+              390,
+              844
+            ],
+            "gpuAdapterInfo": {
+              "vendor": "intel",
+              "architecture": "gen-12lp",
+              "device": "",
+              "description": ""
+            },
+            "adapter": "AdapterInfo { name: \"\", vendor: 0, device: 0, device_type: Other, device_pci_bus_id: \"\", driver: \"\", driver_info: \"\", backend: BrowserWebGpu, subgroup_min_size: 4, subgroup_max_size: 128, transient_saves_memory: false }"
+          }
+        }
+      ]
+    },
+    "nativeTestModules": {
+      "name": "production-native-tests",
+      "exitCode": 0
+    },
+    "review": "All8 browser capture hashes exactly match reviewed production-browser03 images. Resident and stream converter bodies compare exactly; test adapters preserve production registration.",
+    "preservedFailure": "viewer-production02 Cargo succeeded, Trunk lacked verification-project target/docs/vue junction; production03 supplies unchanged site through junction.",
+    "scope": "Default runtime comparison-fixture regression only; no whole-course/physical-device acceptance"
+  }
 }

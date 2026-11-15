@@ -718,7 +718,7 @@ fn compute_pipeline(
             compilation_options: Default::default(),
             cache: None,
         });
-        crate::app::feedback::phase("pipeline creation", started, 0, entry);
+        crate::engine::diagnostics::phase("pipeline creation", started, 0, entry);
         pipeline
     })
 }
