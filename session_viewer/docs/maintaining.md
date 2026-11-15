@@ -57,7 +57,13 @@ Select checkpoint IDs explicitly; use `verify --all` only for an intentional ful
 
 When the shared cache cannot hold both build profiles, batch the same selected IDs with `verify --web-only CHECKPOINT ...`, then `verify --native-only CHECKPOINT ...`. Coordinate any cache retirement between batches. The web phase records successful wasm and optimized-bundle commands separately in `web-pending.json`; it does not create full acceptance. Native continuation rejects missing or changed source fingerprints, runs the native tests and pixel checks, then writes the complete result. `verify --stored` still requires every phase. Set `COURSE_KEEP_BUNDLES=1` when retaining the optimized bundles for browser interaction checks.
 
+On Windows, pass the actual Python interpreter executable to guarded build-slot payloads. The WindowsApps execution alias can launch Python and Node outside the Job Object; resolving a command name is not proof of inherited limits. Assert the driver's active job memory limit and CPU affinity before starting heavy children. Set `DOCS_BASE=/docs/` inside the native driver after the Git Bash boundary, then verify the generated HTML asset URLs; MSYS can otherwise convert it to a Windows filesystem path.
+
+When a verification build uses a unique library name to preserve shared artifacts, set `data-target-name` to that name. Trunk's generated JavaScript and processed WASM names still use the Cargo package name; that basename alone cannot establish the selected input. Check the Cargo artifact and actual browser startup. Match production's `data-wasm-opt="0"`; Rust release optimization still runs. Set `NO_COLOR=true` for Trunk, whose boolean environment parser rejects `1`. See the [Trunk 0.21.14 pipeline](https://github.com/trunk-rs/trunk/blob/v0.21.14/src/pipelines/rust/mod.rs).
+
 On Windows the canonical native frame harness selects Microsoft WARP through DX12. Set `VIEWER_DXC_PATH` to the absolute path of the task-local DXC 1.9 `dxcompiler.dll`, with its matching `dxil.dll` alongside it. The reviewed tool package is [Microsoft DXC v1.9.2609](https://github.com/microsoft/DirectXShaderCompiler/releases/tag/v1.9.2609); retain its release digest and the DLL hashes with the run. WARP is software rendering, so record hardware browser and real-device acceptance separately.
+
+For the candidate bundle, run `node scripts/course/completion-browser.cjs URL NEW_EVIDENCE_DIRECTORY` from `session_tests` through the run lane and resource guard. Supply Playwright and pngjs through `NODE_PATH`, or explicit `COURSE_PLAYWRIGHT` and `COURSE_PNG` module paths. `CHROMIUM` selects the browser; `COURSE_BROWSER_ARGS` overrides its recorded flags. Add `--camera` after the output directory when checking the fifth subject. The checker refuses an existing evidence directory and checks physical canvas dimensions, resizing, mathematical navigation and actual dock effects. It waits for focus and selection to reach the egui frame before typing the next command.
 
 ## Preserve the destination
 
@@ -84,6 +90,8 @@ The historical checkpoint test keeps its original fingerprints. The separate `ma
 The same native runner accepts `dock` as its final argument. It reconstructs `03d-input` and runs the two option-button tests plus focus-ownership and one-shot focus-request regressions.
 
 ## Browser evidence
+
+Use the recorded platform configuration when reproducing a browser check. The standalone Windows mathematics receipt uses `--enable-unsafe-webgpu`, `--ignore-gpu-blocklist` and `--use-angle=d3d11`; its Vulkan/SwiftShader attempt timed out. Record the actual adapter for every new run. A successful Windows adapter run does not establish software-renderer or physical-phone acceptance.
 
 The [November 12 coverage audit](journey/coverage-audit-2026-11-12.json) distinguishes source references, exact edit paths and verified teaching. It records the working tree used for the audit; do not treat its unresolved statuses as completed coverage or silently refresh its source hashes.
 
@@ -116,3 +124,5 @@ Foundation examples are Rust programs with assertions. Flow diagrams use D2 0.9.
 From `session_tests`, run `DOCS_STRICT_LINKS=1 DOCS_BASE=/docs/ npm run build -- --outDir ../session_viewer/target/docs/vue --emptyOutDir`, then build the viewer with Trunk. The strict build resolves source includes and checks page links. The sidebar keeps the entry lessons visible and the long reference material collapsible.
 
 To review that compiled documentation alone, run `./docs/serve.sh preview` from `session_viewer`. Open `http://127.0.0.1:8788/docs/#/course`. A lesson has a stable URL such as `http://127.0.0.1:8788/docs/#/course/journey/18-light`. The launcher stops the existing TCP listener on the selected port and waits for it to release the port before starting Vite. `--port NUMBER` overrides the default. It needs `lsof` and permission to stop the listener and listen on localhost.
+
+Candidate subjects: [frame](journey/completion-frame.md), [painting](journey/completion-painting.md), [mathematics](journey/completion-mathematics.md), [dock](journey/completion-dock.md), [camera](journey/completion-camera.md), [rows](journey/completion-rows.md). Their receipts distinguish written, tested and accepted work.

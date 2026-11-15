@@ -1,0 +1,1704 @@
+{
+  "status": "partial",
+  "destination": "87f844e41d08ef104fc071d5bc18163ffe9a4353",
+  "scope": "Three cumulative partial source closures; no runtime or subject acceptance",
+  "planSha256": "0753d3f6832f3e1a27f200d4c74b8d0a34187a0423fac4085d8105c1739e700d",
+  "tooling": {
+    "passed": 3,
+    "failed": 0
+  },
+  "commands": [
+    {
+      "name": "tooling",
+      "exitCode": 0
+    },
+    {
+      "name": "frame-assemble",
+      "exitCode": 0
+    },
+    {
+      "name": "frame-check",
+      "exitCode": 0
+    },
+    {
+      "name": "painting-assemble",
+      "exitCode": 0
+    },
+    {
+      "name": "painting-check",
+      "exitCode": 0
+    },
+    {
+      "name": "mathematics-assemble",
+      "exitCode": 0
+    },
+    {
+      "name": "mathematics-check",
+      "exitCode": 0
+    }
+  ],
+  "resources": {
+    "processId": 16824,
+    "exitCode": 0,
+    "elapsedSeconds": 7.084,
+    "peakJobCommitBytes": 413458432,
+    "processors": 2,
+    "jobCommitLimitBytes": 6442450944
+  },
+  "driverLimitsAsserted": true,
+  "subjects": [
+    {
+      "subject": "frame",
+      "files": [
+        {
+          "path": "Cargo.lock",
+          "sha256": "759436e009af2c748678dd0e3c0e5a36848c95c0782e986804bdea72ffb65f93"
+        },
+        {
+          "path": "Cargo.toml",
+          "sha256": "287a9a61f68da6e418d68da427cf3611e66dc9f39d345d567fc2b57f16422072"
+        },
+        {
+          "path": "examples/course/canvas.rs",
+          "sha256": "81f9c24ed03a0f902c9924a43798f719beec3636aa4f4b545d9827cdccc979f4"
+        },
+        {
+          "path": "examples/course/entry.rs",
+          "sha256": "f57ce9f8b4ded8cee3b213c075e031cce236988de352b7f9d0c87cba9ffb1b6d"
+        },
+        {
+          "path": "examples/course/frame.rs",
+          "sha256": "18646c85b6a7b9fc435675ec0f1238d192c7efb2496536392feae9b676571d22"
+        },
+        {
+          "path": "examples/course/registration.rs",
+          "sha256": "a350dac87afc3fe0c79c1e586849039b236c01246082d235a688c01b3a0bf8a4"
+        },
+        {
+          "path": "index.html",
+          "sha256": "c04581237f871698c3d65b72567b9f657bb58179560b0b9f15bb841658a65e48"
+        },
+        {
+          "path": "src/app/launch.rs",
+          "sha256": "f1bdd451838790b61b9a52ea2aaa3097bf7f68b5721fd7d7ca633ca3c915b5c9"
+        },
+        {
+          "path": "src/app/mod.rs",
+          "sha256": "8b2adac19d2cd5324dc3295627f9f251009fb7f7179dd909b6f203af45b2a33a"
+        },
+        {
+          "path": "src/engine/gpu/device.rs",
+          "sha256": "ced1cff229cd47c5cc3de6d7713b7049ce2181cac444226bd27053b397774a20"
+        },
+        {
+          "path": "src/engine/gpu/mod.rs",
+          "sha256": "31f18b3b6e4f866d29edd4c66b4e6e0963eef83f27127b27e2916ee44ded77a3"
+        },
+        {
+          "path": "src/engine/mod.rs",
+          "sha256": "d85682a3e4d80e225660f76129d3b93dfa99f6c953f2b4b1470d253c702e99e2"
+        },
+        {
+          "path": "src/lib.rs",
+          "sha256": "6d0483a7c6e133a0fa82c379b049ae00e232614c1d1c983fdc03f0eff716b550"
+        }
+      ],
+      "wasmTypecheck": "passed",
+      "linked": false,
+      "browser": "pending",
+      "nativeTests": "pending",
+      "accepted": false
+    },
+    {
+      "subject": "painting",
+      "files": [
+        {
+          "path": "Cargo.lock",
+          "sha256": "759436e009af2c748678dd0e3c0e5a36848c95c0782e986804bdea72ffb65f93"
+        },
+        {
+          "path": "Cargo.toml",
+          "sha256": "287a9a61f68da6e418d68da427cf3611e66dc9f39d345d567fc2b57f16422072"
+        },
+        {
+          "path": "examples/course/canvas.rs",
+          "sha256": "81f9c24ed03a0f902c9924a43798f719beec3636aa4f4b545d9827cdccc979f4"
+        },
+        {
+          "path": "examples/course/entry.rs",
+          "sha256": "f57ce9f8b4ded8cee3b213c075e031cce236988de352b7f9d0c87cba9ffb1b6d"
+        },
+        {
+          "path": "examples/course/frame.rs",
+          "sha256": "18646c85b6a7b9fc435675ec0f1238d192c7efb2496536392feae9b676571d22"
+        },
+        {
+          "path": "examples/course/painting.rs",
+          "sha256": "20c71c61cfd23e67fac71e012d98271b2e8ffe1415211448ab74b135e0b4e419"
+        },
+        {
+          "path": "examples/course/registration.rs",
+          "sha256": "17e8b7c927e05a406a2caa72c5b1e049056e5b7195fad74af2b4ecc2b3967b72"
+        },
+        {
+          "path": "index.html",
+          "sha256": "c04581237f871698c3d65b72567b9f657bb58179560b0b9f15bb841658a65e48"
+        },
+        {
+          "path": "src/app/launch.rs",
+          "sha256": "f1bdd451838790b61b9a52ea2aaa3097bf7f68b5721fd7d7ca633ca3c915b5c9"
+        },
+        {
+          "path": "src/app/mod.rs",
+          "sha256": "8b2adac19d2cd5324dc3295627f9f251009fb7f7179dd909b6f203af45b2a33a"
+        },
+        {
+          "path": "src/engine/gpu/device.rs",
+          "sha256": "ced1cff229cd47c5cc3de6d7713b7049ce2181cac444226bd27053b397774a20"
+        },
+        {
+          "path": "src/engine/gpu/mod.rs",
+          "sha256": "42031767e9491cc27bf7fe65137ecc9d82b7a3a48b158ad36d51c34c6b5796bc"
+        },
+        {
+          "path": "src/engine/gpu/ui.rs",
+          "sha256": "bcd2014f8a5c3cefae45889453d46c4d8080fe3885e2d2edaad1b294696907b2"
+        },
+        {
+          "path": "src/engine/mod.rs",
+          "sha256": "d85682a3e4d80e225660f76129d3b93dfa99f6c953f2b4b1470d253c702e99e2"
+        },
+        {
+          "path": "src/lib.rs",
+          "sha256": "6d0483a7c6e133a0fa82c379b049ae00e232614c1d1c983fdc03f0eff716b550"
+        }
+      ],
+      "wasmTypecheck": "passed",
+      "linked": false,
+      "browser": "pending",
+      "nativeTests": "pending",
+      "accepted": false
+    },
+    {
+      "subject": "mathematics",
+      "files": [
+        {
+          "path": "Cargo.lock",
+          "sha256": "759436e009af2c748678dd0e3c0e5a36848c95c0782e986804bdea72ffb65f93"
+        },
+        {
+          "path": "Cargo.toml",
+          "sha256": "287a9a61f68da6e418d68da427cf3611e66dc9f39d345d567fc2b57f16422072"
+        },
+        {
+          "path": "docs/lessons/03a-math/example.yaml",
+          "sha256": "8df5f57f8a57fb33b47f03f13db3d75c86889202b6fe707b17a769a6d4aa7e0a"
+        },
+        {
+          "path": "examples/course/canvas.rs",
+          "sha256": "81f9c24ed03a0f902c9924a43798f719beec3636aa4f4b545d9827cdccc979f4"
+        },
+        {
+          "path": "examples/course/entry.rs",
+          "sha256": "f57ce9f8b4ded8cee3b213c075e031cce236988de352b7f9d0c87cba9ffb1b6d"
+        },
+        {
+          "path": "examples/course/frame.rs",
+          "sha256": "18646c85b6a7b9fc435675ec0f1238d192c7efb2496536392feae9b676571d22"
+        },
+        {
+          "path": "examples/course/index.yaml",
+          "sha256": "93e66a5f8c5115571bb57d70afcb1a46094652aa88c081bd5f39ae9425297203"
+        },
+        {
+          "path": "examples/course/mathematics.rs",
+          "sha256": "7de9a06a6f7e6b59a29f446f639d35585cfc4e0cca8e83cb10088390074b0004"
+        },
+        {
+          "path": "examples/course/painting.rs",
+          "sha256": "20c71c61cfd23e67fac71e012d98271b2e8ffe1415211448ab74b135e0b4e419"
+        },
+        {
+          "path": "examples/course/registration.rs",
+          "sha256": "574b3498e1390f35764ab6387b7d961dad594679de18eb744b68e40b640c7246"
+        },
+        {
+          "path": "index.html",
+          "sha256": "c04581237f871698c3d65b72567b9f657bb58179560b0b9f15bb841658a65e48"
+        },
+        {
+          "path": "src/app/launch.rs",
+          "sha256": "f1bdd451838790b61b9a52ea2aaa3097bf7f68b5721fd7d7ca633ca3c915b5c9"
+        },
+        {
+          "path": "src/app/mod.rs",
+          "sha256": "6fdb9083e31fb78cddaa8cbca0b23a8521efe9441f1891a7878999be70224d09"
+        },
+        {
+          "path": "src/app/mode.rs",
+          "sha256": "f17428ca405925e878ae6a19e6cd20955b51c46161a743abaa0ea4ccb20ad776"
+        },
+        {
+          "path": "src/app/stage/actions.rs",
+          "sha256": "b5ce046152cd3795108f9a252b80c36ddfe8c7feb1c34bd9144c8d356851464b"
+        },
+        {
+          "path": "src/app/stage/check.rs",
+          "sha256": "af16790646943f02d4a57f6c7104578455adf480eed6932836336b9a3f9ff93d"
+        },
+        {
+          "path": "src/app/stage/deck.rs",
+          "sha256": "b4628a578378372cf4cb5558bd45fa6de718f0cb41016622e37846a8be9d01b1"
+        },
+        {
+          "path": "src/app/stage/draw.rs",
+          "sha256": "e0c095450c0fee8659a577be4fa41dff8609b81745ac4801a2f49ecb216ec43b"
+        },
+        {
+          "path": "src/app/stage/eval.rs",
+          "sha256": "32d9122344a1b35e78050095f402d7651f2c88cdf3e78d2d75e5312bd19b1f21"
+        },
+        {
+          "path": "src/app/stage/font.rs",
+          "sha256": "6645dbf2bedf6d3d372da3f8acf2b018bea725d89fa0291b7d62ffd8c17c500c"
+        },
+        {
+          "path": "src/app/stage/geometry.rs",
+          "sha256": "8cf47a513ba7e62566d483960658b77c6af9ecd0b4c0c1eec00a9471ba71bc3f"
+        },
+        {
+          "path": "src/app/stage/layout.rs",
+          "sha256": "4ebcd476d756971c9a613bc17f998a07b4bbfde1a4d851a6796259e47478c748"
+        },
+        {
+          "path": "src/app/stage/math_mode.rs",
+          "sha256": "c2f4202757d8be7f9496b3e3e992c19851a0b342c8d9dee74604ce23d812e33e"
+        },
+        {
+          "path": "src/app/stage/matrix.rs",
+          "sha256": "a478d50c41e1eb4966562107235664ee797f5567423aaa1bfccb0427544b55fd"
+        },
+        {
+          "path": "src/app/stage/mod.rs",
+          "sha256": "d6dbe272c9a5070023631bbbe8dba94a72ac8bfd13117b31d6b6f729432df5c7"
+        },
+        {
+          "path": "src/app/stage/morph.rs",
+          "sha256": "630f4c05c1becb397e9ca42a5f7a51a2db8329a56e648088c1d7ce613cab090d"
+        },
+        {
+          "path": "src/app/stage/net.rs",
+          "sha256": "ed05913412f3f89692c644cebefccb4267415e45fb883c03ad0e1097edb788a8"
+        },
+        {
+          "path": "src/app/stage/object.rs",
+          "sha256": "49ba380ec63351e3db9c8dd65c0680e0c09dc7494fcb02815df8c909c8eaefc6"
+        },
+        {
+          "path": "src/app/stage/paint.rs",
+          "sha256": "be4eb804a3a204bf6393f4942d94849c85c665e09152cebcfb657c4e375d876e"
+        },
+        {
+          "path": "src/app/stage/presentation.rs",
+          "sha256": "a8ecbd44d4090efa0e5de8bd0fd131dd6e1ea4b8410f5e182a125b7228906158"
+        },
+        {
+          "path": "src/app/stage/presentation_tests.rs",
+          "sha256": "bb48da53f3314e5b173d8e7ff8ac7e4671143d9f5277dee03473f3bf0835a28e"
+        },
+        {
+          "path": "src/app/stage/run.rs",
+          "sha256": "92501f32ea13bebed0f35006be924709a1c719e803343886c0bf476ffcbf266a"
+        },
+        {
+          "path": "src/app/stage/tex.rs",
+          "sha256": "de2b9d5716171c01ec91111e140b0e20928d981bdf14654f2c3cc3f3542424d3"
+        },
+        {
+          "path": "src/app/stage/tween.rs",
+          "sha256": "31f13764cc04bb045a1c6247f3cdceedfcb64734a69bc8531b116ec82b69c3c1"
+        },
+        {
+          "path": "src/app/stage/view.rs",
+          "sha256": "25ed3b8aad6f6251f3a7c02fe6f8506bae72eb1eb4c75b299dc7b1642ecda63c"
+        },
+        {
+          "path": "src/engine/gpu/device.rs",
+          "sha256": "ced1cff229cd47c5cc3de6d7713b7049ce2181cac444226bd27053b397774a20"
+        },
+        {
+          "path": "src/engine/gpu/mod.rs",
+          "sha256": "42031767e9491cc27bf7fe65137ecc9d82b7a3a48b158ad36d51c34c6b5796bc"
+        },
+        {
+          "path": "src/engine/gpu/ui.rs",
+          "sha256": "bcd2014f8a5c3cefae45889453d46c4d8080fe3885e2d2edaad1b294696907b2"
+        },
+        {
+          "path": "src/engine/mod.rs",
+          "sha256": "d85682a3e4d80e225660f76129d3b93dfa99f6c953f2b4b1470d253c702e99e2"
+        },
+        {
+          "path": "src/lib.rs",
+          "sha256": "6d0483a7c6e133a0fa82c379b049ae00e232614c1d1c983fdc03f0eff716b550"
+        }
+      ],
+      "wasmTypecheck": "passed",
+      "linked": false,
+      "browser": "pending",
+      "nativeTests": "pending",
+      "accepted": false
+    }
+  ],
+  "failuresPreserved": [
+    {
+      "run": "completion-partials01",
+      "reason": "Windows absolute --import path was not a file URL; loader failed before tests."
+    }
+  ],
+  "documentation": {
+    "scope": "Candidate lesson delivery only, separate from application execution",
+    "strictBuild": {
+      "scope": "Focused course tooling and strict site build including three candidate lessons; not subject/runtime acceptance",
+      "commands": [
+        {
+          "name": "tooling",
+          "exitCode": 0
+        },
+        {
+          "name": "strict-site",
+          "exitCode": 0
+        }
+      ],
+      "postguards": "passed",
+      "outputs": []
+    },
+    "planSha256": "74c138f362fccd3419e47e9f6e6a757a0f3a04cffa22e7568af7d7c8e8a59a12",
+    "tooling": {
+      "passed": 56,
+      "failed": 0
+    },
+    "delivery": {
+      "base": "/docs/",
+      "assetUrls": [
+        "/docs/assets/main-CHgoygfh.js",
+        "/docs/assets/main-BgSzrTtD.css"
+      ],
+      "indexSha256": "48bd8200e61bb707bc5e0d59c54bd0f8ecb2bd15e4abe6e6eacc99a4a6aa1b06"
+    },
+    "browser": {
+      "passed": true,
+      "scope": "Three candidate documentation routes and fixed build timestamp only; no viewer, hardware or subject acceptance",
+      "stamp": "2026-11-15T11:47:23.847Z",
+      "records": [
+        {
+          "route": "frame",
+          "viewport": {
+            "width": 1280,
+            "height": 800
+          },
+          "time": "2026-11-15T11:47:23.847Z",
+          "box": {
+            "x": 1058.078125,
+            "y": 774.609375,
+            "width": 185.921875,
+            "height": 21.390625
+          },
+          "file": "frame-1280.png"
+        },
+        {
+          "route": "painting",
+          "viewport": {
+            "width": 1280,
+            "height": 800
+          },
+          "time": "2026-11-15T11:47:23.847Z",
+          "box": {
+            "x": 1058.078125,
+            "y": 774.609375,
+            "width": 185.921875,
+            "height": 21.390625
+          },
+          "file": "painting-1280.png"
+        },
+        {
+          "route": "mathematics",
+          "viewport": {
+            "width": 1280,
+            "height": 800
+          },
+          "time": "2026-11-15T11:47:23.847Z",
+          "box": {
+            "x": 1058.078125,
+            "y": 774.609375,
+            "width": 185.921875,
+            "height": 21.390625
+          },
+          "file": "mathematics-1280.png"
+        },
+        {
+          "route": "frame",
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "time": "2026-11-15T11:47:23.847Z",
+          "box": {
+            "x": 168.078125,
+            "y": 818.609375,
+            "width": 185.921875,
+            "height": 21.390625
+          },
+          "file": "frame-390.png"
+        },
+        {
+          "route": "painting",
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "time": "2026-11-15T11:47:23.847Z",
+          "box": {
+            "x": 168.078125,
+            "y": 818.609375,
+            "width": 185.921875,
+            "height": 21.390625
+          },
+          "file": "painting-390.png"
+        },
+        {
+          "route": "mathematics",
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "time": "2026-11-15T11:47:23.847Z",
+          "box": {
+            "x": 168.078125,
+            "y": 818.609375,
+            "width": 185.921875,
+            "height": 21.390625
+          },
+          "file": "mathematics-390.png"
+        }
+      ],
+      "errors": []
+    },
+    "screenshotsReviewed": [
+      {
+        "file": "frame-1280.png",
+        "sha256": "5a71102c01313cfb1964603c6c75afa9fc95bea7f6ebb8f16e9bf3b7cb4e328b"
+      },
+      {
+        "file": "frame-390.png",
+        "sha256": "60077202f076c619fa867dc07a8351b4170786ee1ce68f22f8c292251a5dd56b"
+      },
+      {
+        "file": "mathematics-1280.png",
+        "sha256": "2d38aa80c0af9592392c48e42e64f12ef2df2abfc4f7db1982604afb3a143064"
+      },
+      {
+        "file": "mathematics-390.png",
+        "sha256": "848e85d1581472c662f1c135e90a676e41ab513b5f7b7e1b1833dcd52e8ad577"
+      },
+      {
+        "file": "painting-1280.png",
+        "sha256": "12a16cd0e2448ac89a3e4d262d79705fab7696d5ff9ee851aff220dfd8c219cf"
+      },
+      {
+        "file": "painting-390.png",
+        "sha256": "2742cdf2a6efab334cc1e6ec3d7d9d6abe92ec02aa1a7719e99411883bea35c3"
+      }
+    ]
+  },
+  "latestCandidates": {
+    "scope": "After fixture input/platform-output boundary and fourth dock assembly; earlier typechecks do not transfer",
+    "tooling": {
+      "passed": 3,
+      "failed": 0
+    },
+    "resources": {
+      "platform": "windows-job-object",
+      "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+      "laneMutex": "Local\\SessionViewerCourseImageJob",
+      "affinityOffset": 8,
+      "requiredAffinityMask": "0x300",
+      "maximumOtherLaneProcessors": 8,
+      "maximumOtherLaneMemoryMiB": 8192,
+      "maximumAggregateOurProcessors": 10,
+      "maximumAggregateOurMemoryMiB": 14336,
+      "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+      "requestedProcessors": 2,
+      "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+      "startedUtc": "2026-11-15T12:21:34.5241278Z",
+      "executable": "C:\\Program Files\\Git\\bin\\bash.exe",
+      "arguments": [
+        "C:/pc/3_code/code_rust/wood_research/wood/tools/buildslot.sh",
+        "--run",
+        "tutorial-completion-source04",
+        "timeout",
+        "110s",
+        "C:\\Users\\Petras\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+        "-B",
+        "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\completion-source04.py"
+      ],
+      "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_tests",
+      "timeoutSeconds": 120,
+      "jobCommitLimitBytes": 6442450944,
+      "swapCapSupported": false,
+      "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+      "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+      "exitCode": 0,
+      "timedOut": false,
+      "elapsedSeconds": 1.725,
+      "peakJobCommitBytes": 194695168,
+      "affinityMask": "0x300",
+      "processors": 2,
+      "processId": 30692,
+      "descendantsAtCleanup": 1
+    },
+    "subjects": [
+      {
+        "subject": "frame",
+        "files": [
+          {
+            "path": "Cargo.lock",
+            "sha256": "759436e009af2c748678dd0e3c0e5a36848c95c0782e986804bdea72ffb65f93"
+          },
+          {
+            "path": "Cargo.toml",
+            "sha256": "287a9a61f68da6e418d68da427cf3611e66dc9f39d345d567fc2b57f16422072"
+          },
+          {
+            "path": "examples/course/canvas.rs",
+            "sha256": "ac05f1a4cba547296d9da1a957b6a86f5b5fa3ece4c89ac4cb8454e868f9534d"
+          },
+          {
+            "path": "examples/course/entry.rs",
+            "sha256": "f57ce9f8b4ded8cee3b213c075e031cce236988de352b7f9d0c87cba9ffb1b6d"
+          },
+          {
+            "path": "examples/course/frame.rs",
+            "sha256": "916fb538f088d1d28783559a7955f463c7b2650ac2d7d0184eeec12158aae787"
+          },
+          {
+            "path": "examples/course/registration.rs",
+            "sha256": "a350dac87afc3fe0c79c1e586849039b236c01246082d235a688c01b3a0bf8a4"
+          },
+          {
+            "path": "index.html",
+            "sha256": "c04581237f871698c3d65b72567b9f657bb58179560b0b9f15bb841658a65e48"
+          },
+          {
+            "path": "src/app/launch.rs",
+            "sha256": "f1bdd451838790b61b9a52ea2aaa3097bf7f68b5721fd7d7ca633ca3c915b5c9"
+          },
+          {
+            "path": "src/app/mod.rs",
+            "sha256": "8b2adac19d2cd5324dc3295627f9f251009fb7f7179dd909b6f203af45b2a33a"
+          },
+          {
+            "path": "src/engine/gpu/device.rs",
+            "sha256": "ced1cff229cd47c5cc3de6d7713b7049ce2181cac444226bd27053b397774a20"
+          },
+          {
+            "path": "src/engine/gpu/mod.rs",
+            "sha256": "31f18b3b6e4f866d29edd4c66b4e6e0963eef83f27127b27e2916ee44ded77a3"
+          },
+          {
+            "path": "src/engine/mod.rs",
+            "sha256": "d85682a3e4d80e225660f76129d3b93dfa99f6c953f2b4b1470d253c702e99e2"
+          },
+          {
+            "path": "src/lib.rs",
+            "sha256": "6d0483a7c6e133a0fa82c379b049ae00e232614c1d1c983fdc03f0eff716b550"
+          }
+        ],
+        "compiled": false,
+        "browser": "pending",
+        "accepted": false
+      },
+      {
+        "subject": "painting",
+        "files": [
+          {
+            "path": "Cargo.lock",
+            "sha256": "759436e009af2c748678dd0e3c0e5a36848c95c0782e986804bdea72ffb65f93"
+          },
+          {
+            "path": "Cargo.toml",
+            "sha256": "287a9a61f68da6e418d68da427cf3611e66dc9f39d345d567fc2b57f16422072"
+          },
+          {
+            "path": "examples/course/canvas.rs",
+            "sha256": "ac05f1a4cba547296d9da1a957b6a86f5b5fa3ece4c89ac4cb8454e868f9534d"
+          },
+          {
+            "path": "examples/course/entry.rs",
+            "sha256": "f57ce9f8b4ded8cee3b213c075e031cce236988de352b7f9d0c87cba9ffb1b6d"
+          },
+          {
+            "path": "examples/course/frame.rs",
+            "sha256": "916fb538f088d1d28783559a7955f463c7b2650ac2d7d0184eeec12158aae787"
+          },
+          {
+            "path": "examples/course/painting.rs",
+            "sha256": "d57c027f79370d3acce115da2b43aca2511c72421b4cd7f3cfb21c6a299749eb"
+          },
+          {
+            "path": "examples/course/registration.rs",
+            "sha256": "17e8b7c927e05a406a2caa72c5b1e049056e5b7195fad74af2b4ecc2b3967b72"
+          },
+          {
+            "path": "index.html",
+            "sha256": "c04581237f871698c3d65b72567b9f657bb58179560b0b9f15bb841658a65e48"
+          },
+          {
+            "path": "src/app/launch.rs",
+            "sha256": "f1bdd451838790b61b9a52ea2aaa3097bf7f68b5721fd7d7ca633ca3c915b5c9"
+          },
+          {
+            "path": "src/app/mod.rs",
+            "sha256": "8b2adac19d2cd5324dc3295627f9f251009fb7f7179dd909b6f203af45b2a33a"
+          },
+          {
+            "path": "src/engine/gpu/device.rs",
+            "sha256": "ced1cff229cd47c5cc3de6d7713b7049ce2181cac444226bd27053b397774a20"
+          },
+          {
+            "path": "src/engine/gpu/mod.rs",
+            "sha256": "42031767e9491cc27bf7fe65137ecc9d82b7a3a48b158ad36d51c34c6b5796bc"
+          },
+          {
+            "path": "src/engine/gpu/ui.rs",
+            "sha256": "bcd2014f8a5c3cefae45889453d46c4d8080fe3885e2d2edaad1b294696907b2"
+          },
+          {
+            "path": "src/engine/mod.rs",
+            "sha256": "d85682a3e4d80e225660f76129d3b93dfa99f6c953f2b4b1470d253c702e99e2"
+          },
+          {
+            "path": "src/lib.rs",
+            "sha256": "6d0483a7c6e133a0fa82c379b049ae00e232614c1d1c983fdc03f0eff716b550"
+          }
+        ],
+        "compiled": false,
+        "browser": "pending",
+        "accepted": false
+      },
+      {
+        "subject": "mathematics",
+        "files": [
+          {
+            "path": "Cargo.lock",
+            "sha256": "759436e009af2c748678dd0e3c0e5a36848c95c0782e986804bdea72ffb65f93"
+          },
+          {
+            "path": "Cargo.toml",
+            "sha256": "287a9a61f68da6e418d68da427cf3611e66dc9f39d345d567fc2b57f16422072"
+          },
+          {
+            "path": "docs/lessons/03a-math/example.yaml",
+            "sha256": "8df5f57f8a57fb33b47f03f13db3d75c86889202b6fe707b17a769a6d4aa7e0a"
+          },
+          {
+            "path": "examples/course/canvas.rs",
+            "sha256": "ac05f1a4cba547296d9da1a957b6a86f5b5fa3ece4c89ac4cb8454e868f9534d"
+          },
+          {
+            "path": "examples/course/entry.rs",
+            "sha256": "f57ce9f8b4ded8cee3b213c075e031cce236988de352b7f9d0c87cba9ffb1b6d"
+          },
+          {
+            "path": "examples/course/frame.rs",
+            "sha256": "916fb538f088d1d28783559a7955f463c7b2650ac2d7d0184eeec12158aae787"
+          },
+          {
+            "path": "examples/course/index.yaml",
+            "sha256": "93e66a5f8c5115571bb57d70afcb1a46094652aa88c081bd5f39ae9425297203"
+          },
+          {
+            "path": "examples/course/mathematics.rs",
+            "sha256": "4b98b870e500040dd588f0efd9dd9d36c2e803bc3a80e309bf1447f4cd4ea162"
+          },
+          {
+            "path": "examples/course/painting.rs",
+            "sha256": "d57c027f79370d3acce115da2b43aca2511c72421b4cd7f3cfb21c6a299749eb"
+          },
+          {
+            "path": "examples/course/registration.rs",
+            "sha256": "574b3498e1390f35764ab6387b7d961dad594679de18eb744b68e40b640c7246"
+          },
+          {
+            "path": "index.html",
+            "sha256": "c04581237f871698c3d65b72567b9f657bb58179560b0b9f15bb841658a65e48"
+          },
+          {
+            "path": "src/app/launch.rs",
+            "sha256": "f1bdd451838790b61b9a52ea2aaa3097bf7f68b5721fd7d7ca633ca3c915b5c9"
+          },
+          {
+            "path": "src/app/mod.rs",
+            "sha256": "6fdb9083e31fb78cddaa8cbca0b23a8521efe9441f1891a7878999be70224d09"
+          },
+          {
+            "path": "src/app/mode.rs",
+            "sha256": "f17428ca405925e878ae6a19e6cd20955b51c46161a743abaa0ea4ccb20ad776"
+          },
+          {
+            "path": "src/app/stage/actions.rs",
+            "sha256": "b5ce046152cd3795108f9a252b80c36ddfe8c7feb1c34bd9144c8d356851464b"
+          },
+          {
+            "path": "src/app/stage/check.rs",
+            "sha256": "af16790646943f02d4a57f6c7104578455adf480eed6932836336b9a3f9ff93d"
+          },
+          {
+            "path": "src/app/stage/deck.rs",
+            "sha256": "b4628a578378372cf4cb5558bd45fa6de718f0cb41016622e37846a8be9d01b1"
+          },
+          {
+            "path": "src/app/stage/draw.rs",
+            "sha256": "e0c095450c0fee8659a577be4fa41dff8609b81745ac4801a2f49ecb216ec43b"
+          },
+          {
+            "path": "src/app/stage/eval.rs",
+            "sha256": "32d9122344a1b35e78050095f402d7651f2c88cdf3e78d2d75e5312bd19b1f21"
+          },
+          {
+            "path": "src/app/stage/font.rs",
+            "sha256": "6645dbf2bedf6d3d372da3f8acf2b018bea725d89fa0291b7d62ffd8c17c500c"
+          },
+          {
+            "path": "src/app/stage/geometry.rs",
+            "sha256": "8cf47a513ba7e62566d483960658b77c6af9ecd0b4c0c1eec00a9471ba71bc3f"
+          },
+          {
+            "path": "src/app/stage/layout.rs",
+            "sha256": "4ebcd476d756971c9a613bc17f998a07b4bbfde1a4d851a6796259e47478c748"
+          },
+          {
+            "path": "src/app/stage/math_mode.rs",
+            "sha256": "c2f4202757d8be7f9496b3e3e992c19851a0b342c8d9dee74604ce23d812e33e"
+          },
+          {
+            "path": "src/app/stage/matrix.rs",
+            "sha256": "a478d50c41e1eb4966562107235664ee797f5567423aaa1bfccb0427544b55fd"
+          },
+          {
+            "path": "src/app/stage/mod.rs",
+            "sha256": "ca1a44b69463af7de517c335825b73a5b61aaaff7a846aec3a243d9c4247dbcc"
+          },
+          {
+            "path": "src/app/stage/morph.rs",
+            "sha256": "630f4c05c1becb397e9ca42a5f7a51a2db8329a56e648088c1d7ce613cab090d"
+          },
+          {
+            "path": "src/app/stage/net.rs",
+            "sha256": "ed05913412f3f89692c644cebefccb4267415e45fb883c03ad0e1097edb788a8"
+          },
+          {
+            "path": "src/app/stage/object.rs",
+            "sha256": "49ba380ec63351e3db9c8dd65c0680e0c09dc7494fcb02815df8c909c8eaefc6"
+          },
+          {
+            "path": "src/app/stage/paint.rs",
+            "sha256": "be4eb804a3a204bf6393f4942d94849c85c665e09152cebcfb657c4e375d876e"
+          },
+          {
+            "path": "src/app/stage/presentation.rs",
+            "sha256": "a8ecbd44d4090efa0e5de8bd0fd131dd6e1ea4b8410f5e182a125b7228906158"
+          },
+          {
+            "path": "src/app/stage/presentation_tests.rs",
+            "sha256": "bb48da53f3314e5b173d8e7ff8ac7e4671143d9f5277dee03473f3bf0835a28e"
+          },
+          {
+            "path": "src/app/stage/run.rs",
+            "sha256": "92501f32ea13bebed0f35006be924709a1c719e803343886c0bf476ffcbf266a"
+          },
+          {
+            "path": "src/app/stage/tests.rs",
+            "sha256": "54bde7512f9757e27a6cd410768bda421a952921c6b5f70c3d558b5c18b15000"
+          },
+          {
+            "path": "src/app/stage/tex.rs",
+            "sha256": "de2b9d5716171c01ec91111e140b0e20928d981bdf14654f2c3cc3f3542424d3"
+          },
+          {
+            "path": "src/app/stage/tween.rs",
+            "sha256": "31f13764cc04bb045a1c6247f3cdceedfcb64734a69bc8531b116ec82b69c3c1"
+          },
+          {
+            "path": "src/app/stage/view.rs",
+            "sha256": "25ed3b8aad6f6251f3a7c02fe6f8506bae72eb1eb4c75b299dc7b1642ecda63c"
+          },
+          {
+            "path": "src/engine/gpu/device.rs",
+            "sha256": "ced1cff229cd47c5cc3de6d7713b7049ce2181cac444226bd27053b397774a20"
+          },
+          {
+            "path": "src/engine/gpu/mod.rs",
+            "sha256": "42031767e9491cc27bf7fe65137ecc9d82b7a3a48b158ad36d51c34c6b5796bc"
+          },
+          {
+            "path": "src/engine/gpu/ui.rs",
+            "sha256": "bcd2014f8a5c3cefae45889453d46c4d8080fe3885e2d2edaad1b294696907b2"
+          },
+          {
+            "path": "src/engine/mod.rs",
+            "sha256": "d85682a3e4d80e225660f76129d3b93dfa99f6c953f2b4b1470d253c702e99e2"
+          },
+          {
+            "path": "src/lib.rs",
+            "sha256": "6d0483a7c6e133a0fa82c379b049ae00e232614c1d1c983fdc03f0eff716b550"
+          }
+        ],
+        "compiled": false,
+        "browser": "pending",
+        "accepted": false
+      },
+      {
+        "subject": "dock",
+        "files": [
+          {
+            "path": "Cargo.lock",
+            "sha256": "759436e009af2c748678dd0e3c0e5a36848c95c0782e986804bdea72ffb65f93"
+          },
+          {
+            "path": "Cargo.toml",
+            "sha256": "287a9a61f68da6e418d68da427cf3611e66dc9f39d345d567fc2b57f16422072"
+          },
+          {
+            "path": "docs/lessons/03a-math/example.yaml",
+            "sha256": "8df5f57f8a57fb33b47f03f13db3d75c86889202b6fe707b17a769a6d4aa7e0a"
+          },
+          {
+            "path": "examples/course/canvas.rs",
+            "sha256": "ac05f1a4cba547296d9da1a957b6a86f5b5fa3ece4c89ac4cb8454e868f9534d"
+          },
+          {
+            "path": "examples/course/dock.rs",
+            "sha256": "a727b0b8e691ddcf1b0658f7075afbaaa6d7d94ff7e1adb5ca9f3ef2c2734e03"
+          },
+          {
+            "path": "examples/course/entry.rs",
+            "sha256": "f57ce9f8b4ded8cee3b213c075e031cce236988de352b7f9d0c87cba9ffb1b6d"
+          },
+          {
+            "path": "examples/course/frame.rs",
+            "sha256": "916fb538f088d1d28783559a7955f463c7b2650ac2d7d0184eeec12158aae787"
+          },
+          {
+            "path": "examples/course/index.yaml",
+            "sha256": "93e66a5f8c5115571bb57d70afcb1a46094652aa88c081bd5f39ae9425297203"
+          },
+          {
+            "path": "examples/course/mathematics.rs",
+            "sha256": "4b98b870e500040dd588f0efd9dd9d36c2e803bc3a80e309bf1447f4cd4ea162"
+          },
+          {
+            "path": "examples/course/painting.rs",
+            "sha256": "d57c027f79370d3acce115da2b43aca2511c72421b4cd7f3cfb21c6a299749eb"
+          },
+          {
+            "path": "examples/course/registration.rs",
+            "sha256": "0c23a1d9d72496b0b224fc620844e6a254ecfd165a31f51b93325c74382382e8"
+          },
+          {
+            "path": "index.html",
+            "sha256": "c04581237f871698c3d65b72567b9f657bb58179560b0b9f15bb841658a65e48"
+          },
+          {
+            "path": "src/app/launch.rs",
+            "sha256": "f1bdd451838790b61b9a52ea2aaa3097bf7f68b5721fd7d7ca633ca3c915b5c9"
+          },
+          {
+            "path": "src/app/mod.rs",
+            "sha256": "6fdb9083e31fb78cddaa8cbca0b23a8521efe9441f1891a7878999be70224d09"
+          },
+          {
+            "path": "src/app/mode.rs",
+            "sha256": "f17428ca405925e878ae6a19e6cd20955b51c46161a743abaa0ea4ccb20ad776"
+          },
+          {
+            "path": "src/app/stage/actions.rs",
+            "sha256": "b5ce046152cd3795108f9a252b80c36ddfe8c7feb1c34bd9144c8d356851464b"
+          },
+          {
+            "path": "src/app/stage/check.rs",
+            "sha256": "af16790646943f02d4a57f6c7104578455adf480eed6932836336b9a3f9ff93d"
+          },
+          {
+            "path": "src/app/stage/deck.rs",
+            "sha256": "b4628a578378372cf4cb5558bd45fa6de718f0cb41016622e37846a8be9d01b1"
+          },
+          {
+            "path": "src/app/stage/draw.rs",
+            "sha256": "e0c095450c0fee8659a577be4fa41dff8609b81745ac4801a2f49ecb216ec43b"
+          },
+          {
+            "path": "src/app/stage/eval.rs",
+            "sha256": "32d9122344a1b35e78050095f402d7651f2c88cdf3e78d2d75e5312bd19b1f21"
+          },
+          {
+            "path": "src/app/stage/font.rs",
+            "sha256": "6645dbf2bedf6d3d372da3f8acf2b018bea725d89fa0291b7d62ffd8c17c500c"
+          },
+          {
+            "path": "src/app/stage/geometry.rs",
+            "sha256": "8cf47a513ba7e62566d483960658b77c6af9ecd0b4c0c1eec00a9471ba71bc3f"
+          },
+          {
+            "path": "src/app/stage/layout.rs",
+            "sha256": "4ebcd476d756971c9a613bc17f998a07b4bbfde1a4d851a6796259e47478c748"
+          },
+          {
+            "path": "src/app/stage/math_mode.rs",
+            "sha256": "c2f4202757d8be7f9496b3e3e992c19851a0b342c8d9dee74604ce23d812e33e"
+          },
+          {
+            "path": "src/app/stage/matrix.rs",
+            "sha256": "a478d50c41e1eb4966562107235664ee797f5567423aaa1bfccb0427544b55fd"
+          },
+          {
+            "path": "src/app/stage/mod.rs",
+            "sha256": "ca1a44b69463af7de517c335825b73a5b61aaaff7a846aec3a243d9c4247dbcc"
+          },
+          {
+            "path": "src/app/stage/morph.rs",
+            "sha256": "630f4c05c1becb397e9ca42a5f7a51a2db8329a56e648088c1d7ce613cab090d"
+          },
+          {
+            "path": "src/app/stage/net.rs",
+            "sha256": "ed05913412f3f89692c644cebefccb4267415e45fb883c03ad0e1097edb788a8"
+          },
+          {
+            "path": "src/app/stage/object.rs",
+            "sha256": "49ba380ec63351e3db9c8dd65c0680e0c09dc7494fcb02815df8c909c8eaefc6"
+          },
+          {
+            "path": "src/app/stage/paint.rs",
+            "sha256": "be4eb804a3a204bf6393f4942d94849c85c665e09152cebcfb657c4e375d876e"
+          },
+          {
+            "path": "src/app/stage/presentation.rs",
+            "sha256": "a8ecbd44d4090efa0e5de8bd0fd131dd6e1ea4b8410f5e182a125b7228906158"
+          },
+          {
+            "path": "src/app/stage/presentation_tests.rs",
+            "sha256": "bb48da53f3314e5b173d8e7ff8ac7e4671143d9f5277dee03473f3bf0835a28e"
+          },
+          {
+            "path": "src/app/stage/run.rs",
+            "sha256": "92501f32ea13bebed0f35006be924709a1c719e803343886c0bf476ffcbf266a"
+          },
+          {
+            "path": "src/app/stage/tests.rs",
+            "sha256": "54bde7512f9757e27a6cd410768bda421a952921c6b5f70c3d558b5c18b15000"
+          },
+          {
+            "path": "src/app/stage/tex.rs",
+            "sha256": "de2b9d5716171c01ec91111e140b0e20928d981bdf14654f2c3cc3f3542424d3"
+          },
+          {
+            "path": "src/app/stage/tween.rs",
+            "sha256": "31f13764cc04bb045a1c6247f3cdceedfcb64734a69bc8531b116ec82b69c3c1"
+          },
+          {
+            "path": "src/app/stage/view.rs",
+            "sha256": "25ed3b8aad6f6251f3a7c02fe6f8506bae72eb1eb4c75b299dc7b1642ecda63c"
+          },
+          {
+            "path": "src/command_dock/mod.rs",
+            "sha256": "a54df69dcadec39f2d03f8f6e99025bd8737184d9ba9a6431f27f300ffe9ca25"
+          },
+          {
+            "path": "src/command_dock/theme.rs",
+            "sha256": "2064473cf413d0be10ca1f71440db34e11912c30893a360f11e446a5ffa2099d"
+          },
+          {
+            "path": "src/command_dock/view.rs",
+            "sha256": "2b6c7b55d1257a7be5736edd22e69194655b6e14d4dfbffe5c1c01e86456f204"
+          },
+          {
+            "path": "src/engine/gpu/device.rs",
+            "sha256": "ced1cff229cd47c5cc3de6d7713b7049ce2181cac444226bd27053b397774a20"
+          },
+          {
+            "path": "src/engine/gpu/mod.rs",
+            "sha256": "42031767e9491cc27bf7fe65137ecc9d82b7a3a48b158ad36d51c34c6b5796bc"
+          },
+          {
+            "path": "src/engine/gpu/ui.rs",
+            "sha256": "bcd2014f8a5c3cefae45889453d46c4d8080fe3885e2d2edaad1b294696907b2"
+          },
+          {
+            "path": "src/engine/mod.rs",
+            "sha256": "d85682a3e4d80e225660f76129d3b93dfa99f6c953f2b4b1470d253c702e99e2"
+          },
+          {
+            "path": "src/lib.rs",
+            "sha256": "6dbee9ff0e6931043d3df5df75f36b6b293560e2263fbd9a2af65967cc90beb9"
+          }
+        ],
+        "compiled": false,
+        "browser": "pending",
+        "accepted": false
+      }
+    ]
+  },
+  "failedBrowserBuild": {
+    "run": "target/course-browser01",
+    "reason": "Storage guard stopped owned build tree above generated limit; inherited strip profile produced a different dependency graph",
+    "generatedBytesAtStop": 8595559782,
+    "generatedLimitBytes": 8589934592,
+    "runtimeAccepted": false,
+    "postFailurePreservation": "2403 pins, 7105 baseline paths and 189 absences checked",
+    "recovery": "target/browser01-retirement/result.json",
+    "recoveryControl": "target/browser01-retirement-run02/resources.json",
+    "recoveredFiles": 249,
+    "recoveredBytes": 355420508,
+    "remainingBlocker": null
+  },
+  "currentTypechecks": {
+    "run": "target/completion-partials04",
+    "planSha256": "dd8d3e7b2461e63ed14f6dc6b645661a9c5c85f01b42ef74384a7d26bc812013",
+    "commands": [
+      {
+        "name": "tooling",
+        "exitCode": 0
+      },
+      {
+        "name": "frame-assemble",
+        "exitCode": 0
+      },
+      {
+        "name": "frame-check",
+        "exitCode": 0
+      },
+      {
+        "name": "painting-assemble",
+        "exitCode": 0
+      },
+      {
+        "name": "painting-check",
+        "exitCode": 0
+      },
+      {
+        "name": "mathematics-assemble",
+        "exitCode": 0
+      },
+      {
+        "name": "mathematics-check",
+        "exitCode": 0
+      },
+      {
+        "name": "dock-assemble",
+        "exitCode": 0
+      },
+      {
+        "name": "dock-check",
+        "exitCode": 0
+      }
+    ],
+    "resources": {
+      "platform": "windows-job-object",
+      "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+      "laneMutex": "Local\\SessionViewerCourseImageJob",
+      "affinityOffset": 8,
+      "requiredAffinityMask": "0x300",
+      "maximumOtherLaneProcessors": 8,
+      "maximumOtherLaneMemoryMiB": 8192,
+      "maximumAggregateOurProcessors": 10,
+      "maximumAggregateOurMemoryMiB": 14336,
+      "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+      "requestedProcessors": 2,
+      "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+      "startedUtc": "2026-11-15T12:31:31.8926754Z",
+      "executable": "C:\\Program Files\\Git\\bin\\bash.exe",
+      "arguments": [
+        "C:/pc/3_code/code_rust/wood_research/wood/tools/buildslot.sh",
+        "tutorial-completion-partials04",
+        "timeout",
+        "230s",
+        "C:\\Users\\Petras\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+        "-B",
+        "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\completion-partials04.py"
+      ],
+      "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer",
+      "timeoutSeconds": 240,
+      "jobCommitLimitBytes": 6442450944,
+      "swapCapSupported": false,
+      "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+      "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+      "exitCode": 0,
+      "timedOut": false,
+      "elapsedSeconds": 81.795,
+      "peakJobCommitBytes": 1250979840,
+      "affinityMask": "0x300",
+      "processors": 2,
+      "processId": 12956,
+      "descendantsAtCleanup": 2
+    },
+    "scope": "Four current candidates typecheck; no native, linked browser or accepted subject claim"
+  },
+  "profileProbe": {
+    "run": "target/course-profile-probe01",
+    "passed": false,
+    "reason": "No fresh expected dependency artifact; package-primary unit and differing unicode-ident lock versions mean this does not establish strip incompatibility"
+  },
+  "resizeGuardTypechecks": {
+    "run": "target/completion-partials05",
+    "scope": "Unchanged-size canvas resize guard plus owning HTML data-wasm-opt=0",
+    "result": {
+      "scope": "Four partial cumulative source closures; wasm typechecks, not link/browser acceptance",
+      "commands": [
+        {
+          "name": "tooling",
+          "exitCode": 0
+        },
+        {
+          "name": "frame-assemble",
+          "exitCode": 0
+        },
+        {
+          "name": "frame-check",
+          "exitCode": 0
+        },
+        {
+          "name": "painting-assemble",
+          "exitCode": 0
+        },
+        {
+          "name": "painting-check",
+          "exitCode": 0
+        },
+        {
+          "name": "mathematics-assemble",
+          "exitCode": 0
+        },
+        {
+          "name": "mathematics-check",
+          "exitCode": 0
+        },
+        {
+          "name": "dock-assemble",
+          "exitCode": 0
+        },
+        {
+          "name": "dock-check",
+          "exitCode": 0
+        }
+      ],
+      "postguards": "passed",
+      "outputs": []
+    },
+    "resources": {
+      "platform": "windows-job-object",
+      "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+      "laneMutex": "Local\\SessionViewerCourseImageJob",
+      "affinityOffset": 8,
+      "requiredAffinityMask": "0x300",
+      "maximumOtherLaneProcessors": 8,
+      "maximumOtherLaneMemoryMiB": 8192,
+      "maximumAggregateOurProcessors": 10,
+      "maximumAggregateOurMemoryMiB": 14336,
+      "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+      "requestedProcessors": 2,
+      "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+      "startedUtc": "2026-11-15T12:52:44.6540952Z",
+      "executable": "C:\\Program Files\\Git\\bin\\bash.exe",
+      "arguments": [
+        "C:/pc/3_code/code_rust/wood_research/wood/tools/buildslot.sh",
+        "tutorial-completion-partials05",
+        "timeout",
+        "230s",
+        "C:\\Users\\Petras\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+        "-B",
+        "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\completion-partials05.py"
+      ],
+      "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer",
+      "timeoutSeconds": 240,
+      "jobCommitLimitBytes": 6442450944,
+      "swapCapSupported": false,
+      "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+      "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+      "exitCode": 0,
+      "timedOut": false,
+      "elapsedSeconds": 9.059,
+      "peakJobCommitBytes": 419049472,
+      "affinityMask": "0x300",
+      "processors": 2,
+      "processId": 28824,
+      "descendantsAtCleanup": 1
+    }
+  },
+  "browserAttempts": {
+    "linkedRust": "target/course-browser02/result.json",
+    "packagingFailures": [
+      "target/course-browser02/trunk.log",
+      "target/course-bundle03/trunk.log"
+    ],
+    "packagingCommandsPassed": [
+      "target/course-bundle04/result.json",
+      "target/course-bundle05/result.json"
+    ],
+    "runtimeFailures": [
+      "target/completion-browser01/failure.json",
+      "target/completion-browser02/failure.json",
+      "target/completion-browser04/resources.json",
+      "target/completion-browser05/resources.json",
+      "target/completion-browser06/failure.json",
+      "target/completion-browser08/failure.json",
+      "target/completion-browser09/failure.json"
+    ],
+    "checkerPreflightFailure": "target/completion-browser03/resources.json",
+    "artifactDiagnosisCorrection": "Trunk names generated files by package even for renamed lib. Bundle markers and unused orphan snippet confirm candidate code; wrong-target hypothesis withdrawn. No runtime acceptance.",
+    "postFailure": {
+      "pins": 3325,
+      "changedOrMissingPins": [],
+      "unexpectedlyPresent": [],
+      "missingBaseline": [],
+      "scope": "Post-watchdog preservation, not compilation acceptance"
+    },
+    "staleLock": "Verified own dead PID6104; preserved owner text and removed only its owner file and empty .buildlock using native PowerShell",
+    "accepted": false,
+    "interruptedRebuild": "target/course-browser06",
+    "interruptedFailure": "Global storage guard killed owned rebuild after concurrent Kimi cargo test --lib stage:: began writing physical checkout target/debug",
+    "currentRebuild": "target/course-browser10",
+    "currentBuild": {
+      "result": {
+        "scope": "Four partial08 candidates with full mathematics theme background; browser pending",
+        "commands": [
+          {
+            "name": "cargo",
+            "exitCode": 0
+          },
+          {
+            "name": "trunk",
+            "exitCode": 0
+          }
+        ],
+        "failure": null,
+        "postguards": "passed",
+        "browser": "pending"
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0x300",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 10,
+        "maximumAggregateOurMemoryMiB": 14336,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 2,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-11-15T14:05:34.7771189Z",
+        "executable": "C:\\Program Files\\Git\\bin\\bash.exe",
+        "arguments": [
+          "C:/pc/3_code/code_rust/wood_research/wood/tools/buildslot.sh",
+          "tutorial-course-browser10",
+          "timeout",
+          "590s",
+          "C:\\Users\\Petras\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+          "-B",
+          "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\course-browser10.py"
+        ],
+        "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\course-browser02\\project",
+        "timeoutSeconds": 595,
+        "jobCommitLimitBytes": 6442450944,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 21.37,
+        "peakJobCommitBytes": 623820800,
+        "affinityMask": "0x300",
+        "processors": 2,
+        "processId": 47288,
+        "descendantsAtCleanup": 1
+      },
+      "planSha256": "38c06ff6df700061dcff314965dc193beb2d98a4c3e36a189af696dcfdefcce0"
+    },
+    "currentBrowser": "target/completion-browser11/captures/result.json",
+    "dimensionDiagnosis": {
+      "receipt": "target/completion-browser07/result.json",
+      "finding": "All four canvases had 1x1 backing dimensions stretched by CSS; fixed initial size in examples/course/canvas.rs using CSS client size times device pixel ratio."
+    },
+    "initialPlayback": "Mathematics constructor now opens first authored step with chapter_go; preserves production Stage semantics.",
+    "interactionResult": {
+      "scope": "Four cumulative candidates; actual adapter recorded per viewport; upright emulation is not physical-phone acceptance",
+      "browser": "157.0.8103.51",
+      "args": [
+        "--enable-unsafe-webgpu",
+        "--ignore-gpu-blocklist",
+        "--use-angle=d3d11"
+      ],
+      "checkerSha256": "2a5d86f758590773d6a5bd7d16e044282d846359679ce34a179be9b57847499a",
+      "cases": [
+        {
+          "viewport": {
+            "width": 1280,
+            "height": 800
+          },
+          "frames": [
+            {
+              "name": "frame",
+              "file": "1280-frame.png",
+              "ink": 0,
+              "pixels": "f55a98174df0972266a64aec6e512816f4933b8c235e02e4ad75516ad0c5df55",
+              "sha256": "f9106d41500e37b39b7634d26646b3d9c092daa2125d0c95bfcdccf13bf938c1"
+            },
+            {
+              "name": "frame-resized",
+              "file": "1280-frame-resized.png",
+              "ink": 0,
+              "pixels": "f55a98174df0972266a64aec6e512816f4933b8c235e02e4ad75516ad0c5df55",
+              "sha256": "f9106d41500e37b39b7634d26646b3d9c092daa2125d0c95bfcdccf13bf938c1"
+            },
+            {
+              "name": "painting",
+              "file": "1280-painting.png",
+              "ink": 17633,
+              "pixels": "1b0aa84e5637dd750e23c7734b5736a373feb4cdf7b78201309338f1c8afa2f1",
+              "sha256": "e85d806a883b34c029a387dffadbf8ae0686cf1f4c74049aecace23008ce9aae"
+            },
+            {
+              "name": "math-1",
+              "file": "1280-math-1.png",
+              "ink": 8666,
+              "pixels": "69b067cee5a49d09d85d3dce75ba548e94a0db47f7977d3f03c5266c44a8942e",
+              "sha256": "1ce5c5cda5be183322e935ed410d947b3d57ae08d52d3368158b531290414007"
+            },
+            {
+              "name": "math-2",
+              "file": "1280-math-2.png",
+              "ink": 11630,
+              "pixels": "21e008dec073a7f6756ffd2a77e002c921f6247d5a52d3af6dc643679064626b",
+              "sha256": "387211b58e2372926ef9e31c919b5f1154cb8119a91afd4546aa7f8b46742371"
+            },
+            {
+              "name": "math-3",
+              "file": "1280-math-3.png",
+              "ink": 15333,
+              "pixels": "04bbc4435102b5ab5f2b87bab7c6aa20c24d66c5c29fb0d54b12a107d0e07bba",
+              "sha256": "0704801391792191b6e1638811105b4bd06103ba9d67420eb127579423ef1d15"
+            },
+            {
+              "name": "math-4",
+              "file": "1280-math-4.png",
+              "ink": 16935,
+              "pixels": "98eb0ad04c21ca328f484578bd65fe4710556aab9be62f6299ea7f5b41c98cf6",
+              "sha256": "cddd13c456298538c200569b86eb066dec8ebbcc60e0ab16685e297fbf8d33ee"
+            },
+            {
+              "name": "math-back",
+              "file": "1280-math-back.png",
+              "ink": 15333,
+              "pixels": "04bbc4435102b5ab5f2b87bab7c6aa20c24d66c5c29fb0d54b12a107d0e07bba",
+              "sha256": "0704801391792191b6e1638811105b4bd06103ba9d67420eb127579423ef1d15"
+            },
+            {
+              "name": "math-dark",
+              "file": "1280-math-dark.png",
+              "ink": 1016993,
+              "pixels": "3c12b631e20e88a17bfa9e13c2b248c10ea6ce8626e2d0d26174c51bdcc13688",
+              "sha256": "757d91e62e6291de37ee9dbe6eb4c8b8fdcfddd0f3c2ffe6b1e46027388c0b41"
+            },
+            {
+              "name": "math-light",
+              "file": "1280-math-light.png",
+              "ink": 15333,
+              "pixels": "04bbc4435102b5ab5f2b87bab7c6aa20c24d66c5c29fb0d54b12a107d0e07bba",
+              "sha256": "0704801391792191b6e1638811105b4bd06103ba9d67420eb127579423ef1d15"
+            },
+            {
+              "name": "math-slide-up",
+              "file": "1280-math-slide-up.png",
+              "ink": 8666,
+              "pixels": "69b067cee5a49d09d85d3dce75ba548e94a0db47f7977d3f03c5266c44a8942e",
+              "sha256": "1ce5c5cda5be183322e935ed410d947b3d57ae08d52d3368158b531290414007"
+            },
+            {
+              "name": "math-slide-down",
+              "file": "1280-math-slide-down.png",
+              "ink": 15333,
+              "pixels": "04bbc4435102b5ab5f2b87bab7c6aa20c24d66c5c29fb0d54b12a107d0e07bba",
+              "sha256": "0704801391792191b6e1638811105b4bd06103ba9d67420eb127579423ef1d15"
+            },
+            {
+              "name": "dock",
+              "file": "1280-dock.png",
+              "ink": 7167,
+              "pixels": "f470f6a8d45b24466adacd8f590749ae543c5c21a2d1ded0d6e8ed4fa2be9e39",
+              "sha256": "3355a0507f0d2717fdc2fe28446b9e4eb73485b9741e8077e2a01a8d9616e80d"
+            },
+            {
+              "name": "dock-hello",
+              "file": "1280-dock-hello.png",
+              "ink": 6017,
+              "pixels": "0afcdf0ffd6033c1e0359dbd1c8958e9399c2396b8c5b3f7e90b822654f4d603",
+              "sha256": "2cf327dff452c895942f1cb7e04d74cc1c5337220d199233ae045ab7683ae2ca"
+            },
+            {
+              "name": "dock-options",
+              "file": "1280-dock-options.png",
+              "ink": 6840,
+              "pixels": "0156b953963363c02022e218d5c021164b70bf7274b48325414abc10c94cf29b",
+              "sha256": "32d38fefd9774120c7b4fb2f615cbf9063aeec2eb4ed68032895e925380ba97a"
+            },
+            {
+              "name": "dock-blue",
+              "file": "1280-dock-blue.png",
+              "ink": 5939,
+              "pixels": "dd3594f63acc22287e91e6d1c68213762e7a01e64fc1754ea9dda560e215f2c4",
+              "sha256": "7fda5ae169cd4b3330d1dc0c8cbe3ade977db2449ffbe12a5dcb88d3d6a18d1d"
+            },
+            {
+              "name": "dock-clear",
+              "file": "1280-dock-clear.png",
+              "ink": 6715,
+              "pixels": "2a6e5baf75e770573e77191ba372c680c06c0b58ff822225e41cb533e470f735",
+              "sha256": "d6b61a17c4931760bf32d314aaa84bdbece1674949688eced1d3978e5c8c5483"
+            }
+          ],
+          "errors": [],
+          "adapter": {
+            "vendor": "intel",
+            "architecture": "gen-12lp",
+            "description": ""
+          }
+        },
+        {
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "frames": [
+            {
+              "name": "frame",
+              "file": "390-frame.png",
+              "ink": 0,
+              "pixels": "5f1f6ddfb0461d630ae4a62bf8dbb694f6d558319b72b3e1da808564c0242349",
+              "sha256": "e3d2f429df21736f3a1559b99fd46ea6bcfa46d3c085e61ecd718c1d0ffb023b"
+            },
+            {
+              "name": "frame-resized",
+              "file": "390-frame-resized.png",
+              "ink": 0,
+              "pixels": "5f1f6ddfb0461d630ae4a62bf8dbb694f6d558319b72b3e1da808564c0242349",
+              "sha256": "e3d2f429df21736f3a1559b99fd46ea6bcfa46d3c085e61ecd718c1d0ffb023b"
+            },
+            {
+              "name": "painting",
+              "file": "390-painting.png",
+              "ink": 17633,
+              "pixels": "7fe234384dd92227dffb7078af248abbfca75d099716403afa6f65045672c57a",
+              "sha256": "c76bb0fd9b1a1cde164c2dd184485135f95a6291d46dc42338b68635df580ca2"
+            },
+            {
+              "name": "math-1",
+              "file": "390-math-1.png",
+              "ink": 2827,
+              "pixels": "19f79c0d5699628ef2c96773fe21d5ae0eb1108b69dc626f105b284ebb91da59",
+              "sha256": "9641960ceb63114c588723f89c2c3dca56767ee4a4548f15ea3edba17e63fd8f"
+            },
+            {
+              "name": "math-2",
+              "file": "390-math-2.png",
+              "ink": 3434,
+              "pixels": "cc87dc99ebc836426294ef4dc4c1aa01c0e9bac92fc1b7d53604b96ff9e34186",
+              "sha256": "7e4103c0c7975c5078245d7a162a77609e9e5c7595e955ea85cb158ce20db5c4"
+            },
+            {
+              "name": "math-3",
+              "file": "390-math-3.png",
+              "ink": 4209,
+              "pixels": "c96e8d6603e4733754b720130a934132ec03c0173d68aa9e2d55e87a390bead7",
+              "sha256": "c9c00a141d7e173c197a7dcb1ba5da0ccc01316fc07d2f93a9a82781dbb24096"
+            },
+            {
+              "name": "math-4",
+              "file": "390-math-4.png",
+              "ink": 4409,
+              "pixels": "fee2c5f8a80893cc636028aff4cb03eca72fbd2f08dfff391ecfe3c2f012a985",
+              "sha256": "9caea99f5f62d9ecc6e5a87294b60b1d16bee32613d16e804e1c5dc65995ee1b"
+            },
+            {
+              "name": "math-back",
+              "file": "390-math-back.png",
+              "ink": 4209,
+              "pixels": "c96e8d6603e4733754b720130a934132ec03c0173d68aa9e2d55e87a390bead7",
+              "sha256": "c9c00a141d7e173c197a7dcb1ba5da0ccc01316fc07d2f93a9a82781dbb24096"
+            },
+            {
+              "name": "math-dark",
+              "file": "390-math-dark.png",
+              "ink": 327956,
+              "pixels": "c58a0f2b893d9dbccaccadc4940c24b027b1e06c26cb8b55172446121117521a",
+              "sha256": "3f7fb729c277e12926eebc3a0a373376a692c2dfb4e0bd8fc17742f750730fd7"
+            },
+            {
+              "name": "math-light",
+              "file": "390-math-light.png",
+              "ink": 4209,
+              "pixels": "c96e8d6603e4733754b720130a934132ec03c0173d68aa9e2d55e87a390bead7",
+              "sha256": "c9c00a141d7e173c197a7dcb1ba5da0ccc01316fc07d2f93a9a82781dbb24096"
+            },
+            {
+              "name": "math-slide-up",
+              "file": "390-math-slide-up.png",
+              "ink": 2827,
+              "pixels": "19f79c0d5699628ef2c96773fe21d5ae0eb1108b69dc626f105b284ebb91da59",
+              "sha256": "9641960ceb63114c588723f89c2c3dca56767ee4a4548f15ea3edba17e63fd8f"
+            },
+            {
+              "name": "math-slide-down",
+              "file": "390-math-slide-down.png",
+              "ink": 4209,
+              "pixels": "c96e8d6603e4733754b720130a934132ec03c0173d68aa9e2d55e87a390bead7",
+              "sha256": "c9c00a141d7e173c197a7dcb1ba5da0ccc01316fc07d2f93a9a82781dbb24096"
+            },
+            {
+              "name": "dock",
+              "file": "390-dock.png",
+              "ink": 6276,
+              "pixels": "9ca9267429ada6cc3fed58d40e5aebf44b1451297538eb651d8645897a188c2c",
+              "sha256": "7334fe6f86a43fbbcf2bc1ff5e5debf2cea4734653a0d71539aaeb7a386f5b4a"
+            },
+            {
+              "name": "dock-hello",
+              "file": "390-dock-hello.png",
+              "ink": 5126,
+              "pixels": "1ca4004657f80f6589adf5581945617a2f7cb5b338a85b0220d68836fa21bd98",
+              "sha256": "d59f3dc421d704381823461e643e34876df3f5d521c5bdb8dddb8b0be60e15cc"
+            },
+            {
+              "name": "dock-options",
+              "file": "390-dock-options.png",
+              "ink": 5949,
+              "pixels": "95e2d950d9b53e6a30fa02f1dab4ce3a170dd321fc89432b75e040854708b76c",
+              "sha256": "cf26b368fe45032c1a6833682cdebf64536f2c10edf7f8b85efecbe657cfdda3"
+            },
+            {
+              "name": "dock-blue",
+              "file": "390-dock-blue.png",
+              "ink": 5048,
+              "pixels": "626c5ff4418226e069cce1f060ada183a8f876292be37ccbd4e380e8f26b11a8",
+              "sha256": "8eac09651c5301b229d930539fb7856e2159d0936d2ef44ec5735bbeb32694fb"
+            },
+            {
+              "name": "dock-clear",
+              "file": "390-dock-clear.png",
+              "ink": 5826,
+              "pixels": "255f6a966d15d875b40c3c886535fc91ef08f2843cce3f41091d75c366650f40",
+              "sha256": "cf572382e90c8e5386a7258169b33f2c32f85b50b8d44c23344812b96acb258f"
+            }
+          ],
+          "errors": [],
+          "adapter": {
+            "vendor": "intel",
+            "architecture": "gen-12lp",
+            "description": ""
+          }
+        }
+      ]
+    },
+    "interactionBuildPlanSha256": "38c06ff6df700061dcff314965dc193beb2d98a4c3e36a189af696dcfdefcce0",
+    "acceptanceLimitation": "Interaction suite passes on Intel desktop and upright emulation. Native and strict-site checks, teaching review and final cumulative production route remain incomplete.",
+    "themeCorrection": "Full background is drawn by the mathematics fixture before production painting; corner pixels checked in light/dark themes; no production painter edit."
+  },
+  "currentFixtureChecks": {
+    "receipt": "target/completion-partials08/result.json",
+    "commands": [
+      {
+        "name": "tooling",
+        "exitCode": 0
+      },
+      {
+        "name": "frame-assemble",
+        "exitCode": 0
+      },
+      {
+        "name": "frame-check",
+        "exitCode": 0
+      },
+      {
+        "name": "painting-assemble",
+        "exitCode": 0
+      },
+      {
+        "name": "painting-check",
+        "exitCode": 0
+      },
+      {
+        "name": "mathematics-assemble",
+        "exitCode": 0
+      },
+      {
+        "name": "mathematics-check",
+        "exitCode": 0
+      },
+      {
+        "name": "dock-assemble",
+        "exitCode": 0
+      },
+      {
+        "name": "dock-check",
+        "exitCode": 0
+      }
+    ],
+    "scope": "Four wasm checks and three retention tests; current full-theme mathematics fixture"
+  },
+  "nativeCandidateTests": {
+    "receipt": "target/course-native01/result.json",
+    "resources": {
+      "platform": "windows-job-object",
+      "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+      "laneMutex": "Local\\SessionViewerCourseImageJob",
+      "affinityOffset": 8,
+      "requiredAffinityMask": "0x300",
+      "maximumOtherLaneProcessors": 8,
+      "maximumOtherLaneMemoryMiB": 8192,
+      "maximumAggregateOurProcessors": 10,
+      "maximumAggregateOurMemoryMiB": 14336,
+      "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+      "requestedProcessors": 2,
+      "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+      "startedUtc": "2026-11-15T14:02:03.5332501Z",
+      "executable": "C:\\Program Files\\Git\\bin\\bash.exe",
+      "arguments": [
+        "C:/pc/3_code/code_rust/wood_research/wood/tools/buildslot.sh",
+        "tutorial-course-native01",
+        "timeout",
+        "590s",
+        "C:\\Users\\Petras\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+        "-B",
+        "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\course-native01.py"
+      ],
+      "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\course-native01\\project",
+      "timeoutSeconds": 595,
+      "jobCommitLimitBytes": 6442450944,
+      "swapCapSupported": false,
+      "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+      "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+      "exitCode": 0,
+      "timedOut": false,
+      "elapsedSeconds": 125.659,
+      "peakJobCommitBytes": 1623138304,
+      "affinityMask": "0x300",
+      "processors": 2,
+      "processId": 47012,
+      "descendantsAtCleanup": 2
+    },
+    "passed": 19,
+    "ignored": 1,
+    "ignoredReason": "invalid_gpu_shader_is_fatal requires a native GPU adapter",
+    "scope": "Partial07 native production modules; later mathematics background fixture is wasm-only and does not change native inputs"
+  }
+}

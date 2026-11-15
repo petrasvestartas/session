@@ -1,6 +1,7 @@
 use session_rust::{AABB, Point, Quaternion, Vector, Xform};
 
-pub use crate::engine::gpu::frame::FOVY_DEG;
+/// Vertical field of view in degrees.
+pub const FOVY_DEG: f64 = 60.0;
 
 /// The unit the scene file is written in.
 #[derive(Clone, Copy, PartialEq)]
@@ -39,6 +40,7 @@ pub enum View {
     IsoBack,
 }
 
+// --8<-- [start:camera-pose]
 /// Orbit camera: an orientation, a target and a distance.
 pub struct Camera {
     pub target: [f64; 3],        // the point looked at, meters
@@ -62,6 +64,8 @@ pub struct CameraPose {
     up: [f64; 3],       // the up direction
     perspective: bool,  // false = orthographic
 }
+
+// --8<-- [end:camera-pose]
 
 impl Camera {
     /// The current pose.
@@ -314,6 +318,7 @@ impl Camera {
         scene.max(grid)
     }
 
+    // --8<-- [start:camera-projection]
     /// The view-projection matrix, relative to the target.
     pub fn view_proj(&self, aspect: f64) -> Xform {
         self.view_proj_anchored(aspect, &self.origin())
@@ -361,6 +366,8 @@ impl Camera {
 
         lens * projection * view * scale
     }
+
+    // --8<-- [end:camera-projection]
 
     /// Where the middle of the free part sits on the canvas, -1..1 on both axes, y up.
     pub fn shift(&self) -> [f64; 2] {

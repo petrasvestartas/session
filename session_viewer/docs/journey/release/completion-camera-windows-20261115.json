@@ -1,0 +1,714 @@
+{
+  "status": "candidate; full course acceptance pending",
+  "subjects": [
+    "frame",
+    "painting",
+    "mathematics",
+    "dock",
+    "camera"
+  ],
+  "wasm": {
+    "scope": "Five-subject retention and independent camera wasm typecheck; camera browser pending",
+    "commands": [
+      {
+        "name": "tooling",
+        "exitCode": 0
+      },
+      {
+        "name": "camera-assemble",
+        "exitCode": 0
+      },
+      {
+        "name": "camera-check",
+        "exitCode": 0
+      }
+    ],
+    "postguards": "passed",
+    "outputs": []
+  },
+  "native": {
+    "passed": 33,
+    "ignored": 1,
+    "reason": "GPU shader fatal test requires native adapter",
+    "result": {
+      "scope": "Native tests of five-subject camera assembly, including production camera and stage",
+      "commands": [
+        {
+          "name": "native",
+          "exitCode": 0
+        }
+      ],
+      "failure": null,
+      "postguards": "passed",
+      "browser": "pending"
+    },
+    "resources": {
+      "platform": "windows-job-object",
+      "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+      "laneMutex": "Local\\SessionViewerCourseImageJob",
+      "affinityOffset": 8,
+      "requiredAffinityMask": "0x300",
+      "maximumOtherLaneProcessors": 8,
+      "maximumOtherLaneMemoryMiB": 8192,
+      "maximumAggregateOurProcessors": 10,
+      "maximumAggregateOurMemoryMiB": 14336,
+      "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+      "requestedProcessors": 2,
+      "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+      "startedUtc": "2026-11-15T14:19:37.4322247Z",
+      "executable": "C:\\Program Files\\Git\\bin\\bash.exe",
+      "arguments": [
+        "C:/pc/3_code/code_rust/wood_research/wood/tools/buildslot.sh",
+        "tutorial-course-native02",
+        "timeout",
+        "590s",
+        "C:\\Users\\Petras\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+        "-B",
+        "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\course-native02.py"
+      ],
+      "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\course-native02\\project",
+      "timeoutSeconds": 595,
+      "jobCommitLimitBytes": 6442450944,
+      "swapCapSupported": false,
+      "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+      "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+      "exitCode": 0,
+      "timedOut": false,
+      "elapsedSeconds": 20.78,
+      "peakJobCommitBytes": 939995136,
+      "affinityMask": "0x300",
+      "processors": 2,
+      "processId": 18240,
+      "descendantsAtCleanup": 2
+    }
+  },
+  "build": {
+    "result": {
+      "scope": "Five cumulative candidates including actual production camera; camera browser pending",
+      "commands": [
+        {
+          "name": "cargo",
+          "exitCode": 0
+        },
+        {
+          "name": "trunk",
+          "exitCode": 0
+        }
+      ],
+      "failure": null,
+      "postguards": "passed",
+      "browser": "pending"
+    },
+    "planSha256": "0dc4c5fd4bcf844c5efa5051652dc13cc41ae844c445208db640fba089b7d522"
+  },
+  "browser": {
+    "scope": "Cumulative candidates (camera only when explicitly requested); actual adapter recorded per viewport; upright emulation is not physical-phone acceptance",
+    "browser": "157.0.8103.51",
+    "args": [
+      "--enable-unsafe-webgpu",
+      "--ignore-gpu-blocklist",
+      "--use-angle=d3d11"
+    ],
+    "checkerSha256": "4b2580b9b5f1b1c6863e87b9346ea6ada0874629b9178755ab7f9ff2db36cfda",
+    "cases": [
+      {
+        "viewport": {
+          "width": 1280,
+          "height": 800
+        },
+        "frames": [
+          {
+            "name": "frame",
+            "file": "1280-frame.png",
+            "ink": 0,
+            "pixels": "f55a98174df0972266a64aec6e512816f4933b8c235e02e4ad75516ad0c5df55",
+            "sha256": "f9106d41500e37b39b7634d26646b3d9c092daa2125d0c95bfcdccf13bf938c1"
+          },
+          {
+            "name": "frame-resized",
+            "file": "1280-frame-resized.png",
+            "ink": 0,
+            "pixels": "f55a98174df0972266a64aec6e512816f4933b8c235e02e4ad75516ad0c5df55",
+            "sha256": "f9106d41500e37b39b7634d26646b3d9c092daa2125d0c95bfcdccf13bf938c1"
+          },
+          {
+            "name": "painting",
+            "file": "1280-painting.png",
+            "ink": 17633,
+            "pixels": "1b0aa84e5637dd750e23c7734b5736a373feb4cdf7b78201309338f1c8afa2f1",
+            "sha256": "e85d806a883b34c029a387dffadbf8ae0686cf1f4c74049aecace23008ce9aae"
+          },
+          {
+            "name": "math-1",
+            "file": "1280-math-1.png",
+            "ink": 8666,
+            "pixels": "69b067cee5a49d09d85d3dce75ba548e94a0db47f7977d3f03c5266c44a8942e",
+            "sha256": "1ce5c5cda5be183322e935ed410d947b3d57ae08d52d3368158b531290414007"
+          },
+          {
+            "name": "math-2",
+            "file": "1280-math-2.png",
+            "ink": 11630,
+            "pixels": "21e008dec073a7f6756ffd2a77e002c921f6247d5a52d3af6dc643679064626b",
+            "sha256": "387211b58e2372926ef9e31c919b5f1154cb8119a91afd4546aa7f8b46742371"
+          },
+          {
+            "name": "math-3",
+            "file": "1280-math-3.png",
+            "ink": 15333,
+            "pixels": "04bbc4435102b5ab5f2b87bab7c6aa20c24d66c5c29fb0d54b12a107d0e07bba",
+            "sha256": "0704801391792191b6e1638811105b4bd06103ba9d67420eb127579423ef1d15"
+          },
+          {
+            "name": "math-4",
+            "file": "1280-math-4.png",
+            "ink": 16935,
+            "pixels": "98eb0ad04c21ca328f484578bd65fe4710556aab9be62f6299ea7f5b41c98cf6",
+            "sha256": "cddd13c456298538c200569b86eb066dec8ebbcc60e0ab16685e297fbf8d33ee"
+          },
+          {
+            "name": "math-back",
+            "file": "1280-math-back.png",
+            "ink": 15333,
+            "pixels": "04bbc4435102b5ab5f2b87bab7c6aa20c24d66c5c29fb0d54b12a107d0e07bba",
+            "sha256": "0704801391792191b6e1638811105b4bd06103ba9d67420eb127579423ef1d15"
+          },
+          {
+            "name": "math-dark",
+            "file": "1280-math-dark.png",
+            "ink": 1016993,
+            "pixels": "3c12b631e20e88a17bfa9e13c2b248c10ea6ce8626e2d0d26174c51bdcc13688",
+            "sha256": "757d91e62e6291de37ee9dbe6eb4c8b8fdcfddd0f3c2ffe6b1e46027388c0b41"
+          },
+          {
+            "name": "math-light",
+            "file": "1280-math-light.png",
+            "ink": 15333,
+            "pixels": "04bbc4435102b5ab5f2b87bab7c6aa20c24d66c5c29fb0d54b12a107d0e07bba",
+            "sha256": "0704801391792191b6e1638811105b4bd06103ba9d67420eb127579423ef1d15"
+          },
+          {
+            "name": "math-slide-up",
+            "file": "1280-math-slide-up.png",
+            "ink": 8666,
+            "pixels": "69b067cee5a49d09d85d3dce75ba548e94a0db47f7977d3f03c5266c44a8942e",
+            "sha256": "1ce5c5cda5be183322e935ed410d947b3d57ae08d52d3368158b531290414007"
+          },
+          {
+            "name": "math-slide-down",
+            "file": "1280-math-slide-down.png",
+            "ink": 15333,
+            "pixels": "04bbc4435102b5ab5f2b87bab7c6aa20c24d66c5c29fb0d54b12a107d0e07bba",
+            "sha256": "0704801391792191b6e1638811105b4bd06103ba9d67420eb127579423ef1d15"
+          },
+          {
+            "name": "dock",
+            "file": "1280-dock.png",
+            "ink": 7167,
+            "pixels": "f470f6a8d45b24466adacd8f590749ae543c5c21a2d1ded0d6e8ed4fa2be9e39",
+            "sha256": "3355a0507f0d2717fdc2fe28446b9e4eb73485b9741e8077e2a01a8d9616e80d"
+          },
+          {
+            "name": "dock-hello",
+            "file": "1280-dock-hello.png",
+            "ink": 6017,
+            "pixels": "0afcdf0ffd6033c1e0359dbd1c8958e9399c2396b8c5b3f7e90b822654f4d603",
+            "sha256": "2cf327dff452c895942f1cb7e04d74cc1c5337220d199233ae045ab7683ae2ca"
+          },
+          {
+            "name": "dock-options",
+            "file": "1280-dock-options.png",
+            "ink": 6840,
+            "pixels": "0156b953963363c02022e218d5c021164b70bf7274b48325414abc10c94cf29b",
+            "sha256": "32d38fefd9774120c7b4fb2f615cbf9063aeec2eb4ed68032895e925380ba97a"
+          },
+          {
+            "name": "dock-blue",
+            "file": "1280-dock-blue.png",
+            "ink": 5939,
+            "pixels": "dd3594f63acc22287e91e6d1c68213762e7a01e64fc1754ea9dda560e215f2c4",
+            "sha256": "7fda5ae169cd4b3330d1dc0c8cbe3ade977db2449ffbe12a5dcb88d3d6a18d1d"
+          },
+          {
+            "name": "dock-clear",
+            "file": "1280-dock-clear.png",
+            "ink": 6715,
+            "pixels": "2a6e5baf75e770573e77191ba372c680c06c0b58ff822225e41cb533e470f735",
+            "sha256": "d6b61a17c4931760bf32d314aaa84bdbece1674949688eced1d3978e5c8c5483"
+          },
+          {
+            "name": "camera",
+            "file": "1280-camera.png",
+            "ink": 13652,
+            "pixels": "896f20c12fec007c6915946dc07353d786d3382c86b5b2494b5c0c36dc917f87",
+            "sha256": "4d383d406d0c4446735b1dce6fab7a3d0f43ad5a60d5247b847b977ff6420187"
+          },
+          {
+            "name": "camera-orbit",
+            "file": "1280-camera-orbit.png",
+            "ink": 13674,
+            "pixels": "5cc3b5a872ad61ea8c9eb0597abd169bd35dc4a948c096a989d847e1d4a976ff",
+            "sha256": "0ab5557c4fe0ee88efe1e19c5c395095114e0c9c6aed3ccdf3988ee9bff9325f"
+          },
+          {
+            "name": "camera-home",
+            "file": "1280-camera-home.png",
+            "ink": 12293,
+            "pixels": "90ca8b7d6209b1bd66b86d394d3396dcd7078d2e05bb2d3950e61c88cc3d1ada",
+            "sha256": "997a4f78debe04fcf5face8983a62e8f310ecbb1c1105b9580efdecdc781f6e1"
+          },
+          {
+            "name": "camera-projection",
+            "file": "1280-camera-projection.png",
+            "ink": 13652,
+            "pixels": "896f20c12fec007c6915946dc07353d786d3382c86b5b2494b5c0c36dc917f87",
+            "sha256": "4d383d406d0c4446735b1dce6fab7a3d0f43ad5a60d5247b847b977ff6420187"
+          },
+          {
+            "name": "camera-projection-back",
+            "file": "1280-camera-projection-back.png",
+            "ink": 12293,
+            "pixels": "90ca8b7d6209b1bd66b86d394d3396dcd7078d2e05bb2d3950e61c88cc3d1ada",
+            "sha256": "997a4f78debe04fcf5face8983a62e8f310ecbb1c1105b9580efdecdc781f6e1"
+          },
+          {
+            "name": "camera-zoom",
+            "file": "1280-camera-zoom.png",
+            "ink": 6256,
+            "pixels": "96bb63f2c22985617c3ab663a979705721824814ddff6c7da08129d3d43222bd",
+            "sha256": "333b5e23047a730dec9738e347a765d8e2ff1344fd01382fbbe24e82508316b5"
+          },
+          {
+            "name": "camera-fit",
+            "file": "1280-camera-fit.png",
+            "ink": 12293,
+            "pixels": "90ca8b7d6209b1bd66b86d394d3396dcd7078d2e05bb2d3950e61c88cc3d1ada",
+            "sha256": "997a4f78debe04fcf5face8983a62e8f310ecbb1c1105b9580efdecdc781f6e1"
+          },
+          {
+            "name": "camera-drag",
+            "file": "1280-camera-drag.png",
+            "ink": 12462,
+            "pixels": "f885ca8081cbb6d014eb2c7200c5f6d9081b374170604b5b7dbacec7170ef027",
+            "sha256": "78d61bfd2491837b2e4a5b5dc779d074c65a3a24f900ac045500d46752cc1ec4"
+          },
+          {
+            "name": "camera-drag-home",
+            "file": "1280-camera-drag-home.png",
+            "ink": 12293,
+            "pixels": "90ca8b7d6209b1bd66b86d394d3396dcd7078d2e05bb2d3950e61c88cc3d1ada",
+            "sha256": "997a4f78debe04fcf5face8983a62e8f310ecbb1c1105b9580efdecdc781f6e1"
+          }
+        ],
+        "errors": [],
+        "adapter": {
+          "vendor": "intel",
+          "architecture": "gen-12lp",
+          "description": ""
+        }
+      },
+      {
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "frames": [
+          {
+            "name": "frame",
+            "file": "390-frame.png",
+            "ink": 0,
+            "pixels": "5f1f6ddfb0461d630ae4a62bf8dbb694f6d558319b72b3e1da808564c0242349",
+            "sha256": "e3d2f429df21736f3a1559b99fd46ea6bcfa46d3c085e61ecd718c1d0ffb023b"
+          },
+          {
+            "name": "frame-resized",
+            "file": "390-frame-resized.png",
+            "ink": 0,
+            "pixels": "5f1f6ddfb0461d630ae4a62bf8dbb694f6d558319b72b3e1da808564c0242349",
+            "sha256": "e3d2f429df21736f3a1559b99fd46ea6bcfa46d3c085e61ecd718c1d0ffb023b"
+          },
+          {
+            "name": "painting",
+            "file": "390-painting.png",
+            "ink": 17633,
+            "pixels": "7fe234384dd92227dffb7078af248abbfca75d099716403afa6f65045672c57a",
+            "sha256": "c76bb0fd9b1a1cde164c2dd184485135f95a6291d46dc42338b68635df580ca2"
+          },
+          {
+            "name": "math-1",
+            "file": "390-math-1.png",
+            "ink": 2827,
+            "pixels": "19f79c0d5699628ef2c96773fe21d5ae0eb1108b69dc626f105b284ebb91da59",
+            "sha256": "9641960ceb63114c588723f89c2c3dca56767ee4a4548f15ea3edba17e63fd8f"
+          },
+          {
+            "name": "math-2",
+            "file": "390-math-2.png",
+            "ink": 3434,
+            "pixels": "cc87dc99ebc836426294ef4dc4c1aa01c0e9bac92fc1b7d53604b96ff9e34186",
+            "sha256": "7e4103c0c7975c5078245d7a162a77609e9e5c7595e955ea85cb158ce20db5c4"
+          },
+          {
+            "name": "math-3",
+            "file": "390-math-3.png",
+            "ink": 4209,
+            "pixels": "c96e8d6603e4733754b720130a934132ec03c0173d68aa9e2d55e87a390bead7",
+            "sha256": "c9c00a141d7e173c197a7dcb1ba5da0ccc01316fc07d2f93a9a82781dbb24096"
+          },
+          {
+            "name": "math-4",
+            "file": "390-math-4.png",
+            "ink": 4409,
+            "pixels": "fee2c5f8a80893cc636028aff4cb03eca72fbd2f08dfff391ecfe3c2f012a985",
+            "sha256": "9caea99f5f62d9ecc6e5a87294b60b1d16bee32613d16e804e1c5dc65995ee1b"
+          },
+          {
+            "name": "math-back",
+            "file": "390-math-back.png",
+            "ink": 4209,
+            "pixels": "c96e8d6603e4733754b720130a934132ec03c0173d68aa9e2d55e87a390bead7",
+            "sha256": "c9c00a141d7e173c197a7dcb1ba5da0ccc01316fc07d2f93a9a82781dbb24096"
+          },
+          {
+            "name": "math-dark",
+            "file": "390-math-dark.png",
+            "ink": 327956,
+            "pixels": "c58a0f2b893d9dbccaccadc4940c24b027b1e06c26cb8b55172446121117521a",
+            "sha256": "3f7fb729c277e12926eebc3a0a373376a692c2dfb4e0bd8fc17742f750730fd7"
+          },
+          {
+            "name": "math-light",
+            "file": "390-math-light.png",
+            "ink": 4209,
+            "pixels": "c96e8d6603e4733754b720130a934132ec03c0173d68aa9e2d55e87a390bead7",
+            "sha256": "c9c00a141d7e173c197a7dcb1ba5da0ccc01316fc07d2f93a9a82781dbb24096"
+          },
+          {
+            "name": "math-slide-up",
+            "file": "390-math-slide-up.png",
+            "ink": 2827,
+            "pixels": "19f79c0d5699628ef2c96773fe21d5ae0eb1108b69dc626f105b284ebb91da59",
+            "sha256": "9641960ceb63114c588723f89c2c3dca56767ee4a4548f15ea3edba17e63fd8f"
+          },
+          {
+            "name": "math-slide-down",
+            "file": "390-math-slide-down.png",
+            "ink": 4209,
+            "pixels": "c96e8d6603e4733754b720130a934132ec03c0173d68aa9e2d55e87a390bead7",
+            "sha256": "c9c00a141d7e173c197a7dcb1ba5da0ccc01316fc07d2f93a9a82781dbb24096"
+          },
+          {
+            "name": "dock",
+            "file": "390-dock.png",
+            "ink": 6276,
+            "pixels": "9ca9267429ada6cc3fed58d40e5aebf44b1451297538eb651d8645897a188c2c",
+            "sha256": "7334fe6f86a43fbbcf2bc1ff5e5debf2cea4734653a0d71539aaeb7a386f5b4a"
+          },
+          {
+            "name": "dock-hello",
+            "file": "390-dock-hello.png",
+            "ink": 5126,
+            "pixels": "1ca4004657f80f6589adf5581945617a2f7cb5b338a85b0220d68836fa21bd98",
+            "sha256": "d59f3dc421d704381823461e643e34876df3f5d521c5bdb8dddb8b0be60e15cc"
+          },
+          {
+            "name": "dock-options",
+            "file": "390-dock-options.png",
+            "ink": 5949,
+            "pixels": "95e2d950d9b53e6a30fa02f1dab4ce3a170dd321fc89432b75e040854708b76c",
+            "sha256": "cf26b368fe45032c1a6833682cdebf64536f2c10edf7f8b85efecbe657cfdda3"
+          },
+          {
+            "name": "dock-blue",
+            "file": "390-dock-blue.png",
+            "ink": 5048,
+            "pixels": "626c5ff4418226e069cce1f060ada183a8f876292be37ccbd4e380e8f26b11a8",
+            "sha256": "8eac09651c5301b229d930539fb7856e2159d0936d2ef44ec5735bbeb32694fb"
+          },
+          {
+            "name": "dock-clear",
+            "file": "390-dock-clear.png",
+            "ink": 5826,
+            "pixels": "255f6a966d15d875b40c3c886535fc91ef08f2843cce3f41091d75c366650f40",
+            "sha256": "cf572382e90c8e5386a7258169b33f2c32f85b50b8d44c23344812b96acb258f"
+          },
+          {
+            "name": "camera",
+            "file": "390-camera.png",
+            "ink": 9104,
+            "pixels": "74a50a02f55afd7425d65116ac01f2d347289999c5f9ac1804b9dafcc74606d0",
+            "sha256": "2959734b0f5600865b112f239de9cfaab6833569e0a80d371dc59f83004072f3"
+          },
+          {
+            "name": "camera-orbit",
+            "file": "390-camera-orbit.png",
+            "ink": 9116,
+            "pixels": "95982c2d4eba526bef3ea170a48e65a3f067c678288522fe5be8d916e24d2c57",
+            "sha256": "de1fb2c3b0a38d6720d5ba5d8db8243210d92fecc0da48471705f29884507e40"
+          },
+          {
+            "name": "camera-home",
+            "file": "390-camera-home.png",
+            "ink": 8574,
+            "pixels": "1ea10a7ef59ae8c288b5aca5f8a81e7a0f6350c0217bb943c219e78ca93a4627",
+            "sha256": "136912de7e79d804b0f448391b6c3eb60d6e2b1880724e4427c6228ed5bae6ea"
+          },
+          {
+            "name": "camera-projection",
+            "file": "390-camera-projection.png",
+            "ink": 9104,
+            "pixels": "74a50a02f55afd7425d65116ac01f2d347289999c5f9ac1804b9dafcc74606d0",
+            "sha256": "2959734b0f5600865b112f239de9cfaab6833569e0a80d371dc59f83004072f3"
+          },
+          {
+            "name": "camera-projection-back",
+            "file": "390-camera-projection-back.png",
+            "ink": 8574,
+            "pixels": "1ea10a7ef59ae8c288b5aca5f8a81e7a0f6350c0217bb943c219e78ca93a4627",
+            "sha256": "136912de7e79d804b0f448391b6c3eb60d6e2b1880724e4427c6228ed5bae6ea"
+          },
+          {
+            "name": "camera-zoom",
+            "file": "390-camera-zoom.png",
+            "ink": 4961,
+            "pixels": "240c760bc569dfd615d1bf642d0a6efa08e23366e17f2ca6b616dad102b1d871",
+            "sha256": "13505841d258cff50df4fa4384bd840d2ee0244cce6ad4d4492eb1639fe3b46c"
+          },
+          {
+            "name": "camera-fit",
+            "file": "390-camera-fit.png",
+            "ink": 8574,
+            "pixels": "1ea10a7ef59ae8c288b5aca5f8a81e7a0f6350c0217bb943c219e78ca93a4627",
+            "sha256": "136912de7e79d804b0f448391b6c3eb60d6e2b1880724e4427c6228ed5bae6ea"
+          },
+          {
+            "name": "camera-drag",
+            "file": "390-camera-drag.png",
+            "ink": 8670,
+            "pixels": "690b91f9083861a3db158bd2733097ebc07cbd47f5500b6b64e90a2434cd270f",
+            "sha256": "d392b984364ab39e59150c86a5f262c81fd960d3757e72bec787e9f736dc23c7"
+          },
+          {
+            "name": "camera-drag-home",
+            "file": "390-camera-drag-home.png",
+            "ink": 8574,
+            "pixels": "1ea10a7ef59ae8c288b5aca5f8a81e7a0f6350c0217bb943c219e78ca93a4627",
+            "sha256": "136912de7e79d804b0f448391b6c3eb60d6e2b1880724e4427c6228ed5bae6ea"
+          }
+        ],
+        "errors": [],
+        "adapter": {
+          "vendor": "intel",
+          "architecture": "gen-12lp",
+          "description": ""
+        }
+      }
+    ]
+  },
+  "limitations": [
+    "Five-subject candidate evidence, not complete cumulative production acceptance",
+    "Upright desktop viewport is not physical phone or touch acceptance",
+    "One native GPU test remains ignored"
+  ],
+  "documentation": {
+    "build": {
+      "scope": "Strict site build after fifth camera subject; unchanged broad tests retained from docs06",
+      "commands": [
+        {
+          "name": "strict-site",
+          "exitCode": 0
+        }
+      ],
+      "postguards": "passed",
+      "outputs": []
+    },
+    "browser": {
+      "passed": true,
+      "scope": "Course home plus five candidate documentation routes and fixed build timestamp only; no viewer, hardware or subject acceptance",
+      "stamp": "2026-11-15T14:22:01.269Z",
+      "records": [
+        {
+          "route": "readme",
+          "viewport": {
+            "width": 1280,
+            "height": 800
+          },
+          "time": "2026-11-15T14:22:01.269Z",
+          "box": {
+            "x": 1058.078125,
+            "y": 774.609375,
+            "width": 185.921875,
+            "height": 21.390625
+          },
+          "file": "readme-1280.png"
+        },
+        {
+          "route": "frame",
+          "viewport": {
+            "width": 1280,
+            "height": 800
+          },
+          "time": "2026-11-15T14:22:01.269Z",
+          "box": {
+            "x": 1058.078125,
+            "y": 774.609375,
+            "width": 185.921875,
+            "height": 21.390625
+          },
+          "file": "frame-1280.png"
+        },
+        {
+          "route": "painting",
+          "viewport": {
+            "width": 1280,
+            "height": 800
+          },
+          "time": "2026-11-15T14:22:01.269Z",
+          "box": {
+            "x": 1058.078125,
+            "y": 774.609375,
+            "width": 185.921875,
+            "height": 21.390625
+          },
+          "file": "painting-1280.png"
+        },
+        {
+          "route": "mathematics",
+          "viewport": {
+            "width": 1280,
+            "height": 800
+          },
+          "time": "2026-11-15T14:22:01.269Z",
+          "box": {
+            "x": 1058.078125,
+            "y": 774.609375,
+            "width": 185.921875,
+            "height": 21.390625
+          },
+          "file": "mathematics-1280.png"
+        },
+        {
+          "route": "dock",
+          "viewport": {
+            "width": 1280,
+            "height": 800
+          },
+          "time": "2026-11-15T14:22:01.269Z",
+          "box": {
+            "x": 1058.078125,
+            "y": 774.609375,
+            "width": 185.921875,
+            "height": 21.390625
+          },
+          "file": "dock-1280.png"
+        },
+        {
+          "route": "camera",
+          "viewport": {
+            "width": 1280,
+            "height": 800
+          },
+          "time": "2026-11-15T14:22:01.269Z",
+          "box": {
+            "x": 1058.078125,
+            "y": 774.609375,
+            "width": 185.921875,
+            "height": 21.390625
+          },
+          "file": "camera-1280.png"
+        },
+        {
+          "route": "readme",
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "time": "2026-11-15T14:22:01.269Z",
+          "box": {
+            "x": 168.078125,
+            "y": 818.609375,
+            "width": 185.921875,
+            "height": 21.390625
+          },
+          "file": "readme-390.png"
+        },
+        {
+          "route": "frame",
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "time": "2026-11-15T14:22:01.269Z",
+          "box": {
+            "x": 168.078125,
+            "y": 818.609375,
+            "width": 185.921875,
+            "height": 21.390625
+          },
+          "file": "frame-390.png"
+        },
+        {
+          "route": "painting",
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "time": "2026-11-15T14:22:01.269Z",
+          "box": {
+            "x": 168.078125,
+            "y": 818.609375,
+            "width": 185.921875,
+            "height": 21.390625
+          },
+          "file": "painting-390.png"
+        },
+        {
+          "route": "mathematics",
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "time": "2026-11-15T14:22:01.269Z",
+          "box": {
+            "x": 168.078125,
+            "y": 818.609375,
+            "width": 185.921875,
+            "height": 21.390625
+          },
+          "file": "mathematics-390.png"
+        },
+        {
+          "route": "dock",
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "time": "2026-11-15T14:22:01.269Z",
+          "box": {
+            "x": 168.078125,
+            "y": 818.609375,
+            "width": 185.921875,
+            "height": 21.390625
+          },
+          "file": "dock-390.png"
+        },
+        {
+          "route": "camera",
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "time": "2026-11-15T14:22:01.269Z",
+          "box": {
+            "x": 168.078125,
+            "y": 818.609375,
+            "width": 185.921875,
+            "height": 21.390625
+          },
+          "file": "camera-390.png"
+        }
+      ],
+      "errors": []
+    }
+  }
+}

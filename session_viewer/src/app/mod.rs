@@ -22,6 +22,8 @@ pub mod inspection; // register:inspection
 pub mod interactions; // register:interactions
 pub mod keys; // register:keys
 pub mod knobs; // register:knobs
+#[cfg(target_arch = "wasm32")]
+pub mod launch;
 pub mod layers; // register:layers
 #[cfg(target_arch = "wasm32")] // register:live
 pub mod live; // register:live
@@ -38,6 +40,7 @@ pub mod stage;
 pub mod range_gate; // register:range_gate
 #[cfg(target_arch = "wasm32")] // register:route
 pub mod route; // register:route
+pub(crate) mod runtime;
 pub mod scene; // register:scene
 pub mod selection; // register:selection
 pub mod session_io; // register:session_io

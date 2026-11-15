@@ -15,8 +15,12 @@ test('cumulative mathematics follows first painting and teaches the complete pro
     assert(index > 0);
     const files = expected('03a-mathematics');
     const declarations = (text: string) => text.split(/\r?\n/).filter(line => /^(pub )?mod \w+;$/.test(line));
+    const scene = ['mod mode;', 'pub mod spatial;', 'mod application;'];
+    const modules = declarations(fs.readFileSync(path.join(viewer, 'src/app/stage/mod.rs'), 'utf8'));
+    assert.deepEqual(modules.filter(line => scene.includes(line)), scene);
+    for (const name of ['mode', 'spatial', 'application']) assert.equal(files[`src/app/stage/${name}.rs`], undefined);
     assert.deepEqual(declarations(files['src/app/stage/mod.rs']).filter(line => line !== 'mod motion_tests;'),
-        declarations(fs.readFileSync(path.join(viewer, 'src/app/stage/mod.rs'), 'utf8')).filter(line => !['mod mode;', 'pub mod spatial;'].includes(line)));
+        modules.filter(line => !scene.includes(line)));
     for (const name of production) {
         let lesson = source(files[name]);
         for (const logo of ['logo-eth.png', 'logo-brg.png']) {

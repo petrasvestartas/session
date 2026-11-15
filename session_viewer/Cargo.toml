@@ -68,6 +68,7 @@ bytemuck = { version = "1", features = ["derive"] }
 
 # Off in the page build: each costs over 30 KB gz of wasm (JSON sessions 105 KB, TOML manifests 60 KB).
 [features]
+tutorial = []
 json-sessions = []
 toml-manifests = ["dep:toml"]
 

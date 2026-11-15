@@ -325,7 +325,8 @@ impl Ui {
 
         if let Some(ui) = state.gpu.ui.as_mut() {
             ui.prepare(
-                &state.gpu.ctx,
+                &state.gpu.ctx.device,
+                &state.gpu.ctx.queue,
                 &self.context,
                 output,
                 [state.gpu.config.width, state.gpu.config.height],
@@ -359,7 +360,8 @@ impl Ui {
         output.pixels_per_point = ppp;
         if let Some(ui) = state.gpu.ui.as_mut() {
             ui.prepare(
-                &state.gpu.ctx,
+                &state.gpu.ctx.device,
+                &state.gpu.ctx.queue,
                 &self.context,
                 output,
                 [state.gpu.config.width, state.gpu.config.height],

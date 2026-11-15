@@ -17,7 +17,7 @@ The destination for this batch is session commit `87f844e41d08ef104fc071d5bc1816
 
 `app/ui/mod.rs` has a panel registry, `app/command/verbs/mod.rs` has a command registry, and `engine/gpu/lane.rs` has drawing-lane registration. Use these concrete interfaces where they fit. A `register:` comment does not make an arbitrary change to a function an acceptable registration.
 
-The unresolved dependency is the application shell: `lib.rs` directly handles concrete scene messages and `State` owns the complete GPU, scene, selection and input features. A command registry alone cannot remove this dependency. The next implementation must establish a stable shell/host boundary and demonstrate an early runnable host plus the production host without changing observable production behavior. Do not advertise the proposed subject ordering as executable until its prerequisites compile.
+The concrete application owns scene messages and `State`, which contains GPU, scene, selection and input features. The shared winit launcher is now separate from that application. Early partial assemblies compile without the concrete application; the complete production application compiles against the same launcher. Browser regression acceptance remains required before treating this boundary as finished.
 
 The placement candidate remains source-only. Its ten existing-file changes must be resolved in the original owners rather than accepted as another finished subject with known rewrites.
 
@@ -27,14 +27,26 @@ The GPU egui painter now takes a device and queue directly. Its former `GpuCtx` 
 
 The browser event-loop launcher accepts winit's existing `ApplicationHandler` and a factory receiving its event proxy. The production `App` uses this launcher with the same initialization. This removes concrete scene types from event-loop creation without adding another handler trait; it does not yet decouple the production event handling itself.
 
+The concrete viewer application lives in `app/runtime.rs`; the crate root registers modules and reexports the existing API. The spatial deck application similarly lives in `app/stage/application.rs`, leaving the stage module index available for additive registrations. The pure mathematics implementation remains unchanged. The camera owns its field-of-view constant, which the GPU uniform module reexports, so teaching the camera does not require the complete GPU pipeline. These moves pass full native and wasm typechecks; linked behavior remains unaccepted.
+
+The concrete GPU assembly lives in `engine/gpu/context.rs`. Keeping it in `gpu/mod.rs` would require adding a large implementation to the early device/painter module index. The index now contains declarations and reexports only. Moving the type down one module retains former private fields and helpers at GPU-module visibility, and preserves the original engine-visible `target` method with `pub(in crate::engine)`. Method bodies and command ordering are unchanged. Full native and both default/tutorial wasm typechecks pass after the move.
+
+The cumulative checkpoint assemblies live in `examples/course` behind the `tutorial` Cargo feature. Their startup list appends a frame, painting, mathematics and production-viewer entry; selecting the latest entry does not rewrite an earlier implementation. The examples use the production device, GPU painter and mathematics modules. Their small window adapter is a teaching/test fixture, not the production application. Default builds exclude this adapter and retain the production WebAssembly start function. Each partial source checkpoint must still compile independently; selecting modes in one final bundle alone cannot establish cumulative acceptance.
+
+Before accepting first painting, its fixture must already support the next input-owning subject. Its painter accepts `RawInput` and an egui UI callback; the first painting and mathematics callers supply empty input, while the dock can supply translated events without changing the painter. The fixture factory receives the window alongside the device, allowing a later input owner to construct the existing egui-winit adapter. This keeps window events and widget input outside the finished GPU painter. These fixture APIs are retained through six runnable candidates. The evidence index records independent wasm checks, native tests and actual desktop/upright interactions; full-course acceptance remains pending.
+
 ## Acceptance and evidence
 
 Keep one source-owner ledger and one evidence index, pointing to existing receipts instead of copying them. A source hash, source include, screenshot or successful site build alone cannot mark a subject accepted. Acceptance requires the complete lesson contract, runnable cumulative source, relevant tests, reviewed browser behavior and satisfied ownership boundaries.
 
 Continue using the existing structural, ownership and endpoint-parity checks unchanged. A destination-pin check supplements them; it never refreshes their accepted hashes. Retain failed evidence with its actual scope.
 
-Use one shared cache per toolchain and one heavy command at a time. Coordinate any precise cache retirement with its owners. The proposed 94-file WASM retirement is unexecuted and is not required for source-only architecture work.
+Use one shared cache per toolchain and one heavy command at a time. The user authorized 24 GiB generated files; the workspace guard now allows 36 GiB total while retaining CPU, memory and FIFO constraints. Preserve protected artifacts and failed receipts. Current resource and runtime evidence is recorded in the continuation file.
 
 ## Continuation
 
 Read [the continuation record](tutorial-continuation.md), run its next command, then implement the current work item. Re-audit unrelated history only if a recorded input changed. Update the record after an accepted milestone or before a limit interrupts work.
+
+### Row storage dependency boundary
+
+The row table was coupled to later ink textures, renderer Lane integration and Upload geometry through three files. Introducing those files whole would pull the complete scene renderer into the storage lesson. Keep the implementations intact in table/layout/geometry/core modules; register ink, Lane, Upload and renderer-validation adapters through module declarations and reexports in their owning later subjects. Diagnostics belongs to the engine, with the existing feedback path reexported for UI callers. This preserves public entry points while avoiding later rewrites of completed storage code. The row checkpoint explicitly labels its egui view as a CPU mirror; scene shaders and picking acceptance belong to their later owners.

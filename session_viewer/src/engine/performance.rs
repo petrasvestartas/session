@@ -251,7 +251,7 @@ pub fn mark(name: &str) {
         let _ = performance.mark(name);
     }
 
-    crate::app::feedback::diagnostic("milestone", name);
+    crate::engine::diagnostics::diagnostic("milestone", name);
     let (pipelines, shaders) = crate::engine::pipelines::created();
     log::info!("{name}: {pipelines} pipelines, {shaders} shaders");
 }

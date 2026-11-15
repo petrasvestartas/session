@@ -1,6 +1,22 @@
 use std::sync::Arc;
 use winit::window::Window;
 
+pub struct Options {
+    pub power: Option<wgpu::PowerPreference>,
+    pub timing: bool,
+    pub diagnostic: fn(&str, &str),
+}
+
+impl Default for Options {
+    fn default() -> Self {
+        Self {
+            power: None,
+            timing: false,
+            diagnostic: |_, _| {},
+        }
+    }
+}
+
 /// Everything `open` set up.
 pub struct DeviceSetup {
     pub surface: Option<wgpu::Surface<'static>>, // the canvas; None when headless
@@ -19,10 +35,14 @@ const BACKENDS: wgpu::Backends = if cfg!(target_arch = "wasm32") {
 };
 
 /// Open the GPU: instance, surface, adapter, device, surface config.
-pub async fn open(window: Option<Arc<Window>>, size: (u32, u32)) -> anyhow::Result<DeviceSetup> {
-    let (surface, adapter) = surface_and_adapter(window.as_ref()).await?;
+pub async fn open(
+    window: Option<Arc<Window>>,
+    size: (u32, u32),
+    options: Options,
+) -> anyhow::Result<DeviceSetup> {
+    let (surface, adapter) = surface_and_adapter(window.as_ref(), options.power).await?;
     let info = adapter.get_info();
-    crate::app::feedback::diagnostic("adapter", &format!("{info:?}"));
+    (options.diagnostic)("adapter", &format!("{info:?}"));
     log::info!(
         "adapter: {} ({:?}, {:?})",
         info.name,
@@ -44,8 +64,7 @@ pub async fn open(window: Option<Arc<Window>>, size: (u32, u32)) -> anyhow::Resu
     };
 
     // natively, `VIEWER_GPU_TIMING` asks for timestamps between passes
-    let timing =
-        !cfg!(target_arch = "wasm32") && super::view::knob("VIEWER_GPU_TIMING", "").is_some();
+    let timing = !cfg!(target_arch = "wasm32") && options.timing;
     let timestamps =
         wgpu::Features::TIMESTAMP_QUERY | wgpu::Features::TIMESTAMP_QUERY_INSIDE_ENCODERS;
     let (device, queue) = adapter
@@ -68,7 +87,7 @@ pub async fn open(window: Option<Arc<Window>>, size: (u32, u32)) -> anyhow::Resu
         let errors = failure.clone();
         let redraw = window.clone();
         device.on_uncaptured_error(Arc::new(move |error| {
-            remember_gpu_error(&errors, error);
+            remember_gpu_error(&errors, error, options.diagnostic);
             if let Some(window) = &redraw {
                 window.request_redraw();
             }
@@ -77,7 +96,7 @@ pub async fn open(window: Option<Arc<Window>>, size: (u32, u32)) -> anyhow::Resu
         // ask for a frame so the loss is seen
         let redraw = window.clone();
         device.set_device_lost_callback(move |reason, message| {
-            remember_device_loss(&lost, reason, &message);
+            remember_device_loss(&lost, reason, &message, options.diagnostic);
 
             if let Some(window) = &redraw {
                 window.request_redraw();
@@ -148,10 +167,11 @@ fn new_instance() -> wgpu::Instance {
 /// The window's drawing surface and the GPU to draw it; natively without a window, the process's shared adapter.
 async fn surface_and_adapter(
     window: Option<&Arc<Window>>,
+    power: Option<wgpu::PowerPreference>,
 ) -> anyhow::Result<(Option<wgpu::Surface<'static>>, wgpu::Adapter)> {
     #[cfg(not(target_arch = "wasm32"))]
     if window.is_none() {
-        return Ok((None, shared_adapter()?));
+        return Ok((None, shared_adapter(power)?));
     }
 
     let instance = new_instance();
@@ -159,7 +179,7 @@ async fn surface_and_adapter(
         Some(w) => Some(instance.create_surface(w.clone())?),
         None => None,
     };
-    let adapter = choose_adapter(&instance, surface.as_ref()).await?;
+    let adapter = choose_adapter(&instance, surface.as_ref(), power).await?;
     Ok((surface, adapter))
 }
 
@@ -167,12 +187,12 @@ async fn surface_and_adapter(
 /// The Vulkan loader unloads the drivers without a device while it enumerates adapters, without the lock its object-naming calls take,
 /// so an instance enumerating while another thread's device names an object crashes inside libvulkan: parallel GPU tests did.
 #[cfg(not(target_arch = "wasm32"))]
-fn shared_adapter() -> anyhow::Result<wgpu::Adapter> {
+fn shared_adapter(power: Option<wgpu::PowerPreference>) -> anyhow::Result<wgpu::Adapter> {
     static SHARED: std::sync::OnceLock<Result<wgpu::Adapter, String>> = std::sync::OnceLock::new();
 
     SHARED
         .get_or_init(|| {
-            pollster::block_on(choose_adapter(&new_instance(), None))
+            pollster::block_on(choose_adapter(&new_instance(), None, power))
                 .map_err(|error| error.to_string())
         })
         .clone()
@@ -183,13 +203,9 @@ fn shared_adapter() -> anyhow::Result<wgpu::Adapter> {
 async fn choose_adapter(
     instance: &wgpu::Instance,
     surface: Option<&wgpu::Surface<'static>>,
+    power: Option<wgpu::PowerPreference>,
 ) -> anyhow::Result<wgpu::Adapter> {
-    let preferred = match super::view::knob("VIEWER_GPU", "gpu").as_deref() {
-        Some("low") => wgpu::PowerPreference::LowPower,
-        Some("default") => wgpu::PowerPreference::None,
-        Some("high") => wgpu::PowerPreference::HighPerformance,
-        _ => default_power(),
-    };
+    let preferred = power.unwrap_or_else(default_power);
     let options = |power_preference| wgpu::RequestAdapterOptions {
         power_preference,
         compatible_surface: surface,
@@ -249,10 +265,14 @@ async fn named_adapter(
 
 /// Store the first error message; later ones are ignored.
 #[cfg(any(target_arch = "wasm32", test))]
-fn remember_failure(failure: &std::sync::Mutex<Option<String>>, message: String) {
+fn remember_failure(
+    failure: &std::sync::Mutex<Option<String>>,
+    message: String,
+    diagnostic: fn(&str, &str),
+) {
     if let Ok(mut state) = failure.lock() {
         if state.is_none() {
-            crate::app::feedback::diagnostic("fatal", &message);
+            diagnostic("fatal", &message);
             *state = Some(message);
         }
     }
@@ -270,7 +290,8 @@ fn report_gpu_error(e: wgpu::Error) {
 #[ignore = "requires a native GPU adapter"]
 #[should_panic(expected = "wgpu: Validation Error")]
 fn invalid_gpu_shader_is_fatal() {
-    let setup = pollster::block_on(open(None, (1, 1))).expect("open native adapter");
+    let setup =
+        pollster::block_on(open(None, (1, 1), Options::default())).expect("open native adapter");
     let _ = setup
         .device
         .create_shader_module(wgpu::ShaderModuleDescriptor {
@@ -283,8 +304,12 @@ fn invalid_gpu_shader_is_fatal() {
 
 /// Store a browser GPU error.
 #[cfg(target_arch = "wasm32")]
-fn remember_gpu_error(failure: &std::sync::Mutex<Option<String>>, error: wgpu::Error) {
-    remember_failure(failure, format!("WebGPU error: {error}"));
+fn remember_gpu_error(
+    failure: &std::sync::Mutex<Option<String>>,
+    error: wgpu::Error,
+    diagnostic: fn(&str, &str),
+) {
+    remember_failure(failure, format!("WebGPU error: {error}"), diagnostic);
 }
 
 /// Store a browser device-loss reason.
@@ -293,10 +318,12 @@ fn remember_device_loss(
     failure: &std::sync::Mutex<Option<String>>,
     reason: wgpu::DeviceLostReason,
     message: &str,
+    diagnostic: fn(&str, &str),
 ) {
     remember_failure(
         failure,
         format!("WebGPU device lost ({reason:?}): {message}"),
+        diagnostic,
     );
 }
 
@@ -305,10 +332,16 @@ fn remember_device_loss(
 /// The first stored error stays when more arrive.
 fn first_gpu_error_survives_follow_on_submission_errors() {
     let failure = std::sync::Mutex::new(None);
-    remember_failure(&failure, "texture allocation failed".into());
-    remember_failure(&failure, "invalid command buffer".into());
+    static REPORTS: std::sync::Mutex<Vec<String>> = std::sync::Mutex::new(Vec::new());
+    let diagnostic: fn(&str, &str) = |kind, message| {
+        assert_eq!(kind, "fatal");
+        REPORTS.lock().unwrap().push(message.to_owned());
+    };
+    remember_failure(&failure, "texture allocation failed".into(), diagnostic);
+    remember_failure(&failure, "invalid command buffer".into(), diagnostic);
     assert_eq!(
         failure.lock().unwrap().as_deref(),
         Some("texture allocation failed")
     );
+    assert_eq!(*REPORTS.lock().unwrap(), ["texture allocation failed"]);
 }

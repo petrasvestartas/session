@@ -150,13 +150,13 @@
     {
       "path": "src/app/command/mod.rs",
       "blob": "6654ff7fcb56d07c6a73302c44587279f2820f19",
-      "subject": "dock",
+      "subject": "editing",
       "teaching": null
     },
     {
       "path": "src/app/command/tests.rs",
       "blob": "9cd37e5ecdd8fd2c747ae0c0e2d7499e689415b2",
-      "subject": "dock",
+      "subject": "editing",
       "teaching": null
     },
     {
@@ -906,7 +906,7 @@
     {
       "path": "src/app/route.rs",
       "blob": "1008c895b88cdfc7fae6767b5014643007161c84",
-      "subject": "frame",
+      "subject": "loading",
       "teaching": null
     },
     {
@@ -1092,7 +1092,7 @@
     {
       "path": "src/app/stage/geometry.rs",
       "blob": "1c44405e9c3307bb5764cd9dfb9a2186e480a4be",
-      "subject": "stage",
+      "subject": "mathematics",
       "teaching": null
     },
     {
@@ -1116,7 +1116,7 @@
     {
       "path": "src/app/stage/mod.rs",
       "blob": "1cb8b10dff0ec10650df1ee3f31458e5eccb3639",
-      "subject": "stage",
+      "subject": "mathematics",
       "teaching": null
     },
     {
@@ -1134,7 +1134,7 @@
     {
       "path": "src/app/stage/net.rs",
       "blob": "72b2bec008e151b9ffea00dfb096fb6b3e1efa44",
-      "subject": "stage",
+      "subject": "mathematics",
       "teaching": null
     },
     {
@@ -1194,7 +1194,7 @@
     {
       "path": "src/app/stage/view.rs",
       "blob": "b9ac4124e9647c072a842cd6c8d8dc637215e1a6",
-      "subject": "stage",
+      "subject": "mathematics",
       "teaching": null
     },
     {
@@ -1218,13 +1218,13 @@
     {
       "path": "src/app/ui/command_line.rs",
       "blob": "649dae8ca9f36265a062b7c262773c87c84e2abe",
-      "subject": "dock",
+      "subject": "phone",
       "teaching": null
     },
     {
       "path": "src/app/ui/command_line/tests.rs",
       "blob": "f155029a8efbc00bdea028acefb61e349aaf00b3",
-      "subject": "dock",
+      "subject": "phone",
       "teaching": null
     },
     {
@@ -1242,7 +1242,7 @@
     {
       "path": "src/app/ui/mod.rs",
       "blob": "8c5946c3a2e2aeb84c030f181c95f7312f89eb51",
-      "subject": "painting",
+      "subject": "phone",
       "teaching": null
     },
     {
@@ -1272,7 +1272,7 @@
     {
       "path": "src/app/ui/theme.rs",
       "blob": "883490ae1441ede299dcce49ffc2231cb8dbfa30",
-      "subject": "painting",
+      "subject": "phone",
       "teaching": null
     },
     {
@@ -1536,7 +1536,7 @@
     {
       "path": "src/engine/gpu/mod.rs",
       "blob": "e91cee0fec1f052611433977f8c083c3714a27ef",
-      "subject": "rows",
+      "subject": "rendering",
       "teaching": null
     },
     {
@@ -2004,7 +2004,7 @@
     {
       "path": "src/state.rs",
       "blob": "e2c2d1e01df28aa6007f42991741620faf4e14bc",
-      "subject": "rows",
+      "subject": "phone",
       "teaching": null
     },
     {

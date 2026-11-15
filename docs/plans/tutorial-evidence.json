@@ -16,6 +16,31 @@
       "subject": "documents",
       "scope": "Records checkpoint: 73 native tests, wasm build and reviewed browser interactions; ownership conflicts remain",
       "path": "session_viewer/docs/journey/release/records-runtime-windows-20261114.json"
+    },
+    {
+      "subject": "application boundaries",
+      "scope": "Partial native/default/tutorial wasm typechecks and separately scoped docs browser checks; linked viewer regression acceptance pending",
+      "path": "session_viewer/docs/journey/release/application-boundaries-windows-20261115.json"
+    },
+    {
+      "subject": "frame, painting, mathematics, dock",
+      "scope": "Four independent wasm checks, three retention tests, 19 native tests (1 GPU test ignored), and linked desktop/upright interactions on Intel Gen-12LP; subject/course acceptance still pending",
+      "path": "session_viewer/docs/journey/release/completion-partials-windows-20261115.json"
+    },
+    {
+      "subject": "camera",
+      "scope": "Five-subject33 native/1ignored,52captures and strict docs; candidate only",
+      "path": "session_viewer/docs/journey/release/completion-camera-windows-20261115.json"
+    },
+    {
+      "subject": "rows",
+      "scope": "Six-subject54 native/1ignored,70captures,62tooling tests and strict docs; candidate only",
+      "path": "session_viewer/docs/journey/release/completion-rows-windows-20261115.json"
+    },
+    {
+      "subject": "production boundaries",
+      "scope": "Full native test-module compilation and default wasm build; actual comparison-fixture browser startup/zoom/Fit/projection at desktop/upright",
+      "path": "session_viewer/docs/journey/release/production-boundaries-windows-20261115.json"
     }
   ],
   "open": [

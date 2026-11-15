@@ -8,7 +8,7 @@
 Keep one source mesh while changing an object's placement, visibility and appearance through its row. This section owns the row contract needed by the later [stage scene adapter](../stage-scene.md). Prerequisites are buffer alignment, stable object identity, local bounds and camera-relative translation. The historical checkpoint below still needs reconciliation with this current layout; this explanation alone does not establish cumulative parity.
 
 ```rust
---8<-- "session_viewer/src/engine/gpu/instance.rs:object-instance-layout"
+--8<-- "session_viewer/src/engine/gpu/instance/layout.rs:object-instance-layout"
 ```
 
 The Rust storage row and the shared `Instance` in [scene.wgsl](../../../src/shaders/scene.wgsl) have the same 112-byte stride. Their fields are read by every scene lane, so adding an effect only in one shader would move the next object's address incorrectly.
@@ -28,7 +28,7 @@ The placeholder row uses identity placement and effects `(1, 1, 0, 0)`: fully re
 ### Placement writes one row
 
 ```rust
---8<-- "session_viewer/src/engine/gpu/objects.rs:object-placement"
+--8<-- "session_viewer/src/engine/gpu/objects/table.rs:object-placement"
 ```
 
 `placed_row` derives the model, full-precision translation and world bounds from the retained local bounds and optional hull. Moving an object updates those values, the camera-inside test box and the geometry revision. The instance buffer receives that one row. When an origin has already been selected, the separate translation buffer receives its displacement relative to that origin. Mesh vertices stay in local coordinates.
@@ -38,7 +38,7 @@ This is why translating an object far from zero need not first round every verte
 ### Reveal, visibility and picking are independent
 
 ```rust
---8<-- "session_viewer/src/engine/gpu/objects.rs:object-reveal"
+--8<-- "session_viewer/src/engine/gpu/objects/table.rs:object-reveal"
 ```
 
 Reveal clamps the line fraction to `[0, 1]` and the point scale to a nonnegative value, then uploads the row. It does not rebuild the source or replace visibility. `set_hidden` toggles the hidden flag; retired rows cannot be revived through visibility or selection. `set_non_pickable` toggles bit 19 while retaining the drawn geometry. The shared shader's picking path excludes that flag, allowing a stage arrow or reference grid to remain visible without becoming a selected document object.
