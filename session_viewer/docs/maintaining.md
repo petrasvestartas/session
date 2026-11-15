@@ -16,9 +16,9 @@ The old numbered pages are in `archived/`, with URL redirects and a separate nav
 
 Set `authored: true` on a subject whose page is maintained by hand. Generation still replays its edits but preserves that page, including its explanations and source includes. The authored-page regression test checks this contract.
 
-After consolidating subjects, use `course -- generate --navigation-only` to refresh contents and progress without regenerating lesson bodies or replacing reviewed figures. This still replays the cumulative source and checks recorded evidence when calculating progress. Full `generate` also rebuilds non-authored lesson bodies; review its scope before using it on shared tutorial work.
+After consolidating subjects, use `course -- historical-generate --navigation-only` to refresh contents and progress without regenerating lesson bodies or replacing reviewed figures. This still replays the cumulative source and checks recorded evidence when calculating progress. Full `historical-generate` also rebuilds non-authored lesson bodies; review its scope before using it on shared tutorial work.
 
-`journey/course.json` holds the cumulative order, teaching, estimates and exact edits. Snippets live in `journey/code`. The tool reconstructs the project from these same snippets; init supplies the dependency lock only. Its ability to replay a replacement is a storage mechanism, not permission to teach successive rewrites of a finished subject.
+`journey/active-course.json` selects the nine current executable assemblies; `course -- list` lists them and `course -- checkpoint ID NEW_DIRECTORY` materializes one. `journey/course.json` preserves the historical order, teaching, estimates and exact edits; use `historical-list` for those IDs. Historical structure, ownership and parity checks retain their original inputs and failure meaning. Snippets live in `journey/code`. The tool reconstructs the project from these same snippets; init supplies the dependency lock only. Its ability to replay a replacement is a storage mechanism, not permission to teach successive rewrites of a finished subject.
 
 The modules under `session_tests/scripts/course` have distinct jobs: `model.ts` replays source; `checkpoints.ts` preserves learner files; `render.ts` writes the lesson pages; `verify.ts` invokes Cargo and records evidence. The native Rust harness checks pixel values. The small PNG writer only packages those measured pixels for documentation.
 
@@ -37,7 +37,7 @@ Keep normal changelog entries to one to three bullets and at most 100 words: res
 ## Verify a change
 
 ```sh
-npm --prefix ../session_tests run course -- generate
+npm --prefix ../session_tests run course -- historical-generate
 npm --prefix ../session_tests run course -- structure
 npm --prefix ../session_tests run course -- ownership
 npm --prefix ../session_tests run course:test
@@ -66,6 +66,8 @@ On Windows the canonical native frame harness selects Microsoft WARP through DX1
 For the candidate bundle, run `node scripts/course/completion-browser.cjs URL NEW_EVIDENCE_DIRECTORY` from `session_tests` through the run lane and resource guard. Supply Playwright and pngjs through `NODE_PATH`, or explicit `COURSE_PLAYWRIGHT` and `COURSE_PNG` module paths. `CHROMIUM` selects the browser; `COURSE_BROWSER_ARGS` overrides its recorded flags. Add `--camera`, `--rows`, `--geometry` and `--decoding` after the output directory to check those cumulative subjects. The checker refuses an existing evidence directory and checks physical canvas dimensions, resizing, mathematical navigation and actual dock effects. It waits for focus and selection to reach the egui frame before typing the next command.
 
 ## Preserve the destination
+
+`course -- active-audit` checks all nine actual assemblies for retained implementations, permitted registrations and exact final production-source parity. It is separate from the historical `structure`, `ownership` and `parity` commands. Run both scopes when reconciling the course; a passing active audit does not erase historical failures or establish teaching/browser acceptance. The strict site build rejects unresolved source includes in every active subject and application chapter.
 
 Run `course -- teaching` to inspect `journey/completion-teaching.json`. Each source is assigned to the first cumulative assembly that introduces it. An explanation records an exact paragraph and heading in its lesson, bound to the normalized source hash. Missing explanations fail the command; source listings, links and inventory membership do not satisfy it. These witnesses support human teaching review, not automatic subject acceptance. Review changed source before rebinding a witness. The pinned destination and historical checks remain separate.
 
@@ -105,7 +107,7 @@ Then, in another terminal with Chrome and Playwright installed:
 
 ```sh
 npm --prefix ../session_tests run course -- capture
-npm --prefix ../session_tests run course -- generate
+npm --prefix ../session_tests run course -- historical-generate
 ```
 
 The capture tool checks actual startup, mouse and keyboard input, canvas results and the pixel round trip. Native rendering cannot substitute for it. Pages include browser captures only when their source fingerprints match. Otherwise they identify native readbacks explicitly.

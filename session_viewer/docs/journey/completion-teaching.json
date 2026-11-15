@@ -672,12 +672,22 @@
   {
     "path": "src/app/mod.rs",
     "owner": "frame",
-    "sourceSha256": "8e30bcbc1a4e662b8a0f4e1264b3633ec9b68551ec373284e8db62ce7992a9d2"
+    "sourceSha256": "8e30bcbc1a4e662b8a0f4e1264b3633ec9b68551ec373284e8db62ce7992a9d2",
+    "explanation": {
+      "page": "journey/completion-frame.md",
+      "heading": "## Prerequisites and ownership",
+      "paragraph": "`app/mod.rs` exposes application modules, beginning with the event-loop launcher. `engine/mod.rs` groups GPU, pipeline, timing and diagnostic ownership. `engine/gpu/mod.rs` exposes GPU resource and rendering modules, beginning with device setup. These files are namespace boundaries, not alternate event loops. The partial assembly retains the declarations it can satisfy; later subjects add module declarations and re-exports under the checked registration rule. Their implementations stay in the corresponding files throughout the sequence."
+    }
   },
   {
     "path": "src/app/mode.rs",
     "owner": "mathematics",
-    "sourceSha256": "f17428ca405925e878ae6a19e6cd20955b51c46161a743abaa0ea4ccb20ad776"
+    "sourceSha256": "f17428ca405925e878ae6a19e6cd20955b51c46161a743abaa0ea4ccb20ad776",
+    "explanation": {
+      "page": "journey/completion-mathematics.md",
+      "heading": "### Register content without owning the application",
+      "paragraph": "`Mode<Host>` uses a trait object so the application stores one active content implementation without knowing its concrete type. `Frame` carries the logical canvas rectangle, canvas dimensions, pixel density and current time; these are observations supplied by the application, not a second clock. The background is four normalized colour channels, so this interface does not require a GPU device."
+    }
   },
   {
     "path": "src/app/modeling.rs",
@@ -842,7 +852,12 @@
   {
     "path": "src/app/stage/actions.rs",
     "owner": "mathematics",
-    "sourceSha256": "b5ce046152cd3795108f9a252b80c36ddfe8c7feb1c34bd9144c8d356851464b"
+    "sourceSha256": "b5ce046152cd3795108f9a252b80c36ddfe8c7feb1c34bd9144c8d356851464b",
+    "explanation": {
+      "page": "journey/completion-mathematics.md",
+      "heading": "### Clock, actions and drawing",
+      "paragraph": "`actions.rs::apply` performs the same state transition during animation and replay. The `animate` flag controls whether effects enter the animation queue; it does not skip adding or removing the object. Adding a group staggers its appearance inside one duration and lays out the column once the objects exist. Removing an object also removes its attached label and dependent boxes. That ownership rule prevents an orphaned annotation after the formula it describes has gone."
+    }
   },
   {
     "path": "src/app/stage/application.rs",
@@ -852,7 +867,12 @@
   {
     "path": "src/app/stage/check.rs",
     "owner": "mathematics",
-    "sourceSha256": "af16790646943f02d4a57f6c7104578455adf480eed6932836336b9a3f9ff93d"
+    "sourceSha256": "af16790646943f02d4a57f6c7104578455adf480eed6932836336b9a3f9ff93d",
+    "explanation": {
+      "page": "journey/completion-mathematics.md",
+      "heading": "### Deck data and errors",
+      "paragraph": "`check.rs` measures actual drawing primitives. A glyph box uses its bearing, height and depth; rectangles and pictures use their dimensions; strokes use their endpoints. Invisible primitives do not enlarge an ordinary object box, but an explicitly requested subset can be measured while hidden. `overlaps` compares panel blocks and labels and reports pairs whose intersection exceeds one slide unit in both directions. It does not prove scene depth visibility or all-frame animation separation. Run it after layout and after the intended clock sample, rather than estimating overlap from text length."
+    }
   },
   {
     "path": "src/app/stage/deck.rs",
@@ -867,12 +887,22 @@
   {
     "path": "src/app/stage/draw.rs",
     "owner": "mathematics",
-    "sourceSha256": "e0c095450c0fee8659a577be4fa41dff8609b81745ac4801a2f49ecb216ec43b"
+    "sourceSha256": "e0c095450c0fee8659a577be4fa41dff8609b81745ac4801a2f49ecb216ec43b",
+    "explanation": {
+      "page": "journey/completion-mathematics.md",
+      "heading": "### Clock, actions and drawing",
+      "paragraph": "`draw.rs::prims_of` samples positions and colours, converts expression primitives into slide pixels and makes hidden entries transparent. It neutralizes a matrix cell when all its entry primitives are hidden, preventing the cell colour from revealing an answer prematurely. `fade` scales alpha for both primitive and path drawings. Rounded outlines clamp their radius to half the available width and height, so a small box cannot turn inside out. These operations produce drawing data; the atlas and egui painter still own rasterization."
+    }
   },
   {
     "path": "src/app/stage/eval.rs",
     "owner": "mathematics",
-    "sourceSha256": "32d9122344a1b35e78050095f402d7651f2c88cdf3e78d2d75e5312bd19b1f21"
+    "sourceSha256": "32d9122344a1b35e78050095f402d7651f2c88cdf3e78d2d75e5312bd19b1f21",
+    "explanation": {
+      "page": "journey/completion-mathematics.md",
+      "heading": "### Deck data and errors",
+      "paragraph": "`eval.rs` reads expressions with recursive descent: `expr` handles addition, `term` handles multiplication, and `factor` handles literals, names, vectors and grouping. The `Val` enum distinguishes a scalar from a three-component vector. Addition requires matching kinds; multiplication permits scaling a vector by a scalar but rejects multiplying two points. `Points` supplies named values without coupling evaluation to a GPU scene. Predict `(a+b)/2` for two named points, then try `a+2`: the first is their midpoint, while the second reports incompatible kinds."
+    }
   },
   {
     "path": "src/app/stage/font.rs",
@@ -887,7 +917,12 @@
   {
     "path": "src/app/stage/geometry.rs",
     "owner": "mathematics",
-    "sourceSha256": "8cf47a513ba7e62566d483960658b77c6af9ecd0b4c0c1eec00a9471ba71bc3f"
+    "sourceSha256": "8cf47a513ba7e62566d483960658b77c6af9ecd0b4c0c1eec00a9471ba71bc3f",
+    "explanation": {
+      "page": "journey/stage-scene.md",
+      "heading": "### Geometry descriptions become kernel objects",
+      "paragraph": "[geometry.rs](../../src/app/stage/geometry.rs) evaluates named points and emits `Spatial` descriptions for the current frame: an ID, kind, control points, colour, width, dash flag and reveal fraction. Cuboids emit twelve edges. Labels remain mathematical primitives projected from their world attachment. Geometry is not painted as a second set of egui lines."
+    }
   },
   {
     "path": "src/app/stage/layout.rs",
@@ -902,7 +937,12 @@
   {
     "path": "src/app/stage/math_mode.rs",
     "owner": "mathematics",
-    "sourceSha256": "c2f4202757d8be7f9496b3e3e992c19851a0b342c8d9dee74604ce23d812e33e"
+    "sourceSha256": "c2f4202757d8be7f9496b3e3e992c19851a0b342c8d9dee74604ce23d812e33e",
+    "explanation": {
+      "page": "journey/completion-mathematics.md",
+      "heading": "### Register content without owning the application",
+      "paragraph": "The frame callback ticks the existing clock, runs egui once and returns both the output and repaint request. The application uploads textures and presents. Key input calls the presentation's navigation implementation; the scene adapter uses that same implementation. Pointer handling remains the later scene adapter's responsibility. The loaded-mode factory consumes its payload exactly once, using ownership rather than a second copy of the deck and fonts."
+    }
   },
   {
     "path": "src/app/stage/matrix.rs",
@@ -917,7 +957,12 @@
   {
     "path": "src/app/stage/mod.rs",
     "owner": "mathematics",
-    "sourceSha256": "dc53a36f5cea2e53450dea8a416028a57c68c01500fe1ed16f0146ebb055f2e1"
+    "sourceSha256": "dc53a36f5cea2e53450dea8a416028a57c68c01500fe1ed16f0146ebb055f2e1",
+    "explanation": {
+      "page": "journey/completion-mathematics.md",
+      "heading": "### One schema, two hosts",
+      "paragraph": "`stage/mod.rs` is the module registration boundary. The mathematics assembly declares the core modules and their native tests. The application assembly adds `spatial`, scene `mode` and `application`, then re-exports the loader and `StageApp`. Module declarations make names available; they contain no playback implementation. The assembler checks that earlier declarations survive and rejects function bodies or changed declarations masquerading as registrations. The separate example entry list adds names mapped to start functions, so a later checkpoint can still run the earlier examples."
+    }
   },
   {
     "path": "src/app/stage/mode.rs",
@@ -937,12 +982,22 @@
   {
     "path": "src/app/stage/net.rs",
     "owner": "mathematics",
-    "sourceSha256": "ed05913412f3f89692c644cebefccb4267415e45fb883c03ad0e1097edb788a8"
+    "sourceSha256": "ed05913412f3f89692c644cebefccb4267415e45fb883c03ad0e1097edb788a8",
+    "explanation": {
+      "page": "journey/stage-scene.md",
+      "heading": "### Build and solve the cable-net matrices",
+      "paragraph": "The unknown positions satisfy `D_N x_N = p - D_F x_F`. `rhs` subtracts the fixed-node contribution from each free node's load. `solve` performs elimination on the free-node matrix, solving all three coordinate columns together, then writes those coordinates back into a copy of the complete node list. Fixed nodes retain their positions."
+    }
   },
   {
     "path": "src/app/stage/object.rs",
     "owner": "mathematics",
-    "sourceSha256": "49ba380ec63351e3db9c8dd65c0680e0c09dc7494fcb02815df8c909c8eaefc6"
+    "sourceSha256": "49ba380ec63351e3db9c8dd65c0680e0c09dc7494fcb02815df8c909c8eaefc6",
+    "explanation": {
+      "page": "journey/completion-mathematics.md",
+      "heading": "### Column and equals alignment",
+      "paragraph": "`object.rs::Obj` separates immutable layout from animated state. An `Rc<Expr>` shares positioned primitives, while `pos`, `dim` and per-primitive colours hold tweens. `hidden` retains primitive indices rather than deleting glyphs, so matrix row addresses remain valid when entries disappear. `size * fit` converts the expression's em units to its displayed scale. Named points are sampled through `PointSet` at one time; a point object cannot recursively resolve itself through its own name."
+    }
   },
   {
     "path": "src/app/stage/paint.rs",
@@ -951,18 +1006,28 @@
     "explanation": {
       "page": "journey/completion-mathematics.md",
       "heading": "### Frame and letterbox",
-      "paragraph": "The design space is 1600 \u00c3\u2014 900. An 800 \u00c3\u2014 800 viewport fits it at half scale, leaving 175 points above and below. `pt` maps authored coordinates into screen points; `slide` reverses that mapping for input. Upright composition gives the scene and column separate mappings. It does not change the formula's authored coordinates."
+      "paragraph": "The design space is 1600 by 900. An 800 by 800 viewport fits it at half scale, leaving 175 points above and below. `pt` maps authored coordinates into screen points; `slide` reverses that mapping for input. Upright composition gives the scene and column separate mappings. It does not change the formula's authored coordinates."
     }
   },
   {
     "path": "src/app/stage/presentation.rs",
     "owner": "mathematics",
-    "sourceSha256": "a8ecbd44d4090efa0e5de8bd0fd131dd6e1ea4b8410f5e182a125b7228906158"
+    "sourceSha256": "a8ecbd44d4090efa0e5de8bd0fd131dd6e1ea4b8410f5e182a125b7228906158",
+    "explanation": {
+      "page": "journey/completion-mathematics.md",
+      "heading": "### Column and equals alignment",
+      "paragraph": "`Presentation::paint` builds the current frame and applies the stage split before passing that mapping to the painter. The column layout keeps authored positions independent of the viewport."
+    }
   },
   {
     "path": "src/app/stage/presentation_tests.rs",
     "owner": "mathematics",
-    "sourceSha256": "bb48da53f3314e5b173d8e7ff8ac7e4671143d9f5277dee03473f3bf0835a28e"
+    "sourceSha256": "bb48da53f3314e5b173d8e7ff8ac7e4671143d9f5277dee03473f3bf0835a28e",
+    "explanation": {
+      "page": "journey/completion-mathematics.md",
+      "heading": "### Test the model and its host separately",
+      "paragraph": "`presentation_tests.rs` supplies pictures and a minimal chapter to the same `Presentation` constructor. It checks picture order and aspect ratios, reversible frame coordinates at desktop/upright sizes, and a second settled egui frame that still contains shapes without requesting another repaint. The mode test uses an integer host and verifies it stays unchanged through navigation and theme changes. That last assertion demonstrates why mathematical playback can finish before scene integration exists."
+    }
   },
   {
     "path": "src/app/stage/run.rs",
@@ -982,7 +1047,12 @@
   {
     "path": "src/app/stage/tests.rs",
     "owner": "mathematics",
-    "sourceSha256": "54bde7512f9757e27a6cd410768bda421a952921c6b5f70c3d558b5c18b15000"
+    "sourceSha256": "54bde7512f9757e27a6cd410768bda421a952921c6b5f70c3d558b5c18b15000",
+    "explanation": {
+      "page": "journey/completion-mathematics.md",
+      "heading": "### Test the model and its host separately",
+      "paragraph": "`tests.rs` uses the real fonts and shipped chapter files. Its formula tests distinguish math-axis fraction placement, named parts, spaces and unsupported commands. Deck checks replay actions at rest and during playback, inspect layout errors, and exercise matrix filling and theme changes. These assertions test the interpretation of a deck; they do not initialize a browser GPU or establish physical-phone interaction."
+    }
   },
   {
     "path": "src/app/stage/tex.rs",
@@ -1007,7 +1077,12 @@
   {
     "path": "src/app/stage/view.rs",
     "owner": "mathematics",
-    "sourceSha256": "25ed3b8aad6f6251f3a7c02fe6f8506bae72eb1eb4c75b299dc7b1642ecda63c"
+    "sourceSha256": "25ed3b8aad6f6251f3a7c02fe6f8506bae72eb1eb4c75b299dc7b1642ecda63c",
+    "explanation": {
+      "page": "journey/stage-scene.md",
+      "heading": "### The scene camera also projects labels",
+      "paragraph": "Fitting first chooses the requested view direction, projects the chosen points at unit zoom and measures their two-dimensional bounds. It shifts the camera centre by the projected box centre and uses the smaller of the horizontal and vertical available-space scales. An explicit centre or zoom overrides the fitted result. This fits the scene region rather than the whole slide, which also contains the mathematical column."
+    }
   },
   {
     "path": "src/app/stream.rs",
@@ -1262,7 +1337,12 @@
   {
     "path": "src/engine/diagnostics.rs",
     "owner": "rows",
-    "sourceSha256": "2f9dfe697b1bf3fa3305dd53a2b2c0ee5f86ee0f22f6379524f1440af1daa9f3"
+    "sourceSha256": "2f9dfe697b1bf3fa3305dd53a2b2c0ee5f86ee0f22f6379524f1440af1daa9f3",
+    "explanation": {
+      "page": "journey/completion-debugging.md",
+      "heading": "### Retain enough context to explain an error",
+      "paragraph": "`diagnostics::diagnostic` calls the browser's `viewerDiagnostic` hook when available. The native path has no browser global and does nothing. The optional hook must not become a new requirement for rendering. `phase` records a named load duration, byte count and source path with the query removed, including successful phases."
+    }
   },
   {
     "path": "src/engine/gpu/ambient_warm.rs",
@@ -1362,12 +1442,22 @@
   {
     "path": "src/engine/gpu/hull.rs",
     "owner": "rows",
-    "sourceSha256": "6546c2c6e49f166cd132b819585bbd5182c180fb882dbe2456a77a3cf376e751"
+    "sourceSha256": "6546c2c6e49f166cd132b819585bbd5182c180fb882dbe2456a77a3cf376e751",
+    "explanation": {
+      "page": "journey/completion-rows.md",
+      "heading": "### Placement and bounds",
+      "paragraph": "`hull.rs`, `instance.rs`, `objects.rs` and `pipelines/mod.rs` expose narrow module interfaces. The rows checkpoint re-exports hull geometry, the instance layout, the object table and pipeline layouts/cache. Rendering later registers hull upload, GPU validation, ink/lane code and vertex-layout construction through these same indices. A `pub use` makes an existing type available to a caller; it neither duplicates that type nor creates another buffer owner."
+    }
   },
   {
     "path": "src/engine/gpu/hull/geometry.rs",
     "owner": "rows",
-    "sourceSha256": "9d2db6b2a1db2974a49f27962838fc2bd1ce2154b4b9108d2b5b40009811a4c7"
+    "sourceSha256": "9d2db6b2a1db2974a49f27962838fc2bd1ce2154b4b9108d2b5b40009811a4c7",
+    "explanation": {
+      "page": "journey/completion-rows.md",
+      "heading": "### Placement and bounds",
+      "paragraph": "`hull/geometry.rs::Points` views packed `Pod` rows as float words with an explicit stride and point offsets. It avoids making a second full point array merely to find extremes. `extreme_points` normalizes coordinates around the box centre before signed-volume tests, so its tolerance is relative to the geometry's scale. Sets with at most eight points are retained directly; degenerate sets have dedicated reductions. If more than 8,192 extremes would be retained, it returns `None` and the caller uses the source box. That fallback bounds memory; it is not an empty geometric object."
+    }
   },
   {
     "path": "src/engine/gpu/hull/upload.rs",
@@ -1377,7 +1467,12 @@
   {
     "path": "src/engine/gpu/instance.rs",
     "owner": "rows",
-    "sourceSha256": "acc28f2185fcf71681fdc4316c431412e7d12dfd31ad2ec414fe8993389a58fd"
+    "sourceSha256": "acc28f2185fcf71681fdc4316c431412e7d12dfd31ad2ec414fe8993389a58fd",
+    "explanation": {
+      "page": "journey/completion-rows.md",
+      "heading": "### Placement and bounds",
+      "paragraph": "`hull.rs`, `instance.rs`, `objects.rs` and `pipelines/mod.rs` expose narrow module interfaces. The rows checkpoint re-exports hull geometry, the instance layout, the object table and pipeline layouts/cache. Rendering later registers hull upload, GPU validation, ink/lane code and vertex-layout construction through these same indices. A `pub use` makes an existing type available to a caller; it neither duplicates that type nor creates another buffer owner."
+    }
   },
   {
     "path": "src/engine/gpu/instance/layout.rs",
@@ -1427,12 +1522,22 @@
   {
     "path": "src/engine/gpu/mod.rs",
     "owner": "frame",
-    "sourceSha256": "56a8e0538e0981ccc17f5baf98ed9f60acb42d3db2b1c9cf44ab6188731ecdf1"
+    "sourceSha256": "56a8e0538e0981ccc17f5baf98ed9f60acb42d3db2b1c9cf44ab6188731ecdf1",
+    "explanation": {
+      "page": "journey/completion-frame.md",
+      "heading": "## Prerequisites and ownership",
+      "paragraph": "`app/mod.rs` exposes application modules, beginning with the event-loop launcher. `engine/mod.rs` groups GPU, pipeline, timing and diagnostic ownership. `engine/gpu/mod.rs` exposes GPU resource and rendering modules, beginning with device setup. These files are namespace boundaries, not alternate event loops. The partial assembly retains the declarations it can satisfy; later subjects add module declarations and re-exports under the checked registration rule. Their implementations stay in the corresponding files throughout the sequence."
+    }
   },
   {
     "path": "src/engine/gpu/objects.rs",
     "owner": "rows",
-    "sourceSha256": "86bf47207c6bac7336c9cb2ffb18051235321c7c48110e705e6fa26eef3b8202"
+    "sourceSha256": "86bf47207c6bac7336c9cb2ffb18051235321c7c48110e705e6fa26eef3b8202",
+    "explanation": {
+      "page": "journey/completion-rows.md",
+      "heading": "### Placement and bounds",
+      "paragraph": "`hull.rs`, `instance.rs`, `objects.rs` and `pipelines/mod.rs` expose narrow module interfaces. The rows checkpoint re-exports hull geometry, the instance layout, the object table and pipeline layouts/cache. Rendering later registers hull upload, GPU validation, ink/lane code and vertex-layout construction through these same indices. A `pub use` makes an existing type available to a caller; it neither duplicates that type nor creates another buffer owner."
+    }
   },
   {
     "path": "src/engine/gpu/objects/gpu_tests.rs",
@@ -1667,12 +1772,22 @@
   {
     "path": "src/engine/mod.rs",
     "owner": "frame",
-    "sourceSha256": "d3fd163e8b7b946364db2f3ef7b0b8687a2a861b54bf9d9d1899267551ecc140"
+    "sourceSha256": "d3fd163e8b7b946364db2f3ef7b0b8687a2a861b54bf9d9d1899267551ecc140",
+    "explanation": {
+      "page": "journey/completion-frame.md",
+      "heading": "## Prerequisites and ownership",
+      "paragraph": "`app/mod.rs` exposes application modules, beginning with the event-loop launcher. `engine/mod.rs` groups GPU, pipeline, timing and diagnostic ownership. `engine/gpu/mod.rs` exposes GPU resource and rendering modules, beginning with device setup. These files are namespace boundaries, not alternate event loops. The partial assembly retains the declarations it can satisfy; later subjects add module declarations and re-exports under the checked registration rule. Their implementations stay in the corresponding files throughout the sequence."
+    }
   },
   {
     "path": "src/engine/performance.rs",
     "owner": "rows",
-    "sourceSha256": "1a3d117f8e09ce3cc2dbfa5a446637e3429616f4cb0f03071e5708a009def7d8"
+    "sourceSha256": "1a3d117f8e09ce3cc2dbfa5a446637e3429616f4cb0f03071e5708a009def7d8",
+    "explanation": {
+      "page": "journey/completion-debugging.md",
+      "heading": "### Measure interaction and resting quality separately",
+      "paragraph": "The performance controller distinguishes wheel bursts and drag frames from resting frames. It uses a recent median and hysteresis before changing interaction tiers, then restores resting quality. Timing an isolated CPU submission is not the same as waiting for GPU completion. Record the actual adapter, whether the run used software rendering, and whether timing includes startup, compilation or refinement."
+    }
   },
   {
     "path": "src/engine/pipelines/bindings.rs",
@@ -1712,7 +1827,12 @@
   {
     "path": "src/engine/pipelines/mod.rs",
     "owner": "rows",
-    "sourceSha256": "b6c6fd7c934d74e2206d8524433aefae7c582a77f747ace5d4a0ccc91655f015"
+    "sourceSha256": "b6c6fd7c934d74e2206d8524433aefae7c582a77f747ace5d4a0ccc91655f015",
+    "explanation": {
+      "page": "journey/completion-rows.md",
+      "heading": "### Placement and bounds",
+      "paragraph": "`hull.rs`, `instance.rs`, `objects.rs` and `pipelines/mod.rs` expose narrow module interfaces. The rows checkpoint re-exports hull geometry, the instance layout, the object table and pipeline layouts/cache. Rendering later registers hull upload, GPU validation, ink/lane code and vertex-layout construction through these same indices. A `pub use` makes an existing type available to a caller; it neither duplicates that type nor creates another buffer owner."
+    }
   },
   {
     "path": "src/engine/text.rs",
@@ -1732,7 +1852,12 @@
   {
     "path": "src/lib.rs",
     "owner": "frame",
-    "sourceSha256": "52947baf8d0dec30cf1a18343e6842f48393fb126bb7df844444b0104a6a4d91"
+    "sourceSha256": "52947baf8d0dec30cf1a18343e6842f48393fb126bb7df844444b0104a6a4d91",
+    "explanation": {
+      "page": "journey/completion-frame.md",
+      "heading": "## Prerequisites and ownership",
+      "paragraph": "The crate root `lib.rs` declares the top-level modules. Its `shader!` macro expands to a compile-time include from the build output directory when a later shader uses it; declaring a macro does not compile a render pipeline. The tutorial entry is enabled only for wasm with the tutorial feature. The eventual native self-test and production web entry have different target gates, so a browser-only item is not accidentally required by a native build."
+    }
   },
   {
     "path": "src/selftest.rs",
@@ -1797,7 +1922,12 @@
   {
     "path": "src/shaders/clip.wgsl",
     "owner": "rows",
-    "sourceSha256": "975782a36e64719e00eba623a42f28a39919c03035a71525e384d97ad3837544"
+    "sourceSha256": "975782a36e64719e00eba623a42f28a39919c03035a71525e384d97ad3837544",
+    "explanation": {
+      "page": "journey/completion-rows.md",
+      "heading": "### Shared shader records and coordinate rules",
+      "paragraph": "`clip.wgsl` declares six world and screen clipping planes, hatch transforms and sample settings. A clipping-plane object is exempt from its own cutting test. Surface distance subtracts a scale-aware slack so a coplanar face yields consistently to its section cap; ink uses a separate dot-product rounding allowance to avoid dropping a line on the plane. `CLIPPING` can specialize unused tests away. This is the common data and predicate contract; the later visibility chapter connects it to crossing counts, cap rendering and sampled depth."
+    }
   },
   {
     "path": "src/shaders/face_coverage.wgsl",
@@ -1832,12 +1962,22 @@
   {
     "path": "src/shaders/normals.wgsl",
     "owner": "rows",
-    "sourceSha256": "1776ddecbef8a7ca5454216697fb4d4aff07e631ea3452a885b6a47df8056733"
+    "sourceSha256": "1776ddecbef8a7ca5454216697fb4d4aff07e631ea3452a885b6a47df8056733",
+    "explanation": {
+      "page": "journey/completion-rows.md",
+      "heading": "### Shared shader records and coordinate rules",
+      "paragraph": "`normals.wgsl` uses cofactors to apply the inverse-transpose direction transform. A normal cannot be transformed like a point under nonuniform scale. The determinant sign preserves orientation under reflection; a degenerate matrix or zero input normal yields zero instead of normalizing an invalid vector. Octahedral decoding unfolds two packed components into a unit direction; the 32-bit path reserves `0x80008000` for an absent normal. That sentinel must remain distinct from an ordinary direction."
+    }
   },
   {
     "path": "src/shaders/physical.wgsl",
     "owner": "rows",
-    "sourceSha256": "197265d033815c44654368907825505fd55b03ee29cbb3ffa7bf04d3a4dd6c35"
+    "sourceSha256": "197265d033815c44654368907825505fd55b03ee29cbb3ffa7bf04d3a4dd6c35",
+    "explanation": {
+      "page": "journey/completion-rows.md",
+      "heading": "### Shared shader records and coordinate rules",
+      "paragraph": "`physical.wgsl` separates colour output from object/subobject identity and carries a triangle identity alongside both. Triangle IDs are split into low and high 16-bit halves because the selected four-sample target format cannot store the required 32-bit channel directly. Zero represents no triangle; callers use a nonzero encoded identity for geometry. This storage choice must agree between writing a fragment and interpreting a visibility sample."
+    }
   },
   {
     "path": "src/shaders/plane.wgsl",
@@ -1857,7 +1997,12 @@
   {
     "path": "src/shaders/projected_triangle.wgsl",
     "owner": "rows",
-    "sourceSha256": "3e569eabf25978668964bec693e0e250d8e634900fdd4d14808db6338a815b73"
+    "sourceSha256": "3e569eabf25978668964bec693e0e250d8e634900fdd4d14808db6338a815b73",
+    "explanation": {
+      "page": "journey/completion-rows.md",
+      "heading": "### Shared shader records and coordinate rules",
+      "paragraph": "`projected_triangle.wgsl` stores edge equations, a depth reference and gradient, screen bounds and a corner count in a 96-byte record. A clipped triangle may have four corners. Coverage first rejects empty records and points outside the bounds, then checks signed edge distances with a 1/256-pixel allowance for rasterizer snapping. Depth comes from the reference plus the gradient at that pixel. Tile span doubles until the canvas uses at most 262,144 tiles; the Rust tile layout must make the same choice."
+    }
   },
   {
     "path": "src/shaders/ribbon.wgsl",
@@ -1877,7 +2022,12 @@
   {
     "path": "src/shaders/scene.wgsl",
     "owner": "rows",
-    "sourceSha256": "cd77cd9c125e2fd9cf80e33589d445f684e04cf11f80b9b7f763bad85a898505"
+    "sourceSha256": "cd77cd9c125e2fd9cf80e33589d445f684e04cf11f80b9b7f763bad85a898505",
+    "explanation": {
+      "page": "journey/completion-rows.md",
+      "heading": "### Shared shader records and coordinate rules",
+      "paragraph": "`scene.wgsl` declares the shader side of the same contract: the camera matrix in group zero, line/clipping uniforms in group one, and object rows plus separate translations in group two. Its `Instance` is 112 bytes and its `LineUniform` is 80 bytes. `place` applies the row's model matrix before adding the scene-relative translation. The non-pickable flag is independent of colour and visibility; selected colour, layer colour and edge colour have separate rules. Field order and padding must agree with the Rust uploads, not merely have similarly spelled names."
+    }
   },
   {
     "path": "src/shaders/slot_table.wgsl",

@@ -66,6 +66,14 @@ Run the cumulative application with the comparison fixture. Drag with the right 
 
 At an upright 390-pixel viewport, use `Layers Off` to recover the scene width. The open panel has a 240-pixel minimum and can crop document nameplates in the remaining region. This is current production behavior, not proof of a fully adapted phone layout. Test ordinary touch navigation separately from the stage's swipe/tap navigation.
 
+![An actual feature-pixel click resolves the original Element, pick-first. This is the controlled front-view fixture, not a general picking-mode or physical-device qualification.](../screenshots/completion/feature-pixel-selected.png)
+
+An actual feature-pixel click resolves the original Element, pick-first. This is the controlled front-view fixture, not a general picking-mode or physical-device qualification.
+
+![Deleting that original removes its visible feature and makes the same pixel unpickable. The second original remains; allocated ribbon storage is retained for Undo.](../screenshots/completion/feature-pixel-deleted.png)
+
+Deleting that original removes its visible feature and makes the same pixel unpickable. The second original remains; allocated ribbon storage is retained for Undo.
+
 ## Predict and try
 
 Predict what happens when you press a handle, drag it, then cancel before releasing. Its preview should return to the saved placement, without an undo transaction. Compare that with accepting the drag and undoing once. Then type into the dock while the object remains selected: input ownership should prevent the same key from acting on both the text and the scene.

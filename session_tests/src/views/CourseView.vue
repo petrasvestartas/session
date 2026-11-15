@@ -1,8 +1,8 @@
 <template>
   <div class="course-page">
     <p class="course-progress">
-      <router-link to="/course/journey/contents">Contents</router-link> · <router-link to="/course/journey/roadmap">To-do list and progress</router-link>
-      <template v-if="latestLesson"> · <router-link :to="'/course/' + latestLesson">Latest coding checkpoint: {{ pages[latestLesson].title }}</router-link></template>
+      <router-link to="/course/journey/active">Contents</router-link> · <router-link to="/course/journey/active#acceptance">To-do list and progress</router-link>
+      <template v-if="latestLesson"> · <router-link :to="'/course/' + latestLesson">Production checkpoint: {{ pages[latestLesson].title }}</router-link></template>
     </p>
     <p v-if="missing" class="missing">
       There is no course page named "{{ slug }}". <router-link to="/course">All lessons</router-link>

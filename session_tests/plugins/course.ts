@@ -11,6 +11,7 @@ import { codeTheme, renderCode } from '../src/codeTheme';
 import { SEARCH_OPTIONS } from '../src/searchOptions';
 import { kernelClasses } from './kernel';
 import { readingBook } from '../src/courseBook';
+import { activeCourse } from '../src/activeCourse';
 import { svgHtml } from './svg';
 import { registerLinkedAsset, repositorySourceLink } from './course-source-assets';
 import { archivedPage, originalPage } from './course-archive';
@@ -20,6 +21,7 @@ const SESSION = path.resolve(HERE, '../..');
 const VIEWER = path.join(SESSION, 'session_viewer');
 const DOCS = path.join(VIEWER, 'docs');
 const BASES = [DOCS, SESSION];
+const active = () => activeCourse(JSON.parse(fs.readFileSync(path.join(DOCS, 'journey/active-course.json'), 'utf8')));
 const SKIP_DIRS = new Set(['lessons', 'hooks', 'overrides', 'node_modules', '__pycache__', 'diagrams', 'reconstruction']);
 
 const LANGS = ['rust', 'wgsl', 'html', 'shellscript', 'toml', 'yaml', 'markdown', 'proto', 'json', 'cpp', 'python', 'javascript'];
@@ -148,7 +150,9 @@ function navGroups(bySlug: Map<string, string>): Group[] {
       slugs: chapter.sections.flatMap(section => section.lessons.map(lesson => pageSlug(path.join(DOCS, lesson.page)))),
           }));
     if (book.comparison) lessonGroups.push({title: 'Reference comparison', slugs: [pageSlug(path.join(DOCS, book.comparison.page))]});
-    groups.splice(1, 0, ...lessonGroups);
+    groups.splice(1, 0, {title: 'Cumulative subjects', slugs: active().subjects.map(subject => pageSlug(path.join(DOCS, subject.page)))},
+      {title: 'Application chapters', slugs: active().subjects.flatMap(subject => subject.chapters.map(page => pageSlug(path.join(DOCS, page))))},
+      {title: 'Historical checkpoint subjects', slugs: lessonGroups.flatMap(group => group.slugs), sections: lessonGroups});
     const reference = groups.find((g) => g.title === 'Course');
     if (reference) reference.title = 'Archived tutorials';
   }
@@ -264,7 +268,9 @@ export default function coursePlugin(): Plugin {
     }
     const lesson = [...readerBook.byId.values()].find(lesson => pageSlug(path.join(DOCS, lesson.page)) === slug);
     if (lesson && /^\d+\.\d+$/.test(lesson.number)) raw = raw.replace(/^# (?:\d+\.\d+ · )?/, `# ${lesson.number} · `);
-    let search = !slug.startsWith('archived/');
+    const historical = Boolean(lesson) || ['journey/contents', 'journey/roadmap', 'journey/daily-plan'].includes(slug);
+    if (historical) raw = raw.replace(/^(# .+\n)/, '$1\nHistorical reconstruction: its source, links and checks are preserved. Follow the [active cumulative course](#/course/journey/active) for the production implementation.\n');
+    let search = !slug.startsWith('archived/') && !historical;
     const front = raw.match(/^---\n([\s\S]*?)\n---\n/);
     if (front) {
       search = search && !/exclude:\s*true/.test(front[1]);
@@ -414,7 +420,7 @@ export default function coursePlugin(): Plugin {
     const files = listPages();
     readerBook = readingBook(JSON.parse(fs.readFileSync(path.join(DOCS, 'journey/course.json'), 'utf8')).steps,
       JSON.parse(fs.readFileSync(path.join(DOCS, 'journey/book.json'), 'utf8')));
-    sources = new Set([...files, path.join(VIEWER, 'mkdocs.yml'), path.join(DOCS, 'lessons/SERIES.txt'), path.join(DOCS, 'typing/manifest.json'), path.join(DOCS, 'journey/book.json'), path.join(DOCS, 'journey/course.json')]);
+    sources = new Set([...files, path.join(VIEWER, 'mkdocs.yml'), path.join(DOCS, 'lessons/SERIES.txt'), path.join(DOCS, 'typing/manifest.json'), path.join(DOCS, 'journey/book.json'), path.join(DOCS, 'journey/course.json'), path.join(DOCS, 'journey/active-course.json')]);
     const bySlug = new Map(files.map((f) => [pageSlug(f), f]));
     const links: Link[] = [];
     const errors: string[] = [];
@@ -430,8 +436,10 @@ export default function coursePlugin(): Plugin {
         redirect: `/course/${page.slug}`});
     }
     // journey/ is the course still being written: its unwritten snippets warn, every other page fails the build
-    const drafts = errors.filter((e) => e.includes('/docs/journey/'));
-    const hard = errors.filter((e) => !e.includes('/docs/journey/'));
+    const activePages = new Set(active().subjects.flatMap(subject => [subject.page, ...subject.chapters]));
+    const draft = (error: string) => error.includes('/docs/journey/') && ![...activePages].some(page => error.includes('/docs/' + page));
+    const drafts = errors.filter(draft);
+    const hard = errors.filter(error => !draft(error));
     if (drafts.length) console.warn(`course: ${drafts.length} unwritten journey snippet(s)`);
     if (hard.length) {
       throw new Error(`course: ${hard.length} unresolved --8<-- include(s):\n  ${hard.join('\n  ')}`);
@@ -472,9 +480,11 @@ export default function coursePlugin(): Plugin {
       const opening = JSON.parse(fs.readFileSync(journey, 'utf8'));
       const book = readingBook(opening.steps, JSON.parse(fs.readFileSync(path.join(DOCS, 'journey/book.json'), 'utf8')));
       const reading = book.chapters.flatMap(chapter => chapter.sections.flatMap(section => section.lessons));
-      chains.push(['readme', 'journey', ...reading.map(step => pageSlug(path.join(DOCS, step.page))),
+      chains.push(['journey/contents', ...reading.map(step => pageSlug(path.join(DOCS, step.page))),
         ...(book.comparison ? [pageSlug(path.join(DOCS, book.comparison.page))] : [])]);
     }
+    chains.push(['readme', 'journey', 'journey/active', ...active().subjects.flatMap(subject =>
+      [subject.page, ...subject.chapters].map(page => pageSlug(path.join(DOCS, page))))]);
     const connected = new Set(chains.flat());
     chains.push(order.filter((s) => !connected.has(s)));
     const meta: Record<string, { title: string; prev?: string; next?: string }> = {};

@@ -53,10 +53,10 @@ The kernel dependency disables its default features and enables `viewer-display`
 
 Trunk uses an optimized build, and its pre-build hook prepares the Vue site. The page copies stage fonts to `stage/`, the five example decks to `decks/`, ordinary text fonts to `text/`, and the compiled documentation to `docs/`. Copying the wasm alone cannot produce a working mathematics viewer. The development server serves a mutable index without caching it, so that index names the current hashed bundle.
 
-After the first-frame subject, predict which request fails if the `stage/` asset directory is absent: wasm can initialize, but the named font fetch cannot complete the deck. Restore the directory and reload; the expected result is a painted slide, not an empty substitute. The [startup owner](journey/consolidation/34g-heartbeat.md) explains early requests and application adoption. This production-build explanation does not replace the cumulative checkpoint checks.
+After the first-frame subject, predict which request fails if the `stage/` asset directory is absent: wasm can initialize, but the named font fetch cannot complete the deck. Restore the directory and reload; the expected result is a painted slide, not an empty substitute. The [startup owner](journey/completion-loading.md) explains early requests and application adoption. This production-build explanation does not replace the cumulative checkpoint checks.
 
 ## Begin
 
-Follow [lesson 1.1: Rust and the first GPU frame](journey/consolidation/01-canvas.md). Rust concepts are explained where you use them; the [foundations](foundations.md) provide additional practice when useful.
+Follow [Open a GPU frame](journey/completion-frame.md). Rust concepts are explained where you use them; the [foundations](foundations.md) provide additional practice when useful.
 
 Keep the [destination contract](journey/destination.md) nearby. It records the required features, rendering quality and acceptance checks.

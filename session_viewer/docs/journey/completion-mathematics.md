@@ -8,7 +8,15 @@ This is a candidate replacement immediately after [Paint shapes and text](comple
 
 Keep the device, launcher, frame helper and GPU painter from the first two subjects. This subject owns fonts and metrics, TeX layout, the glyph atlas, column and matrix layout, object state, time, action playback, matching transforms and deck parsing. It introduces `Presentation` and its host-independent mode implementation in `src/app/stage`.
 
-The kernel remains a path dependency. The complete parser currently also requires the pure `geometry`, `view` and `net` support modules. They are retained without stubs or implementation rewrites; the later real-scene subject must explain their geometry, camera and force-density use. This prerequisite boundary is still under review and is not accepted merely because the project compiles. No scene-row adapter is installed here.
+The kernel remains a path dependency. A chapter has one complete schema for formulas, named points, cameras and nets. Parsing that schema requires `geometry`, `view` and `net` even when this chapter uses only formulas. Retain those pure modules now: they calculate values and descriptions without owning a viewer state or GPU rows. The later [scene chapter](stage-scene.md) teaches their camera, geometry and force-density use and installs the adapter; it does not replace this parser or runtime.
+
+### One schema, two hosts
+
+Rust checks every referenced type and method in a compiled module, including branches the example never executes. `deck.rs` expands a net declaration into points, geometry and matrix actions; `run.rs` stores the authored camera and spatial descriptions. Deleting those dependencies would require a second parser or conditional versions of the runtime. The checkpoint instead keeps the complete mathematical model and supplies a host that consumes its 2D painting output. This is an explicit early dependency, not an early installation of the production scene renderer.
+
+`stage/mod.rs` is the module registration boundary. The mathematics assembly declares the core modules and their native tests. The application assembly adds `spatial`, scene `mode` and `application`, then re-exports the loader and `StageApp`. Module declarations make names available; they contain no playback implementation. The assembler checks that earlier declarations survive and rejects function bodies or changed declarations masquerading as registrations. The separate example entry list adds names mapped to start functions, so a later checkpoint can still run the earlier examples.
+
+The host boundary is `Mode<Host>`. `Presentation` implements it for any host without reading that host. Later, `StageApp` implements it for the real viewer state and delegates mathematical navigation to the same presentation. This existing trait and the module/entry declarations are the required registration mechanisms; no new hook is needed inside the completed clock, parser or painter. Predict the result of removing the scene adapter from the early assembly: formulas still paint, but no GPU geometry rows can appear.
 
 ## Build
 
@@ -36,7 +44,7 @@ Type the coordinate mapping in [paint.rs](code/03a-mathematics-cumulative-18-pai
 --8<-- "journey/code/03a-mathematics-cumulative-18-paint.rs:frame"
 ```
 
-The design space is 1600 Ã— 900. An 800 Ã— 800 viewport fits it at half scale, leaving 175 points above and below. `pt` maps authored coordinates into screen points; `slide` reverses that mapping for input. Upright composition gives the scene and column separate mappings. It does not change the formula's authored coordinates.
+The design space is 1600 by 900. An 800 by 800 viewport fits it at half scale, leaving 175 points above and below. `pt` maps authored coordinates into screen points; `slide` reverses that mapping for input. Upright composition gives the scene and column separate mappings. It does not change the formula's authored coordinates.
 
 ### Font metrics and TeX
 
@@ -124,6 +132,8 @@ Follow `relayout`: stacking determines vertical positions; fitting determines a 
 
 `Presentation::paint` builds the current frame and applies the stage split before passing that mapping to the painter. The column layout keeps authored positions independent of the viewport.
 
+`object.rs::Obj` separates immutable layout from animated state. An `Rc<Expr>` shares positioned primitives, while `pos`, `dim` and per-primitive colours hold tweens. `hidden` retains primitive indices rather than deleting glyphs, so matrix row addresses remain valid when entries disappear. `size * fit` converts the expression's em units to its displayed scale. Named points are sampled through `PointSet` at one time; a point object cannot recursively resolve itself through its own name.
+
 ### Matrices and addresses
 
 Copy [matrix.rs](code/03a-mathematics-cumulative-12-matrix.rs). Measure entries before choosing cell width and height; centre each entry using its full height and depth.
@@ -153,6 +163,10 @@ A transition starting at 100 ms with duration 200 ms reaches its midpoint at 200
 ```
 
 A thing moves only when the movement is the idea. Use a matching transform for a rewritten equation. Use appearance for a newly introduced object. Colour changes can identify an addressed matrix row without moving it elsewhere.
+
+`actions.rs::apply` performs the same state transition during animation and replay. The `animate` flag controls whether effects enter the animation queue; it does not skip adding or removing the object. Adding a group staggers its appearance inside one duration and lays out the column once the objects exist. Removing an object also removes its attached label and dependent boxes. That ownership rule prevents an orphaned annotation after the formula it describes has gone.
+
+`draw.rs::prims_of` samples positions and colours, converts expression primitives into slide pixels and makes hidden entries transparent. It neutralizes a matrix cell when all its entry primitives are hidden, preventing the cell colour from revealing an answer prematurely. `fade` scales alpha for both primitive and path drawings. Rounded outlines clamp their radius to half the available width and height, so a small box cannot turn inside out. These operations produce drawing data; the atlas and egui painter still own rasterization.
 
 ### Kernel motion values
 
@@ -205,6 +219,10 @@ Copy [deck.rs](code/03a-mathematics-cumulative-5-deck.rs), [eval.rs](code/03a-ma
 
 An index names chapter files. The chapter parser expands short keys and author blocks into actions. It carries the chapter name into errors; playback adds the step context. Unknown names and unsupported TeX must be reported rather than silently dropping the requested content. The overlap check uses laid-out ink bounds, not string lengths.
 
+`eval.rs` reads expressions with recursive descent: `expr` handles addition, `term` handles multiplication, and `factor` handles literals, names, vectors and grouping. The `Val` enum distinguishes a scalar from a three-component vector. Addition requires matching kinds; multiplication permits scaling a vector by a scalar but rejects multiplying two points. `Points` supplies named values without coupling evaluation to a GPU scene. Predict `(a+b)/2` for two named points, then try `a+2`: the first is their midpoint, while the second reports incompatible kinds.
+
+`check.rs` measures actual drawing primitives. A glyph box uses its bearing, height and depth; rectangles and pictures use their dimensions; strokes use their endpoints. Invisible primitives do not enlarge an ordinary object box, but an explicitly requested subset can be measured while hidden. `overlaps` compares panel blocks and labels and reports pairs whose intersection exceeds one slide unit in both directions. It does not prove scene depth visibility or all-frame animation separation. Run it after layout and after the intended clock sample, rather than estimating overlap from text length.
+
 Type the lesson's [example.yaml](code/03a-mathematics-cumulative-27-example.yaml). Its two slides exercise equals alignment, matching, a matrix and a row address.
 
 ```yaml
@@ -228,6 +246,12 @@ Change the second equation's left side from `x+y` to `x+y+z`. Predict which edge
 Why replay previous steps instead of reversing each animation?
 
 The action stream constructs every state, including removed objects and named groups. Replaying it restores that information; reversing motion alone cannot recover an object that was removed.
+
+### Test the model and its host separately
+
+`tests.rs` uses the real fonts and shipped chapter files. Its formula tests distinguish math-axis fraction placement, named parts, spaces and unsupported commands. Deck checks replay actions at rest and during playback, inspect layout errors, and exercise matrix filling and theme changes. These assertions test the interpretation of a deck; they do not initialize a browser GPU or establish physical-phone interaction.
+
+`presentation_tests.rs` supplies pictures and a minimal chapter to the same `Presentation` constructor. It checks picture order and aspect ratios, reversible frame coordinates at desktop/upright sizes, and a second settled egui frame that still contains shapes without requesting another repaint. The mode test uses an integer host and verifies it stays unchanged through navigation and theme changes. That last assertion demonstrates why mathematical playback can finish before scene integration exists.
 
 ## Validation
 

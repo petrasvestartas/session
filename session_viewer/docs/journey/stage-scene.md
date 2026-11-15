@@ -116,6 +116,10 @@ Materialize `application` as described in [Maintaining](../maintaining.md). Buil
 
 The pillow chapter begins with a flat 10-by-10 grid: 36 boundary nodes are fixed and 64 interior nodes are free. Advance to the load, matrix and solve steps. The interior rises into a pillow while the boundary stays fixed. Orbit the scene and check that labels remain attached. At upright dimensions, the scene is above the column.
 
+![The materialization deck at its whole-net cut-length stage. This is a controlled-clock settled-state capture, not a real-time timing or mathematical-correctness proof.](../screenshots/completion/materialized-net.png)
+
+The materialization deck at its whole-net cut-length stage. This is a controlled-clock settled-state capture, not a real-time timing or mathematical-correctness proof.
+
 ## Predict and try
 
 At the pillow's linear-system slide, predict the next two shapes before stepping. Doubling the upward load doubles the free-node heights because the matrix stays fixed. Restoring the initial load and doubling every force density doubles the matrix, so heights halve. Fixed boundary coordinates stay unchanged in both cases. Step backward and verify that replay recovers the preceding authored state.

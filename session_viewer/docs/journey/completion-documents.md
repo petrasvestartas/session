@@ -92,6 +92,10 @@ Run the cumulative `application` checkpoint with the recorded comparison fixture
 
 At 390 pixels wide, the open panel takes 240 pixels and leaves a narrow scene region. The document nameplate can be clipped by that region. Enter `Layers Off` to inspect the full-width geometry again. Hiding the document's geometry leaves its independent title visible; deleting all five selected rows removes both.
 
+![The comparison document has four geometric objects and an independent title: five selectable objects. This is the desktop view; the open panel crowds the upright scene.](../screenshots/completion/document-selection.png)
+
+The comparison document has four geometric objects and an independent title: five selectable objects. This is the desktop view; the open panel crowds the upright scene.
+
 ## Predict and try
 
 Predict whether hiding a document and deleting an object should have the same undo behavior. Hide and restore the document, then delete and undo one object. Visibility changes which retained rows are drawn; deletion changes the kernel document and its recorded transaction. Their identical-looking empty pixels do not imply identical state changes.

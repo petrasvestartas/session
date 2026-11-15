@@ -60,6 +60,18 @@ Use `Layers Off` at upright width to inspect the full scene. With the 240-pixel 
 
 For fixed-plane lettering, run `node tests/world-text.cjs` against the same cumulative server, using the browser environment variables described in [Maintaining](../maintaining.md). Its supplied manifest authors a label on world-X/world-Y axes. The initial isometric view tilts its baseline; `View Top` makes the world-X baseline horizontal without reshaping or changing those axes. `View Names` leaves the authored text intact. Clicking the label changes its selection ink; H hides it and prevents picking, while S restores it. This experiment distinguishes a world-plane label from a camera-facing nameplate.
 
+![Authored world-plane text in the isometric view. The fixture keeps its XY plane and reuses shaping as the camera changes.](../screenshots/completion/world-plane-iso.png)
+
+Authored world-plane text in the isometric view. The fixture keeps its XY plane and reuses shaping as the camera changes.
+
+![The same authored plane from above. This fixture verifies projection and picking; it does not establish every font or occlusion case.](../screenshots/completion/world-plane-top.png)
+
+The same authored plane from above. This fixture verifies projection and picking; it does not establish every font or occlusion case.
+
+![Bundled Noto Sans at five sizes: production WebGPU text on the left, browser text using the same font on the right. This compares metrics and coverage, not identical rasterization.](../screenshots/completion/matched-font-text.png)
+
+Bundled Noto Sans at five sizes: production WebGPU text on the left, browser text using the same font on the right. This compares metrics and coverage, not identical rasterization.
+
 ## Predict and try
 
 Predict whether orbiting should increase the number of shaped labels or only their projection/preparation work. Observe the text diagnostics while orbiting a fixed title. The glyph sequence and metrics stay the same, so shaping can be reused even though the world anchor projects somewhere else. Changing the title's text or replacing its font has different cache consequences.

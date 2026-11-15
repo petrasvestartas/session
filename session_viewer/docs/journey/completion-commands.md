@@ -60,6 +60,10 @@ Run the `application` checkpoint's `production.html` entry with the recorded com
 
 Enter `Line 0,0,0 0,0,0`. The dock reports that endpoints must differ and adds no object. Select `my_line` in the expanded Created layer; undo/redo does not promise to retain selection. Enter `Move` to display the base-point prompt, then `Escape` to cancel it. The committed geometry remains unchanged.
 
+![A typed Move changes the selected line. The command history and hierarchy assertions support this step; this image does not prove every editing gesture.](../screenshots/completion/typed-move.png)
+
+A typed Move changes the selected line. The command history and hierarchy assertions support this step; this image does not prove every editing gesture.
+
 ## Predict and try
 
 Predict the undo count after moving the cursor through several positions during interactive Move and then cancelling. Run `Move`, choose a base point, move the cursor, and press Escape before choosing the target. No transform transaction should be committed: preview placements are restored. Repeat and accept the target; one Undo should restore the original placement regardless of how many cursor events preceded it.

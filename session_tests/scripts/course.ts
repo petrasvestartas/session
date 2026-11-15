@@ -17,8 +17,10 @@ import {courseBook, readingBook} from '../src/courseBook.ts';
 import {auditOwnership} from './course/ownership.ts';
 import {collapseSubject} from './course/subjects.ts';
 import {destination} from './course/destination.ts';
-import {materializeCompletion} from './course/completion.ts';
+import {materializeCompletion, completionFiles} from './course/completion.ts';
+import {activeCourse} from '../src/activeCourse.ts';
 import {teaching} from './course/teaching.ts';
+import {auditCompletion} from './course/completion-audit.ts';
 
 function book() {
     return courseBook(course().steps, JSON.parse(fs.readFileSync(path.join(docs, 'journey/book.json'), 'utf8')));
@@ -43,9 +45,14 @@ function main() {
     const [action, selected, ...args] = process.argv.slice(2);
     const name = ['check', 'dependencies', 'reference'].includes(action) ? lessonId(selected) : selected;
     const lock = path.join(docs, 'journey/release/Cargo.lock');
-    if (action === 'completion-checkpoint') {
+    const active = activeCourse(JSON.parse(fs.readFileSync(path.join(docs, 'journey/active-course.json'), 'utf8')));
+    if (action === 'checkpoint' || action === 'completion-checkpoint') {
         if (!args[0]) throw Error('Choose a subject and a new output directory.');
         console.log(JSON.stringify(materializeCompletion(selected, path.resolve(args[0])), null, 2));
+    } else if (action === 'active-audit') {
+        const result = auditCompletion();
+        console.log(JSON.stringify(result, null, 2));
+        if (!result.passed) process.exitCode = 1;
     } else if (action === 'teaching') {
         const result = teaching();
         console.log(JSON.stringify(result, null, 2));
@@ -60,7 +67,7 @@ function main() {
         fs.copyFileSync(lock, path.join(work, 'Cargo.lock'));
         console.log('Created workspace/journey with the dependency lock only. Type the implementation yourself.');
     } else if (action === 'check') {
-        const failures = compare(expected(name), work);
+        const failures = compare(active.subjects.some(subject => subject.id === name) ? completionFiles(name) : expected(name), work);
         if (failures.length) throw Error(failures.join('\n\n'));
         console.log('Source matches. Build and run the lesson experiment to check behavior.');
     } else if (action === 'dependencies') {
@@ -89,8 +96,8 @@ function main() {
         console.log('Created the reference workspace with external assets only.');
     } else if (action === 'dock-preview') {
         dockPreview();
-    } else if (action === 'generate') {
-        if (selected && selected !== '--navigation-only') throw Error('Use generate or generate --navigation-only');
+    } else if (action === 'historical-generate') {
+        if (selected && selected !== '--navigation-only') throw Error('Use historical-generate or historical-generate --navigation-only');
         generate(undefined, selected === '--navigation-only');
     } else if (action === 'subject-audit') {
         const plan = JSON.parse(fs.readFileSync(path.join(docs, 'journey/book.json'), 'utf8'));
@@ -192,6 +199,10 @@ function main() {
     } else if (action === 'serve') {
         serve(name ? Number(name) : 8781);
     } else if (action === 'list') {
+        const subjects = active.subjects.filter(subject => !name || name === '--ids' || subject.id === name);
+        if (!subjects.length) throw Error(`Unknown active subject: ${name}; use historical-list for archived checkpoints`);
+        for (const subject of subjects) console.log(`${subject.id}  ${subject.title} [acceptance pending]`);
+    } else if (action === 'historical-list') {
         const selectedId = name && name !== '--ids' ? lessonId(name) : undefined;
         const lessons = course().steps.filter(step => !selectedId || step.id === selectedId);
         if (!lessons.length) throw Error(`Unknown lesson: ${name}`);
@@ -199,7 +210,7 @@ function main() {
         for (const step of lessons) console.log(`${name === '--ids' ? step.id : numbers.get(step.id)?.number || 'Reference comparison'}  ${step.title}`);
     } else {
         console.log('npm run course -- init | check LESSON | dependencies LESSON | save NAME | restore NAME | reference LESSON --output NEW_FOLDER');
-        console.log('Use a book number such as 22.2.3 or an existing lesson ID. List shows book numbers; list --ids shows internal IDs.');
+        console.log('Active course: list | checkpoint SUBJECT NEW_DIRECTORY | check SUBJECT. Historical recovery: historical-list | historical-generate.');
         console.log('Authoring: destination | dock-preview | generate | structure | ownership [--details] | subject-audit ID|--all | verify ID|--all [--stored] | verify-reference ID|--all [--stored] | parity [--details] | reference-parity | foundations | diagrams [--check] | serve [PORT] | capture ID|--all | list');
     }
 }

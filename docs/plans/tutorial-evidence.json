@@ -96,6 +96,11 @@
       "subject": "source teaching ledger and updated documentation",
       "scope": "Nine retention/teaching tooling tests, strict documentation build, and fourteen desktop/upright page checks. Not complete course acceptance.",
       "path": "session_viewer/docs/journey/release/completion-teaching-docs-windows-20261115.json"
+    },
+    {
+      "subject": "nine active assemblies and preserved historical reconstruction",
+      "scope": "Active nine-assembly course migration with historical source/URLs/checks retained; partial course, not final acceptance.",
+      "path": "session_viewer/docs/journey/release/completion-active-route-windows-20261115.json"
     }
   ],
   "open": [

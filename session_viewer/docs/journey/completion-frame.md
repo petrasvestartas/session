@@ -12,6 +12,10 @@ This subject owns `src/engine/gpu/device.rs`, `src/app/launch.rs`, and the frame
 
 Rust groups source into modules. A `mod` declaration includes another module; `use` brings a name into scope. `pub` exposes an item to callers. The module indices declare dependencies without storing their implementations. Later subjects add declarations and entries to `registration.rs`; they retain the launcher, device setup and frame experiment.
 
+The crate root `lib.rs` declares the top-level modules. Its `shader!` macro expands to a compile-time include from the build output directory when a later shader uses it; declaring a macro does not compile a render pipeline. The tutorial entry is enabled only for wasm with the tutorial feature. The eventual native self-test and production web entry have different target gates, so a browser-only item is not accidentally required by a native build.
+
+`app/mod.rs` exposes application modules, beginning with the event-loop launcher. `engine/mod.rs` groups GPU, pipeline, timing and diagnostic ownership. `engine/gpu/mod.rs` exposes GPU resource and rendering modules, beginning with device setup. These files are namespace boundaries, not alternate event loops. The partial assembly retains the declarations it can satisfy; later subjects add module declarations and re-exports under the checked registration rule. Their implementations stay in the corresponding files throughout the sequence.
+
 ## Build
 
 Assemble the candidate, then read and type the named source sections below.

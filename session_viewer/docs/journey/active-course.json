@@ -1,0 +1,105 @@
+{
+  "version": 1,
+  "status": "incomplete",
+  "historicalManifest": "journey/course.json",
+  "subjects": [
+    {
+      "id": "frame",
+      "title": "Open a GPU frame",
+      "page": "journey/completion-frame.md",
+      "prerequisites": [],
+      "chapters": [],
+      "acceptance": "pending"
+    },
+    {
+      "id": "painting",
+      "title": "Paint shapes and text",
+      "page": "journey/completion-painting.md",
+      "prerequisites": [
+        "frame"
+      ],
+      "chapters": [],
+      "acceptance": "pending"
+    },
+    {
+      "id": "mathematics",
+      "title": "Lay out and animate mathematics",
+      "page": "journey/completion-mathematics.md",
+      "prerequisites": [
+        "painting"
+      ],
+      "chapters": [],
+      "acceptance": "pending"
+    },
+    {
+      "id": "dock",
+      "title": "Enter commands",
+      "page": "journey/completion-dock.md",
+      "prerequisites": [
+        "mathematics"
+      ],
+      "chapters": [],
+      "acceptance": "pending"
+    },
+    {
+      "id": "camera",
+      "title": "Project and fit a scene",
+      "page": "journey/completion-camera.md",
+      "prerequisites": [
+        "dock"
+      ],
+      "chapters": [],
+      "acceptance": "pending"
+    },
+    {
+      "id": "rows",
+      "title": "Place and update object rows",
+      "page": "journey/completion-rows.md",
+      "prerequisites": [
+        "camera"
+      ],
+      "chapters": [],
+      "acceptance": "pending"
+    },
+    {
+      "id": "geometry",
+      "title": "Render kernel geometry",
+      "page": "journey/completion-geometry.md",
+      "prerequisites": [
+        "rows"
+      ],
+      "chapters": [],
+      "acceptance": "pending"
+    },
+    {
+      "id": "decoding",
+      "title": "Decode a document",
+      "page": "journey/completion-decoding.md",
+      "prerequisites": [
+        "geometry"
+      ],
+      "chapters": [],
+      "acceptance": "pending"
+    },
+    {
+      "id": "application",
+      "title": "Run the application",
+      "page": "journey/completion-application.md",
+      "prerequisites": [
+        "decoding"
+      ],
+      "chapters": [
+        "journey/completion-documents.md",
+        "journey/completion-commands.md",
+        "journey/completion-input.md",
+        "journey/completion-loading.md",
+        "journey/completion-text.md",
+        "journey/completion-streaming.md",
+        "journey/stage-scene.md",
+        "journey/completion-visibility.md",
+        "journey/completion-debugging.md"
+      ],
+      "acceptance": "pending"
+    }
+  ]
+}

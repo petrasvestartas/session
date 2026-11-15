@@ -321,7 +321,6 @@ function generatePages(selected?: Set<string>, navigationOnly = false) {
         return;
     }
     const hours = steps.reduce((sum, step) => sum.map((n, i) => n + step.hours[i]), [0, 0]);
-    const overview = path.join(docs, 'journey.md');
     const planned = [...read(path.join(docs, 'journey/roadmap.md'))
         .matchAll(/^- \[(?:x| )\] (?:\d+[a-z]*|\d+(?:\.\d+)+|Reference comparison) · /gm)].length;
     if (planned < steps.length) throw Error('Roadmap must include every available lesson');
@@ -345,15 +344,6 @@ function generatePages(selected?: Set<string>, navigationOnly = false) {
     write(release, read(release).replace(/^\*\*[^\n]*?\*\*/m, verified === steps.length
         ? `**All ${steps.length} current checkpoints build and pass their scripted checks in visible Chrome ${json(capture).browser}.**`
         : `**${verified} of ${steps.length} current checkpoints have fresh build and Chrome evidence. Remaining browser acceptance is pending.**`));
-    const table = ['| Lesson | Working result |', '| --- | --- |',
-        ...steps.map(step => `| [${book.byId.get(step.id)?.number || 'Reference comparison'} · ${step.title}](${step.page}) | ${step.goal} |`)];
-    write(overview, read(overview)
-        .replace(/^(?:The \[complete (?:draft )?lesson checklist\]|The active course contains).+$/m,
-            `The active course contains **${steps.length.toLocaleString('en-US')} runnable checkpoints**. The [historical checklist](journey/roadmap.md) also retains superseded entries; those entries are not additional planned subjects. Use the [daily coding route](journey/daily-plan.md) for study sessions and the release evidence for acceptance.`)
-        .replace(/Remaining chapters must meet the same limit as they are written\./, 'Reading and experiments are estimated separately.')
-        .replace(/Show all \d+ cumulative checkpoints/, `Show all ${steps.length} cumulative checkpoints`)
-        .replace(/\*\*Current (?:release|route):[^\n]+/, `**Current route: ${readerCount.toLocaleString('en-US')} reader-facing subjects and ${steps.length.toLocaleString('en-US')} active runnable checkpoints.** Navigation groups ${consolidatedCount} of ${book.chapters.length} chapters; executable consolidation and finished-subject ownership remain incomplete. The [source and coverage map](journey/production-course-map.md) tracks implementation coverage. Check the [release evidence](journey/release.md) before starting; navigation does not revalidate historical GPU evidence.`)
-        .replace(/\| Lesson \|[\s\S]*?(?=\n\n)/, table.join('\n')));
     const contents = ['# Course contents',
         'Read in chapter order. Consolidated lessons use **chapter.lesson** numbering, such as **1.1**. Original chapter.section.checkpoint numbers and URLs remain available for recovery and source comparison. The [daily plan](daily-plan.md) keeps stopping points within each lesson.',
         `[Production source and coverage map](production-course-map.md) · **${readerCount.toLocaleString('en-US')} reader-facing subjects; ${steps.length.toLocaleString('en-US')} active runnable checkpoints**. Navigation grouping is not executable consolidation. Historical routes and archived sources remain available; the final maintained-runtime comparison is a reference appendix.`,

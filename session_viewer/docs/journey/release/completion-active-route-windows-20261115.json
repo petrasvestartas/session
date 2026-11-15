@@ -1,0 +1,969 @@
+{
+  "scope": "Active nine-assembly course migration with historical source/URLs/checks retained; partial course, not final acceptance.",
+  "runs": [
+    {
+      "name": "completion-docs18",
+      "result": {
+        "scope": "Nine tooling tests and strict site after mathematics dependency and model explanations;73 prose witnesses/278 pending, not course acceptance.",
+        "commands": [
+          {
+            "name": "teaching-tests",
+            "exitCode": 0
+          },
+          {
+            "name": "strict-site",
+            "exitCode": 0
+          }
+        ],
+        "postguards": "passed",
+        "outputs": []
+      },
+      "resources": {
+        "exitCode": 0,
+        "processId": 27412,
+        "elapsedSeconds": 49.937,
+        "peakJobCommitBytes": 1527689216,
+        "processors": 2
+      },
+      "artifacts": [
+        {
+          "path": "target/completion-docs18/command.json",
+          "sha256": "ff02b1c26512c67177ff286dd85159244a4db716d0b95485df7d4f76fb95080f",
+          "bytes": 406
+        },
+        {
+          "path": "target/completion-docs18/delivery.json",
+          "sha256": "4e48706e058f0ee6b96c8867309e5aa479064ffe6534696f2bbad51018d3d358",
+          "bytes": 210
+        },
+        {
+          "path": "target/completion-docs18/plan.json",
+          "sha256": "6a36c0d68234396a61a64c83b7bed757a877ee73f9d2354bbedca9421785a4ec",
+          "bytes": 1412911
+        },
+        {
+          "path": "target/completion-docs18/resources.json",
+          "sha256": "2744ca5524ff7d49063eaed631d860d585e2cc66615418b98ada08f20ca9bd36",
+          "bytes": 1881
+        },
+        {
+          "path": "target/completion-docs18/result.json",
+          "sha256": "6b98f16a1e6fcf0e87f452230153abee09f735cd7c3fc3627b27e83229f3b64f",
+          "bytes": 364
+        },
+        {
+          "path": "target/completion-docs18/strict-site.log",
+          "sha256": "648d4de21a8c38628993116f370407ce4773b29877076222a41683842322356f",
+          "bytes": 484061
+        },
+        {
+          "path": "target/completion-docs18/teaching-tests.log",
+          "sha256": "9e0a30f429683c780b31fbe04cb5b538ad0257b47d378223b95e41b884c74fdc",
+          "bytes": 967
+        }
+      ]
+    },
+    {
+      "name": "completion-docs19",
+      "result": {
+        "scope": "Active nine executable subject route, historical archive retention, original illustrations, source teaching and strict site; full acceptance remains pending.",
+        "commands": [
+          {
+            "name": "teaching-tests",
+            "exitCode": 0
+          },
+          {
+            "name": "strict-site",
+            "exitCode": 0
+          }
+        ],
+        "postguards": "passed",
+        "outputs": []
+      },
+      "resources": {
+        "exitCode": 0,
+        "processId": 17988,
+        "elapsedSeconds": 50.873,
+        "peakJobCommitBytes": 1358843904,
+        "processors": 2
+      },
+      "artifacts": [
+        {
+          "path": "target/completion-docs19/command.json",
+          "sha256": "04dee53910803f37ac5f85bca25015398c61c94e9ebc7e2e93d65318b16caaf4",
+          "bytes": 406
+        },
+        {
+          "path": "target/completion-docs19/delivery.json",
+          "sha256": "9c7e7c88d6f84bc95bc4c42dc2045996eafd5fe2cc30cb19bab80e7bc9f73faa",
+          "bytes": 210
+        },
+        {
+          "path": "target/completion-docs19/plan.json",
+          "sha256": "c16575d0809b2af676357b6ca95a336fad8251851f1f853b238c38c7f6541438",
+          "bytes": 1418009
+        },
+        {
+          "path": "target/completion-docs19/resources.json",
+          "sha256": "0872915ed9b2191238aae790e4c21746afcb246c9fecb8c92ca4cf85fd9b51bb",
+          "bytes": 1881
+        },
+        {
+          "path": "target/completion-docs19/result.json",
+          "sha256": "792cd754f3f89181e86e5cbdaa059ec673412685372dc8b92f97cd0ff9851526",
+          "bytes": 380
+        },
+        {
+          "path": "target/completion-docs19/strict-site.log",
+          "sha256": "8894196c13166a3e6943c0b030502b135572ae88384662da386f209203b154b6",
+          "bytes": 485801
+        },
+        {
+          "path": "target/completion-docs19/teaching-tests.log",
+          "sha256": "a2c28eea6535dcc851e9d1788a6846668cd65f756851ddb3f0632157c5d55974",
+          "bytes": 1843
+        }
+      ]
+    },
+    {
+      "name": "active-route-browser01",
+      "result": {
+        "passed": true,
+        "scope": "Active route navigation, historical links, original illustration delivery and fixed build timestamp; no viewer or complete-course acceptance",
+        "stamp": "2026-11-15T19:00:43.354Z",
+        "records": [
+          {
+            "subject": "frame",
+            "viewport": {
+              "width": 1280,
+              "height": 800
+            },
+            "stamp": "2026-11-15T19:00:43.354Z"
+          },
+          {
+            "subject": "painting",
+            "viewport": {
+              "width": 1280,
+              "height": 800
+            },
+            "stamp": "2026-11-15T19:00:43.354Z"
+          },
+          {
+            "subject": "mathematics",
+            "viewport": {
+              "width": 1280,
+              "height": 800
+            },
+            "stamp": "2026-11-15T19:00:43.354Z"
+          },
+          {
+            "subject": "dock",
+            "viewport": {
+              "width": 1280,
+              "height": 800
+            },
+            "stamp": "2026-11-15T19:00:43.354Z"
+          },
+          {
+            "subject": "camera",
+            "viewport": {
+              "width": 1280,
+              "height": 800
+            },
+            "stamp": "2026-11-15T19:00:43.354Z"
+          },
+          {
+            "subject": "rows",
+            "viewport": {
+              "width": 1280,
+              "height": 800
+            },
+            "stamp": "2026-11-15T19:00:43.354Z"
+          },
+          {
+            "subject": "geometry",
+            "viewport": {
+              "width": 1280,
+              "height": 800
+            },
+            "stamp": "2026-11-15T19:00:43.354Z"
+          },
+          {
+            "subject": "decoding",
+            "viewport": {
+              "width": 1280,
+              "height": 800
+            },
+            "stamp": "2026-11-15T19:00:43.354Z"
+          },
+          {
+            "subject": "application",
+            "viewport": {
+              "width": 1280,
+              "height": 800
+            },
+            "stamp": "2026-11-15T19:00:43.354Z"
+          },
+          {
+            "subject": "frame",
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "stamp": "2026-11-15T19:00:43.354Z"
+          },
+          {
+            "subject": "painting",
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "stamp": "2026-11-15T19:00:43.354Z"
+          },
+          {
+            "subject": "mathematics",
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "stamp": "2026-11-15T19:00:43.354Z"
+          },
+          {
+            "subject": "dock",
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "stamp": "2026-11-15T19:00:43.354Z"
+          },
+          {
+            "subject": "camera",
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "stamp": "2026-11-15T19:00:43.354Z"
+          },
+          {
+            "subject": "rows",
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "stamp": "2026-11-15T19:00:43.354Z"
+          },
+          {
+            "subject": "geometry",
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "stamp": "2026-11-15T19:00:43.354Z"
+          },
+          {
+            "subject": "decoding",
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "stamp": "2026-11-15T19:00:43.354Z"
+          },
+          {
+            "subject": "application",
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "stamp": "2026-11-15T19:00:43.354Z"
+          }
+        ],
+        "images": [
+          {
+            "asset": "world-plane-iso.png",
+            "viewport": {
+              "width": 1280,
+              "height": 800
+            },
+            "sha256": "c4831ccec72f031d993d3a1f5e89fd74e47a4066b92392ffe41a5a28c0c12469"
+          },
+          {
+            "asset": "world-plane-top.png",
+            "viewport": {
+              "width": 1280,
+              "height": 800
+            },
+            "sha256": "7417fd3b4847697b048578f0faa34e62f8580594300ff91d9602ad4c80a3301c"
+          },
+          {
+            "asset": "matched-font-text.png",
+            "viewport": {
+              "width": 1280,
+              "height": 800
+            },
+            "sha256": "a399fd8beb9637713ee0c57721309fbe8779f724e87f1d4b257dc6c8ebc98873"
+          },
+          {
+            "asset": "document-selection.png",
+            "viewport": {
+              "width": 1280,
+              "height": 800
+            },
+            "sha256": "3f0cd3a8c94b4532bc40d6f24e49986a9d633af4ce18359091e4552672429e2a"
+          },
+          {
+            "asset": "typed-move.png",
+            "viewport": {
+              "width": 1280,
+              "height": 800
+            },
+            "sha256": "0f82e2ecddcadeb742b033bb8e551ea667e977a4f17df8212f3240a13a551a64"
+          },
+          {
+            "asset": "feature-pixel-selected.png",
+            "viewport": {
+              "width": 1280,
+              "height": 800
+            },
+            "sha256": "3f613359cb1c40070caa2ba1805322e4cf40271c14256faae326f6ad1910b606"
+          },
+          {
+            "asset": "feature-pixel-deleted.png",
+            "viewport": {
+              "width": 1280,
+              "height": 800
+            },
+            "sha256": "5d485cc3c777b45cba83504cf9206de65a6d8ef621889542a5ee27b5211bdc3c"
+          },
+          {
+            "asset": "materialized-net.png",
+            "viewport": {
+              "width": 1280,
+              "height": 800
+            },
+            "sha256": "49f25738b966989737490c0ea754e04c5c840cdaf43c24ce779d76ed3551a611"
+          },
+          {
+            "asset": "world-plane-iso.png",
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "sha256": "c4831ccec72f031d993d3a1f5e89fd74e47a4066b92392ffe41a5a28c0c12469"
+          },
+          {
+            "asset": "world-plane-top.png",
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "sha256": "7417fd3b4847697b048578f0faa34e62f8580594300ff91d9602ad4c80a3301c"
+          },
+          {
+            "asset": "matched-font-text.png",
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "sha256": "a399fd8beb9637713ee0c57721309fbe8779f724e87f1d4b257dc6c8ebc98873"
+          },
+          {
+            "asset": "document-selection.png",
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "sha256": "3f0cd3a8c94b4532bc40d6f24e49986a9d633af4ce18359091e4552672429e2a"
+          },
+          {
+            "asset": "typed-move.png",
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "sha256": "0f82e2ecddcadeb742b033bb8e551ea667e977a4f17df8212f3240a13a551a64"
+          },
+          {
+            "asset": "feature-pixel-selected.png",
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "sha256": "3f613359cb1c40070caa2ba1805322e4cf40271c14256faae326f6ad1910b606"
+          },
+          {
+            "asset": "feature-pixel-deleted.png",
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "sha256": "5d485cc3c777b45cba83504cf9206de65a6d8ef621889542a5ee27b5211bdc3c"
+          },
+          {
+            "asset": "materialized-net.png",
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "sha256": "49f25738b966989737490c0ea754e04c5c840cdaf43c24ce779d76ed3551a611"
+          }
+        ],
+        "errors": []
+      },
+      "resources": {
+        "exitCode": 0,
+        "processId": 25784,
+        "elapsedSeconds": 8.532,
+        "peakJobCommitBytes": 675123200,
+        "processors": 2
+      },
+      "artifacts": [
+        {
+          "path": "target/active-route-browser01/active-1280.png",
+          "sha256": "1dd369636f3f12e14ff5535ef26f363a471ae634dd5d0b3f6d08b6b7e02dcea8",
+          "bytes": 86256
+        },
+        {
+          "path": "target/active-route-browser01/active-390.png",
+          "sha256": "a8e40a6dc579373d8b537d6c5e2785bfdec3eaf499684181f30e0a560b1a06ae",
+          "bytes": 37362
+        },
+        {
+          "path": "target/active-route-browser01/historical-1280.png",
+          "sha256": "90a8fceddbbf65e2b87427cd266cbb351add2d06857a304706428d52ac4821b3",
+          "bytes": 107095
+        },
+        {
+          "path": "target/active-route-browser01/historical-390.png",
+          "sha256": "105010326276e548019f943d5ea1dea4e94b89ab2d3f449fc94421fe024434e1",
+          "bytes": 42203
+        },
+        {
+          "path": "target/active-route-browser01/mathematics-1280.png",
+          "sha256": "d867c8b69a1ffc52737e127de7cecba73cec0db6a05e7e8944c066be8e69b9c5",
+          "bytes": 138546
+        },
+        {
+          "path": "target/active-route-browser01/mathematics-390.png",
+          "sha256": "3cd725733adee041a6122ebadda9658aa70dcb372c426493764507aa073159f9",
+          "bytes": 47848
+        },
+        {
+          "path": "target/active-route-browser01/result.json",
+          "sha256": "ac46eff7673532c813d94339512187d87e52b5a60f2d7719ae0de1444dcb0a2c",
+          "bytes": 6436
+        },
+        {
+          "path": "target/active-route-browser01/text-1280.png",
+          "sha256": "628ebb06ec7c8edab73d8776a69177fb97a38af7b778db492f0ee5104f1e18c7",
+          "bytes": 115236
+        },
+        {
+          "path": "target/active-route-browser01/text-390.png",
+          "sha256": "f81a078766ece589cc9b03da7cb4ba7b8f0159aecbcbdb49fc3e7a4af8174ffd",
+          "bytes": 43000
+        }
+      ]
+    },
+    {
+      "name": "migration-audit01",
+      "result": {
+        "scope": "Fresh historical reconstruction checks; unchanged original inputs, not active-assembly acceptance",
+        "passed": false,
+        "commands": [
+          {
+            "command": "structure",
+            "exitCode": 1
+          },
+          {
+            "command": "ownership",
+            "exitCode": 1
+          },
+          {
+            "command": "parity",
+            "exitCode": 1
+          }
+        ]
+      },
+      "resources": {
+        "exitCode": 1,
+        "processId": 47152,
+        "elapsedSeconds": 11.083,
+        "peakJobCommitBytes": 364638208,
+        "processors": 2
+      },
+      "artifacts": [
+        {
+          "path": "target/migration-audit01/command.json",
+          "sha256": "7078cfe3383eb727800e74e470d6249bcd7b4aff91828a6791da10369f153bea",
+          "bytes": 355
+        },
+        {
+          "path": "target/migration-audit01/ownership.log",
+          "sha256": "9d399f9a7b6fbc1593ec7b5454ff305ea38ce8c884e3af35df80c19bee1f71ae",
+          "bytes": 131
+        },
+        {
+          "path": "target/migration-audit01/parity.log",
+          "sha256": "a3006b70281c637913a99fba7d31ee979e4ab49fb6e1b1bc5a67557cea006dfb",
+          "bytes": 332
+        },
+        {
+          "path": "target/migration-audit01/pins.json",
+          "sha256": "0a62ea71f6e560003d9a660a8590148fe9d0f699429bf0750b937ba136e875f4",
+          "bytes": 1378
+        },
+        {
+          "path": "target/migration-audit01/resources.json",
+          "sha256": "211112eeaadb1a95870a0a6e1e341bdeabaf5a5d5d33437f0c5969fd5c9a3eab",
+          "bytes": 1880
+        },
+        {
+          "path": "target/migration-audit01/result.json",
+          "sha256": "b91028654904ba3bae4a466fd321f10fe1493402f14020f44c79d780f08f38b8",
+          "bytes": 356
+        },
+        {
+          "path": "target/migration-audit01/structure.log",
+          "sha256": "86afb80103f8aecb6e9a5c5bdcc0d9e5e3a243a907913ce388e9075358205b5f",
+          "bytes": 4292
+        }
+      ]
+    },
+    {
+      "name": "completion-docs20",
+      "result": {
+        "scope": "Nineteen tooling tests, active assembly retention/parity and strict source includes;89 paragraph witnesses/262 pending, not final course acceptance.",
+        "commands": [
+          {
+            "name": "teaching-tests",
+            "exitCode": 0
+          },
+          {
+            "name": "active-audit",
+            "exitCode": 0
+          },
+          {
+            "name": "strict-site",
+            "exitCode": 0
+          }
+        ],
+        "postguards": "passed",
+        "outputs": []
+      },
+      "resources": {
+        "exitCode": 0,
+        "processId": 15912,
+        "elapsedSeconds": 53.318,
+        "peakJobCommitBytes": 1249615872,
+        "processors": 2
+      },
+      "artifacts": [
+        {
+          "path": "target/completion-docs20/active-audit.log",
+          "sha256": "dc13e08fa0696c49d90e01721cfc979a1b33c67f1012831ee6c088e3acdf6d43",
+          "bytes": 788
+        },
+        {
+          "path": "target/completion-docs20/command.json",
+          "sha256": "31515c78ddbe2f30fe4e9334cba3419c59e0e8a48f991f84547013352691918b",
+          "bytes": 406
+        },
+        {
+          "path": "target/completion-docs20/delivery.json",
+          "sha256": "9bbd4efd0d17abfccc2ea1e59cbd69bd33586622576c661df15b8dac5452dddc",
+          "bytes": 210
+        },
+        {
+          "path": "target/completion-docs20/plan.json",
+          "sha256": "630afcb748e3f90bbdcfbd20e049ca6899596c241deaec70e8b43cd3bec45c14",
+          "bytes": 1418640
+        },
+        {
+          "path": "target/completion-docs20/resources.json",
+          "sha256": "3487ad76af807fe0291b6fb0ac6075571ae8fb9d5d94a349cd9c335ae4c88992",
+          "bytes": 1881
+        },
+        {
+          "path": "target/completion-docs20/result.json",
+          "sha256": "c1ae3b31cf1d292f917982de9baae651f2e4d702acd539b2ea3ed5200aa47daf",
+          "bytes": 438
+        },
+        {
+          "path": "target/completion-docs20/strict-site.log",
+          "sha256": "3fb027da5765829b5be56c39bae6cf8ce87a6d4ad688dec42eb1e33db1f88304",
+          "bytes": 485801
+        },
+        {
+          "path": "target/completion-docs20/teaching-tests.log",
+          "sha256": "f016baf597368d572c0626d64e080267b5b8342ffbec4247389da18175d43d1e",
+          "bytes": 1934
+        }
+      ]
+    },
+    {
+      "name": "active-route-browser02",
+      "result": {
+        "passed": true,
+        "scope": "Active route navigation, historical links, original illustration delivery and fixed build timestamp; no viewer or complete-course acceptance",
+        "stamp": "2026-11-15T19:09:28.173Z",
+        "records": [
+          {
+            "subject": "frame",
+            "viewport": {
+              "width": 1280,
+              "height": 800
+            },
+            "stamp": "2026-11-15T19:09:28.173Z"
+          },
+          {
+            "subject": "painting",
+            "viewport": {
+              "width": 1280,
+              "height": 800
+            },
+            "stamp": "2026-11-15T19:09:28.173Z"
+          },
+          {
+            "subject": "mathematics",
+            "viewport": {
+              "width": 1280,
+              "height": 800
+            },
+            "stamp": "2026-11-15T19:09:28.173Z"
+          },
+          {
+            "subject": "dock",
+            "viewport": {
+              "width": 1280,
+              "height": 800
+            },
+            "stamp": "2026-11-15T19:09:28.173Z"
+          },
+          {
+            "subject": "camera",
+            "viewport": {
+              "width": 1280,
+              "height": 800
+            },
+            "stamp": "2026-11-15T19:09:28.173Z"
+          },
+          {
+            "subject": "rows",
+            "viewport": {
+              "width": 1280,
+              "height": 800
+            },
+            "stamp": "2026-11-15T19:09:28.173Z"
+          },
+          {
+            "subject": "geometry",
+            "viewport": {
+              "width": 1280,
+              "height": 800
+            },
+            "stamp": "2026-11-15T19:09:28.173Z"
+          },
+          {
+            "subject": "decoding",
+            "viewport": {
+              "width": 1280,
+              "height": 800
+            },
+            "stamp": "2026-11-15T19:09:28.173Z"
+          },
+          {
+            "subject": "application",
+            "viewport": {
+              "width": 1280,
+              "height": 800
+            },
+            "stamp": "2026-11-15T19:09:28.173Z"
+          },
+          {
+            "subject": "frame",
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "stamp": "2026-11-15T19:09:28.173Z"
+          },
+          {
+            "subject": "painting",
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "stamp": "2026-11-15T19:09:28.173Z"
+          },
+          {
+            "subject": "mathematics",
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "stamp": "2026-11-15T19:09:28.173Z"
+          },
+          {
+            "subject": "dock",
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "stamp": "2026-11-15T19:09:28.173Z"
+          },
+          {
+            "subject": "camera",
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "stamp": "2026-11-15T19:09:28.173Z"
+          },
+          {
+            "subject": "rows",
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "stamp": "2026-11-15T19:09:28.173Z"
+          },
+          {
+            "subject": "geometry",
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "stamp": "2026-11-15T19:09:28.173Z"
+          },
+          {
+            "subject": "decoding",
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "stamp": "2026-11-15T19:09:28.173Z"
+          },
+          {
+            "subject": "application",
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "stamp": "2026-11-15T19:09:28.173Z"
+          }
+        ],
+        "images": [
+          {
+            "asset": "world-plane-iso.png",
+            "viewport": {
+              "width": 1280,
+              "height": 800
+            },
+            "sha256": "c4831ccec72f031d993d3a1f5e89fd74e47a4066b92392ffe41a5a28c0c12469"
+          },
+          {
+            "asset": "world-plane-top.png",
+            "viewport": {
+              "width": 1280,
+              "height": 800
+            },
+            "sha256": "7417fd3b4847697b048578f0faa34e62f8580594300ff91d9602ad4c80a3301c"
+          },
+          {
+            "asset": "matched-font-text.png",
+            "viewport": {
+              "width": 1280,
+              "height": 800
+            },
+            "sha256": "a399fd8beb9637713ee0c57721309fbe8779f724e87f1d4b257dc6c8ebc98873"
+          },
+          {
+            "asset": "document-selection.png",
+            "viewport": {
+              "width": 1280,
+              "height": 800
+            },
+            "sha256": "3f0cd3a8c94b4532bc40d6f24e49986a9d633af4ce18359091e4552672429e2a"
+          },
+          {
+            "asset": "typed-move.png",
+            "viewport": {
+              "width": 1280,
+              "height": 800
+            },
+            "sha256": "0f82e2ecddcadeb742b033bb8e551ea667e977a4f17df8212f3240a13a551a64"
+          },
+          {
+            "asset": "feature-pixel-selected.png",
+            "viewport": {
+              "width": 1280,
+              "height": 800
+            },
+            "sha256": "3f613359cb1c40070caa2ba1805322e4cf40271c14256faae326f6ad1910b606"
+          },
+          {
+            "asset": "feature-pixel-deleted.png",
+            "viewport": {
+              "width": 1280,
+              "height": 800
+            },
+            "sha256": "5d485cc3c777b45cba83504cf9206de65a6d8ef621889542a5ee27b5211bdc3c"
+          },
+          {
+            "asset": "materialized-net.png",
+            "viewport": {
+              "width": 1280,
+              "height": 800
+            },
+            "sha256": "49f25738b966989737490c0ea754e04c5c840cdaf43c24ce779d76ed3551a611"
+          },
+          {
+            "asset": "world-plane-iso.png",
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "sha256": "c4831ccec72f031d993d3a1f5e89fd74e47a4066b92392ffe41a5a28c0c12469"
+          },
+          {
+            "asset": "world-plane-top.png",
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "sha256": "7417fd3b4847697b048578f0faa34e62f8580594300ff91d9602ad4c80a3301c"
+          },
+          {
+            "asset": "matched-font-text.png",
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "sha256": "a399fd8beb9637713ee0c57721309fbe8779f724e87f1d4b257dc6c8ebc98873"
+          },
+          {
+            "asset": "document-selection.png",
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "sha256": "3f0cd3a8c94b4532bc40d6f24e49986a9d633af4ce18359091e4552672429e2a"
+          },
+          {
+            "asset": "typed-move.png",
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "sha256": "0f82e2ecddcadeb742b033bb8e551ea667e977a4f17df8212f3240a13a551a64"
+          },
+          {
+            "asset": "feature-pixel-selected.png",
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "sha256": "3f613359cb1c40070caa2ba1805322e4cf40271c14256faae326f6ad1910b606"
+          },
+          {
+            "asset": "feature-pixel-deleted.png",
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "sha256": "5d485cc3c777b45cba83504cf9206de65a6d8ef621889542a5ee27b5211bdc3c"
+          },
+          {
+            "asset": "materialized-net.png",
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "sha256": "49f25738b966989737490c0ea754e04c5c840cdaf43c24ce779d76ed3551a611"
+          }
+        ],
+        "errors": []
+      },
+      "resources": {
+        "exitCode": 0,
+        "processId": 47828,
+        "elapsedSeconds": 8.472,
+        "peakJobCommitBytes": 654102528,
+        "processors": 2
+      },
+      "artifacts": [
+        {
+          "path": "target/active-route-browser02/active-1280.png",
+          "sha256": "6590734010379d184c456706eb8304a30c42fe23a254b2d101230d4ebc0e6867",
+          "bytes": 82986
+        },
+        {
+          "path": "target/active-route-browser02/active-390.png",
+          "sha256": "d4a20873f103fbb4c79000467393df3d610f716417fecca35682f2497c97f883",
+          "bytes": 36547
+        },
+        {
+          "path": "target/active-route-browser02/historical-1280.png",
+          "sha256": "1834743545586dfcadd2e657891b593f8e1008fca1acc506594bfedc05a0ce37",
+          "bytes": 107190
+        },
+        {
+          "path": "target/active-route-browser02/historical-390.png",
+          "sha256": "808cba6389e2504567d064c53ebb9d96ec54739da539f933c0d86e617767d279",
+          "bytes": 42291
+        },
+        {
+          "path": "target/active-route-browser02/mathematics-1280.png",
+          "sha256": "50f2a90b45677fd4309455f848acaaf0e852556ef93258fcf4a9f28be7250671",
+          "bytes": 138643
+        },
+        {
+          "path": "target/active-route-browser02/mathematics-390.png",
+          "sha256": "e84431484ab61d2a7d0115f950121eb5b37c1913b798c9a972c9e0d02baa4f4d",
+          "bytes": 47935
+        },
+        {
+          "path": "target/active-route-browser02/result.json",
+          "sha256": "4928e4f01570b63bce5631ed0f1f3ef8862188fb6a29e7f9a46e9030579dd0d0",
+          "bytes": 6436
+        },
+        {
+          "path": "target/active-route-browser02/text-1280.png",
+          "sha256": "c36179063d84e6f95421217b1bb213039154ad9547f40a403cae100ffce27a0c",
+          "bytes": 115332
+        },
+        {
+          "path": "target/active-route-browser02/text-390.png",
+          "sha256": "1426f42ff9e5bd4dcb6dee9dbc1645d79b9216f60f204bea5b1ff91bf545d44a",
+          "bytes": 43081
+        }
+      ]
+    }
+  ],
+  "teaching": {
+    "productionSources": 351,
+    "proseWitnesses": 89,
+    "missing": 262,
+    "structuralErrors": 0,
+    "acceptedSubjects": 0
+  },
+  "visualReview": "Owner viewed all eight original screenshots in each active-route browser run. Three-column table is contained at390px but long identifier and Order heading still wrap; further readability improvement remains. Text image placement reviewed; byte delivery of all eight images does not prove every placement is legible.",
+  "historical": {
+    "status": "failed",
+    "checkpoints": 1298,
+    "subjects": 110,
+    "laterRewrites": 4801,
+    "affectedFiles": 306,
+    "endpointMissing": 322,
+    "endpointExtra": 709,
+    "endpointChanged": 5,
+    "scope": "Fresh unchanged historical reconstruction audit; not active assembly results. No inventory or accepted hash refreshed."
+  },
+  "limits": [
+    "All subjects remain acceptance pending; source and paragraph witnesses alone do not prove teaching.",
+    "No production Rust/WGSL behavior changed in this batch; native/wasm/runtime evidence retains its prior scope.",
+    "Browser viewport emulation is not hardware/physical-device acceptance.",
+    "No new kernel API delivery tests; earlier six API checks remain separately dated.",
+    "Save metadata JSON95->88byte failure remains unresolved; no behavior fix authorized."
+  ]
+}

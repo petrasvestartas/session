@@ -1,0 +1,69 @@
+{
+  "scope": "Original reviewed browser illustrations placed in their owning chapters; no new captures or expanded runtime acceptance.",
+  "assets": [
+    {
+      "asset": "world-plane-iso.png",
+      "sha256": "c4831ccec72f031d993d3a1f5e89fd74e47a4066b92392ffe41a5a28c0c12469",
+      "bytes": 26907,
+      "proposedLesson": "completion-text.md",
+      "caption": "Authored world-plane text in the isometric view. The fixture keeps its XY plane and reuses shaping as the camera changes.",
+      "rootOriginalReviewSha256": "b8f3552d761a9b5ccd7b4d06cdaca44626845750a2db1a2e128c6eefa6b64e8f"
+    },
+    {
+      "asset": "world-plane-top.png",
+      "sha256": "7417fd3b4847697b048578f0faa34e62f8580594300ff91d9602ad4c80a3301c",
+      "bytes": 17709,
+      "proposedLesson": "completion-text.md",
+      "caption": "The same authored plane from above. This fixture verifies projection and picking; it does not establish every font or occlusion case.",
+      "rootOriginalReviewSha256": "b8f3552d761a9b5ccd7b4d06cdaca44626845750a2db1a2e128c6eefa6b64e8f"
+    },
+    {
+      "asset": "matched-font-text.png",
+      "sha256": "a399fd8beb9637713ee0c57721309fbe8779f724e87f1d4b257dc6c8ebc98873",
+      "bytes": 317459,
+      "proposedLesson": "completion-text.md",
+      "caption": "Bundled Noto Sans at five sizes: production WebGPU text on the left, browser text using the same font on the right. This compares metrics and coverage, not identical rasterization.",
+      "rootOriginalReviewSha256": "c668fc80bc677839645ef9af346e62a44771eaaa42246e0ae34d05e4f0b67f60"
+    },
+    {
+      "asset": "document-selection.png",
+      "sha256": "3f0cd3a8c94b4532bc40d6f24e49986a9d633af4ce18359091e4552672429e2a",
+      "bytes": 63406,
+      "proposedLesson": "completion-documents.md",
+      "caption": "The comparison document has four geometric objects and an independent title: five selectable objects. This is the desktop view; the open panel crowds the upright scene.",
+      "rootOriginalReviewSha256": "6cc170d6c3687a848dd025077d1adc24c8a1e8f924c1d6a4cfbb46b56ef34829"
+    },
+    {
+      "asset": "typed-move.png",
+      "sha256": "0f82e2ecddcadeb742b033bb8e551ea667e977a4f17df8212f3240a13a551a64",
+      "bytes": 73149,
+      "proposedLesson": "completion-commands.md",
+      "caption": "A typed Move changes the selected line. The command history and hierarchy assertions support this step; this image does not prove every editing gesture.",
+      "rootOriginalReviewSha256": "6e0d4157b9312a8650bdcfcf5fdd3e8386e036266477a0801731286e684dabec"
+    },
+    {
+      "asset": "feature-pixel-selected.png",
+      "sha256": "3f613359cb1c40070caa2ba1805322e4cf40271c14256faae326f6ad1910b606",
+      "bytes": 12737,
+      "proposedLesson": "completion-input.md",
+      "caption": "An actual feature-pixel click resolves the original Element, pick-first. This is the controlled front-view fixture, not a general picking-mode or physical-device qualification.",
+      "rootOriginalReviewSha256": "0b44d6491d4287b6bff0848a4e1e0de4677fd8492f424d38fba9e25ec8786733"
+    },
+    {
+      "asset": "feature-pixel-deleted.png",
+      "sha256": "5d485cc3c777b45cba83504cf9206de65a6d8ef621889542a5ee27b5211bdc3c",
+      "bytes": 7250,
+      "proposedLesson": "completion-input.md",
+      "caption": "Deleting that original removes its visible feature and makes the same pixel unpickable. The second original remains; allocated ribbon storage is retained for Undo.",
+      "rootOriginalReviewSha256": "0b44d6491d4287b6bff0848a4e1e0de4677fd8492f424d38fba9e25ec8786733"
+    },
+    {
+      "asset": "materialized-net.png",
+      "sha256": "49f25738b966989737490c0ea754e04c5c840cdaf43c24ce779d76ed3551a611",
+      "bytes": 133758,
+      "proposedLesson": "stage-scene.md",
+      "caption": "The materialization deck at its whole-net cut-length stage. This is a controlled-clock settled-state capture, not a real-time timing or mathematical-correctness proof.",
+      "rootOriginalReviewSha256": "a995aa39e4f2df526296bb9c1c7addbc9f0892f725ccc7ecdb7aaf459a1dc635"
+    }
+  ]
+}

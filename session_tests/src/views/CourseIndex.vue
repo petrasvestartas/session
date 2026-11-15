@@ -3,15 +3,15 @@
     <h1>Viewer course</h1>
     <p class="lead">
       Build the Session Viewer from Rust and wgpu fundamentals to its production rendering paths.
-      The route organizes {{ readerLessonCount.toLocaleString('en-US') }} reader-facing subjects.
-      Consolidating their runnable checkpoints, reconciling rendering and completing runtime acceptance remain in progress.
-      The complete implementation reference stays available below.
+      The route organizes {{ readerLessonCount.toLocaleString('en-US') }} executable subject checkpoints.
+      Teaching coverage and full-course acceptance remain in progress.
+      Historical reconstruction stays available in its archive group.
     </p>
-    <p><router-link to="/course/journey/contents">Book contents: chapters and sections</router-link></p>
-    <p><router-link to="/course/journey/daily-plan">Daily coding plan</router-link></p>
-    <p><router-link to="/course/journey/roadmap">To-do list and progress: finished and remaining lessons</router-link></p>
-    <p v-if="latestLesson"><router-link :to="'/course/' + latestLesson">Latest coding checkpoint: {{ pages[latestLesson].title }}</router-link></p>
-    <details v-for="g in groups" :key="g.title" :open="g.slugs.includes('readme') || g.slugs.includes('journey/consolidation/01-canvas')">
+    <p><router-link to="/course/journey/active">Cumulative subjects and runnable checkpoints</router-link></p>
+
+    <p><router-link to="/course/journey/active#acceptance">Acceptance and remaining work</router-link></p>
+    <p v-if="latestLesson"><router-link :to="'/course/' + latestLesson">Production checkpoint: {{ pages[latestLesson].title }}</router-link></p>
+    <details v-for="g in groups" :key="g.title" :open="g.slugs.includes('readme') || g.slugs.includes('journey/completion-frame')">
       <summary>{{ g.title }}</summary>
       <template v-if="g.sections">
         <details v-for="section in g.sections" :key="section.title" class="book-section">
