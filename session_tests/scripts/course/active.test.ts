@@ -4,8 +4,8 @@ import path from 'node:path';
 import test from 'node:test';
 import {activeCourse, type ActiveCourse} from '../../src/activeCourse.ts';
 import {completionFiles, completionSubjects} from './completion.ts';
-import {docs} from './model.ts';
-import {auditCompletion} from './completion-audit.ts';
+import {docs, hash} from './model.ts';
+import {auditCompletion, auditAcceptance} from './completion-audit.ts';
 import {latestCodingLesson} from '../../src/courseOrder.ts';
 
 const load = (): ActiveCourse => JSON.parse(fs.readFileSync(path.join(docs, 'journey/active-course.json'), 'utf8'));
@@ -45,6 +45,39 @@ test('the production checkpoint link cannot select an unrelated historical endpo
         'journey/old-last': {prev: 'journey/old-first'},
         'journey/completion-application': {prev: 'journey/completion-decoding', next: 'journey/completion-documents'},
     }), 'journey/completion-application');
+});
+
+test('accepted subjects require a pinned review and accepted prerequisites', () => {
+    const route = load();
+    for (const subject of route.subjects) { subject.acceptance = 'pending'; delete subject.review; }
+    route.subjects[0].acceptance = 'accepted';
+    assert.throws(() => activeCourse(route), /Missing review/);
+    route.subjects[0].review = {path: 'journey/release/frame-review.json', sha256: 'a'.repeat(64)};
+    assert.equal(activeCourse(route).subjects[0].acceptance, 'accepted');
+    route.subjects[2].acceptance = 'accepted';
+    route.subjects[2].review = route.subjects[0].review;
+    assert.throws(() => activeCourse(route), /accepted prerequisite/);
+    route.subjects[2].acceptance = 'pending'; delete route.subjects[2].review;
+    route.subjects[0].review.path = '../outside.json';
+    assert.throws(() => activeCourse(route), /Missing review/);
+});
+
+test('acceptance audit rejects changed review, source and teaching inputs', () => {
+    const course = load(); course.subjects = [course.subjects[0]];
+    const subject = course.subjects[0], files = {'src/frame.rs': 'pub fn draw() {}\n'};
+    const lesson = '# Frame\nExplain submission and presentation.\n';
+    const proofPath = 'journey/release/browser-review.json', proof = '{"observed":"white frame"}';
+    const raw = JSON.stringify({status: 'accepted', subject: subject.id,
+        files: {'src/frame.rs': hash(files['src/frame.rs'])},
+        lesson: {path: subject.page, sha256: hash(lesson)}, evidence: [{path: proofPath, sha256: hash(proof)}]});
+    subject.acceptance = 'accepted';
+    subject.review = {path: 'journey/release/frame-review.json', sha256: hash(raw)};
+    const read = (name: string) => name === subject.page ? lesson : name === proofPath ? proof : raw;
+    assert.deepEqual(auditAcceptance(course, () => files, read), []);
+    assert.match(auditAcceptance(course, () => files, name => read(name) + ' ').join(), /review digest changed/);
+    assert.match(auditAcceptance(course, () => ({'src/frame.rs': 'changed'}), read).join(), /checkpoint source changed/);
+    assert.match(auditAcceptance(course, () => files, name => name === subject.page ? 'changed' : raw).join(), /lesson changed/);
+    assert.match(auditAcceptance(course, () => files, name => name === proofPath ? 'changed' : read(name)).join(), /supporting evidence changed/);
 });
 
 test('active audit rejects rewritten implementation and a missing endpoint source', () => {

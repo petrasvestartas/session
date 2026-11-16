@@ -146,15 +146,27 @@
       "subject": "build and browser support",
       "scope": "359 source/support paragraph bindings,17 retained non-code assets,20 tooling tests, active audit,strict docs and14 reviewed desktop/upright captures;0accepted subjects",
       "path": "session_viewer/docs/journey/release/completion-support-teaching-windows-20261116.json"
+    },
+    {
+      "subject": "sheet metadata and source hydration",
+      "scope": "Desktop/upright actual-pointer ranged metadata and cancelled reply; failed Save hydration and successful retry;12reviewed originals and saved original point IDs/coordinates",
+      "path": "session_viewer/docs/journey/release/completion-sheet-hydration-windows-20261116.json"
+    },
+    {
+      "subject": "archive values",
+      "scope": "Read-only schema comparison of8existing browser-saved archives; component JSON values and Mesh map entries retained. Original byte-exact check remains failed; no production change.",
+      "path": "session_viewer/docs/journey/release/completion-archive-values-windows-20261116.json"
+    },
+    {
+      "subject": "Frame and painting acceptance",
+      "scope": "Two scoped subjects accepted with source/lesson/runtime review;22tooling+acceptanceaudit+strictsite and14 reviewed desktop/upright docs captures. Seven subjects remain pending.",
+      "path": "session_viewer/docs/journey/release/completion-first-subjects-windows-20261116.json"
     }
   ],
   "open": [
-    "Application shell and GPU dependency boundaries",
-    "Executable cumulative subject sequence",
-    "Finished ownership and actual per-file teaching",
-    "Structural and production endpoint parity",
-    "Full cumulative browser and device acceptance",
-    "Production changes since the pinned destination",
-    "Fresh browser archive exact component JSON byte mismatch; production normalizes spacing/key order. Behavior-change clarification pending."
+    "Formal lesson/source/applicable-runtime acceptance for seven remaining cumulative subjects; frame and painting accepted within recorded scope",
+    "Final production reconciliation against the pinned destination and other agents changes",
+    "Complete scope review of browser evidence, retaining desktop/device distinctions",
+    "Original byte-exact archive comparison remains failed: component JSON serialization and schema-defined Mesh map ordering differ; separate selected-value comparison passes without changing the serializer"
   ]
 }

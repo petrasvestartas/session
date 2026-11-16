@@ -1,0 +1,669 @@
+{
+  "status": "Scoped sheet metadata and source hydration browser checks passed; course incomplete",
+  "parentCommit": "7584164e528e29c7e81aaef0032b50718af7e421",
+  "changes": [
+    "Add actual-pointer sheet identity, ranged metadata, cached-header and cancelled-reply checks.",
+    "Add failed-hydration Save recovery with original source identities verified in both downloaded archives."
+  ],
+  "source": [
+    {
+      "path": "session_viewer/tests/sheet-metadata.cjs",
+      "sha256": "512d64ac88d081ee2a766bbd4c6b2daf19afa3d94df76d71cface771d4aaac10",
+      "bytes": 6858
+    },
+    {
+      "path": "session_viewer/tests/hydration.cjs",
+      "sha256": "084027807f616a356d38111b5f6c27ad34c76eed5a832839a58e4258cf5e44e2",
+      "bytes": 5665
+    }
+  ],
+  "runs": [
+    {
+      "name": "application-sheet01",
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0x300",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 10,
+        "maximumAggregateOurMemoryMiB": 14336,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 2,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-11-16T06:04:12.5327960Z",
+        "executable": "C:\\Program Files\\Git\\bin\\bash.exe",
+        "arguments": [
+          "C:/pc/3_code/code_rust/wood_research/wood/tools/buildslot.sh",
+          "--run",
+          "tutorial-application-sheet01",
+          "timeout",
+          "320s",
+          "C:\\Users\\Petras\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+          "-B",
+          "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\application-sheet01.py"
+        ],
+        "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer",
+        "timeoutSeconds": 330,
+        "jobCommitLimitBytes": 6442450944,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 41.573,
+        "peakJobCommitBytes": 617758720,
+        "affinityMask": "0x300",
+        "processors": 2,
+        "processId": 12616,
+        "descendantsAtCleanup": 1
+      },
+      "result": {
+        "test": "sheet-metadata-selection-cancellation",
+        "exitCode": 0,
+        "source": "512d64ac88d081ee2a766bbd4c6b2daf19afa3d94df76d71cface771d4aaac10",
+        "fixtureSha256": "1d53ea1f6aaa533a566febe4f9e7ca77f1e9d7e4bf52bf473d408695090fa1f4",
+        "scope": "Sheet pointer and range assertions with supported browser environment overrides against cumulative own-source bundle; Windows D3D11 Chrome flags supplied through supported environment"
+      },
+      "artifacts": [
+        {
+          "path": "session_viewer/target/application-sheet01/capture.cjs",
+          "sha256": "512d64ac88d081ee2a766bbd4c6b2daf19afa3d94df76d71cface771d4aaac10",
+          "bytes": 6858
+        },
+        {
+          "path": "session_viewer/target/application-sheet01/check.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        },
+        {
+          "path": "session_viewer/target/application-sheet01/command.json",
+          "sha256": "8c8e96c393dee2d4d4842a2eee88c781a3b32f075c3a2b3d6c2c2baeeedd1df4",
+          "bytes": 422
+        },
+        {
+          "path": "session_viewer/target/application-sheet01/dispatch.ps1",
+          "sha256": "3c167ad97994453badc698a6911975be178540842e1f1be60c865db889525c74",
+          "bytes": 671
+        },
+        {
+          "path": "session_viewer/target/application-sheet01/resources.json",
+          "sha256": "f499e2e0f2eb7cfab3adf947a42b9e1e01dec95b71f8fd0756143468661c2e04",
+          "bytes": 1917
+        },
+        {
+          "path": "session_viewer/target/application-sheet01/result.json",
+          "sha256": "5d5617d334eb6ad941b38f1e5068b73e83771e03870497e8231f1edf1180bd19",
+          "bytes": 441
+        }
+      ],
+      "bundleManifest": {
+        "path": "session_viewer/target/application-sheet01/started.json",
+        "sha256": "3c872a476093a337515a84592a762fd03d44644d0d7fc53d8febc8dd12a33b2d",
+        "bytes": 838873
+      },
+      "captures": [
+        {
+          "path": "session_viewer/target/application-sheet01/captures/cancelled-1280.png",
+          "sha256": "eb42389d77e1865878702e0be8861f591c3e8c61e83f8cbb73ac84ed43c423a1",
+          "bytes": 13254
+        },
+        {
+          "path": "session_viewer/target/application-sheet01/captures/cancelled-390.png",
+          "sha256": "f2abc4741a9735bc1499efceafa95e00aefe436add41990bdb30c1a837f3128d",
+          "bytes": 11006
+        },
+        {
+          "path": "session_viewer/target/application-sheet01/captures/door-1280.png",
+          "sha256": "770f94290f5428f0171b3cf67b789fc1cb101d167a047e0e378356f899b6de07",
+          "bytes": 13590
+        },
+        {
+          "path": "session_viewer/target/application-sheet01/captures/door-390.png",
+          "sha256": "9014b90db80dc79c498015b6cdabce44b60b6bf930dbbf47a39be20f566ae786",
+          "bytes": 11282
+        },
+        {
+          "path": "session_viewer/target/application-sheet01/captures/sheet.json",
+          "sha256": "4528f648ed4e5fcde48ba2b43765f80c3ace4ff15ef13e5ad0b71dca17e79f7a",
+          "bytes": 86467
+        },
+        {
+          "path": "session_viewer/target/application-sheet01/captures/wall-1280.png",
+          "sha256": "5a578f51d74a3dac60bf4f0026ebda8cb2f73be6e783eb0b9f3dcf13429ed801",
+          "bytes": 13462
+        },
+        {
+          "path": "session_viewer/target/application-sheet01/captures/wall-390.png",
+          "sha256": "7275a0fa308224c90c8f19f574dc6a9d608cc93f7ce1a1de30446ef4153bead3",
+          "bytes": 11278
+        }
+      ]
+    },
+    {
+      "name": "application-hydration01",
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0x300",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 10,
+        "maximumAggregateOurMemoryMiB": 14336,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 2,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-11-16T06:05:51.3489982Z",
+        "executable": "C:\\Program Files\\Git\\bin\\bash.exe",
+        "arguments": [
+          "C:/pc/3_code/code_rust/wood_research/wood/tools/buildslot.sh",
+          "--run",
+          "tutorial-application-hydration01",
+          "timeout",
+          "320s",
+          "C:\\Users\\Petras\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+          "-B",
+          "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\application-hydration01.py"
+        ],
+        "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer",
+        "timeoutSeconds": 330,
+        "jobCommitLimitBytes": 6442450944,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 1,
+        "timedOut": false,
+        "elapsedSeconds": 3.926,
+        "peakJobCommitBytes": 561250304,
+        "affinityMask": "0x300",
+        "processors": 2,
+        "processId": 38876,
+        "descendantsAtCleanup": 1
+      },
+      "result": {
+        "test": "released-source-hydration-retry",
+        "exitCode": 1,
+        "source": "587572415b353f972ff2801f449197bc3e5e64e8b1aaeab1e501bd34f339ddf0",
+        "fixtureSha256": "1d53ea1f6aaa533a566febe4f9e7ca77f1e9d7e4bf52bf473d408695090fa1f4",
+        "scope": "Hydration and Save assertions with supported browser environment overrides against cumulative own-source bundle; Windows D3D11 Chrome flags supplied through supported environment"
+      },
+      "artifacts": [
+        {
+          "path": "session_viewer/target/application-hydration01/capture.cjs",
+          "sha256": "587572415b353f972ff2801f449197bc3e5e64e8b1aaeab1e501bd34f339ddf0",
+          "bytes": 5452
+        },
+        {
+          "path": "session_viewer/target/application-hydration01/check.log",
+          "sha256": "3d3fa5450aa94418b5657b2ce9d8cc39748fdfb77f2a383cbeb3f3071c8785d6",
+          "bytes": 320
+        },
+        {
+          "path": "session_viewer/target/application-hydration01/command.json",
+          "sha256": "75771e9029dafea9284dc9fc97f129a14d2c1c733f41ab6670e4dd6df26f3e63",
+          "bytes": 430
+        },
+        {
+          "path": "session_viewer/target/application-hydration01/dispatch.ps1",
+          "sha256": "5f59c290bbf05e75183a13575f9b40a58ffd8be4641232f27a61f311cc505d7e",
+          "bytes": 675
+        },
+        {
+          "path": "session_viewer/target/application-hydration01/resources.json",
+          "sha256": "b54ddafe98eab683995d6826b5ac5a7307214514c26692ec93bc6a0a7d4917d6",
+          "bytes": 1924
+        },
+        {
+          "path": "session_viewer/target/application-hydration01/result.json",
+          "sha256": "ff27b4c30d5d6b079ae2e12b822305740b106201958a8f8916c9bc9a3bb23a5f",
+          "bytes": 430
+        }
+      ],
+      "bundleManifest": {
+        "path": "session_viewer/target/application-hydration01/started.json",
+        "sha256": "4ab3c48953fb16df15f030e6fac79741d62c479ed2deeef915bd9a3d918039c3",
+        "bytes": 838873
+      },
+      "captures": []
+    },
+    {
+      "name": "application-hydration02",
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0x300",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 10,
+        "maximumAggregateOurMemoryMiB": 14336,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 2,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-11-16T06:08:32.3247313Z",
+        "executable": "C:\\Program Files\\Git\\bin\\bash.exe",
+        "arguments": [
+          "C:/pc/3_code/code_rust/wood_research/wood/tools/buildslot.sh",
+          "--run",
+          "tutorial-application-hydration02",
+          "timeout",
+          "320s",
+          "C:\\Users\\Petras\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+          "-B",
+          "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\application-hydration02.py"
+        ],
+        "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer",
+        "timeoutSeconds": 330,
+        "jobCommitLimitBytes": 6442450944,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 7.068,
+        "peakJobCommitBytes": 592527360,
+        "affinityMask": "0x300",
+        "processors": 2,
+        "processId": 36596,
+        "descendantsAtCleanup": 1
+      },
+      "result": {
+        "test": "released-source-hydration-retry",
+        "exitCode": 0,
+        "source": "084027807f616a356d38111b5f6c27ad34c76eed5a832839a58e4258cf5e44e2",
+        "fixtureSha256": "1d53ea1f6aaa533a566febe4f9e7ca77f1e9d7e4bf52bf473d408695090fa1f4",
+        "scope": "Hydration and Save assertions with supported browser environment overrides against cumulative own-source bundle; Windows D3D11 Chrome flags supplied through supported environment"
+      },
+      "artifacts": [
+        {
+          "path": "session_viewer/target/application-hydration02/capture.cjs",
+          "sha256": "084027807f616a356d38111b5f6c27ad34c76eed5a832839a58e4258cf5e44e2",
+          "bytes": 5665
+        },
+        {
+          "path": "session_viewer/target/application-hydration02/check.log",
+          "sha256": "fcabbafe8dd50976b9d41138f6dcf39df2ffa4f8b4f3f1fd250b51662b98ba4c",
+          "bytes": 599
+        },
+        {
+          "path": "session_viewer/target/application-hydration02/command.json",
+          "sha256": "82f82f83e9943a5ce14a6c622d23562002336a0af8645790e6d67e912f31d2ae",
+          "bytes": 430
+        },
+        {
+          "path": "session_viewer/target/application-hydration02/dispatch.ps1",
+          "sha256": "1198bcbb63ce5eccc91d0d633459c52eda7add0ce57803a30b676ddae4ffa858",
+          "bytes": 675
+        },
+        {
+          "path": "session_viewer/target/application-hydration02/resources.json",
+          "sha256": "5c635f5bdfd7915d216f461ef80f27b276d1bd64e8e2b00cbc7b79164f429aff",
+          "bytes": 1924
+        },
+        {
+          "path": "session_viewer/target/application-hydration02/result.json",
+          "sha256": "4b1c45a23f490bc2e22d7dd0a7d08c4e8c3d9c136d58c240f4c993264bfa1e0d",
+          "bytes": 430
+        }
+      ],
+      "bundleManifest": {
+        "path": "session_viewer/target/application-hydration02/started.json",
+        "sha256": "2365bc1de7ecee3fbc87784f8bcfd353dc6f714efdd97712c50467d29eb83665",
+        "bytes": 838873
+      },
+      "captures": [
+        {
+          "path": "session_viewer/target/application-hydration02/captures/failed-1280.png",
+          "sha256": "93e31574a7cdbcb5ac5df6289165d9e82a737248529ced11452ab671550c94fe",
+          "bytes": 14075
+        },
+        {
+          "path": "session_viewer/target/application-hydration02/captures/failed-390.png",
+          "sha256": "fe83f2825efdadce5b6a70222abcdf706cf25588215e25c024357d1ab22c2297",
+          "bytes": 8793
+        },
+        {
+          "path": "session_viewer/target/application-hydration02/captures/hydration.json",
+          "sha256": "41a291fecd3825b41d2197bd9a628a82e15f6a97f43f8d4afda6e0696b4388ea",
+          "bytes": 64084
+        },
+        {
+          "path": "session_viewer/target/application-hydration02/captures/released-1280.png",
+          "sha256": "faab51866b990fd78bcf36b053c8ac1e36815954dd5ea71955e48db9f55411fc",
+          "bytes": 10631
+        },
+        {
+          "path": "session_viewer/target/application-hydration02/captures/released-390.png",
+          "sha256": "59931190bea58f6353b1a74070be34b90180346dc6883f94defa25b248ea298c",
+          "bytes": 7579
+        },
+        {
+          "path": "session_viewer/target/application-hydration02/captures/restored-1280.png",
+          "sha256": "1e497ee5d09dc94f28e0db1bc6d2ab0ffd0b3018ea255aa75d1a8bb751a57661",
+          "bytes": 12431
+        },
+        {
+          "path": "session_viewer/target/application-hydration02/captures/restored-1280.session",
+          "sha256": "7086379854cbe235362b2b6300262029114ac95a60a0372bf21b314d01f9860d",
+          "bytes": 451
+        },
+        {
+          "path": "session_viewer/target/application-hydration02/captures/restored-390.png",
+          "sha256": "1d9a408b5e7fb0c5ffc9bc8e252ccaf2e960c2d33f1ddba1e254f1f5db7235ab",
+          "bytes": 9190
+        },
+        {
+          "path": "session_viewer/target/application-hydration02/captures/restored-390.session",
+          "sha256": "b680b734e5d1c0eae73d7b898cee35735d3d6d021c87364e075c0016d2364e4c",
+          "bytes": 451
+        },
+        {
+          "path": "session_viewer/target/application-hydration02/captures/saved-content.json",
+          "sha256": "e9111bfe469f76d17d3b9c1eb6e0c767363b614df3b49e5f61552993384ab726",
+          "bytes": 1146
+        }
+      ]
+    }
+  ],
+  "sheet": {
+    "scope": "Actual pointer selection, ranged side-table identity, cached header and cancelled delayed reply; synthetic two-entity fixture",
+    "cases": [
+      {
+        "width": 1280,
+        "requests": [
+          {
+            "file": "/plan.pb",
+            "start": 0,
+            "length": 178
+          },
+          {
+            "file": "/plan.pb",
+            "start": 134,
+            "length": 44
+          },
+          {
+            "file": "/plan.pb",
+            "start": 38,
+            "length": 96
+          },
+          {
+            "file": "/plan.pb",
+            "start": 136,
+            "length": 8
+          },
+          {
+            "file": "/plan.pb",
+            "start": 146,
+            "length": 8
+          },
+          {
+            "file": "/plan.pb",
+            "start": 170,
+            "length": 8
+          },
+          {
+            "file": "/plan.shm",
+            "start": 0,
+            "length": 8
+          },
+          {
+            "file": "/plan.shm",
+            "start": 8,
+            "length": 16
+          },
+          {
+            "file": "/plan.shm",
+            "start": 40,
+            "length": 79
+          },
+          {
+            "file": "/plan.shm",
+            "start": 24,
+            "length": 16
+          },
+          {
+            "file": "/plan.shm",
+            "start": 119,
+            "length": 79
+          },
+          {
+            "file": "/plan.shm",
+            "start": 24,
+            "length": 16
+          },
+          {
+            "file": "/plan.shm",
+            "start": 119,
+            "length": 79
+          }
+        ],
+        "first": {
+          "guid": "entity-0",
+          "id": 0,
+          "kind": "wall",
+          "name": "Wall A"
+        },
+        "cancelledSelection": "Object",
+        "cancelledMetadata": null,
+        "second": {
+          "guid": "entity-1",
+          "id": 1,
+          "kind": "door",
+          "name": "Door B"
+        },
+        "cameraUnchanged": true,
+        "errors": []
+      },
+      {
+        "width": 390,
+        "requests": [
+          {
+            "file": "/plan.pb",
+            "start": 0,
+            "length": 178
+          },
+          {
+            "file": "/plan.pb",
+            "start": 134,
+            "length": 44
+          },
+          {
+            "file": "/plan.pb",
+            "start": 38,
+            "length": 96
+          },
+          {
+            "file": "/plan.pb",
+            "start": 136,
+            "length": 8
+          },
+          {
+            "file": "/plan.pb",
+            "start": 146,
+            "length": 8
+          },
+          {
+            "file": "/plan.pb",
+            "start": 170,
+            "length": 8
+          },
+          {
+            "file": "/plan.shm",
+            "start": 0,
+            "length": 8
+          },
+          {
+            "file": "/plan.shm",
+            "start": 8,
+            "length": 16
+          },
+          {
+            "file": "/plan.shm",
+            "start": 40,
+            "length": 79
+          },
+          {
+            "file": "/plan.shm",
+            "start": 24,
+            "length": 16
+          },
+          {
+            "file": "/plan.shm",
+            "start": 119,
+            "length": 79
+          },
+          {
+            "file": "/plan.shm",
+            "start": 24,
+            "length": 16
+          },
+          {
+            "file": "/plan.shm",
+            "start": 119,
+            "length": 79
+          }
+        ],
+        "first": {
+          "guid": "entity-0",
+          "id": 0,
+          "kind": "wall",
+          "name": "Wall A"
+        },
+        "cancelledSelection": "Object",
+        "cancelledMetadata": null,
+        "second": {
+          "guid": "entity-1",
+          "id": 1,
+          "kind": "door",
+          "name": "Door B"
+        },
+        "cameraUnchanged": true,
+        "errors": []
+      }
+    ]
+  },
+  "hydration": {
+    "scope": "Display-only source release, failed Save hydration preserves visible rows, explicit retry restores source and downloads complete session; synthetic two-point fixture",
+    "cases": [
+      {
+        "width": 1280,
+        "reads": 3,
+        "geometries": [
+          0,
+          0,
+          2
+        ],
+        "objects": [
+          2,
+          2,
+          2
+        ],
+        "cameraUnchanged": true,
+        "errors": []
+      },
+      {
+        "width": 390,
+        "reads": 3,
+        "geometries": [
+          0,
+          0,
+          2
+        ],
+        "objects": [
+          2,
+          2,
+          2
+        ],
+        "cameraUnchanged": true,
+        "errors": []
+      }
+    ],
+    "savedContents": {
+      "passed": true,
+      "scope": "Read-only wire decode of both downloaded archives confirms original point IDs and coordinates, one document and valid metadata",
+      "files": [
+        {
+          "file": "restored-1280.session",
+          "sha256": "7086379854cbe235362b2b6300262029114ac95a60a0372bf21b314d01f9860d",
+          "bytes": 451,
+          "points": [
+            {
+              "guid": "point-0",
+              "xyz": [
+                0,
+                0,
+                0
+              ]
+            },
+            {
+              "guid": "point-1",
+              "xyz": [
+                100.0,
+                0,
+                0
+              ]
+            }
+          ],
+          "documents": 1
+        },
+        {
+          "file": "restored-390.session",
+          "sha256": "b680b734e5d1c0eae73d7b898cee35735d3d6d021c87364e075c0016d2364e4c",
+          "bytes": 451,
+          "points": [
+            {
+              "guid": "point-0",
+              "xyz": [
+                0,
+                0,
+                0
+              ]
+            },
+            {
+              "guid": "point-1",
+              "xyz": [
+                100.0,
+                0,
+                0
+              ]
+            }
+          ],
+          "documents": 1
+        }
+      ]
+    }
+  },
+  "visualReview": {
+    "originalsViewed": 12,
+    "viewports": [
+      [
+        1280,
+        800
+      ],
+      [
+        390,
+        844
+      ]
+    ],
+    "sheet": "Correct selected edge and Wall A/Door B status text. After Escape metadata is absent and selection is Object; prior edge remains yellow. Widget partly overlaps labels. No cleared-highlight or unobstructed-label claim.",
+    "hydration": "Two points remain visible across released, HTTP500 failure and successful retry. Status reports failure then saved451byte session; narrow failure text is truncated in the command field."
+  },
+  "preservedFailure": {
+    "run": "application-hydration01",
+    "exitCode": 1,
+    "assertion": "Initial requests3!=1; released geometry count assertion had passed.",
+    "diagnosis": "Cross-origin fixture did not expose Content-Range, preventing probe whole-file reuse.02 exposes Content-Range/Content-Length; request log confirms one206 probe followed by failed500 and successful200 hydration GETs, retaining original1/2/3 assertions."
+  },
+  "limitations": [
+    "Tests use synthetic two-entity/two-point fixtures and intercepted HTTPS responses.",
+    "No production Rust/WGSL behavior changes; no new device acceptance or full-course acceptance.",
+    "Sheet cancellation verifies metadata identity, not removal of the retained yellow edge.",
+    "Browser flags alone do not establish the actual hardware adapter.",
+    "All nine subject acceptances remain pending; new lesson/tooling edits need separate strict validation."
+  ]
+}

@@ -1,0 +1,189 @@
+{
+  "status": "Selected payload semantic comparison passed; original byte-exact check remains failed",
+  "scope": "Eight existing browser-saved archives: Instances/interactions byte-exact; Element fields equal except schema-declared Mesh map ordering, component non-JSON fields byte-exact and parsed decimal JSON values equal; definition fields equal after sorting only schema-declared Mesh maps (vertices, faces, default attributes and triangulation); ordinary repeated-field order remains checked. Not every archive field or a fresh browser reopen. No production changes or original-check modifications.",
+  "sourceSha256": "ca219932c6166ee4a1da9a3233bc292e4a0510d6854fa0cc89980cc378b1b1e6",
+  "records": [
+    {
+      "fixture": "course-comparison",
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "originalSha256": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5",
+      "archiveSha256": "222b8d0c29f538851d7221cf67a30e0166b752567bdec60549558f217f766450",
+      "componentDifferences": [],
+      "definitionBytesExact": true,
+      "definitionFieldsEqualAfterSchemaMapOrdering": true,
+      "instancesAndInteractionsBytesExact": true,
+      "elementsBytesExact": true
+    },
+    {
+      "fixture": "course-comparison",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "originalSha256": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5",
+      "archiveSha256": "5b203d0c0b13befd6fbfa2a3a15ec16c0470471bd0e7368a68e4981f71d43601",
+      "componentDifferences": [],
+      "definitionBytesExact": true,
+      "definitionFieldsEqualAfterSchemaMapOrdering": true,
+      "instancesAndInteractionsBytesExact": true,
+      "elementsBytesExact": true
+    },
+    {
+      "fixture": "course-metadata",
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "originalSha256": "2cfe2ad9becff37d0fcca23f71e47b1c6e674d7934327120a9233efd0c2faf55",
+      "archiveSha256": "3401f07dec7d91e400c043ed33b2b9cd2a1e7ad79da82a3d9525cc6b1bb454b3",
+      "componentDifferences": [
+        {
+          "beforeBytes": 95,
+          "afterBytes": 88,
+          "beforeJson": "{ \"origin\": [1000000000.125, 0, 0], \"custom\": true }",
+          "afterJson": "{\"custom\":true,\"origin\":[1000000000.125,0,0]}",
+          "jsonValuesEqual": true
+        }
+      ],
+      "definitionBytesExact": true,
+      "definitionFieldsEqualAfterSchemaMapOrdering": true,
+      "instancesAndInteractionsBytesExact": true,
+      "elementsBytesExact": true
+    },
+    {
+      "fixture": "course-metadata",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "originalSha256": "2cfe2ad9becff37d0fcca23f71e47b1c6e674d7934327120a9233efd0c2faf55",
+      "archiveSha256": "584f499acc96fbbc33e1fecea1dfa4aeb83558f1c781591d6cd860e0333abab2",
+      "componentDifferences": [
+        {
+          "beforeBytes": 95,
+          "afterBytes": 88,
+          "beforeJson": "{ \"origin\": [1000000000.125, 0, 0], \"custom\": true }",
+          "afterJson": "{\"custom\":true,\"origin\":[1000000000.125,0,0]}",
+          "jsonValuesEqual": true
+        }
+      ],
+      "definitionBytesExact": true,
+      "definitionFieldsEqualAfterSchemaMapOrdering": true,
+      "instancesAndInteractionsBytesExact": true,
+      "elementsBytesExact": true
+    },
+    {
+      "fixture": "course-instance-features",
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "originalSha256": "3b9a0d162728849ff09fe9b8e77b877a4565e66b77b5c73d09422f362e816500",
+      "archiveSha256": "4c459b043853ec025b4e9409227f5d79ee643e551eadf5ebfdd0245aa553d0c9",
+      "componentDifferences": [],
+      "definitionBytesExact": true,
+      "definitionFieldsEqualAfterSchemaMapOrdering": true,
+      "instancesAndInteractionsBytesExact": true,
+      "elementsBytesExact": true
+    },
+    {
+      "fixture": "course-instance-features",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "originalSha256": "3b9a0d162728849ff09fe9b8e77b877a4565e66b77b5c73d09422f362e816500",
+      "archiveSha256": "ec1fb9806a147d0a86c0831dc43ee30133b4509891e78a11944b9f8e21181fff",
+      "componentDifferences": [],
+      "definitionBytesExact": false,
+      "definitionFieldsEqualAfterSchemaMapOrdering": true,
+      "instancesAndInteractionsBytesExact": true,
+      "elementsBytesExact": true
+    },
+    {
+      "fixture": "course-feature-pick",
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "originalSha256": "e05c864d93c99b700665508eb8ddc630c637cec24b51558de97f26f05762387d",
+      "archiveSha256": "402f5f2c162ee9a3bc53b68653fa399fa636b98fdca5614c7c04e601ccb65bba",
+      "componentDifferences": [],
+      "definitionBytesExact": true,
+      "definitionFieldsEqualAfterSchemaMapOrdering": true,
+      "instancesAndInteractionsBytesExact": true,
+      "elementsBytesExact": false
+    },
+    {
+      "fixture": "course-feature-pick",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "originalSha256": "e05c864d93c99b700665508eb8ddc630c637cec24b51558de97f26f05762387d",
+      "archiveSha256": "82c60ea5535a8d2fc6c50266532caebeb42816f075ef32af4cf706ad1d5dceaa",
+      "componentDifferences": [],
+      "definitionBytesExact": true,
+      "definitionFieldsEqualAfterSchemaMapOrdering": true,
+      "instancesAndInteractionsBytesExact": true,
+      "elementsBytesExact": false
+    }
+  ],
+  "originalFailure": {
+    "status": "failed",
+    "assertion": "Byte-exact Element/component/instance/definition/interaction comparison",
+    "artifacts": [
+      {
+        "path": "session_viewer/target/application-archive01/archives.log",
+        "sha256": "31e703df030a27e24ffbd95bae5d722b10d228484ce2f2246329a0e20afa5cf2",
+        "bytes": 2784
+      },
+      {
+        "path": "session_viewer/target/application-archive01/resources.json",
+        "sha256": "777ab87909f0620ba6acaac0fb2dfd96f8bf9a4a652dd4885d1b18c4bde2e5fb",
+        "bytes": 1918
+      },
+      {
+        "path": "session_tests/scripts/course/archive-roundtrip.ts",
+        "sha256": "8d2be2e4c289a35f7f86a1a8dd7a1227334053a483543f284623fe56dc8dbdaa",
+        "bytes": 3384
+      }
+    ]
+  },
+  "reviewInputs": [
+    {
+      "path": "session_viewer/target/archive-payload-review04.py",
+      "sha256": "ca219932c6166ee4a1da9a3233bc292e4a0510d6854fa0cc89980cc378b1b1e6",
+      "bytes": 4302
+    },
+    {
+      "path": "session_proto/mesh.proto",
+      "sha256": "373636d27d41888e4506e2c71c4db96288c4ecd5c94c4c60af179e8e11922b95",
+      "bytes": 3670
+    },
+    {
+      "path": "session_proto/element.proto",
+      "sha256": "ef035066a3b36a9ea95406629cb7b79c733ab3384a39ae04b23db0adfe4078b7",
+      "bytes": 7093
+    },
+    {
+      "path": "session_proto/objects.proto",
+      "sha256": "652b1b959380d3e56949e67ee402fb9fa79683db8363b06335f6917de45d9e6f",
+      "bytes": 2075
+    },
+    {
+      "path": "session_viewer/target/application-fixtures01/captures/result.json",
+      "sha256": "45f6dfa50e5b5035fd53498294ec8ccab9daff065376c5ed666fd47854fc6b6f",
+      "bytes": 693737
+    }
+  ],
+  "limitations": [
+    "No browser rerun or production modification. Original strict byte comparator remains unchanged and failed.",
+    "The semantic comparison preserves ordinary repeated-field order and sorts only fields declared map in Mesh. Component JSON numbers use decimal parsing.",
+    "Earlier diagnostic passes stopped at raw definition and Element differences; the schema review identified unordered Mesh vertex entries.",
+    "No change to course acceptance or blanket guarantee of every archive field."
+  ]
+}

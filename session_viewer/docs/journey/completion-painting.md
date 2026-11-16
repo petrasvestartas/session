@@ -2,7 +2,7 @@
 
 Draw a pink triangle and a black `Command:` label with egui over the white GPU frame.
 
-This candidate follows [Open a GPU frame](completion-frame.md). Its partial project passes wasm typechecking and desktop/upright browser checks; complete subject acceptance remains pending.
+This runnable subject follows [Open a GPU frame](completion-frame.md). It has passed source-retention, wasm and desktop/upright browser checks in the recorded Windows Intel WebGPU environment.
 
 ## Prerequisites and ownership
 
@@ -28,7 +28,7 @@ The egui context owns layout state and font data. The painter emits shapes in lo
 
 `Painter::new` installs the repository's Noto Sans subset because this dependency configuration supplies no default fonts. It permits one layout pass per frame, matching the production setting. `draw` receives raw input, supplies the logical screen rectangle and time in seconds, then runs a closure with the root egui UI. This experiment passes empty input and uses the UI's painter; the dock subject can supply events and create widgets through the same interface. The closure returns whether animation requires another frame; a static triangle returns false.
 
-The triangle vertices are offsets from `screen.center()`. `convex_polygon` fills their interior in order. The label uses a baseline alignment near the bottom-left corner, so changing the window height moves it with the bottom edge. Both shapes use the same context and rendering pass.
+The triangle vertices are offsets from `screen.center()`. `convex_polygon` fills their interior in order. The label uses bottom-left alignment near the lower edge, so changing the window height moves it with the bottom edge. Both shapes use the same context and rendering pass.
 
 ### Upload and lifetime
 

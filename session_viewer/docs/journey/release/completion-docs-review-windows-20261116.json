@@ -1,0 +1,361 @@
+{
+  "status": "Tooling and strict-site passed; browser assertions passed with a visually reviewed narrow-table defect to fix",
+  "scope": "No subject acceptance; updated docs, six kernel motion APIs and footer at desktop/upright dimensions",
+  "parentCommit": "7584164e528e29c7e81aaef0032b50718af7e421",
+  "tooling": {
+    "passed": 22,
+    "failed": 0
+  },
+  "audit": {
+    "scope": "Active cumulative assemblies only; historical checks and teaching/runtime acceptance remain separate",
+    "checkpoints": [
+      {
+        "subject": "frame",
+        "files": 13
+      },
+      {
+        "subject": "painting",
+        "files": 15
+      },
+      {
+        "subject": "mathematics",
+        "files": 41
+      },
+      {
+        "subject": "dock",
+        "files": 45
+      },
+      {
+        "subject": "camera",
+        "files": 47
+      },
+      {
+        "subject": "rows",
+        "files": 68
+      },
+      {
+        "subject": "geometry",
+        "files": 166
+      },
+      {
+        "subject": "decoding",
+        "files": 170
+      },
+      {
+        "subject": "application",
+        "files": 369
+      }
+    ],
+    "failures": [],
+    "productionFiles": 351,
+    "missing": [],
+    "extra": [],
+    "changed": [],
+    "passed": true
+  },
+  "docsResources": {
+    "platform": "windows-job-object",
+    "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+    "laneMutex": "Local\\SessionViewerCourseImageJob",
+    "affinityOffset": 8,
+    "requiredAffinityMask": "0x300",
+    "maximumOtherLaneProcessors": 8,
+    "maximumOtherLaneMemoryMiB": 8192,
+    "maximumAggregateOurProcessors": 10,
+    "maximumAggregateOurMemoryMiB": 14336,
+    "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+    "requestedProcessors": 2,
+    "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+    "startedUtc": "2026-11-16T06:34:15.4949810Z",
+    "executable": "C:\\Program Files\\Git\\bin\\bash.exe",
+    "arguments": [
+      "C:/pc/3_code/code_rust/wood_research/wood/tools/buildslot.sh",
+      "tutorial-completion-docs30",
+      "timeout",
+      "230s",
+      "C:\\Users\\Petras\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+      "-B",
+      "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\completion-docs30.py"
+    ],
+    "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_tests",
+    "timeoutSeconds": 240,
+    "jobCommitLimitBytes": 6442450944,
+    "swapCapSupported": false,
+    "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+    "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+    "exitCode": 0,
+    "timedOut": false,
+    "elapsedSeconds": 53.498,
+    "peakJobCommitBytes": 1404624896,
+    "affinityMask": "0x300",
+    "processors": 2,
+    "processId": 38316,
+    "descendantsAtCleanup": 1
+  },
+  "browserResources": {
+    "platform": "windows-job-object",
+    "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+    "laneMutex": "Local\\SessionViewerCourseImageJob",
+    "affinityOffset": 8,
+    "requiredAffinityMask": "0x300",
+    "maximumOtherLaneProcessors": 8,
+    "maximumOtherLaneMemoryMiB": 8192,
+    "maximumAggregateOurProcessors": 10,
+    "maximumAggregateOurMemoryMiB": 14336,
+    "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+    "requestedProcessors": 2,
+    "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+    "startedUtc": "2026-11-16T06:36:27.5623294Z",
+    "executable": "C:\\Program Files\\Git\\bin\\bash.exe",
+    "arguments": [
+      "C:/pc/3_code/code_rust/wood_research/wood/tools/buildslot.sh",
+      "--run",
+      "tutorial-support-docs-browser05",
+      "timeout",
+      "370s",
+      "C:\\Users\\Petras\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+      "-B",
+      "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\support-docs-browser05.py"
+    ],
+    "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer",
+    "timeoutSeconds": 380,
+    "jobCommitLimitBytes": 6442450944,
+    "swapCapSupported": false,
+    "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+    "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+    "exitCode": 0,
+    "timedOut": false,
+    "elapsedSeconds": 6.794,
+    "peakJobCommitBytes": 529793024,
+    "affinityMask": "0x300",
+    "processors": 2,
+    "processId": 28892,
+    "descendantsAtCleanup": 1
+  },
+  "browser": {
+    "passed": true,
+    "scope": "Final source teaching documentation rendering and footer; no runtime or complete source-delivery acceptance",
+    "records": [
+      {
+        "slug": "completion-loading",
+        "heading": "Run and observe",
+        "width": 1280,
+        "file": "completion-loading-run-and-observe-1280.png",
+        "footer": "Docs built 2026-11-16 06:34:21 UTC"
+      },
+      {
+        "slug": "completion-streaming",
+        "heading": "Run and observe",
+        "width": 1280,
+        "file": "completion-streaming-run-and-observe-1280.png",
+        "footer": "Docs built 2026-11-16 06:34:21 UTC"
+      },
+      {
+        "slug": "completion-documents",
+        "heading": "Save authoritative documents and scene metadata",
+        "width": 1280,
+        "file": "completion-documents-save-authoritative-documents-and-scene-metadata-1280.png",
+        "footer": "Docs built 2026-11-16 06:34:21 UTC"
+      },
+      {
+        "slug": "completion-mathematics",
+        "heading": "Kernel motion values",
+        "width": 1280,
+        "file": "completion-mathematics-kernel-motion-values-1280.png",
+        "footer": "Docs built 2026-11-16 06:34:21 UTC"
+      },
+      {
+        "slug": "completion-loading",
+        "heading": "Run and observe",
+        "width": 390,
+        "file": "completion-loading-run-and-observe-390.png",
+        "footer": "Docs built 2026-11-16 06:34:21 UTC"
+      },
+      {
+        "slug": "completion-streaming",
+        "heading": "Run and observe",
+        "width": 390,
+        "file": "completion-streaming-run-and-observe-390.png",
+        "footer": "Docs built 2026-11-16 06:34:21 UTC"
+      },
+      {
+        "slug": "completion-documents",
+        "heading": "Save authoritative documents and scene metadata",
+        "width": 390,
+        "file": "completion-documents-save-authoritative-documents-and-scene-metadata-390.png",
+        "footer": "Docs built 2026-11-16 06:34:21 UTC"
+      },
+      {
+        "slug": "completion-mathematics",
+        "heading": "Kernel motion values",
+        "width": 390,
+        "file": "completion-mathematics-kernel-motion-values-390.png",
+        "footer": "Docs built 2026-11-16 06:34:21 UTC"
+      }
+    ],
+    "navigation": [
+      {
+        "width": 1280,
+        "to": "completion-modeling"
+      },
+      {
+        "width": 1280,
+        "to": "completion-loading"
+      },
+      {
+        "width": 390,
+        "to": "completion-modeling"
+      },
+      {
+        "width": 390,
+        "to": "completion-loading"
+      }
+    ],
+    "errors": []
+  },
+  "visualReview": {
+    "originalImagesViewed": 8,
+    "findings": [
+      "Loading retry and archive encoding explanations readable at both widths.",
+      "Kernel table names wrap into very short fragments, especially at390; replace with prose and recheck.",
+      "Streaming new sheet paragraph lies below initial heading capture; target its own paragraph next."
+    ],
+    "footer": "2026-11-16T06:34:21Z"
+  },
+  "artifacts": [
+    {
+      "path": "target/completion-docs30/active-audit.log",
+      "sha256": "dc13e08fa0696c49d90e01721cfc979a1b33c67f1012831ee6c088e3acdf6d43",
+      "bytes": 788
+    },
+    {
+      "path": "target/completion-docs30/baseline-review.json",
+      "sha256": "676be405850b0e00f643a8dc52448b47a64abd8e748210d23753d5b2b66cadbd",
+      "bytes": 4813
+    },
+    {
+      "path": "target/completion-docs30/command.json",
+      "sha256": "552dd2402f60d933024010dbe06b64f95415154f00c690c6381746869d6d7e34",
+      "bytes": 406
+    },
+    {
+      "path": "target/completion-docs30/delivery.json",
+      "sha256": "5400fd4eb8cfef80023f55b5de0a232232acaef35817bc02c4a7ea131329b4f2",
+      "bytes": 210
+    },
+    {
+      "path": "target/completion-docs30/dispatch.ps1",
+      "sha256": "4ccdadc315134c4487ce608bf7bfd058f73252218175ce3740855bf1dfeae57b",
+      "bytes": 665
+    },
+    {
+      "path": "target/completion-docs30/new-native-aliases.json",
+      "sha256": "d56dcfa9400f0dac875ff5b814c54a53ea1d09af05c542a18e491f478c10409a",
+      "bytes": 565
+    },
+    {
+      "path": "target/completion-docs30/pin-review.json",
+      "sha256": "515b007e8c8841eface0d0ba554ee8530551e533a814ba48bf6315a4d345c140",
+      "bytes": 3920
+    },
+    {
+      "path": "target/completion-docs30/plan.json",
+      "sha256": "9f84497bcb256107b48114c83a43a9c02b7fc3dff7ec2e7094eaf52d139e25f5",
+      "bytes": 1421614
+    },
+    {
+      "path": "target/completion-docs30/resources.json",
+      "sha256": "61c2e7572796070b2a26e0ce92bcf8600cff0644df9b23408731c4840c63ac2a",
+      "bytes": 1881
+    },
+    {
+      "path": "target/completion-docs30/result.json",
+      "sha256": "08e4dbf0772110bfc41cea300bed7a822e49e88e5b08dd1f6c0d7b9419a64963",
+      "bytes": 474
+    },
+    {
+      "path": "target/completion-docs30/strict-site.log",
+      "sha256": "24bb05e10bebb77e731f5822c12a7fa8d2213326496be01b36f7aa118f17ad38",
+      "bytes": 485975
+    },
+    {
+      "path": "target/completion-docs30/teaching-tests.log",
+      "sha256": "f8c4d7e4c83ae9450a19d7ace2821ee554b974b370b4fa5a8ece9d21c628a4df",
+      "bytes": 2199
+    },
+    {
+      "path": "target/support-docs-browser05-job/capture.cjs",
+      "sha256": "481f06492093825348c4fc787bac463571368b96233d7f79ea6dae872caa481d",
+      "bytes": 4083
+    },
+    {
+      "path": "target/support-docs-browser05-job/command.json",
+      "sha256": "d7cc86e481e9421f0ae14880ed7559bbb05347b20d7032ca9af0bd62b49fa7ed",
+      "bytes": 428
+    },
+    {
+      "path": "target/support-docs-browser05-job/dispatch.ps1",
+      "sha256": "4dc12723667cc9288600ed2279e7973cb3b62b18241cf0e6d09980cd00d6af97",
+      "bytes": 678
+    },
+    {
+      "path": "target/support-docs-browser05-job/pins.json",
+      "sha256": "5cd9bd2d25cca34dd3db5abe02b228ca1eae755966617fb1ed253deb55fec459",
+      "bytes": 425
+    },
+    {
+      "path": "target/support-docs-browser05-job/resources.json",
+      "sha256": "abfdf21d657f396c7c8fe7da5c1156babc3356220302e24401196f7193d82716",
+      "bytes": 1922
+    },
+    {
+      "path": "target/support-docs-browser05/completion-documents-save-authoritative-documents-and-scene-metadata-1280.png",
+      "sha256": "d23e46fc92d8571befbdacfdb8c73a1d95ae32bc6678462cf28b16ccb369deff",
+      "bytes": 156803
+    },
+    {
+      "path": "target/support-docs-browser05/completion-documents-save-authoritative-documents-and-scene-metadata-390.png",
+      "sha256": "71839d80600f4417d64ec12de6ef16567d0fe78235a51698aa207ae0d4fe294d",
+      "bytes": 45563
+    },
+    {
+      "path": "target/support-docs-browser05/completion-loading-run-and-observe-1280.png",
+      "sha256": "0a4dbfc0dc40da3d0b34349970d0b97656e54cbb0d121d08062168a4c9700e04",
+      "bytes": 128646
+    },
+    {
+      "path": "target/support-docs-browser05/completion-loading-run-and-observe-390.png",
+      "sha256": "effebee9367defc51fdcc40f4a06f5eca4d07f6627d03fae1224030447d726e9",
+      "bytes": 46197
+    },
+    {
+      "path": "target/support-docs-browser05/completion-mathematics-kernel-motion-values-1280.png",
+      "sha256": "a4dd9fe3e9d7ba600ef87f32f6d6aa20d9451531c23b13cc46c2628c3df4e6e6",
+      "bytes": 126444
+    },
+    {
+      "path": "target/support-docs-browser05/completion-mathematics-kernel-motion-values-390.png",
+      "sha256": "100d2bd4ecd94de201d5043228ad440d08ca74f503b2b59e82b83cba82b23a33",
+      "bytes": 39810
+    },
+    {
+      "path": "target/support-docs-browser05/completion-streaming-run-and-observe-1280.png",
+      "sha256": "a7ac442bf11affceb45c6414ed6a2f9df050ce1ffceff46c13e286fa33fcba8d",
+      "bytes": 149977
+    },
+    {
+      "path": "target/support-docs-browser05/completion-streaming-run-and-observe-390.png",
+      "sha256": "d9f00801418abf794e0c5126feed2eef6b13a8a8fda32250a9da8eded524e214",
+      "bytes": 49094
+    },
+    {
+      "path": "target/support-docs-browser05/result.json",
+      "sha256": "769a2ed855197f011a5c912af7e933a89740ff6af12cf49f533fef15357207ed",
+      "bytes": 2399
+    }
+  ],
+  "limitations": [
+    "Upright viewport is not a physical phone.",
+    "This receipt retains the table defect and is not acceptance of its replacement."
+  ]
+}

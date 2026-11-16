@@ -1,0 +1,146 @@
+{
+  "recordedUtc": "2026-11-16T06:38:37.065994+00:00",
+  "status": "ROOT_SCOPED_CONTRACT_REVIEW_PASSED_FINAL_ACCEPTANCE_BINDING_PENDING",
+  "reviewer": "Root",
+  "subjects": [
+    {
+      "subject": "frame",
+      "decision": "SCOPED_CONTRACT_REVIEW_PASSED",
+      "files": {
+        "src/engine/gpu/device.rs": "ced1cff229cd47c5cc3de6d7713b7049ce2181cac444226bd27053b397774a20",
+        "src/app/launch.rs": "f1bdd451838790b61b9a52ea2aaa3097bf7f68b5721fd7d7ca633ca3c915b5c9",
+        "examples/course/canvas.rs": "9c542080ed079fa6734fa0d81a5991fdb6cb7e443f2b5324638ab11456311b63",
+        "examples/course/frame.rs": "916fb538f088d1d28783559a7955f463c7b2650ac2d7d0184eeec12158aae787",
+        "examples/course/entry.rs": "f57ce9f8b4ded8cee3b213c075e031cce236988de352b7f9d0c87cba9ffb1b6d",
+        "src/lib.rs": "6d0483a7c6e133a0fa82c379b049ae00e232614c1d1c983fdc03f0eff716b550",
+        "src/engine/mod.rs": "d85682a3e4d80e225660f76129d3b93dfa99f6c953f2b4b1470d253c702e99e2",
+        "src/app/mod.rs": "8b2adac19d2cd5324dc3295627f9f251009fb7f7179dd909b6f203af45b2a33a",
+        "src/engine/gpu/mod.rs": "31f18b3b6e4f866d29edd4c66b4e6e0963eef83f27127b27e2916ee44ded77a3",
+        "examples/course/registration.rs": "a350dac87afc3fe0c79c1e586849039b236c01246082d235a688c01b3a0bf8a4",
+        "Cargo.toml": "f8527c5e3d3b1323e50dcf25f1f77886975312711ded0549e4b9999b6752f139",
+        "Cargo.lock": "759436e009af2c748678dd0e3c0e5a36848c95c0782e986804bdea72ffb65f93",
+        "index.html": "95892b097daa427fc43bd3da6352de1e199b7f526ed55bd41787eb16e734970c"
+      },
+      "checkedMaterializedFiles": {
+        "src/engine/gpu/device.rs": "ced1cff229cd47c5cc3de6d7713b7049ce2181cac444226bd27053b397774a20",
+        "src/app/launch.rs": "f1bdd451838790b61b9a52ea2aaa3097bf7f68b5721fd7d7ca633ca3c915b5c9",
+        "examples/course/canvas.rs": "9c542080ed079fa6734fa0d81a5991fdb6cb7e443f2b5324638ab11456311b63",
+        "examples/course/frame.rs": "916fb538f088d1d28783559a7955f463c7b2650ac2d7d0184eeec12158aae787",
+        "examples/course/entry.rs": "f57ce9f8b4ded8cee3b213c075e031cce236988de352b7f9d0c87cba9ffb1b6d",
+        "src/lib.rs": "6d0483a7c6e133a0fa82c379b049ae00e232614c1d1c983fdc03f0eff716b550",
+        "src/engine/mod.rs": "d85682a3e4d80e225660f76129d3b93dfa99f6c953f2b4b1470d253c702e99e2",
+        "src/app/mod.rs": "8b2adac19d2cd5324dc3295627f9f251009fb7f7179dd909b6f203af45b2a33a",
+        "src/engine/gpu/mod.rs": "31f18b3b6e4f866d29edd4c66b4e6e0963eef83f27127b27e2916ee44ded77a3",
+        "examples/course/registration.rs": "a350dac87afc3fe0c79c1e586849039b236c01246082d235a688c01b3a0bf8a4",
+        "Cargo.toml": "287a9a61f68da6e418d68da427cf3611e66dc9f39d345d567fc2b57f16422072",
+        "Cargo.lock": "759436e009af2c748678dd0e3c0e5a36848c95c0782e986804bdea72ffb65f93",
+        "index.html": "95892b097daa427fc43bd3da6352de1e199b7f526ed55bd41787eb16e734970c"
+      },
+      "lesson": {
+        "path": "journey/completion-frame.md",
+        "sha256": "ccd69e41f36308be326381607facefbe39848633b108c2983ab1f0d3bf204e8d"
+      },
+      "goal": "A successfully presented white GPU canvas survives resize.",
+      "humanTeachingReview": "Full lesson read: prerequisites, owned files and namespace/registration boundary, dependency lock, CSS/DPR sizing, asynchronous event proxy and ownership, device/queue/record-submit-present, runnable comparison, prediction and answer.",
+      "applicableEvidence": "Independent locked wasm project check; three cumulative retention/source/entry tests; actual Chrome157 IntelGen12LP startup/presentation/white pixels/backing-size+resize at1280x800 and390x844.",
+      "limits": [
+        "Native first-error retention passed; GPU-required fatal-shader test remains ignored, not a pass.",
+        "Upright browser viewport is not a physical phone; no blanket phone gate is imposed on this scoped contract.",
+        "No prolonged texture-churn, external-driver loss, remaining seven subjects or whole-course acceptance inferred."
+      ]
+    },
+    {
+      "subject": "painting",
+      "decision": "SCOPED_CONTRACT_REVIEW_PASSED",
+      "files": {
+        "src/engine/gpu/device.rs": "ced1cff229cd47c5cc3de6d7713b7049ce2181cac444226bd27053b397774a20",
+        "src/app/launch.rs": "f1bdd451838790b61b9a52ea2aaa3097bf7f68b5721fd7d7ca633ca3c915b5c9",
+        "examples/course/canvas.rs": "9c542080ed079fa6734fa0d81a5991fdb6cb7e443f2b5324638ab11456311b63",
+        "examples/course/frame.rs": "916fb538f088d1d28783559a7955f463c7b2650ac2d7d0184eeec12158aae787",
+        "examples/course/entry.rs": "f57ce9f8b4ded8cee3b213c075e031cce236988de352b7f9d0c87cba9ffb1b6d",
+        "src/lib.rs": "6d0483a7c6e133a0fa82c379b049ae00e232614c1d1c983fdc03f0eff716b550",
+        "src/engine/mod.rs": "d85682a3e4d80e225660f76129d3b93dfa99f6c953f2b4b1470d253c702e99e2",
+        "src/app/mod.rs": "8b2adac19d2cd5324dc3295627f9f251009fb7f7179dd909b6f203af45b2a33a",
+        "src/engine/gpu/mod.rs": "42031767e9491cc27bf7fe65137ecc9d82b7a3a48b158ad36d51c34c6b5796bc",
+        "examples/course/registration.rs": "17e8b7c927e05a406a2caa72c5b1e049056e5b7195fad74af2b4ecc2b3967b72",
+        "src/engine/gpu/ui.rs": "bcd2014f8a5c3cefae45889453d46c4d8080fe3885e2d2edaad1b294696907b2",
+        "examples/course/painting.rs": "d57c027f79370d3acce115da2b43aca2511c72421b4cd7f3cfb21c6a299749eb",
+        "Cargo.toml": "f8527c5e3d3b1323e50dcf25f1f77886975312711ded0549e4b9999b6752f139",
+        "Cargo.lock": "759436e009af2c748678dd0e3c0e5a36848c95c0782e986804bdea72ffb65f93",
+        "index.html": "95892b097daa427fc43bd3da6352de1e199b7f526ed55bd41787eb16e734970c"
+      },
+      "checkedMaterializedFiles": {
+        "src/engine/gpu/device.rs": "ced1cff229cd47c5cc3de6d7713b7049ce2181cac444226bd27053b397774a20",
+        "src/app/launch.rs": "f1bdd451838790b61b9a52ea2aaa3097bf7f68b5721fd7d7ca633ca3c915b5c9",
+        "examples/course/canvas.rs": "9c542080ed079fa6734fa0d81a5991fdb6cb7e443f2b5324638ab11456311b63",
+        "examples/course/frame.rs": "916fb538f088d1d28783559a7955f463c7b2650ac2d7d0184eeec12158aae787",
+        "examples/course/entry.rs": "f57ce9f8b4ded8cee3b213c075e031cce236988de352b7f9d0c87cba9ffb1b6d",
+        "src/lib.rs": "6d0483a7c6e133a0fa82c379b049ae00e232614c1d1c983fdc03f0eff716b550",
+        "src/engine/mod.rs": "d85682a3e4d80e225660f76129d3b93dfa99f6c953f2b4b1470d253c702e99e2",
+        "src/app/mod.rs": "8b2adac19d2cd5324dc3295627f9f251009fb7f7179dd909b6f203af45b2a33a",
+        "src/engine/gpu/mod.rs": "42031767e9491cc27bf7fe65137ecc9d82b7a3a48b158ad36d51c34c6b5796bc",
+        "examples/course/registration.rs": "17e8b7c927e05a406a2caa72c5b1e049056e5b7195fad74af2b4ecc2b3967b72",
+        "src/engine/gpu/ui.rs": "bcd2014f8a5c3cefae45889453d46c4d8080fe3885e2d2edaad1b294696907b2",
+        "examples/course/painting.rs": "d57c027f79370d3acce115da2b43aca2511c72421b4cd7f3cfb21c6a299749eb",
+        "Cargo.toml": "287a9a61f68da6e418d68da427cf3611e66dc9f39d345d567fc2b57f16422072",
+        "Cargo.lock": "759436e009af2c748678dd0e3c0e5a36848c95c0782e986804bdea72ffb65f93",
+        "index.html": "95892b097daa427fc43bd3da6352de1e199b7f526ed55bd41787eb16e734970c"
+      },
+      "lesson": {
+        "path": "journey/completion-painting.md",
+        "sha256": "137ad516bb7bd470f9b9e12c8708cbe3c437d7af7b8691092e1c2dfcc9d82207"
+      },
+      "goal": "Pink centered triangle and readable Command label compose over the retained white frame.",
+      "humanTeachingReview": "Full lesson and production painter read: retained frame/device/source, logical points versus pixels, explicit font and context, texture retirement and queue order, Load/Store composition, runnable comparison, prediction and answer.",
+      "applicableEvidence": "Independent locked wasm project check and cumulative retention/source tests; actual Chrome157 IntelGen12LP pink triangle+Command label/white composite at desktop and upright widths; retained frame entry still exercised.",
+      "limits": [
+        "Native first-error retention passed; GPU-required fatal-shader test remains ignored, not a pass.",
+        "Upright browser viewport is not a physical phone; no blanket phone gate is imposed on this scoped contract.",
+        "No prolonged texture-churn, external-driver loss, remaining seven subjects or whole-course acceptance inferred."
+      ]
+    }
+  ],
+  "sourceBinding": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\frame-painting-current-source-binding-probe.json",
+    "sha256": "39d890c12f910ba4cc96c77e49b796829097949d42786707ef2b5af4832de8f7",
+    "scope": "All13/15 current generated project files match independently checked partial08 materializations; Cargo kernel path uses existing materializedContent relocation, not an implementation exception."
+  },
+  "priorRootOriginalPixelReview": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\completion-browser11-native01-original-pixel-root-review.json",
+    "sha256": "354520f8ee4d06858e4b9b5a352bb5d04badf38d93755ed8beb527ecf9982cd3",
+    "reusedPriorPersonallyViewedPixels": true,
+    "newCaptureClaimed": false
+  },
+  "supportTeachingRootReview": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\7584164-17path-support-runtime-original-root-review.json",
+    "sha256": "74dffbb6495fd9480f79b8a9bf2b350e5e7db70d3d16ab74c197406ac59fd88e"
+  },
+  "evidence": [
+    {
+      "path": "journey/release/completion-partials-windows-20261115.json",
+      "sha256": "3666528e02605961c80fbb6254d330a07a330ed3ff944c38b42c46198c9098da",
+      "workingRawSha256": "26371baeb92c9eb21cb68d9b2e5f702b27e68dba8114b7dad88bf4279530f202"
+    },
+    {
+      "path": "journey/release/completion-support-teaching-windows-20261116.json",
+      "sha256": "ebed14ba3989ecea99d2f2a751d38f1fcaee99256e225d6f9dfa1bc1d3766a12",
+      "workingRawSha256": "ad7c81562f8e2262496fabc31f3a49e25ab16c41596bf8ab12b89a054ef37dfd"
+    }
+  ],
+  "docs30": {
+    "processId": 38316,
+    "exitCode": 0,
+    "elapsedSeconds": 53.498,
+    "tests": 22,
+    "strictSite": true,
+    "activeAudit": true
+  },
+  "finalBindingRequirements": [
+    "Prepare scoped accepted introduction wording after current guarded docs capture is terminal; keep reviewed implementations unchanged.",
+    "Bind each final subject receipt to its complete template file map, final lesson digest and immutable supporting evidence.",
+    "Root must inspect the small final lesson/receipt delta before the active manifest changes; then execute fresh acceptance-audit/strict validation.",
+    "Pending manifest and zero accepted count remain accurate until that formal record is applied."
+  ],
+  "independentGoals": "Archived Native figure regeneration remains a separate user obligation; it does not block the current first-two subject contracts. Current subjects do not accept remaining historical figures, canonical suites or final whole-site QA.",
+  "fullGoalComplete": false
+}

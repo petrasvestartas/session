@@ -2,7 +2,7 @@
 
 Draw a white browser canvas with the production device setup and a small executable frame experiment.
 
-This is a candidate replacement subject. Its partial project passes wasm checks and the four-candidate bundle passes browser interaction checks; full subject acceptance remains pending.
+This runnable subject has passed source-retention, wasm and desktop/upright browser checks. Its acceptance is scoped to the recorded Windows Intel WebGPU environment; the remaining course is still being completed.
 
 ## Prerequisites and ownership
 

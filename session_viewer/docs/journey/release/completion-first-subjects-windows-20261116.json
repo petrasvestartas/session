@@ -1,0 +1,497 @@
+{
+  "status": "First two subjects accepted within reviewed scope; course incomplete",
+  "changes": [
+    "Accept frame and painting with exact source/lesson/evidence hashes and prerequisite checks.",
+    "Teach verified sheet/hydration and current archive encoding; preserve original byte failure.",
+    "Correct dock focus and render six kernel motion explanations legibly on narrow screens."
+  ],
+  "accepted": [
+    "frame",
+    "painting"
+  ],
+  "pending": [
+    "mathematics",
+    "dock",
+    "camera",
+    "rows",
+    "geometry",
+    "decoding",
+    "application"
+  ],
+  "tooling": {
+    "passed": 22,
+    "failed": 0
+  },
+  "activeAudit": {
+    "scope": "Active cumulative assemblies only; historical checks and teaching/runtime acceptance remain separate",
+    "checkpoints": [
+      {
+        "subject": "frame",
+        "files": 13
+      },
+      {
+        "subject": "painting",
+        "files": 15
+      },
+      {
+        "subject": "mathematics",
+        "files": 41
+      },
+      {
+        "subject": "dock",
+        "files": 45
+      },
+      {
+        "subject": "camera",
+        "files": 47
+      },
+      {
+        "subject": "rows",
+        "files": 68
+      },
+      {
+        "subject": "geometry",
+        "files": 166
+      },
+      {
+        "subject": "decoding",
+        "files": 170
+      },
+      {
+        "subject": "application",
+        "files": 369
+      }
+    ],
+    "failures": [],
+    "productionFiles": 351,
+    "missing": [],
+    "extra": [],
+    "changed": [],
+    "passed": true
+  },
+  "docsResources": {
+    "platform": "windows-job-object",
+    "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+    "laneMutex": "Local\\SessionViewerCourseImageJob",
+    "affinityOffset": 8,
+    "requiredAffinityMask": "0x300",
+    "maximumOtherLaneProcessors": 8,
+    "maximumOtherLaneMemoryMiB": 8192,
+    "maximumAggregateOurProcessors": 10,
+    "maximumAggregateOurMemoryMiB": 14336,
+    "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+    "requestedProcessors": 2,
+    "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+    "startedUtc": "2026-11-16T06:42:39.5075571Z",
+    "executable": "C:\\Program Files\\Git\\bin\\bash.exe",
+    "arguments": [
+      "C:/pc/3_code/code_rust/wood_research/wood/tools/buildslot.sh",
+      "tutorial-completion-docs31",
+      "timeout",
+      "230s",
+      "C:\\Users\\Petras\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+      "-B",
+      "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\completion-docs31.py"
+    ],
+    "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_tests",
+    "timeoutSeconds": 240,
+    "jobCommitLimitBytes": 6442450944,
+    "swapCapSupported": false,
+    "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+    "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+    "exitCode": 0,
+    "timedOut": false,
+    "elapsedSeconds": 50.586,
+    "peakJobCommitBytes": 1365458944,
+    "affinityMask": "0x300",
+    "processors": 2,
+    "processId": 38212,
+    "descendantsAtCleanup": 1
+  },
+  "browserResources": {
+    "platform": "windows-job-object",
+    "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+    "laneMutex": "Local\\SessionViewerCourseImageJob",
+    "affinityOffset": 8,
+    "requiredAffinityMask": "0x300",
+    "maximumOtherLaneProcessors": 8,
+    "maximumOtherLaneMemoryMiB": 8192,
+    "maximumAggregateOurProcessors": 10,
+    "maximumAggregateOurMemoryMiB": 14336,
+    "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+    "requestedProcessors": 2,
+    "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+    "startedUtc": "2026-11-16T06:45:08.0532288Z",
+    "executable": "C:\\Program Files\\Git\\bin\\bash.exe",
+    "arguments": [
+      "C:/pc/3_code/code_rust/wood_research/wood/tools/buildslot.sh",
+      "--run",
+      "tutorial-support-docs-browser06",
+      "timeout",
+      "370s",
+      "C:\\Users\\Petras\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+      "-B",
+      "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\support-docs-browser06.py"
+    ],
+    "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer",
+    "timeoutSeconds": 380,
+    "jobCommitLimitBytes": 6442450944,
+    "swapCapSupported": false,
+    "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+    "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+    "exitCode": 0,
+    "timedOut": false,
+    "elapsedSeconds": 7.095,
+    "peakJobCommitBytes": 521248768,
+    "affinityMask": "0x300",
+    "processors": 2,
+    "processId": 9176,
+    "descendantsAtCleanup": 1
+  },
+  "browser": {
+    "passed": true,
+    "scope": "Final source teaching documentation rendering and footer; no runtime or complete source-delivery acceptance",
+    "records": [
+      {
+        "slug": "completion-frame",
+        "heading": "Open a GPU frame",
+        "expected": "recorded Windows Intel WebGPU",
+        "width": 1280,
+        "file": "completion-frame-recorded-windows-intel-webgpu-1280.png",
+        "footer": "Docs built 2026-11-16 06:42:44 UTC"
+      },
+      {
+        "slug": "completion-painting",
+        "heading": "Paint shapes and text",
+        "expected": "recorded Windows Intel WebGPU",
+        "width": 1280,
+        "file": "completion-painting-recorded-windows-intel-webgpu-1280.png",
+        "footer": "Docs built 2026-11-16 06:42:44 UTC"
+      },
+      {
+        "slug": "completion-dock",
+        "heading": "Focus, completion and cancellation",
+        "expected": "command_open",
+        "width": 1280,
+        "file": "completion-dock-command-open-1280.png",
+        "footer": "Docs built 2026-11-16 06:42:44 UTC"
+      },
+      {
+        "slug": "completion-streaming",
+        "heading": "Run and observe",
+        "expected": "node tests/sheet-metadata.cjs",
+        "width": 1280,
+        "file": "completion-streaming-node-tests-sheet-metadata-cjs-1280.png",
+        "footer": "Docs built 2026-11-16 06:42:44 UTC"
+      },
+      {
+        "slug": "completion-mathematics",
+        "heading": "Kernel motion values",
+        "expected": "Vector::lerp",
+        "width": 1280,
+        "file": "completion-mathematics-vector-lerp-1280.png",
+        "footer": "Docs built 2026-11-16 06:42:44 UTC"
+      },
+      {
+        "slug": "completion-mathematics",
+        "heading": "Kernel motion values",
+        "expected": "Line::lerp",
+        "width": 1280,
+        "file": "completion-mathematics-line-lerp-1280.png",
+        "footer": "Docs built 2026-11-16 06:42:44 UTC"
+      },
+      {
+        "slug": "completion-mathematics",
+        "heading": "Kernel motion values",
+        "expected": "Polyline::morph",
+        "width": 1280,
+        "file": "completion-mathematics-polyline-morph-1280.png",
+        "footer": "Docs built 2026-11-16 06:42:44 UTC"
+      },
+      {
+        "slug": "completion-frame",
+        "heading": "Open a GPU frame",
+        "expected": "recorded Windows Intel WebGPU",
+        "width": 390,
+        "file": "completion-frame-recorded-windows-intel-webgpu-390.png",
+        "footer": "Docs built 2026-11-16 06:42:44 UTC"
+      },
+      {
+        "slug": "completion-painting",
+        "heading": "Paint shapes and text",
+        "expected": "recorded Windows Intel WebGPU",
+        "width": 390,
+        "file": "completion-painting-recorded-windows-intel-webgpu-390.png",
+        "footer": "Docs built 2026-11-16 06:42:44 UTC"
+      },
+      {
+        "slug": "completion-dock",
+        "heading": "Focus, completion and cancellation",
+        "expected": "command_open",
+        "width": 390,
+        "file": "completion-dock-command-open-390.png",
+        "footer": "Docs built 2026-11-16 06:42:44 UTC"
+      },
+      {
+        "slug": "completion-streaming",
+        "heading": "Run and observe",
+        "expected": "node tests/sheet-metadata.cjs",
+        "width": 390,
+        "file": "completion-streaming-node-tests-sheet-metadata-cjs-390.png",
+        "footer": "Docs built 2026-11-16 06:42:44 UTC"
+      },
+      {
+        "slug": "completion-mathematics",
+        "heading": "Kernel motion values",
+        "expected": "Vector::lerp",
+        "width": 390,
+        "file": "completion-mathematics-vector-lerp-390.png",
+        "footer": "Docs built 2026-11-16 06:42:44 UTC"
+      },
+      {
+        "slug": "completion-mathematics",
+        "heading": "Kernel motion values",
+        "expected": "Line::lerp",
+        "width": 390,
+        "file": "completion-mathematics-line-lerp-390.png",
+        "footer": "Docs built 2026-11-16 06:42:44 UTC"
+      },
+      {
+        "slug": "completion-mathematics",
+        "heading": "Kernel motion values",
+        "expected": "Polyline::morph",
+        "width": 390,
+        "file": "completion-mathematics-polyline-morph-390.png",
+        "footer": "Docs built 2026-11-16 06:42:44 UTC"
+      }
+    ],
+    "navigation": [
+      {
+        "width": 1280,
+        "to": "completion-modeling"
+      },
+      {
+        "width": 1280,
+        "to": "completion-loading"
+      },
+      {
+        "width": 390,
+        "to": "completion-modeling"
+      },
+      {
+        "width": 390,
+        "to": "completion-loading"
+      }
+    ],
+    "errors": []
+  },
+  "visualReview": {
+    "originalImagesViewed": 14,
+    "result": "First2 intros, actual sheet paragraph, corrected focus and all6 kernel API explanations readable at1280/390. Fresh footer present throughout.",
+    "footer": "2026-11-16T06:42:44Z"
+  },
+  "artifacts": [
+    {
+      "path": "target/completion-docs31/active-audit.log",
+      "sha256": "dc13e08fa0696c49d90e01721cfc979a1b33c67f1012831ee6c088e3acdf6d43",
+      "bytes": 788
+    },
+    {
+      "path": "target/completion-docs31/command.json",
+      "sha256": "977c3a1eb41132096a56296adb7efb6433a09b98c7e254492ef4e225a7d671e3",
+      "bytes": 406
+    },
+    {
+      "path": "target/completion-docs31/delivery.json",
+      "sha256": "21da1db48f132254279b0fc9ce90895fd461d576b844f679b159a7b6e984ac35",
+      "bytes": 210
+    },
+    {
+      "path": "target/completion-docs31/dispatch.ps1",
+      "sha256": "e0186c43d40b4f754dc7ba25b595959b340de1c84400118170efe6b0faf2f341",
+      "bytes": 665
+    },
+    {
+      "path": "target/completion-docs31/plan.json",
+      "sha256": "616e684e6f6f44e2303422dc8a956d5142480f2440b4400a9a7131ff7f1903d0",
+      "bytes": 1422586
+    },
+    {
+      "path": "target/completion-docs31/resources.json",
+      "sha256": "f85ff1d76d66482950450d47005a8e3d21bee7602eb73033d4dd8e6d1cdb5e7f",
+      "bytes": 1881
+    },
+    {
+      "path": "target/completion-docs31/result.json",
+      "sha256": "acc328bde18727c3d9ea4b55fcd4ebd85a715e86c9ad63fe64ec91e95915cdd3",
+      "bytes": 454
+    },
+    {
+      "path": "target/completion-docs31/source-review.json",
+      "sha256": "58a697b9ecbbdefb97c5ac971028ac3607a882a85523a713c5f58a7703d8c8b9",
+      "bytes": 2265
+    },
+    {
+      "path": "target/completion-docs31/strict-site.log",
+      "sha256": "506d3a1aff7fcb17f1a0ccfd5a6fe40251d5ff543fc3b10db6dac22d7a96554b",
+      "bytes": 485975
+    },
+    {
+      "path": "target/completion-docs31/teaching-tests.log",
+      "sha256": "ee43f2f31392b730f05255409b42e7c639f45e6886ced50ec1e49ce0ed3308d3",
+      "bytes": 2203
+    },
+    {
+      "path": "target/support-docs-browser06-job/capture.cjs",
+      "sha256": "28f26720020c8a13f70812904a19b538f5d16480a5ed55d46d04abe69b770bc7",
+      "bytes": 4456
+    },
+    {
+      "path": "target/support-docs-browser06-job/command.json",
+      "sha256": "4e9d661ca9fb8832de3ec657891a664d2510ee8891850981047553082468bc1a",
+      "bytes": 428
+    },
+    {
+      "path": "target/support-docs-browser06-job/dispatch.ps1",
+      "sha256": "6edb23fc0c6bd09b8ba0d2b8bfb91a2e91546fedfcdc20557fdf1770d7da6d93",
+      "bytes": 678
+    },
+    {
+      "path": "target/support-docs-browser06-job/pins.json",
+      "sha256": "152234cc9acd302ef4359fa98759fddce87ca6fb2ada5d8a7ba4ce0ef82980db",
+      "bytes": 425
+    },
+    {
+      "path": "target/support-docs-browser06-job/resources.json",
+      "sha256": "7571d931f463875de3d35eed6dce23f570ba42bdb297320091f622c26925be49",
+      "bytes": 1921
+    },
+    {
+      "path": "target/support-docs-browser06/completion-dock-command-open-1280.png",
+      "sha256": "c07e0f789476794cb87387fcedc67cab194b5ab734a9928938a79c3f4a9087ce",
+      "bytes": 122692
+    },
+    {
+      "path": "target/support-docs-browser06/completion-dock-command-open-390.png",
+      "sha256": "503d7ce8af3ae1d1cf1982d9f10bec194e92b4545ad3bcf5300b479f9c7d8a1a",
+      "bytes": 46288
+    },
+    {
+      "path": "target/support-docs-browser06/completion-frame-recorded-windows-intel-webgpu-1280.png",
+      "sha256": "f6586f4d165b86e1bacebf6acca8af4de9d2aca9c92c2328ca8ce03dc839cd44",
+      "bytes": 122164
+    },
+    {
+      "path": "target/support-docs-browser06/completion-frame-recorded-windows-intel-webgpu-390.png",
+      "sha256": "ce10179205976e62cdcc338410026ac46d51ff5cea80a9110c0181c71d688eed",
+      "bytes": 44500
+    },
+    {
+      "path": "target/support-docs-browser06/completion-mathematics-line-lerp-1280.png",
+      "sha256": "fba6709e404d107d09157b66163a29d8a30935414bfb1c5cbe9596b428b8f097",
+      "bytes": 139697
+    },
+    {
+      "path": "target/support-docs-browser06/completion-mathematics-line-lerp-390.png",
+      "sha256": "74af13b1f7c2fd294788e8e5a59b8bb7e2abdf1e601b65ace32ce158f53d2994",
+      "bytes": 41318
+    },
+    {
+      "path": "target/support-docs-browser06/completion-mathematics-polyline-morph-1280.png",
+      "sha256": "27e879c712370cf6532c0a154b1202e35285766b8df2dbf9c593a213a689bfd9",
+      "bytes": 133857
+    },
+    {
+      "path": "target/support-docs-browser06/completion-mathematics-polyline-morph-390.png",
+      "sha256": "c7928db7e060ee0ba3cb1efccc69090faa7b5e71cac9301c880b7cb0727351dc",
+      "bytes": 44323
+    },
+    {
+      "path": "target/support-docs-browser06/completion-mathematics-vector-lerp-1280.png",
+      "sha256": "c25a415c6d44bbdebd4b57dbd1a79db765b7bfd8876878c559ebe1dc4ea0af7f",
+      "bytes": 140245
+    },
+    {
+      "path": "target/support-docs-browser06/completion-mathematics-vector-lerp-390.png",
+      "sha256": "86384065e33617998bc45c2232ce044683f5f9c1c89cdf015304a738843fb19f",
+      "bytes": 41777
+    },
+    {
+      "path": "target/support-docs-browser06/completion-painting-recorded-windows-intel-webgpu-1280.png",
+      "sha256": "afd9a497f7de1998a97c584bbb65b6723b59bbf42a57a65e8541bbb1c77483e7",
+      "bytes": 101224
+    },
+    {
+      "path": "target/support-docs-browser06/completion-painting-recorded-windows-intel-webgpu-390.png",
+      "sha256": "650394f5f62c96ec2490f0bdcfb77d8acde34ab98fa59eb1e855998be02325a2",
+      "bytes": 42346
+    },
+    {
+      "path": "target/support-docs-browser06/completion-streaming-node-tests-sheet-metadata-cjs-1280.png",
+      "sha256": "26dcc64211e1d7293fd62657cae55f2b5b57f803eca872ec926ee81645da1da0",
+      "bytes": 132691
+    },
+    {
+      "path": "target/support-docs-browser06/completion-streaming-node-tests-sheet-metadata-cjs-390.png",
+      "sha256": "57d2312135a51f62f3627f41cdf3bf3fdd2978eaee552d0cd35502a8bf1f1d9c",
+      "bytes": 42929
+    },
+    {
+      "path": "target/support-docs-browser06/result.json",
+      "sha256": "62fa512cb5929752bb1d47fe3bae673ab3d32c3c563e55d1dad24fb4171452e8",
+      "bytes": 4291
+    }
+  ],
+  "inputs": [
+    {
+      "path": "docs/journey/active-course.json",
+      "sha256": "d14b619a89034fe712edc1d8db112819100c670f7bae807061e3692eae53f642",
+      "bytes": 3046
+    },
+    {
+      "path": "docs/journey/completion-frame.md",
+      "sha256": "a0b4d71d4f84c7837c68de2f86142961f2513ac92a59dd4f1da893a174cffdcc",
+      "bytes": 11615
+    },
+    {
+      "path": "docs/journey/completion-painting.md",
+      "sha256": "35c5a56ed3d573e1669b6e5ce9e2866a692befe5f0c6b9d931de990e9c06ec3b",
+      "bytes": 5235
+    },
+    {
+      "path": "docs/journey/completion-mathematics.md",
+      "sha256": "32ec8c34e6db71d88c85055362e2ebbfcb0fe20cdd284b138649f059fece31b2",
+      "bytes": 26858
+    },
+    {
+      "path": "docs/journey/completion-dock.md",
+      "sha256": "ef0fcf9d52d25d157fe9279ed9c881c3ecc9dae9458c4e53b01fc795bc61087b",
+      "bytes": 7420
+    },
+    {
+      "path": "docs/journey/completion-loading.md",
+      "sha256": "6cece70f3cc17b62ec9255466b0e5370c3f8588ffb7ff7710fbe47e432403436",
+      "bytes": 10037
+    },
+    {
+      "path": "docs/journey/completion-streaming.md",
+      "sha256": "ffd205736261bd1360579b938312413ddd8d7cbe4ca26e04912a1a1654d1687a",
+      "bytes": 13072
+    },
+    {
+      "path": "docs/journey/completion-documents.md",
+      "sha256": "3ea74b88eda385f2f316b3b37cd517727f33057ee3c1b300169683538aa315d2",
+      "bytes": 23340
+    },
+    {
+      "path": "docs/journey/completion-text.md",
+      "sha256": "1b000039655507857b0bad0f9e47631325aa48c80e44dbe08f9991b77b33d8f2",
+      "bytes": 12176
+    }
+  ],
+  "limitations": [
+    "Browser05 cramped table finding retained in previous receipt;06 checks replacement prose.",
+    "No production behavior edits, whole-course completion or physical-phone claim.",
+    "Original fixture archive byte comparison remains failed."
+  ]
+}

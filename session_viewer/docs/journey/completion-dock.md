@@ -34,7 +34,7 @@ Read [the command dock](../../src/command_dock/mod.rs). `CommandLine` persists t
 
 ### Focus, completion and cancellation
 
-Follow `focus_command` in `mod.rs`. A requested focus transfer is consumed once; the field then owns its ordinary egui focus state. Re-requesting focus every frame would prevent another widget from keeping it. The command-open flag and current response distinguish a live text edit from an inactive field.
+Follow `keys` in `mod.rs`. `focus_command` requests a focus transfer and moves the caret once, then clears that request. While `command_open` remains true, the dock requests focus again on each frame; Escape clears both flags and releases it. This deliberately keeps command typing active until cancellation. The current text response also participates in deciding whether Escape belongs to the field.
 
 Completion retains both a prefix and a highlighted index. Keeping the prefix separate from the displayed inline suffix lets browsing change the proposed completion without treating every proposal as newly typed input. Cursor operations use character indices, not UTF-8 byte offsets. `spelled` counts non-space characters when matching a compact command name to its displayed spelling.
 

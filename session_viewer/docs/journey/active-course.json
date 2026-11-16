@@ -9,7 +9,11 @@
       "page": "journey/completion-frame.md",
       "prerequisites": [],
       "chapters": [],
-      "acceptance": "pending"
+      "acceptance": "accepted",
+      "review": {
+        "path": "journey/release/completion-frame-acceptance-20261116.json",
+        "sha256": "80de62f9c130fc6bddae6612b36368667a8da2b0cb5dd15ab10aec92dca8009c"
+      }
     },
     {
       "id": "painting",
@@ -19,7 +23,11 @@
         "frame"
       ],
       "chapters": [],
-      "acceptance": "pending"
+      "acceptance": "accepted",
+      "review": {
+        "path": "journey/release/completion-painting-acceptance-20261116.json",
+        "sha256": "9aefed9e51c12ba9c22c01fb19a5a01490febdae2f30fe400c9f17ad1530b66d"
+      }
     },
     {
       "id": "mathematics",

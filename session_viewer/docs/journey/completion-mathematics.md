@@ -174,14 +174,17 @@ The clock supplies a normalized, eased parameter. The kernel supplies the value 
 
 Read these live kernel implementations and their tests; the mathematics checkpoint already depends on this kernel. The later scene subject connects their results to scene rows.
 
-| Operation | Meaning at the midpoint | Constraint to preserve |
-| --- | --- | --- |
-| [Vector::lerp](../../../session_rust/src/vector.rs) | Each component is halfway between its endpoints. Between `(2, 0, 0)` and `(0, 2, 0)`, the result is `(1, 1, 0)`. | This does not preserve vector length. Use it for component motion, not as a rotation algorithm. |
-| [Color::lerp](../../../session_rust/src/color.rs) | Red, green, blue and alpha are blended component by component; the result keeps the first colour's name. | This is interpolation of stored channels, with no perceptual colour-space conversion. |
-| [Line::lerp](../../../session_rust/src/line.rs) | The start moves toward the other start and the end toward the other end. | The result copies the first line's other properties. Swapping one line's endpoints changes the motion and can collapse the midpoint. |
-| [Polyline::resampled](../../../session_rust/src/polyline.rs) | A requested count of points follows equal arc-length intervals, retaining the first and last point. | Counts below two, or inputs with fewer than two points, return a duplicate. Equal spacing need not retain every original corner. |
-| [Polyline::morph](../../../session_rust/src/polyline.rs) | Both inputs are resampled to their larger point count, then corresponding points are blended. | Correspondence follows traversal order. Even at parameter zero the result may be the resampled first path, rather than its original vertex list. |
-| [Xform::interpolate](../../../session_rust/src/xform.rs) | Translation and axis scales blend linearly; rotation follows a normalized quaternion blend, using spherical interpolation away from nearly equal rotations. | This interpolates a translation/rotation/scale decomposition, not all sixteen matrix entries. Do not assume arbitrary shear is preserved. |
+- [Vector::lerp](../../../session_rust/src/vector.rs): Each component is halfway between its endpoints. Between `(2, 0, 0)` and `(0, 2, 0)`, the result is `(1, 1, 0)`. This does not preserve vector length. Use it for component motion, not as a rotation algorithm.
+
+- [Color::lerp](../../../session_rust/src/color.rs): Red, green, blue and alpha are blended component by component; the result keeps the first colour's name. This is interpolation of stored channels, with no perceptual colour-space conversion.
+
+- [Line::lerp](../../../session_rust/src/line.rs): The start moves toward the other start and the end toward the other end. The result copies the first line's other properties. Swapping one line's endpoints changes the motion and can collapse the midpoint.
+
+- [Polyline::resampled](../../../session_rust/src/polyline.rs): A requested count of points follows equal arc-length intervals, retaining the first and last point. Counts below two, or inputs with fewer than two points, return a duplicate. Equal spacing need not retain every original corner.
+
+- [Polyline::morph](../../../session_rust/src/polyline.rs): Both inputs are resampled to their larger point count, then corresponding points are blended. Correspondence follows traversal order. Even at parameter zero the result may be the resampled first path, rather than its original vertex list.
+
+- [Xform::interpolate](../../../session_rust/src/xform.rs): Translation and axis scales blend linearly; rotation follows a normalized quaternion blend, using spherical interpolation away from nearly equal rotations. This interpolates a translation/rotation/scale decomposition, not all sixteen matrix entries. Do not assume arbitrary shear is preserved.
 
 The vector, colour and line implementations do not clamp the parameter. The stage clock clamps time before easing, so an expired animation stays at its endpoint. `geometry.rs::geo_points` uses the kernel's point, line and polyline operations after that time calculation. The stage's floating-point RGBA tween remains a separate small value implementation; it does not call `Color::lerp`.
 
