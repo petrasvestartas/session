@@ -208,10 +208,21 @@ impl Stage {
                     }
                     (l, r) = measure(self);
                 }
-                let left = x0 + ((pw - l - r) / 2.0).max(0.0);
+                let anchored = (k..end).find_map(|j| {
+                    let o = &self.objs[idx[j]];
+                    if o.placed {
+                        Some(o.pos.to[0] + o.expr.align.unwrap() * o.scale())
+                    } else {
+                        None
+                    }
+                });
+                let eq_x = anchored.unwrap_or_else(|| {
+                    let left = x0 + ((pw - l - r) / 2.0).max(0.0);
+                    left + l
+                });
                 for j in k..end {
                     let o = &self.objs[idx[j]];
-                    lefts[j] = left + l - o.expr.align.unwrap() * o.scale();
+                    lefts[j] = eq_x - o.expr.align.unwrap() * o.scale();
                 }
                 k = end;
             } else {

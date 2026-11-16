@@ -1288,7 +1288,15 @@ fn act(kind: Kind) -> Action {
 /// An equation written by `eq` or `then`: named `eq<n>` and aligned on its equals sign.
 fn equation(v: &Value, at: &str, cx: &mut Cx) -> Result<ObjSpec, String> {
     let mut o = match v {
-        Value::Mapping(_) => object(v, at, cx)?,
+        Value::Mapping(m) => {
+            if let Some(t) = get(m, "eq").and_then(text) {
+                let mut spec = object(v, at, cx).unwrap_or_else(|_| plain(cx.auto(), Content::Tex(t.clone())));
+                spec.content = Content::Tex(t);
+                spec
+            } else {
+                object(v, at, cx)?
+            }
+        }
         _ => plain(cx.auto(), Content::Tex(text(v).unwrap_or_default())),
     };
     if o.id.starts_with("_auto") {
@@ -1774,12 +1782,12 @@ fn step(m: &Mapping, at: &str, cx: &mut Cx) -> Result<Vec<Action>, String> {
                 }
             }
             "eq" => {
-                let o = equation(v, at, cx)?;
+                let o = equation(&one, at, cx)?;
                 cx.eq = Some(o.id.clone());
                 out.push(act(Kind::Add(vec![o])));
             }
             "then" => {
-                let obj = equation(v, at, cx)?;
+                let obj = equation(&one, at, cx)?;
                 let from = cx.eq.replace(obj.id.clone());
                 let from = from.ok_or_else(|| format!("{at}: no equation before it"))?;
                 out.push(act(Kind::Derive {
