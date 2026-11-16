@@ -117,6 +117,8 @@ pub fn edge_chains(b: &BRep, fms: &[Mesh]) -> Vec<Option<EdgeChain>> {
 
 ## <a id="checkpoint-56a-shared"></a>2. Mesh incident faces with shared boundary constraints
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/56a-shared-2336125cd76e.png). Native presentation of the inherited parametric roof with visible boundary segments and correct far-boundary occlusion. Constructor and image presentation only; shared CAD meshing, canonical pixel validation and browser interactions remain separate.
+
 ### 1. `src/cad_boundary.rs`
 
 Create the file and type:
