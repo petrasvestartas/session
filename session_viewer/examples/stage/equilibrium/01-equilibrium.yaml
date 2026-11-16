@@ -1,3 +1,7 @@
+# cd /home/pv/brg/code_cpp/wood_research/session/session_viewer && aws s3 sync examples/stage s3://session-viewer-data/stage/ --delete --exclude '*' --include '*.yaml' --content-type application/yaml --cache-control no-cache --profile r2 --endpoint-url https://0520459c6817bd96c1e25fcb49461c4e.r2.cloudflarestorage.com
+# Open local: http://127.0.0.1:8770/?stage=decks/equilibrium/index.yaml&data=off&chapter=1&step=1
+# Open live: https://petrasvestartas.github.io/session/?stage=equilibrium&chapter=1&step=1
+
 # Equilibrium of one node in 2D: a load on two cables, solved by a force diagram and then by projections.
 # Preview and publish: see README.md in this folder.
 #
@@ -7,9 +11,6 @@
 #   text: '...'      prose below the equation (same step, no new click)
 #   add: / do:       3D objects and further actions (see ../README.md)
 # 
-# Push to server:
-# cd session_viewer
-# aws s3 sync examples/stage s3://session-viewer-data/stage/ --delete --exclude '*' --include '*.yaml' --content-type application/yaml --cache-control no-cache --profile r2 --endpoint-url https://0520459c6817bd96c1e25fcb49461c4e.r2.cloudflarestorage.com
 
 camera: {view: top}       # all points at z = 0: x to the right, y up
 points:

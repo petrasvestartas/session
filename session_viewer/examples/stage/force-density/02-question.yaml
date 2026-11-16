@@ -1,5 +1,9 @@
+# cd /home/pv/brg/code_cpp/wood_research/session/session_viewer && aws s3 sync examples/stage s3://session-viewer-data/stage/ --delete --exclude '*' --include '*.yaml' --content-type application/yaml --cache-control no-cache --profile r2 --endpoint-url https://0520459c6817bd96c1e25fcb49461c4e.r2.cloudflarestorage.com
+# Open local: http://127.0.0.1:8770/?stage=decks/force-density/index.yaml&data=off&chapter=2&step=1
+# Open live: https://petrasvestartas.github.io/session/?stage=force-density&chapter=2&step=1
+
 # Chapter 2: the question and what is given, written as plain numbers on the picture: fixed nodes, load, cables, force densities.
-title: The question
+title: QUESTION
 grid: {center: [3.5, 3.5], size: 9, step: 1}
 camera: {yaw: -58, pitch: 26}
 net:
@@ -9,60 +13,34 @@ net:
   q: 1
   load: {n0: [0, 0, -5]}
 slides:
-  - title: Where does the free node come to rest?
+  - title: WHAT IS THE POSITION OF FREE NODE **n0** ?
     steps:
       - say: 'Four fixed nodes $n_1,\dots,n_4$ hold one free node $n_0$ on four cables $e_0,\dots,e_3$. A load $p$ hangs on $n_0$.'
         show: net
-      - say: 'The question: where does $n_0$ come to rest?'
         tex: 'n_0 = (x_0,\ y_0,\ z_0) = \ ?'
-      - say: 'Four things are given. We collect them one at a time.'
-        text: 'fixed nodes $\quad$ load $\quad$ cables $\quad$ force densities'
 
-  - title: 'Given 1 · the fixed nodes'
+  - title: 'ALL GIVEN VALUES'
     steps:
-      - say: 'The coordinates of the four fixed nodes, in metres.'
+      - say: 'The coordinates are in metres, the load in kilonewtons, and each force density is the cable force divided by its length.'
         do:
           - morph: {target: n1.label, label: n1, tex: 'n_1\,(0,\,0,\,0)', dur: 0.6}
           - morph: {target: n2.label, label: n2, tex: 'n_2\,(5,\,0,\,3)', dur: 0.6, with: true}
           - morph: {target: n3.label, label: n3, tex: 'n_3\,(0,\,7,\,3)', dur: 0.6, with: true}
           - morph: {target: n4.label, label: n4, tex: 'n_4\,(7,\,5,\,0)', dur: 0.6, with: true}
-      - say: 'Written down, one line per node.'
-        do:
-          - eq: 'n_1 = (0,\ 0,\ 0)'
-          - eq: 'n_2 = (5,\ 0,\ 3)'
-          - eq: 'n_3 = (0,\ 7,\ 3)'
-          - eq: 'n_4 = (7,\ 5,\ 0)'
-
-  - title: 'Given 2 · the load'
-    steps:
-      - say: 'The load on the free node: 5 kN straight down.'
-        do:
-          - morph: {target: n1.label, label: n1, tex: 'n_1', dur: 0.5}
-          - morph: {target: n2.label, label: n2, tex: 'n_2', dur: 0.5, with: true}
-          - morph: {target: n3.label, label: n3, tex: 'n_3', dur: 0.5, with: true}
-          - morph: {target: n4.label, label: n4, tex: 'n_4', dur: 0.5, with: true}
           - highlight: [load_n0]
-          - eq: 'p = (0,\ 0,\ -5)\ \text{kN}'
-
-  - title: 'Given 3 · the cables'
-    steps:
-      - say: 'Cable $e_0$ joins the free node $n_0$ to the fixed node $n_1$.'
+          - eq: {tex: 'n_1 = (0,\ 0,\ 0),\qquad n_2 = (5,\ 0,\ 3)', color: fixed}
+          - eq: {tex: 'n_3 = (0,\ 7,\ 3),\qquad n_4 = (7,\ 5,\ 0)', color: fixed, gap: 40}
+          - eq: {tex: 'p = (0,\ 0,\ -5)\ \text{kN}', color: load, gap: 40}
+          - eq: {tex: 'q = \frac{\text{force in the cable}}{\text{length of the cable}}', color: pink, gap: 40}
+          - eq: {id: qs, tex: 'q_1 = q_2 = q_3 = q_4 = 1\ \text{kN/m}', color: pink, gap: 40}
+      - say: 'Each cable joins $n_0$ to a fixed node. The force-density index names that fixed node.'
         do:
-          - color: {target: e0, color: accent}
-          - tex: 'e_0:\quad n_0 \to n_1'
-      - say: 'Each other cable joins $n_0$ to another fixed node.'
-        do:
-          - color: {target: e0, color: reset}
-          - tex: 'e_1:\quad n_0 \to n_2'
-          - tex: 'e_2:\quad n_0 \to n_3'
-          - tex: 'e_3:\quad n_0 \to n_4'
-          - highlight: [e1, e2, e3]
-
-  - title: 'Given 4 · the force densities'
-    steps:
-      - say: 'For each cable we choose one number: its force divided by its length.'
-        eq: 'q = \frac{\text{force in the cable}}{\text{length of the cable}}'
-      - say: 'Here every cable gets 1 kN/m. The index names the fixed node the cable goes to.'
-        eq: {id: qs, tex: 'q_1 = q_2 = q_3 = q_4 = 1\ \text{kN/m}'}
-      - say: 'We know neither the forces nor the lengths. We only fix their ratio. The next chapters show why that is enough.'
+          - color: {target: e0, color: grey}
+          - color: {target: e1, color: grey, with: true}
+          - color: {target: e2, color: grey, with: true}
+          - color: {target: e3, color: grey, with: true}
+          - tex: {tex: 'e_0:\quad n_0 \to n_1,\qquad e_1:\quad n_0 \to n_2', color: grey, gap: 40}
+          - tex: {tex: 'e_2:\quad n_0 \to n_3,\qquad e_3:\quad n_0 \to n_4', color: grey, gap: 40}
+          - highlight: [e0, e1, e2, e3]
+      - say: 'We know neither the individual cable forces nor their lengths. We only fix their ratios. The next chapters show why that is enough.'
         highlight: [qs]
