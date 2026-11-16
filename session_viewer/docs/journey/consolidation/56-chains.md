@@ -372,6 +372,8 @@ session_rust = { path = "../../../session_rust", default-features = false, featu
 
 ## <a id="checkpoint-56b-boundaries"></a>3. Prove straight and circular shared boundaries
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/56b-boundaries-2336125cd76e.png). Inherited parametric roof presentation with original visible boundaries and correct far-boundary occlusion. This fixture does not draw a BRep row; shared CAD constraints, canonical pixel checks and browser behavior remain separate.
+
 ### 1. `src/cad_boundary_tests.rs`
 
 Create the file and type:
