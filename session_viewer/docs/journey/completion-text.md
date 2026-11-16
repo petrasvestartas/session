@@ -60,6 +60,10 @@ The application theme reexports the completed command-dock fonts and visuals ins
 
 The Text verb accepts 1 to 80 characters and opens a placement tool. Its initial height comes from the previous successful placement or a rounded camera-distance scale; Height changes it before the insertion point is accepted. The tool chooses signs and order of the construction-plane axes to read toward the current view, then creates a world-plane white-on-black label. The lower-left insertion point is lifted by the line-box height to locate the text anchor. Accepting creates one undoable text object and remembers its height; subsequent camera motion does not convert it into a screen-sized label.
 
+### Compare against the same built font fixture
+
+The browser text-quality page waits for the exact reference fonts, reads the current built index without caching and discovers its hashed JavaScript and WebAssembly URLs. It initializes the exported `TextQuality` fixture from that same build, then places DOM reference specimens at the GPU labels' logical origins and sizes. Resize and control changes request a new render; report getters return the last completed measurement without rendering again. The reference uses the same font family, weight, kerning and common ligatures, so a width difference tests layout rather than an accidental font substitution. Resource reset and page disposal belong to this harness, not to normal scene navigation.
+
 ## Run and observe
 
 Run the cumulative application with the comparison fixture. Its black rounded title says `viewer comparison`. Zoom and orbit: the title follows its world anchor while keeping screen-sized text. Open Layers and hide the document geometry; the title remains. Restore visibility, then use Select All, Delete and Undo: the geometry and title return together.
@@ -80,6 +84,8 @@ The same authored plane from above. This fixture verifies projection and picking
 
 Bundled Noto Sans at five sizes: production WebGPU text on the left, browser text using the same font on the right. This compares metrics and coverage, not identical rasterization.
 
+Run `node tests/font-delivery.cjs` against the same cumulative application with `VIEWER_COMPARISON_FIXTURE` naming its generated `course-comparison.pb`. The check delays the three full-font responses while showing an authored label containing Greek capital omega, then releases them. Expect the missing-glyph box to become the omega glyph without changing the camera or object count. The geometry can occlude the beginning of this world label; this exercise checks fallback delivery rather than an unobstructed label layout.
+
 ## Predict and try
 
 Predict whether orbiting should increase the number of shaped labels or only their projection/preparation work. Observe the text diagnostics while orbiting a fixed title. The glyph sequence and metrics stay the same, so shaping can be reused even though the world anchor projects somewhere else. Changing the title's text or replacing its font has different cache consequences.
@@ -92,4 +98,4 @@ Changing label placement can reuse shaped glyphs, but replacing the font databas
 
 ## Validation
 
-The document browser sequence verifies the title's visibility, five-row selection count, deletion and restoration at both sizes. The maintained text-quality check passes at DPR 1, 1.25 and 2: visible glyph pixels, same-font line metrics within 0.2 CSS pixels, scale changes without reshaping, selection color, resource release and resize. The world-text check separately passes at DPR 1 and 2, including authored axes, projected baseline, visible white glyphs on a black backing, unchanged shaping, selection and hide/show pickability. Both use the cumulative bundle. Full-font fallback delivery remains open; these desktop checks do not establish physical-phone typography.
+The document browser sequence verifies the title's visibility, five-row selection count, deletion and restoration at both sizes. The maintained text-quality check passes at DPR 1, 1.25 and 2: visible glyph pixels, same-font line metrics within 0.2 CSS pixels, scale changes without reshaping, selection color, resource release and resize. The world-text check separately passes at DPR 1 and 2, including authored axes, projected baseline, visible white glyphs on a black backing, unchanged shaping, selection and hide/show pickability. Both use the cumulative bundle. Full-font delivery passes at 1280 and 390 CSS pixels: three sequential HTTP font responses reshape the label, replace its visible missing-glyph box with omega and preserve camera and object count. The earlier ASCII-corrupted specimen and text-only startup-readiness timeout remain recorded; the successful fixture contains the comparison document. These desktop checks do not establish physical-phone typography.

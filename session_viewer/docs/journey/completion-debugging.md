@@ -102,6 +102,10 @@ The cloud rendering witness requires positive viewport dimensions, density one o
 
 The cloud LOD witness prepares production cloud rows, cloud metadata and bounds on the CPU, then invokes the actual `LodWalk::select` with a fixed eye and viewport plus explicit projection, placement and pixel threshold. It rejects a resident prefix larger than the source and reports each selected range's first point, count, spacing and tile. These ranges explain which resident points the selector chose. Its metadata explicitly excludes GPU acceptance: correct ranges cannot establish shader output, depth, EDL or the appearance of the rendered points.
 
+### Distinguish geometry readiness from font completion
+
+The browser diagnostics script keeps a bounded report with startup time, tab identity, viewport, adapter, phase timings and recent events. It retains the first fatal error, writes guarded local-storage snapshots and provides a JSON download even if storage is unavailable. A recent unfinished heartbeat suggests interruption; it does not prove a browser crash. The report changes to ready on the explicit geometry-on-screen milestone. A rendered text-only scene therefore cannot use that milestone as a general font-completion oracle. Compare its label metrics and actual font responses instead. Closing or restoring a page updates lifecycle state without erasing the original failure.
+
 ## Run and observe
 
 Run the cumulative application with the comparison fixture and `inspect=1`. In browser developer tools, evaluate `window.viewerDiagnostics.read()` after readiness, then orbit and fit the scene. Save the report beside a screenshot and note the actual adapter. The visible geometry should respond while the report retains startup/load context without a failure.

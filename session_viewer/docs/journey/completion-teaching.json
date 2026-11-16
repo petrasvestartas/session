@@ -1,5 +1,85 @@
 [
   {
+    "path": "Cargo.lock",
+    "owner": "frame",
+    "sourceSha256": "759436e009af2c748678dd0e3c0e5a36848c95c0782e986804bdea72ffb65f93",
+    "explanation": {
+      "page": "journey/completion-frame.md",
+      "heading": "### Read the Rust project before drawing",
+      "paragraph": "Cargo.toml declares compatible version ranges and explicit exact versions; Cargo.lock records the resolved dependency graph used by these checkpoints. Keep the recorded lock and use locked checks so a learner does not silently obtain a different font or graphics stack. Changing a feature can change the graph even when the source file is unchanged. The optional TOML parser is enabled by its feature; JSON sessions have their own feature. `web-sys` enables named browser APIs, while `wasm-bindgen` and its futures adapter cross the Rust/JavaScript boundary. `getrandom` needs its JavaScript feature because a transitive kernel dependency needs randomness on the browser target. Native-only `pollster` lets headless programs wait for async setup; it is not a browser dependency."
+    }
+  },
+  {
+    "path": "Cargo.toml",
+    "owner": "frame",
+    "sourceSha256": "f17b33bedb793327e7c86551b00dbecb1f02b961f4149e721020459ca04228dc",
+    "explanation": {
+      "page": "journey/completion-frame.md",
+      "heading": "### Read the Rust project before drawing",
+      "paragraph": "Read [Cargo.toml](../../Cargo.toml). A package names the project; a crate is one compilation unit. The library emits both `cdylib`, which the browser packaging step turns into a WebAssembly module with JavaScript bindings, and `rlib`, which Rust examples and native tests can link. The 2024 edition selects Rust language rules; it is not the compiler version. Cargo resolves dependencies and features before compiling. `wgpu` owns GPU operations, `winit` delivers window events, and the three egui crates separate UI layout, GPU painting and window-input translation. Later geometry comes from the sibling `session_rust` path dependency with its display feature. Disabling default features avoids bundling unrelated kernel examples."
+    }
+  },
+  {
+    "path": "Trunk.toml",
+    "owner": "application",
+    "sourceSha256": "b597b1d06c7d8bbfcdf80a16d71de27bc3aa2f20c10a57742ac58d3cb027742a",
+    "explanation": {
+      "page": "journey/completion-application.md",
+      "heading": "### Package the browser entry and its dependencies",
+      "paragraph": "Trunk.toml selects the optimized build and a relative public URL, then invokes the documentation builder before packaging. Its explicit watch list includes the sibling kernel and documentation inputs; an omitted directory would stop edits there from triggering a rebuild. The development server binds localhost and marks its mutable index no-store, so the HTML names the current hashed WebAssembly bundle. These server headers concern the development entry page, not a claim that every immutable asset must bypass caches."
+    }
+  },
+  {
+    "path": "assets/diagnostics.js",
+    "owner": "application",
+    "sourceSha256": "11cc770dc67130dad0dda0f7d58ffb87c839e0063ca100e9a509c6273933e13f",
+    "explanation": {
+      "page": "journey/completion-debugging.md",
+      "heading": "### Distinguish geometry readiness from font completion",
+      "paragraph": "The browser diagnostics script keeps a bounded report with startup time, tab identity, viewport, adapter, phase timings and recent events. It retains the first fatal error, writes guarded local-storage snapshots and provides a JSON download even if storage is unavailable. A recent unfinished heartbeat suggests interruption; it does not prove a browser crash. The report changes to ready on the explicit geometry-on-screen milestone. A rendered text-only scene therefore cannot use that milestone as a general font-completion oracle. Compare its label metrics and actual font responses instead. Closing or restoring a page updates lifecycle state without erasing the original failure."
+    }
+  },
+  {
+    "path": "assets/text-quality.html",
+    "owner": "application",
+    "sourceSha256": "c295d5e07595f875cfef61d66a3cd178de6155e07a9cb00b1ee2ba7622b106fc",
+    "explanation": {
+      "page": "journey/completion-text.md",
+      "heading": "### Compare against the same built font fixture",
+      "paragraph": "The browser text-quality page waits for the exact reference fonts, reads the current built index without caching and discovers its hashed JavaScript and WebAssembly URLs. It initializes the exported `TextQuality` fixture from that same build, then places DOM reference specimens at the GPU labels' logical origins and sizes. Resize and control changes request a new render; report getters return the last completed measurement without rendering again. The reference uses the same font family, weight, kerning and common ligatures, so a width difference tests layout rather than an accidental font substitution. Resource reset and page disposal belong to this harness, not to normal scene navigation."
+    }
+  },
+  {
+    "path": "assets/view_local.yaml",
+    "owner": "application",
+    "sourceSha256": "b869cfb91837ff6f6adf1e3a652bea4d2d5cdbd47d297fc4af16c335835611b3",
+    "explanation": {
+      "page": "journey/completion-application.md",
+      "heading": "### Package the browser entry and its dependencies",
+      "paragraph": "The supplied local manifest is an authored list of geometry-file URLs, display names, placements and per-item settings such as point size. Its files exercise different rendering lanes, but their presence is not guaranteed on another machine. Resolve each relative file against the manifest's route and replace missing local examples with recorded course fixtures. Changing a manifest placement moves the loaded instance; it does not edit the kernel file's coordinates. The manifest is input data whose parser and contextual errors belong to the loading chapter."
+    }
+  },
+  {
+    "path": "build.rs",
+    "owner": "rows",
+    "sourceSha256": "868449c0976bf081f2a3bdf270c1ca0842f923b33a9b9e34dfcb0804c7f5363f",
+    "explanation": {
+      "page": "journey/completion-rows.md",
+      "heading": "### Shader build inputs",
+      "paragraph": "Cargo runs the retained production `build.rs` before compiling this checkpoint. It expands each shader's include directives once per shader, strips line comments and redundant whitespace, and writes generated WGSL beneath Cargo's own `OUT_DIR`. The `shader!` macro reads those generated files. Include `projected_triangle.wgsl` alongside the five pipeline helpers: ink visibility includes its layout. Supplying another checkout's generated shaders would conceal a missing dependency, so validation must also build with no inherited `OUT_DIR`."
+    }
+  },
+  {
+    "path": "index.html",
+    "owner": "application",
+    "sourceSha256": "b61bf9f8580253e03b9358f7f288ceb10d3fe1d99af37ba9ff6b923ef243163b",
+    "explanation": {
+      "page": "journey/completion-application.md",
+      "heading": "### Package the browser entry and its dependencies",
+      "paragraph": "The production index owns the canvas, status element, command-input integration and documentation link. Trunk's Rust link builds the viewer library, while copy rules place protobuf files, full text fonts, stage fonts, decks and the built documentation beside it. The early-fetch script runs before wasm; the diagnostics script is deferred until parsing completes. One named context-menu handler suppresses the browser menu over the canvas. The embedding-message handler accepts a reload request from the parent window or the same origin and forwards its scene value to the wasm binding, retaining the existing page and GPU. A missing WebGPU API displays an explicit HTTPS/localhost message. Opening the HTML as a filesystem file is not the supported startup path."
+    }
+  },
+  {
     "path": "src/app/agent.rs",
     "owner": "application",
     "sourceSha256": "555a699f8286aaefa426d3a0f9704e1444f9a4af2ccb7105c41c40dadcb5455b",

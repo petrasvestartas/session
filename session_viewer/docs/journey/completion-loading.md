@@ -84,4 +84,4 @@ A response body and abort controller need one consumer responsible for completio
 
 ## Validation
 
-The cumulative application compiles for wasm and passes its startup, document and deck browser checks. Six injected stage failures cover a font, malformed chapter and picture at both desktop and upright sizes; each reports its contextual filename. These checks do not establish delayed replacement races, range streaming, hydration recovery or physical-phone memory behavior. Those remain separate acceptance cases.
+The cumulative application compiles for wasm and passes its startup, document and deck browser checks. Six injected stage failures cover a font, malformed chapter and picture at both desktop and upright sizes; each reports its contextual filename. The maintained `tests/loading.cjs` check also passes malformed-replacement recovery, an older response arriving after a newer scene, and six alternating reloads with stable measured GPU allocation for the repeated workload. Four captures retain the displayed point fixtures. Range streaming has separate evidence; hydration recovery and physical-phone memory behavior remain separate acceptance cases.

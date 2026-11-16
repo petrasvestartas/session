@@ -1,0 +1,73 @@
+{
+  "scope": "Non-code bundled assets only. Runtime scripts, pages and manifests must have source-bound teaching entries.",
+  "files": [
+    {
+      "path": "assets/pb/.gitkeep",
+      "reason": "Asset licence, provenance documentation or directory placeholder; retained with its assets, not an executable implementation."
+    },
+    {
+      "path": "assets/pb/view_mixed_teapot.pb",
+      "reason": "Fixture or presentation image data, retained for runnable examples; not viewer implementation source."
+    },
+    {
+      "path": "assets/stage/FONTS.md",
+      "reason": "Asset licence, provenance documentation or directory placeholder; retained with its assets, not an executable implementation."
+    },
+    {
+      "path": "assets/stage/NewCM10-Bold.otf",
+      "reason": "Bundled binary font data; the mathematics and text subjects teach metrics, shaping and delivery, not font authoring."
+    },
+    {
+      "path": "assets/stage/NewCM10-Book.otf",
+      "reason": "Bundled binary font data; the mathematics and text subjects teach metrics, shaping and delivery, not font authoring."
+    },
+    {
+      "path": "assets/stage/NewCMMath-Book.otf",
+      "reason": "Bundled binary font data; the mathematics and text subjects teach metrics, shaping and delivery, not font authoring."
+    },
+    {
+      "path": "assets/stage/NewCMMono10-Book.otf",
+      "reason": "Bundled binary font data; the mathematics and text subjects teach metrics, shaping and delivery, not font authoring."
+    },
+    {
+      "path": "assets/stage/logo-brg.png",
+      "reason": "Fixture or presentation image data, retained for runnable examples; not viewer implementation source."
+    },
+    {
+      "path": "assets/stage/logo-eth.png",
+      "reason": "Fixture or presentation image data, retained for runnable examples; not viewer implementation source."
+    },
+    {
+      "path": "assets/text/NotoSans-Regular.subset.ttf",
+      "reason": "Bundled binary font data; the mathematics and text subjects teach metrics, shaping and delivery, not font authoring."
+    },
+    {
+      "path": "assets/text/NotoSans-Regular.ttf",
+      "reason": "Bundled binary font data; the mathematics and text subjects teach metrics, shaping and delivery, not font authoring."
+    },
+    {
+      "path": "assets/text/NotoSansSymbols-Regular.subset.ttf",
+      "reason": "Bundled binary font data; the mathematics and text subjects teach metrics, shaping and delivery, not font authoring."
+    },
+    {
+      "path": "assets/text/NotoSansSymbols-Regular.ttf",
+      "reason": "Bundled binary font data; the mathematics and text subjects teach metrics, shaping and delivery, not font authoring."
+    },
+    {
+      "path": "assets/text/NotoSansSymbols2-Regular.subset.ttf",
+      "reason": "Bundled binary font data; the mathematics and text subjects teach metrics, shaping and delivery, not font authoring."
+    },
+    {
+      "path": "assets/text/NotoSansSymbols2-Regular.ttf",
+      "reason": "Bundled binary font data; the mathematics and text subjects teach metrics, shaping and delivery, not font authoring."
+    },
+    {
+      "path": "assets/text/OFL.txt",
+      "reason": "Asset licence, provenance documentation or directory placeholder; retained with its assets, not an executable implementation."
+    },
+    {
+      "path": "assets/text/README.md",
+      "reason": "Asset licence, provenance documentation or directory placeholder; retained with its assets, not an executable implementation."
+    }
+  ]
+}

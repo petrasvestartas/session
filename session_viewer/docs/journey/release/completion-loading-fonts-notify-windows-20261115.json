@@ -1,0 +1,494 @@
+{
+  "status": "Scoped cumulative loading/font/notification checks; course incomplete",
+  "parentCommit": "aff29c405df7e872ea3a33a2361e6cde55f603d6",
+  "inputs": [
+    {
+      "path": "session_viewer/tests/loading.cjs",
+      "sha256": "09c543d940313860c4d8684670566f7cc999801ad237015088d4637ea0d55a58",
+      "bytes": 4838
+    },
+    {
+      "path": "session_viewer/tests/font-delivery.cjs",
+      "sha256": "43f4bbbe32262d9d2341df924b82f3085ed230e1614e6c70e807b002031c45fc",
+      "bytes": 3429
+    },
+    {
+      "path": "session_viewer/tests/live-notification.cjs",
+      "sha256": "3313ad52f612bd42bc349b95a1f76a8d3813507a0b010e2f3e8e62d6e348999f",
+      "bytes": 3849
+    }
+  ],
+  "runs": [
+    {
+      "name": "application-loading01",
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0x300",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 10,
+        "maximumAggregateOurMemoryMiB": 14336,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 2,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-11-15T20:26:34.5230539Z",
+        "executable": "C:\\Program Files\\Git\\bin\\bash.exe",
+        "arguments": [
+          "C:/pc/3_code/code_rust/wood_research/wood/tools/buildslot.sh",
+          "--run",
+          "tutorial-application-loading01",
+          "timeout",
+          "320s",
+          "C:\\Users\\Petras\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+          "-B",
+          "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\application-loading01.py"
+        ],
+        "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer",
+        "timeoutSeconds": 330,
+        "jobCommitLimitBytes": 6442450944,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 34.698,
+        "peakJobCommitBytes": 586862592,
+        "affinityMask": "0x300",
+        "processors": 2,
+        "processId": 12036,
+        "descendantsAtCleanup": 0
+      },
+      "artifacts": [
+        {
+          "path": "session_viewer/target/application-loading01/capture.cjs",
+          "sha256": "a3204188e7beaf1cc2bc3967b78acc76752e56f547329216d2ddebf3239a81f2",
+          "bytes": 5319
+        },
+        {
+          "path": "session_viewer/target/application-loading01/check.log",
+          "sha256": "3e7010e0a23619ce6aad286e548d5b1dcdb2637e18669fae65e7e93567365026",
+          "bytes": 77
+        },
+        {
+          "path": "session_viewer/target/application-loading01/command.json",
+          "sha256": "1c87a406f88385751ba4f38b81a971bbcff49f2c7eaece7fdd8b10b4d5b73129",
+          "bytes": 426
+        },
+        {
+          "path": "session_viewer/target/application-loading01/resources.json",
+          "sha256": "40fc52473204bbe18986c3883830d21147ce74a3ff823bed44ef866e59937bfa",
+          "bytes": 1921
+        },
+        {
+          "path": "session_viewer/target/application-loading01/result.json",
+          "sha256": "904b4e2172838f4d6acd7a430bd7adce86b3a82af7f6244384674fd7e9e6a454",
+          "bytes": 416
+        },
+        {
+          "path": "session_viewer/target/application-loading01/started.json",
+          "sha256": "82b05939b0740e23aec182b4d54c582986ca739327a954e6f7e1f16c5261185b",
+          "bytes": 838873
+        },
+        {
+          "path": "session_viewer/target/application-loading01/captures/initial.png",
+          "sha256": "52908cf6b74fc733252715a442c14441e2396ecae7cd04553e5f0b76865c6d3f",
+          "bytes": 17427
+        },
+        {
+          "path": "session_viewer/target/application-loading01/captures/loading.json",
+          "sha256": "46a0da153ab27e8fcd28c015cad128900aa51fa31da2739c715546974d8f0dba",
+          "bytes": 39501
+        },
+        {
+          "path": "session_viewer/target/application-loading01/captures/malformed-retains-scene.png",
+          "sha256": "52908cf6b74fc733252715a442c14441e2396ecae7cd04553e5f0b76865c6d3f",
+          "bytes": 17427
+        },
+        {
+          "path": "session_viewer/target/application-loading01/captures/newer-route-wins.png",
+          "sha256": "d36dad88d213420196e49e455fffd0201b8d8c2353b168b0225af0f3791ceaef",
+          "bytes": 17614
+        },
+        {
+          "path": "session_viewer/target/application-loading01/captures/six-cycles.png",
+          "sha256": "d36dad88d213420196e49e455fffd0201b8d8c2353b168b0225af0f3791ceaef",
+          "bytes": 17614
+        }
+      ],
+      "personallyViewedOriginalPngs": 4
+    },
+    {
+      "name": "application-fonts01",
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0x300",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 10,
+        "maximumAggregateOurMemoryMiB": 14336,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 2,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-11-15T20:28:15.9766196Z",
+        "executable": "C:\\Program Files\\Git\\bin\\bash.exe",
+        "arguments": [
+          "C:/pc/3_code/code_rust/wood_research/wood/tools/buildslot.sh",
+          "--run",
+          "tutorial-application-fonts01",
+          "timeout",
+          "320s",
+          "C:\\Users\\Petras\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+          "-B",
+          "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\application-fonts01.py"
+        ],
+        "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer",
+        "timeoutSeconds": 330,
+        "jobCommitLimitBytes": 6442450944,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 127,
+        "timedOut": false,
+        "elapsedSeconds": 60.877,
+        "peakJobCommitBytes": 566939648,
+        "affinityMask": "0x300",
+        "processors": 2,
+        "processId": 37996,
+        "descendantsAtCleanup": 1
+      },
+      "artifacts": [
+        {
+          "path": "session_viewer/target/application-fonts01/capture.cjs",
+          "sha256": "28df2bb8fc14e5a71e98ad4e53a914e89bef3df754ecd228e9146a435e480c36",
+          "bytes": 2765
+        },
+        {
+          "path": "session_viewer/target/application-fonts01/check.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        },
+        {
+          "path": "session_viewer/target/application-fonts01/command.json",
+          "sha256": "c7b2658091367ce52c5c7cf0e791571ae02e3e5fd6ed5b18855129f01427e790",
+          "bytes": 422
+        },
+        {
+          "path": "session_viewer/target/application-fonts01/resources.json",
+          "sha256": "3a0c349c11aa5e5005dae09c3368cc9bdccd4de1e8be27058b7f1eff821a32c0",
+          "bytes": 1919
+        },
+        {
+          "path": "session_viewer/target/application-fonts01/result.json",
+          "sha256": "cf4d0eacee03e0509701ac543471cca124729ea361a6c628efe8a6649323241d",
+          "bytes": 432
+        },
+        {
+          "path": "session_viewer/target/application-fonts01/started.json",
+          "sha256": "27fd9333fd50d6b9b2b6fde196da55f051bd957ddb893ced1a4769ee902b8dd8",
+          "bytes": 838873
+        }
+      ],
+      "personallyViewedOriginalPngs": 0
+    },
+    {
+      "name": "application-fonts02",
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0x300",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 10,
+        "maximumAggregateOurMemoryMiB": 14336,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 2,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-11-15T20:29:50.7217705Z",
+        "executable": "C:\\Program Files\\Git\\bin\\bash.exe",
+        "arguments": [
+          "C:/pc/3_code/code_rust/wood_research/wood/tools/buildslot.sh",
+          "--run",
+          "tutorial-application-fonts02",
+          "timeout",
+          "320s",
+          "C:\\Users\\Petras\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+          "-B",
+          "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\application-fonts02.py"
+        ],
+        "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer",
+        "timeoutSeconds": 330,
+        "jobCommitLimitBytes": 6442450944,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 1,
+        "timedOut": false,
+        "elapsedSeconds": 32.765,
+        "peakJobCommitBytes": 562737152,
+        "affinityMask": "0x300",
+        "processors": 2,
+        "processId": 46304,
+        "descendantsAtCleanup": 1
+      },
+      "artifacts": [
+        {
+          "path": "session_viewer/target/application-fonts02/capture.cjs",
+          "sha256": "c827cf3443ae74b3f7317fe4b2ab5830a9389433b127308144e3cc0eafa2862a",
+          "bytes": 2929
+        },
+        {
+          "path": "session_viewer/target/application-fonts02/check.log",
+          "sha256": "afb86be2c69f00cca48badc09477d7e1c6a67ffa601b70968da72e54fbcfc69e",
+          "bytes": 195
+        },
+        {
+          "path": "session_viewer/target/application-fonts02/command.json",
+          "sha256": "f3ff0b23fec359cf398d101cde659323d4574d3157eedb3344cf53d7312d2a4e",
+          "bytes": 422
+        },
+        {
+          "path": "session_viewer/target/application-fonts02/resources.json",
+          "sha256": "8bdaff8bc6b5a11e540f0017efdf5a353b2456a3fe257d9e915c8c54c37665f0",
+          "bytes": 1917
+        },
+        {
+          "path": "session_viewer/target/application-fonts02/result.json",
+          "sha256": "abe30a7909035d5e9f1101dcdc659b9b91af48635366e042dd5b11b16232b5c8",
+          "bytes": 423
+        },
+        {
+          "path": "session_viewer/target/application-fonts02/started.json",
+          "sha256": "2a33df8af2181d4dd749a5b4b92a2d762db28e077b8dfdf6d1c34a7ae7de034c",
+          "bytes": 838873
+        }
+      ],
+      "personallyViewedOriginalPngs": 0
+    },
+    {
+      "name": "application-fonts03",
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0x300",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 10,
+        "maximumAggregateOurMemoryMiB": 14336,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 2,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-11-15T20:31:11.5876763Z",
+        "executable": "C:\\Program Files\\Git\\bin\\bash.exe",
+        "arguments": [
+          "C:/pc/3_code/code_rust/wood_research/wood/tools/buildslot.sh",
+          "--run",
+          "tutorial-application-fonts03",
+          "timeout",
+          "320s",
+          "C:\\Users\\Petras\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+          "-B",
+          "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\application-fonts03.py"
+        ],
+        "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer",
+        "timeoutSeconds": 330,
+        "jobCommitLimitBytes": 6442450944,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 6.59,
+        "peakJobCommitBytes": 655486976,
+        "affinityMask": "0x300",
+        "processors": 2,
+        "processId": 25252,
+        "descendantsAtCleanup": 1
+      },
+      "artifacts": [
+        {
+          "path": "session_viewer/target/application-fonts03/capture.cjs",
+          "sha256": "6eadac102628def114b943deb034119945fb3402737887bc42768dc41d8f325b",
+          "bytes": 3388
+        },
+        {
+          "path": "session_viewer/target/application-fonts03/check.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        },
+        {
+          "path": "session_viewer/target/application-fonts03/command.json",
+          "sha256": "37ca8912ab96673b62e69dacf1df4719ae247d7bfa47633d278d04380aad0997",
+          "bytes": 422
+        },
+        {
+          "path": "session_viewer/target/application-fonts03/resources.json",
+          "sha256": "4e17bb63bb7cdedbe52edf262f3ab942a17f9b0b6a0e912fe9c6eff357ecacd9",
+          "bytes": 1915
+        },
+        {
+          "path": "session_viewer/target/application-fonts03/result.json",
+          "sha256": "2820cbfb4637ec9bb76a0ce5fb9fed0294335bfc211495a5f064ccfafee865fb",
+          "bytes": 423
+        },
+        {
+          "path": "session_viewer/target/application-fonts03/started.json",
+          "sha256": "10eef50428023c60cf389c998e5dc481f3559e638804b1c44e5ab1e180e90f45",
+          "bytes": 838873
+        },
+        {
+          "path": "session_viewer/target/application-fonts03/captures/fonts.json",
+          "sha256": "47a228e3e548685ee6b479829f242f481ee2910e1ad6ede419a4f7a44ce33cf1",
+          "bytes": 31160
+        },
+        {
+          "path": "session_viewer/target/application-fonts03/captures/subset-1280.png",
+          "sha256": "3b03a2dcd4a194e6a330f385fe82317ed6c41fd9c250f38c7a9acadbe4a682e9",
+          "bytes": 74262
+        },
+        {
+          "path": "session_viewer/target/application-fonts03/captures/subset-390.png",
+          "sha256": "bd2c6db0482b55e3eb25dc45debbed168c8eb6d10a3420e336dd7f4a0efc138f",
+          "bytes": 37098
+        },
+        {
+          "path": "session_viewer/target/application-fonts03/captures/whole-1280.png",
+          "sha256": "0b9bfa6c001182345cd6dc1d868a368fc840c95741925f36279d892af332af76",
+          "bytes": 75518
+        },
+        {
+          "path": "session_viewer/target/application-fonts03/captures/whole-390.png",
+          "sha256": "a3615fe318a37f970526e34c00d4f2c91bedf97cecce6fba69ab857f537e9488",
+          "bytes": 37527
+        }
+      ],
+      "personallyViewedOriginalPngs": 4
+    },
+    {
+      "name": "application-notify01",
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0x300",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 10,
+        "maximumAggregateOurMemoryMiB": 14336,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 2,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-11-15T20:31:58.5345091Z",
+        "executable": "C:\\Program Files\\Git\\bin\\bash.exe",
+        "arguments": [
+          "C:/pc/3_code/code_rust/wood_research/wood/tools/buildslot.sh",
+          "--run",
+          "tutorial-application-notify01",
+          "timeout",
+          "320s",
+          "C:\\Users\\Petras\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+          "-B",
+          "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\application-notify01.py"
+        ],
+        "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer",
+        "timeoutSeconds": 330,
+        "jobCommitLimitBytes": 6442450944,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 5.855,
+        "peakJobCommitBytes": 592887808,
+        "affinityMask": "0x300",
+        "processors": 2,
+        "processId": 31976,
+        "descendantsAtCleanup": 1
+      },
+      "artifacts": [
+        {
+          "path": "session_viewer/target/application-notify01/capture.cjs",
+          "sha256": "3313ad52f612bd42bc349b95a1f76a8d3813507a0b010e2f3e8e62d6e348999f",
+          "bytes": 3849
+        },
+        {
+          "path": "session_viewer/target/application-notify01/check.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        },
+        {
+          "path": "session_viewer/target/application-notify01/command.json",
+          "sha256": "4d9f78d36abe81f1c50c9400b392dd9bdb58d53c4a19159d2f4baa9f87c7bf37",
+          "bytes": 424
+        },
+        {
+          "path": "session_viewer/target/application-notify01/resources.json",
+          "sha256": "b005e261ef2b4b22008475ce5045a5136ad5716c67c3d38985c341c1234a16cb",
+          "bytes": 1918
+        },
+        {
+          "path": "session_viewer/target/application-notify01/result.json",
+          "sha256": "469c0f755e2d15541edc5b7eca0e0d05cd1b2c7d6a80391cfa9f7d10b226ca67",
+          "bytes": 438
+        },
+        {
+          "path": "session_viewer/target/application-notify01/started.json",
+          "sha256": "239c7b582d014d296a0819eaad1f23723c7555a6d012f05ef963aa84e7c1ef45",
+          "bytes": 838873
+        },
+        {
+          "path": "session_viewer/target/application-notify01/captures/after-1280.png",
+          "sha256": "b223acd3502ee508e51054a98627bc8978ef99f93c835bbcde101e58d39c5d81",
+          "bytes": 21634
+        },
+        {
+          "path": "session_viewer/target/application-notify01/captures/after-390.png",
+          "sha256": "9025c43cd987cf05bec08d9be2a5ee5d180b285eaaaa2228cbce4cade9228b67",
+          "bytes": 11268
+        },
+        {
+          "path": "session_viewer/target/application-notify01/captures/before-1280.png",
+          "sha256": "aa8b127b5d1b9de12cad357246869987c2ab38e0736f7f5e358bec01cf6158b4",
+          "bytes": 21447
+        },
+        {
+          "path": "session_viewer/target/application-notify01/captures/before-390.png",
+          "sha256": "06d2d6c9935c7c7edf51fa64cccafb8b667cbb9517df9b628a45d32cb0889f4a",
+          "bytes": 11111
+        },
+        {
+          "path": "session_viewer/target/application-notify01/captures/notification.json",
+          "sha256": "ba900db36e5ce0c426f95a74e10119bad1abe2e384529b074912393a3abd88b5",
+          "bytes": 53631
+        }
+      ],
+      "personallyViewedOriginalPngs": 4
+    }
+  ],
+  "results": [
+    "Maintained loading assertions pass malformed replacement, newer route wins and six reloads with stable reported GPU allocations for repeated workload.",
+    "Font03 comparison-document fixture passes3sequential full-font responses at1280/390; visible placeholder becomesOmega, line width changes and camera/object count stay fixed.",
+    "Mocked HTTPS EventSource withhourlypoll causesexactlyone additionalmanifest andmutablegeometry read at1280/390,onepoint becomes2 within382/390ms; camera unchanged."
+  ],
+  "preservedFailures": [
+    "Font01 specimen was converted toASCIIquestionmark byPowerShellstdin. No full-font request; owner stopped onlyverified node32100. Guard127/outer1 are not runtime acceptance.",
+    "Font02 correctOmega/text-onlyemptyitems observesfontrequest but timesout waiting fordiagnosticsready; no capture/acceptance. Rootcause remains unproven. Font03 addsrecordedcomparisonPB and retainsready assertion."
+  ],
+  "scope": [
+    "Existing own application-check02 optimized bundle; prior source drift was inclusion comments/blank lines only, separately reviewed.",
+    "tests/live-notification.cjs is byte-identical to testedtarget; tests/font-delivery.cjs onlyadds optional fixturepath environment override withsame testeddefault.",
+    "Worldtext fixture has partial geometry occlusion; onlyOmega fallback is visuallyaccepted,not unobstructed full-labellegibility.",
+    "HTTPresponses arelocalmocks; noexternalrelayavailability or physical-deviceacceptance."
+  ],
+  "acceptedSubjects": 0
+}

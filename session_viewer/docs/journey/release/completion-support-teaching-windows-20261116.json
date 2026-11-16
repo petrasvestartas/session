@@ -1,0 +1,640 @@
+{
+  "status": "Support source teaching and scoped docs rendering passed; course incomplete",
+  "parentCommit": "aff29c405df7e872ea3a33a2361e6cde55f603d6",
+  "changes": [
+    "Teach Cargo/build/browser support inputs in their owning lessons; discover newly added support code in the teaching audit.",
+    "Retain 17 non-code assets with explicit reasons; add delayed-font and notification browser checks with scoped evidence."
+  ],
+  "inputs": [
+    {
+      "path": "session_viewer/docs/journey/completion-asset-exclusions.json",
+      "sha256": "004dc72a8c4e09a07e5b77193b0e629c4db33a0b1e519fee580f7d188f65fdea",
+      "bytes": 3552
+    },
+    {
+      "path": "session_viewer/docs/journey/release/completion-loading-fonts-notify-windows-20261115.json",
+      "sha256": "899cb00064934eaa90b7dca4b249591bd52268b2f807bca33b431b1f40f58cac",
+      "bytes": 22359
+    },
+    {
+      "path": "session_viewer/tests/font-delivery.cjs",
+      "sha256": "43f4bbbe32262d9d2341df924b82f3085ed230e1614e6c70e807b002031c45fc",
+      "bytes": 3429
+    },
+    {
+      "path": "session_viewer/tests/live-notification.cjs",
+      "sha256": "3313ad52f612bd42bc349b95a1f76a8d3813507a0b010e2f3e8e62d6e348999f",
+      "bytes": 3849
+    },
+    {
+      "path": "session_tests/scripts/course/teaching.test.ts",
+      "sha256": "0dc2145ef2fa9d81eb0a608925afb15b9d405ffcc3b49186c1a0df88ed1dfb7f",
+      "bytes": 3672
+    },
+    {
+      "path": "session_tests/scripts/course/teaching.ts",
+      "sha256": "2b362fc5480c9380ecb079eb9dae6f74f1cc2b4a93541d0d164333af476f6671",
+      "bytes": 4710
+    },
+    {
+      "path": "session_viewer/docs/journey/active.md",
+      "sha256": "262122f5388308106eb0bd8be30a361086b073aadeccfbc0e5409fb0eac7d07a",
+      "bytes": 4313
+    },
+    {
+      "path": "session_viewer/docs/journey/completion-application.md",
+      "sha256": "516c663bdbe2e0a01cfad50634b5e50e639fee86c623de7215bcee6ced3fdb1c",
+      "bytes": 11865
+    },
+    {
+      "path": "session_viewer/docs/journey/completion-debugging.md",
+      "sha256": "8c66e15d196a139f3aa0ecd579c1d2981ce75fcf18ab79923609abcfaa5162b5",
+      "bytes": 18780
+    },
+    {
+      "path": "session_viewer/docs/journey/completion-frame.md",
+      "sha256": "aaf83e0b46cd6157995dcf9ff3616874564beaef38237e63fbef54fafaaced21",
+      "bytes": 11587
+    },
+    {
+      "path": "session_viewer/docs/journey/completion-loading.md",
+      "sha256": "1bd2082c5c43f6feea270f2dd953c3cec5002dad93aa8a5412f935213b426211",
+      "bytes": 9249
+    },
+    {
+      "path": "session_viewer/docs/journey/completion-streaming.md",
+      "sha256": "0fb4cb09ae7fd66735329a00a4de03b90c21a469da2ae9dcac8ee08a07b84f0c",
+      "bytes": 12289
+    },
+    {
+      "path": "session_viewer/docs/journey/completion-teaching.json",
+      "sha256": "f5a56edd9688e89485192b7ce77f2052952dbfbe4916ada70eee7a96d6b06df0",
+      "bytes": 292064
+    },
+    {
+      "path": "session_viewer/docs/journey/completion-text.md",
+      "sha256": "08f3bbaa6104176fec03eb108db7206556fbdc4fbc6886026d3aad848740c692",
+      "bytes": 12245
+    }
+  ],
+  "teaching": {
+    "sources": 359,
+    "rustAndWgsl": 351,
+    "support": 8,
+    "missing": [],
+    "errors": [],
+    "acceptedSubjects": 0,
+    "nonCodeAssets": 17,
+    "codeExclusions": []
+  },
+  "runs": [
+    {
+      "name": "docs29",
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0x300",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 10,
+        "maximumAggregateOurMemoryMiB": 14336,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 2,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-11-15T20:40:59.5532536Z",
+        "executable": "C:\\Program Files\\Git\\bin\\bash.exe",
+        "arguments": [
+          "C:/pc/3_code/code_rust/wood_research/wood/tools/buildslot.sh",
+          "tutorial-completion-docs29",
+          "timeout",
+          "230s",
+          "C:\\Users\\Petras\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+          "-B",
+          "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\completion-docs29.py"
+        ],
+        "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_tests",
+        "timeoutSeconds": 240,
+        "jobCommitLimitBytes": 6442450944,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 58.912,
+        "peakJobCommitBytes": 1381703680,
+        "affinityMask": "0x300",
+        "processors": 2,
+        "processId": 19900,
+        "descendantsAtCleanup": 1
+      },
+      "artifacts": [
+        {
+          "path": "session_viewer/target/completion-docs29/active-audit.log",
+          "sha256": "dc13e08fa0696c49d90e01721cfc979a1b33c67f1012831ee6c088e3acdf6d43",
+          "bytes": 788
+        },
+        {
+          "path": "session_viewer/target/completion-docs29/command.json",
+          "sha256": "159566437ce075ac43fccbc381a01423289c8fb0857870e86ed34cc6ec833f8d",
+          "bytes": 406
+        },
+        {
+          "path": "session_viewer/target/completion-docs29/delivery.json",
+          "sha256": "d6f26b91711ac0628d2f4bf335c636f63ddbb347ca10065be9b5e429b028d9a4",
+          "bytes": 210
+        },
+        {
+          "path": "session_viewer/target/completion-docs29/dispatch.ps1",
+          "sha256": "de75cf2b7e4b586cefb426a8cd4673bb485dc1dea578e87720c8bac4f0efbedc",
+          "bytes": 665
+        },
+        {
+          "path": "session_viewer/target/completion-docs29/plan.json",
+          "sha256": "792714fb8b7d51bc24b51f84187cb692165d98a65e3f6b26ee1f090e09038346",
+          "bytes": 1419799
+        },
+        {
+          "path": "session_viewer/target/completion-docs29/resources.json",
+          "sha256": "d089688d282bb1e9fe8c77cc76611a3b548bd7b188c855f7b69345ca09af9956",
+          "bytes": 1881
+        },
+        {
+          "path": "session_viewer/target/completion-docs29/result.json",
+          "sha256": "1f7be1bbdcd0a254ed62248a88a6c4b31b8582cdc7e6cf65850665619c3d94cc",
+          "bytes": 429
+        },
+        {
+          "path": "session_viewer/target/completion-docs29/strict-site.log",
+          "sha256": "af1c3122129806006d0be7e79dc6a2ea461b354bc74840289d048776f14aaf34",
+          "bytes": 485975
+        },
+        {
+          "path": "session_viewer/target/completion-docs29/teaching-tests.log",
+          "sha256": "63625cb2c8a568997521b6e51eec189810e345ffb87948b3839fe9bdaea2f0d9",
+          "bytes": 2035
+        }
+      ],
+      "result": {
+        "scope": "359 source/support teaching bindings; 17 non-code asset exclusions; updated loading/font/notification lesson scopes. No subject acceptance.",
+        "commands": [
+          {
+            "name": "teaching-tests",
+            "exitCode": 0
+          },
+          {
+            "name": "active-audit",
+            "exitCode": 0
+          },
+          {
+            "name": "strict-site",
+            "exitCode": 0
+          }
+        ],
+        "postguards": "passed",
+        "outputs": []
+      }
+    },
+    {
+      "name": "browser02",
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0x300",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 10,
+        "maximumAggregateOurMemoryMiB": 14336,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 2,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-11-16T05:48:13.7504034Z",
+        "executable": "C:\\Program Files\\Git\\bin\\bash.exe",
+        "arguments": [
+          "C:/pc/3_code/code_rust/wood_research/wood/tools/buildslot.sh",
+          "--run",
+          "tutorial-support-docs-browser02",
+          "timeout",
+          "370s",
+          "C:\\Users\\Petras\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+          "-B",
+          "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\support-docs-browser02.py"
+        ],
+        "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer",
+        "timeoutSeconds": 380,
+        "jobCommitLimitBytes": 6442450944,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 1,
+        "timedOut": false,
+        "elapsedSeconds": 5.764,
+        "peakJobCommitBytes": 368099328,
+        "affinityMask": "0x300",
+        "processors": 2,
+        "processId": 18472,
+        "descendantsAtCleanup": 1
+      },
+      "artifacts": [
+        {
+          "path": "session_viewer/target/support-docs-browser02-job/capture.cjs",
+          "sha256": "db6430fcb2add9f4a2a8ee4912511fa9994c024a51b260f1fb030ca80cd4fe68",
+          "bytes": 2959
+        },
+        {
+          "path": "session_viewer/target/support-docs-browser02-job/command.json",
+          "sha256": "818dea820b1f60a1a39c304fcd45eeb3c50f4471a6a2caf2fc1de959f91d4654",
+          "bytes": 428
+        },
+        {
+          "path": "session_viewer/target/support-docs-browser02-job/dispatch.ps1",
+          "sha256": "2f93ea60429809192386b066aaf6ed6efd3c3990ec6660cb795e23e763f63c1e",
+          "bytes": 678
+        },
+        {
+          "path": "session_viewer/target/support-docs-browser02-job/pins.json",
+          "sha256": "0bde05a39fc2ca48070711e04c30fcb6b62e8e51dfe57c76f1575c6b5d2fa0e4",
+          "bytes": 425
+        },
+        {
+          "path": "session_viewer/target/support-docs-browser02-job/resources.json",
+          "sha256": "f7236f65acc301cfc8cf7c5a3f628b29fb38aa57ed7cbe70e4ae46d6e3186e22",
+          "bytes": 1922
+        }
+      ]
+    },
+    {
+      "name": "browser03",
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0x300",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 10,
+        "maximumAggregateOurMemoryMiB": 14336,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 2,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-11-16T05:48:58.7863174Z",
+        "executable": "C:\\Program Files\\Git\\bin\\bash.exe",
+        "arguments": [
+          "C:/pc/3_code/code_rust/wood_research/wood/tools/buildslot.sh",
+          "--run",
+          "tutorial-support-docs-browser03",
+          "timeout",
+          "370s",
+          "C:\\Users\\Petras\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+          "-B",
+          "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\support-docs-browser03.py"
+        ],
+        "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer",
+        "timeoutSeconds": 380,
+        "jobCommitLimitBytes": 6442450944,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 1,
+        "timedOut": false,
+        "elapsedSeconds": 6.25,
+        "peakJobCommitBytes": 520232960,
+        "affinityMask": "0x300",
+        "processors": 2,
+        "processId": 36420,
+        "descendantsAtCleanup": 1
+      },
+      "artifacts": [
+        {
+          "path": "session_viewer/target/support-docs-browser03-job/capture.cjs",
+          "sha256": "db6430fcb2add9f4a2a8ee4912511fa9994c024a51b260f1fb030ca80cd4fe68",
+          "bytes": 2959
+        },
+        {
+          "path": "session_viewer/target/support-docs-browser03-job/command.json",
+          "sha256": "7ecc8ccf0d520e7fa56d22cc9cd48c621664d48ba2e9c638014ea8ad58fb1e19",
+          "bytes": 428
+        },
+        {
+          "path": "session_viewer/target/support-docs-browser03-job/dispatch.ps1",
+          "sha256": "199426be27b0109b9297524c291bdf6518457dee9c770235520256affc91f6c0",
+          "bytes": 678
+        },
+        {
+          "path": "session_viewer/target/support-docs-browser03-job/pins.json",
+          "sha256": "bdd01be646897f779712c7413af0c6f39b923dbca979f39c2302738583005cf1",
+          "bytes": 425
+        },
+        {
+          "path": "session_viewer/target/support-docs-browser03-job/resources.json",
+          "sha256": "2f5989be2e114ed8ce756b9feb9f86fdc3c6b7dd9e91c4911bdf05e3ee3fe7b3",
+          "bytes": 1921
+        }
+      ]
+    },
+    {
+      "name": "browser04",
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0x300",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 10,
+        "maximumAggregateOurMemoryMiB": 14336,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 2,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-11-16T05:49:51.7852367Z",
+        "executable": "C:\\Program Files\\Git\\bin\\bash.exe",
+        "arguments": [
+          "C:/pc/3_code/code_rust/wood_research/wood/tools/buildslot.sh",
+          "--run",
+          "tutorial-support-docs-browser04",
+          "timeout",
+          "370s",
+          "C:\\Users\\Petras\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+          "-B",
+          "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\support-docs-browser04.py"
+        ],
+        "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer",
+        "timeoutSeconds": 380,
+        "jobCommitLimitBytes": 6442450944,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 6.978,
+        "peakJobCommitBytes": 537632768,
+        "affinityMask": "0x300",
+        "processors": 2,
+        "processId": 36500,
+        "descendantsAtCleanup": 1
+      },
+      "artifacts": [
+        {
+          "path": "session_viewer/target/support-docs-browser04-job/capture.cjs",
+          "sha256": "00eede8d1c5efa9f0ed5c763f426fd8640dfd78e4b15a1ba9758a045abfaf927",
+          "bytes": 4074
+        },
+        {
+          "path": "session_viewer/target/support-docs-browser04-job/command.json",
+          "sha256": "59b6ebcbd9b5c8d718899aa99e51fecf9642acc93f4c119f60527961ab96ff9f",
+          "bytes": 428
+        },
+        {
+          "path": "session_viewer/target/support-docs-browser04-job/dispatch.ps1",
+          "sha256": "e6a1cbc0e0703272eb88b9b38246fb051b7f88685fd4234753f1cfd628c9a735",
+          "bytes": 678
+        },
+        {
+          "path": "session_viewer/target/support-docs-browser04-job/pins.json",
+          "sha256": "ebd03e9b05117dd98eaecfda8baf238c7045b05609503976296ade6c08dd2c6b",
+          "bytes": 425
+        },
+        {
+          "path": "session_viewer/target/support-docs-browser04-job/resources.json",
+          "sha256": "73dd7f237409eb2ea319fd68989a694862ce5d02d36f8b1027e7c8f680d40179",
+          "bytes": 1922
+        }
+      ]
+    }
+  ],
+  "visualReview": {
+    "result": {
+      "passed": true,
+      "scope": "Final source teaching documentation rendering and footer; no runtime or complete source-delivery acceptance",
+      "records": [
+        {
+          "slug": "completion-frame",
+          "heading": "Read the Rust project before drawing",
+          "width": 1280,
+          "file": "completion-frame-read-the-rust-project-before-drawing-1280.png",
+          "footer": "Docs built 2026-11-15 20:41:04 UTC"
+        },
+        {
+          "slug": "completion-application",
+          "heading": "Package the browser entry and its dependencies",
+          "width": 1280,
+          "file": "completion-application-package-the-browser-entry-and-its-dependencies-1280.png",
+          "footer": "Docs built 2026-11-15 20:41:04 UTC"
+        },
+        {
+          "slug": "completion-debugging",
+          "heading": "Distinguish geometry readiness from font completion",
+          "width": 1280,
+          "file": "completion-debugging-distinguish-geometry-readiness-from-font-completion-1280.png",
+          "footer": "Docs built 2026-11-15 20:41:04 UTC"
+        },
+        {
+          "slug": "completion-text",
+          "heading": "Compare against the same built font fixture",
+          "width": 1280,
+          "file": "completion-text-compare-against-the-same-built-font-fixture-1280.png",
+          "footer": "Docs built 2026-11-15 20:41:04 UTC"
+        },
+        {
+          "slug": "completion-loading",
+          "heading": "Validation",
+          "width": 1280,
+          "file": "completion-loading-validation-1280.png",
+          "footer": "Docs built 2026-11-15 20:41:04 UTC"
+        },
+        {
+          "slug": "completion-streaming",
+          "heading": "Validation",
+          "width": 1280,
+          "file": "completion-streaming-validation-1280.png",
+          "footer": "Docs built 2026-11-15 20:41:04 UTC"
+        },
+        {
+          "slug": "completion-text",
+          "heading": "Validation",
+          "width": 1280,
+          "file": "completion-text-validation-1280.png",
+          "footer": "Docs built 2026-11-15 20:41:04 UTC"
+        },
+        {
+          "slug": "completion-frame",
+          "heading": "Read the Rust project before drawing",
+          "width": 390,
+          "file": "completion-frame-read-the-rust-project-before-drawing-390.png",
+          "footer": "Docs built 2026-11-15 20:41:04 UTC"
+        },
+        {
+          "slug": "completion-application",
+          "heading": "Package the browser entry and its dependencies",
+          "width": 390,
+          "file": "completion-application-package-the-browser-entry-and-its-dependencies-390.png",
+          "footer": "Docs built 2026-11-15 20:41:04 UTC"
+        },
+        {
+          "slug": "completion-debugging",
+          "heading": "Distinguish geometry readiness from font completion",
+          "width": 390,
+          "file": "completion-debugging-distinguish-geometry-readiness-from-font-completion-390.png",
+          "footer": "Docs built 2026-11-15 20:41:04 UTC"
+        },
+        {
+          "slug": "completion-text",
+          "heading": "Compare against the same built font fixture",
+          "width": 390,
+          "file": "completion-text-compare-against-the-same-built-font-fixture-390.png",
+          "footer": "Docs built 2026-11-15 20:41:04 UTC"
+        },
+        {
+          "slug": "completion-loading",
+          "heading": "Validation",
+          "width": 390,
+          "file": "completion-loading-validation-390.png",
+          "footer": "Docs built 2026-11-15 20:41:04 UTC"
+        },
+        {
+          "slug": "completion-streaming",
+          "heading": "Validation",
+          "width": 390,
+          "file": "completion-streaming-validation-390.png",
+          "footer": "Docs built 2026-11-15 20:41:04 UTC"
+        },
+        {
+          "slug": "completion-text",
+          "heading": "Validation",
+          "width": 390,
+          "file": "completion-text-validation-390.png",
+          "footer": "Docs built 2026-11-15 20:41:04 UTC"
+        }
+      ],
+      "navigation": [
+        {
+          "width": 1280,
+          "to": "completion-modeling"
+        },
+        {
+          "width": 1280,
+          "to": "completion-loading"
+        },
+        {
+          "width": 390,
+          "to": "completion-modeling"
+        },
+        {
+          "width": 390,
+          "to": "completion-loading"
+        }
+      ],
+      "errors": []
+    },
+    "captures": [
+      {
+        "path": "session_viewer/target/support-docs-browser04/completion-frame-read-the-rust-project-before-drawing-1280.png",
+        "sha256": "80a30a95df3966db457bbec546c9d8384e92aeaa6addaf7ba05d06f53a547631",
+        "bytes": 142841
+      },
+      {
+        "path": "session_viewer/target/support-docs-browser04/completion-application-package-the-browser-entry-and-its-dependencies-1280.png",
+        "sha256": "3994fc6b7387b49f577316b211163219e544aa507fa9489f1e917fb989a3ca92",
+        "bytes": 130887
+      },
+      {
+        "path": "session_viewer/target/support-docs-browser04/completion-debugging-distinguish-geometry-readiness-from-font-completion-1280.png",
+        "sha256": "7685f64b98c9a5e3c47e885a6a980952ad53e23ddc74906bd1637b4f0581d8b2",
+        "bytes": 138128
+      },
+      {
+        "path": "session_viewer/target/support-docs-browser04/completion-text-compare-against-the-same-built-font-fixture-1280.png",
+        "sha256": "391131b760646c8f57d1100d002e9a780bdf5bb6c7e205e693e6415ef2e1a098",
+        "bytes": 141217
+      },
+      {
+        "path": "session_viewer/target/support-docs-browser04/completion-loading-validation-1280.png",
+        "sha256": "aca31fb34af75b1aa5e645693b0767c3d099cc1c36901ea4f600174c9d51d8c2",
+        "bytes": 114171
+      },
+      {
+        "path": "session_viewer/target/support-docs-browser04/completion-streaming-validation-1280.png",
+        "sha256": "2f8b901180a56156840aaac8bc9b6e285037f2a6086c02013a58e6a1f79debda",
+        "bytes": 124722
+      },
+      {
+        "path": "session_viewer/target/support-docs-browser04/completion-text-validation-1280.png",
+        "sha256": "a239e963d15c4b83192456fb9ba306a76067bf004b9750c404fc3480e5009c8c",
+        "bytes": 120489
+      },
+      {
+        "path": "session_viewer/target/support-docs-browser04/completion-frame-read-the-rust-project-before-drawing-390.png",
+        "sha256": "311e6f2ce82535c1769f17e025ca1642a0e6e14181eac93b5ddcaa160847954e",
+        "bytes": 50433
+      },
+      {
+        "path": "session_viewer/target/support-docs-browser04/completion-application-package-the-browser-entry-and-its-dependencies-390.png",
+        "sha256": "f27249efc6e012eda4a23343ed1f1a7eeaa371992652632c543aad626293d4b7",
+        "bytes": 45605
+      },
+      {
+        "path": "session_viewer/target/support-docs-browser04/completion-debugging-distinguish-geometry-readiness-from-font-completion-390.png",
+        "sha256": "e524898f29536219157586354e75c512c6298c7e636abdec6ce154e8f6acdef3",
+        "bytes": 44941
+      },
+      {
+        "path": "session_viewer/target/support-docs-browser04/completion-text-compare-against-the-same-built-font-fixture-390.png",
+        "sha256": "35928857fbd133060e7b3856d830b29561657e203d432696d7c723ebdb1c8f9c",
+        "bytes": 46333
+      },
+      {
+        "path": "session_viewer/target/support-docs-browser04/completion-loading-validation-390.png",
+        "sha256": "ef4c5e32517719d2c59fedb087ed98598ec71b3f55b87daba062192bb27af78a",
+        "bytes": 37121
+      },
+      {
+        "path": "session_viewer/target/support-docs-browser04/completion-streaming-validation-390.png",
+        "sha256": "30006c57e3e3cac530c03af13e22c233a71bf597858ca8dfb8bb48d7aa06f8af",
+        "bytes": 38473
+      },
+      {
+        "path": "session_viewer/target/support-docs-browser04/completion-text-validation-390.png",
+        "sha256": "ab63b07b190643614ff52ea1bdc8317072377b92dabff916d05ece7e5d9a52ea",
+        "bytes": 38229
+      }
+    ],
+    "review": "All14 original PNGs viewed: seven sections at1280x800 and390x844; readable wrapping, bottom-right consistent build timestamp, four Next interactions. Long sections continue below viewport.",
+    "buildTimeUtc": "2026-11-15T20:41:04Z"
+  },
+  "preservedAttempts": [
+    {
+      "name": "support01",
+      "status": "Not dispatched; two disposable prepared files entirely NUL; cause unknown",
+      "files": [
+        {
+          "path": "session_viewer/target/support-docs-browser01.py",
+          "sha256": "bfe492baf731a0dbf6e1e050f5bc3fe8c1b049383194dcdf82f023bfa409f462",
+          "bytes": 1280
+        },
+        {
+          "path": "session_viewer/target/support-docs-browser01-job/capture.cjs",
+          "sha256": "e78434d8aea07a75b2903e31e6b583648e27d1ff434ee95ac9d32f449c1a61ab",
+          "bytes": 2959
+        }
+      ]
+    },
+    {
+      "name": "support02",
+      "status": "Failed: prior preview server unavailable; no site acceptance."
+    },
+    {
+      "name": "support03",
+      "status": "Failed: reused Validation heading matched prior SPA chapter.04 waits for exact chapter h1; original text and footer assertions retained."
+    }
+  ],
+  "limitations": [
+    "359 paragraph bindings support human teaching review; all nine subjects remain pending.",
+    "Docs rendering does not establish viewer runtime or device acceptance. Runtime results remain separately scoped in completion-loading-fonts-notify-windows-20261115.json.",
+    "Current production endpoint and historical migration failures retain their separate original evidence."
+  ]
+}

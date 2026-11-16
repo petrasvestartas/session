@@ -42,12 +42,31 @@ export function auditTeaching(entries: Teaching[], sources: Files, pages: Files,
         scope: 'Prose witnesses and introduction ownership only; human teaching review and executable acceptance remain separate.'};
 }
 
+export const supportOwners = new Map([
+    ['Cargo.toml', 'frame'], ['Cargo.lock', 'frame'], ['build.rs', 'rows'],
+    ['Trunk.toml', 'application'], ['index.html', 'application'],
+    ['assets/diagnostics.js', 'application'], ['assets/text-quality.html', 'application'],
+    ['assets/view_local.yaml', 'application'],
+]);
+
+export function productionSupportFiles(root: string) {
+    const files = fs.readdirSync(root).filter(name => /\.(rs|html|toml|lock)$/.test(name));
+    for (const relative of fs.readdirSync(path.join(root, 'assets'), {recursive: true})) {
+        const name = String(relative).replaceAll('\\', '/');
+        if (/\.(js|html|yaml|yml)$/.test(name)) files.push(`assets/${name}`);
+    }
+    return files.sort();
+}
+
 export function teachingInputs() {
     const owners = new Map<string, string>();
     for (const subject of completionSubjects)
         for (const name of Object.keys(completionFiles(subject)))
             if (name.startsWith('src/') && !owners.has(name)) owners.set(name, subject);
     const sources: Files = {}, pages: Files = {};
+    for (const [name, owner] of supportOwners) owners.set(name, owner);
+    for (const name of productionSupportFiles(viewer))
+        sources[name] = fs.readFileSync(path.join(viewer, name), 'utf8').replaceAll('\r\n', '\n');
     for (const relative of fs.readdirSync(path.join(viewer, 'src'), {recursive: true})) {
         const name = `src/${String(relative).replaceAll('\\', '/')}`;
         if (fs.statSync(path.join(viewer, name)).isFile())

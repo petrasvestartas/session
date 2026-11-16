@@ -30,7 +30,7 @@ Build and serve that project using the shared cache and workspace guards describ
 
 The route is **incomplete**, with nine executable candidates and no blanket subject-acceptance claim. [Evidence](release.md) and each lesson distinguish native tests, wasm checks, browser behavior and physical-device acceptance. A successful source comparison or site build does not establish teaching or rendering quality.
 
-The source teaching ledger currently has 351 paragraph witnesses across 351 production files, with none missing. A witness binds an actual explanation to reviewed source; it is not automatic teaching acceptance. `course -- teaching` passes its source and paragraph bindings; executable and human teaching acceptance remain separate. No production source has been deliberately excluded.
+The source teaching ledger currently has 359 paragraph witnesses across 351 Rust/WGSL source files and eight browser/build support files, with none missing. A witness binds an actual explanation to reviewed source; it is not automatic teaching acceptance. `course -- teaching` passes its source and paragraph bindings; executable and human teaching acceptance remain separate. No production source has been deliberately excluded.
 
 Remaining work includes complete source teaching, review of subject boundaries, final structural/ownership/parity reconciliation, specialized browser checks and device acceptance. Metadata round-trip byte preservation has a recorded failure: current Save normalizes component JSON spacing/key order. No production behavior change or passing byte-parity claim is implied.
 
@@ -39,3 +39,5 @@ Remaining work includes complete source teaching, review of subject boundaries, 
 [Historical contents](contents.md), [checkpoint progress](roadmap.md) and the [former route](../archived/cumulative-route-20261115.md) preserve the older sequence. `npm run course -- historical-list` lists its identifiers. Its `course.json`, source fixtures, stored hashes and reconstruction checks remain intact.
 
 The active manifest is `active-course.json`; its IDs select actual cumulative assemblies, not grouped historical edits. Historical `structure`, `ownership` and `parity` checks keep their original meaning and may still fail. They are not relabeled as passes when the new assembly passes retention or endpoint checks.
+
+The support-file scan includes the production Cargo manifest and lock, shader build script, Trunk configuration, browser entry, diagnostics script, text-quality page and local scene manifest. The application checkpoint calls the production entry `production.html`; it retains the original entry bytes. [Non-code bundled assets](completion-asset-exclusions.json) list 17 deliberate exclusions: binary fonts and fixture images/data, their provenance/licences and the asset-directory placeholder. They remain available to the runnable checkpoints.

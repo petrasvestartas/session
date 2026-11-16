@@ -1,7 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import {hash} from './model.ts';
-import {auditTeaching, type Teaching} from './teaching.ts';
+import {auditTeaching, productionSupportFiles, type Teaching} from './teaching.ts';
 
 const source = 'pub fn prepare() {}\n';
 const paragraph = 'The cache retains shaped glyphs when placement changes because placement does not change the glyph sequence. Replacing fonts invalidates the atlas because its glyph identifiers belong to the previous font database.';
@@ -36,4 +39,20 @@ test('a source link may accompany substantive prose but cannot supply it', () =>
     const onlyLink = {...entry, explanation: {...entry.explanation!, paragraph: `[${paragraph}](source.rs)`}};
     assert.equal(audit([onlyLink], `### Cache ownership\n\n[${paragraph}](source.rs)`).explained, 0);
     assert.match(auditTeaching([entry], sources, {'journey/text.md': `### Cache ownership\n\n${paragraph}`}, new Map()).errors.join('\n'), /Wrong introduction owner/);
+});
+
+test('production support discovery includes new runtime assets without an inventory entry', () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'course-support-'));
+    try {
+        fs.mkdirSync(path.join(root, 'assets'));
+        for (const name of ['Cargo.toml', 'Cargo.lock', 'build.rs', 'index.html', 'Trunk.toml', 'README.md',
+            'assets/new-runtime.js', 'assets/local.yaml', 'assets/font.ttf'])
+            fs.writeFileSync(path.join(root, name), 'fixture');
+        assert.deepEqual(productionSupportFiles(root), ['Cargo.lock', 'Cargo.toml', 'Trunk.toml',
+            'assets/local.yaml', 'assets/new-runtime.js', 'build.rs', 'index.html']);
+    } finally {
+        assert.equal(path.dirname(path.resolve(root)), path.resolve(os.tmpdir()));
+        assert(path.basename(root).startsWith('course-support-'));
+        fs.rmSync(root, {recursive: true, force: true});
+    }
 });

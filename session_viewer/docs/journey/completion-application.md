@@ -52,11 +52,19 @@ Panels or the active mode lay out before `State::render`. The renderer can then 
 
 The materialized Cargo manifest compiles these sources directly. Its `build.rs` produces the shader inputs required by the shader macro; the build must not borrow another crate's `OUT_DIR`. Assets, native fixtures and built documentation use the documented shared directories rather than independent dependency caches.
 
-`production.html` is the production startup page. Its Trunk rules package the protobuf fixtures, text resources, stage assets, decks, diagnostics and documentation. Build the strict documentation site before materializing this final checkpoint: packaging an absent site is an error. The page's early requests and the loader's ownership of those requests are covered in the loading chapter.
+`production.html` is an exact copy of the production `index.html` source in the materialized application checkpoint. The checkpoint keeps its teaching fixture as `index.html`, copied separately from `examples/course/index.html`; the two entry names do not imply two production implementations. Its Trunk rules package the protobuf fixtures, text resources, stage assets, decks, diagnostics and documentation. Build the strict documentation site before materializing this final checkpoint: packaging an absent site is an error. The page's early requests and the loader's ownership of those requests are covered in the loading chapter.
 
 ### Register state and frame responsibilities
 
 `Features` owns optional interaction state across frames: drafts, active drags, pending splits, query generations, snapping and hierarchy state. Ordered function lists declare work before and after pick answers, handlers that may consume a pick before ordinary selection, and hooks that expand a clicked row into a group. A feature registers its state and hooks at these boundaries instead of rewriting the event loop. Order is behavior: a pending drag must receive its delayed answer before ordinary selection interprets it.
+
+### Package the browser entry and its dependencies
+
+Trunk.toml selects the optimized build and a relative public URL, then invokes the documentation builder before packaging. Its explicit watch list includes the sibling kernel and documentation inputs; an omitted directory would stop edits there from triggering a rebuild. The development server binds localhost and marks its mutable index no-store, so the HTML names the current hashed WebAssembly bundle. These server headers concern the development entry page, not a claim that every immutable asset must bypass caches.
+
+The production index owns the canvas, status element, command-input integration and documentation link. Trunk's Rust link builds the viewer library, while copy rules place protobuf files, full text fonts, stage fonts, decks and the built documentation beside it. The early-fetch script runs before wasm; the diagnostics script is deferred until parsing completes. One named context-menu handler suppresses the browser menu over the canvas. The embedding-message handler accepts a reload request from the parent window or the same origin and forwards its scene value to the wasm binding, retaining the existing page and GPU. A missing WebGPU API displays an explicit HTTPS/localhost message. Opening the HTML as a filesystem file is not the supported startup path.
+
+The supplied local manifest is an authored list of geometry-file URLs, display names, placements and per-item settings such as point size. Its files exercise different rendering lanes, but their presence is not guaranteed on another machine. Resolve each relative file against the manifest's route and replace missing local examples with recorded course fixtures. Changing a manifest placement moves the loaded instance; it does not edit the kernel file's coordinates. The manifest is input data whose parser and contextual errors belong to the loading chapter.
 
 ## Run and observe
 
