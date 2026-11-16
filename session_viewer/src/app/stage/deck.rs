@@ -1285,14 +1285,36 @@ fn act(kind: Kind) -> Action {
     }
 }
 
+fn object_with_options(
+    v: &Value,
+    options: &Mapping,
+    at: &str,
+    cx: &mut Cx,
+) -> Result<ObjSpec, String> {
+    let Value::Mapping(nested) = v else {
+        return object(v, at, cx);
+    };
+    let mut merged = nested.clone();
+    for (key, value) in options {
+        if looks(key, value) {
+            merged.insert(key.clone(), value.clone());
+        }
+    }
+    object(&Value::Mapping(merged), at, cx)
+}
+
 /// An equation written by `eq` or `then`: named `eq<n>` and aligned on its equals sign.
 fn equation(v: &Value, at: &str, cx: &mut Cx) -> Result<ObjSpec, String> {
     let mut o = match v {
         Value::Mapping(m) => {
-            if let Some(t) = get(m, "eq").and_then(text) {
-                let mut spec = object(v, at, cx).unwrap_or_else(|_| plain(cx.auto(), Content::Tex(t.clone())));
-                spec.content = Content::Tex(t);
-                spec
+            if let Some(eq) = get(m, "eq").or_else(|| get(m, "then")) {
+                if eq.is_mapping() {
+                    object_with_options(eq, m, at, cx)?
+                } else {
+                    let mut normalized = m.clone();
+                    normalized.insert(Value::String("tex".into()), eq.clone());
+                    object(&Value::Mapping(normalized), at, cx)?
+                }
             } else {
                 object(v, at, cx)?
             }
@@ -1805,7 +1827,15 @@ fn step(m: &Mapping, at: &str, cx: &mut Cx) -> Result<Vec<Action>, String> {
                     map: Vec::new(),
                 }));
             }
-            "text" | "code" | "image" | "matrix" | "row" | "tex" => {
+            "tex" => {
+                let o = if v.is_mapping() {
+                    object_with_options(v, m, at, cx)?
+                } else {
+                    object(&one, at, cx)?
+                };
+                out.push(act(Kind::Add(vec![o])));
+            }
+            "text" | "code" | "image" | "matrix" | "row" => {
                 out.push(act(Kind::Add(vec![object(&one, at, cx)?])))
             }
             "highlight" => out.push(act(Kind::Indicate(strings(v), None))),

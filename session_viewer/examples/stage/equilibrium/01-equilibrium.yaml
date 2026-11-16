@@ -1,4 +1,3 @@
-
 # Equilibrium of one node in 2D: a load on two cables, solved by a force diagram and then by projections.
 # Preview and publish: see README.md in this folder.
 #
@@ -10,8 +9,7 @@
 # 
 # Push to server:
 # cd session_viewer
-#   aws s3 sync examples/stage s3://session-viewer-data/stage/ --delete --exclude '*' --include '*.yaml' --content-type application/yaml --cache-control no-cache --profile r2 --endpoint-url https://0520459c6817bd96c1e25fcb49461c4e.r2.cloudflarestorage.com
-
+# aws s3 sync examples/stage s3://session-viewer-data/stage/ --delete --exclude '*' --include '*.yaml' --content-type application/yaml --cache-control no-cache --profile r2 --endpoint-url https://0520459c6817bd96c1e25fcb49461c4e.r2.cloudflarestorage.com
 
 camera: {view: top}       # all points at z = 0: x to the right, y up
 points:
@@ -106,7 +104,7 @@ slides:
               - {id: b2, polyline: [[0.000, 1.400, 0], [0.112, 1.395, 0], [0.224, 1.382, 0], [0.335, 1.359, 0], [0.443, 1.328, 0], [0.548, 1.288, 0], [0.650, 1.240, 0], [0.747, 1.184, 0], [0.840, 1.120, 0]], color: y, width: 2}
               - {id: b2t, label: [0.39, 1.01, 0], tex: '\beta_2', color: y}
           - eq: {tex: '\cos\alpha_2 = \frac{\Delta x_2}{l_2} = \frac{3}{5} = 0.6, \qquad \cos\beta_2 = \frac{\Delta y_2}{l_2} = \frac{4}{5} = 0.8', align: left}
-      - say: 'We compute diagonal projections:'
+      - say: 'EQUILIBRIUM BY PROJECTIONS'
         do:
           - project: {of: t2, parts: 'f_{2,%}', axes: [x, y]}
           - add:
