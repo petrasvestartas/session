@@ -541,10 +541,10 @@ pub fn paint(
     let now = stage.now;
     let chapter_title = &stage.chapters[stage.chapter].title;
     // where we are, in the size of every other line of text on the slide
-    let head = if *chapter_title == stage.title.0 {
-        chapter_title.clone()
+    let head = if !stage.title.0.is_empty() {
+        stage.title.0.clone()
     } else {
-        format!("{} · {}", chapter_title, stage.title.0)
+        chapter_title.clone()
     };
     text(
         stage,
