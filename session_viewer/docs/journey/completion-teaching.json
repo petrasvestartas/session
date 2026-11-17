@@ -2286,7 +2286,7 @@
     "explanation": {
       "page": "journey/completion-camera.md",
       "heading": "### Motion and fitting",
-      "paragraph": "`ray` unprojects a screen position into a world-space origin and direction. `zoom_at` compares the cursor's target-plane intersection before and after changing distance, then adjusts the target so that point remains under the cursor. Parallel rays and invalid viewport dimensions cannot produce a valid intersection. Picking later consumes this same ray implementation."
+      "paragraph": "`ray` maps a screen position to a world-space origin and direction. Perspective rays begin at the eye; orthographic rays are parallel and begin behind the scene. Empty viewports or nonfinite cursor coordinates are rejected. `zoom_at` computes the cursor's offset on the target plane and shifts the target by the fraction removed by zooming, keeping that point under the cursor. Picking later consumes the same ray implementation."
     }
   },
   {
@@ -2526,7 +2526,7 @@
     "explanation": {
       "page": "journey/completion-rows.md",
       "heading": "## Prerequisites and ownership",
-      "paragraph": "`ObjectRow` is convenient CPU input: a double-precision placement, bounds, tint, flags and optional extreme points. `Instance` is the shader-facing contract. `#[repr(C)]` fixes field order, and the `Pod` derive rejects fields that cannot safely be uploaded as bytes. The size assertion pins its 112-byte stride. Padding has a purpose: the fourth word after spacing carries the packed edge colour."
+      "paragraph": "`ObjectRow` is convenient CPU input: a double-precision placement, bounds, tint, flags and optional extreme points. `Instance` is the shader-facing contract. `#[repr(C)]` fixes field order, and the `Pod` derive rejects fields that cannot safely be uploaded as bytes. The size assertion pins its 112-byte stride. Padding has a purpose: the word following spacing carries the packed edge colour."
     }
   },
   {

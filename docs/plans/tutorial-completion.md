@@ -26,7 +26,7 @@ The painting fixture accepts `RawInput` and an egui callback from its first intr
 
 ## Evidence and acceptance
 
-Use the source-owner ledger and [evidence index](tutorial-evidence.json), with detailed immutable receipts linked from that index. The current audit binds explanations to 351 Rust/WGSL files and eight build/browser inputs; 17 retained non-code assets have explicit exclusion reasons. Review the substance of each explanation and the checkpoint's actual behavior. Frame and painting have completed scoped source, lesson and runtime review; seven subjects remain pending. Their pinned acceptance receipts are checked by the active audit.
+Use the source-owner ledger and [evidence index](tutorial-evidence.json), with detailed immutable receipts linked from that index. The current audit binds explanations to 351 Rust/WGSL files and eight build/browser inputs; 17 retained non-code assets have explicit exclusion reasons. Review the substance of each explanation and the checkpoint's actual behavior. Frame, painting, mathematics, dock, camera, rows, geometry and decoding have completed scoped source, lesson and runtime review; application remains pending. Their pinned acceptance receipts are checked by the active audit.
 
 Keep historical structural, ownership and parity checks unchanged. The active cumulative audit independently verifies retention and exact current production source parity. Reconcile both scopes honestly; do not describe historical failures as active-route successes.
 

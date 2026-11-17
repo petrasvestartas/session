@@ -2,13 +2,13 @@
 
 Move, recolour, hide and reveal one object while its neighbouring row stays unchanged.
 
-This sixth cumulative checkpoint is a candidate. Its source-retention tests and wasm typecheck pass; 54 native tests pass with one GPU-dependent test ignored; desktop/upright browser interactions pass.
+This sixth cumulative subject is reviewed against its source-retention checks, independent wasm build, 54 passing native tests and recorded Windows Intel WebGPU row interactions at desktop and upright sizes. The recorded native run leaves one GPU-dependent test ignored; lane rendering and picking have separate acceptance.
 
 ## Prerequisites and ownership
 
 Keep frame, painting, mathematics, dock and camera unchanged. This subject owns the object-row layout, row table, bounds helpers and growing buffers. The pipeline cache, binding layouts and diagnostics are supporting dependencies shared with later rendering subjects; their implementation remains in place.
 
-`ObjectRow` is convenient CPU input: a double-precision placement, bounds, tint, flags and optional extreme points. `Instance` is the shader-facing contract. `#[repr(C)]` fixes field order, and the `Pod` derive rejects fields that cannot safely be uploaded as bytes. The size assertion pins its 112-byte stride. Padding has a purpose: the fourth word after spacing carries the packed edge colour.
+`ObjectRow` is convenient CPU input: a double-precision placement, bounds, tint, flags and optional extreme points. `Instance` is the shader-facing contract. `#[repr(C)]` fixes field order, and the `Pod` derive rejects fields that cannot safely be uploaded as bytes. The size assertion pins its 112-byte stride. Padding has a purpose: the word following spacing carries the packed edge colour.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/instance/layout.rs:object-instance-layout"

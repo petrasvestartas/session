@@ -71,7 +71,7 @@ For the candidate bundle, run `node scripts/course/completion-browser.cjs URL NE
 
 Run `course -- teaching` to inspect `journey/completion-teaching.json`. Each source is assigned to the first cumulative assembly that introduces it. An explanation records an exact paragraph and heading in its lesson, bound to the normalized source hash. Missing explanations fail the command; source listings, links and inventory membership do not satisfy it. These witnesses support human teaching review, not automatic subject acceptance. Review changed source before rebinding a witness. The pinned destination and historical checks remain separate.
 
-Accept a subject only after reviewing its complete lesson, retained implementation and applicable runtime evidence. Record `acceptance: accepted` with a `review` path and SHA-256 in `active-course.json`; prerequisites must already be accepted. The review records the subject, `status: accepted`, checkpoint file hashes, lesson path/hash and supporting evidence paths/hashes. Hash review text and lesson text with LF line endings. `active-audit` rejects a changed receipt, checkpoint or lesson; adding a receipt does not itself perform the human teaching or browser review.
+Accept a subject only after reviewing its complete lesson, retained implementation and applicable runtime evidence. Record `acceptance: accepted` with a `review` path and SHA-256 in `active-course.json`; prerequisites must already be accepted. The review records the subject, `status: accepted`, checkpoint file hashes, lesson path/hash, every owned chapter path/hash and supporting evidence paths/hashes. Hash review text and lesson text with LF line endings. `active-audit` rejects a changed receipt, checkpoint or lesson; adding a receipt does not itself perform the human teaching or browser review.
 
 The current completion batch is defined in `journey/completion-batch.json`; `course -- destination` checks its commit, all production source owners, build inputs and working source drift. Its 17 proposed subject groups are planned ownership, not accepted teaching or a proven minimal runnable sequence. This check does not change the historical inventory or replace structural, ownership or endpoint-parity checks. The execution plan and continuation record live in `docs/plans/tutorial-completion.md` and `docs/plans/tutorial-continuation.md` at the session repository root.
 
@@ -115,6 +115,8 @@ npm --prefix ../session_tests run course -- historical-generate
 The capture tool checks actual startup, mouse and keyboard input, canvas results and the pixel round trip. Native rendering cannot substitute for it. Pages include browser captures only when their source fingerprints match. Otherwise they identify native readbacks explicitly.
 
 For an isolated review of already built journey bundles, `docs/capture_journey.cjs` accepts `JOURNEY_OUTPUT` for a separate evidence directory and `JOURNEY_VIEWPORT` as a JSON object containing `width` and `height`. Its defaults preserve the canonical screenshot directory and 900-by-760 viewport. Keep new review outputs separate from images owned by another agent, and identify upright viewport emulation explicitly in the receipt.
+
+Run `node tests/course-home.cjs http://127.0.0.1:8798/docs/` against the built site, using the same browser environment and resource guards, to verify the manifest checkpoint count and geometry chapter navigation at desktop and upright sizes.
 
 ## Foundations and diagrams
 

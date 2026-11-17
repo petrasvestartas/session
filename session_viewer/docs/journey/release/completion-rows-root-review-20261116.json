@@ -1,0 +1,30 @@
+{
+  "status": "SCOPED_ROWS_CONTRACT_REVIEW_PASS_FINAL_RECEIPT_BINDING_PENDING",
+  "reviewedUtc": "2026-11-16T07:32:48.754878+00:00",
+  "subject": "rows",
+  "lesson": {
+    "path": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\docs\\journey\\completion-rows.md",
+    "sha256": "1e562cc83ccfa63fce01683b45313a47ecb7f33bd49c5ece934e16e9f37ac63e",
+    "bytes": 15842
+  },
+  "sourceBinding": {
+    "path": ".codex\\viewer-quality-20261028\\remaining-four-full-source-binding-root-review.json",
+    "sha256": "657feba5119255305b63234268cf8f357c40f2b9718c1c5dd3be8a1c03f20576",
+    "bytes": 167408
+  },
+  "runtimeOriginalReview": {
+    "path": ".codex\\viewer-quality-20261028\\rows-boundary03-native54-browser14-original-root-review.json",
+    "sha256": "bb33562f0a5e0666a7a13463570e4546ddd6b8776840bf3a8c86f97b45382909",
+    "bytes": 19460
+  },
+  "reviewScope": [
+    "Read full rows lesson and full actual rows inspector fixture. Confirmed CPU mirror drawing and real GPU buffer writes; no claim that egui rectangles prove lane reveal or pick rejection.",
+    "Read Instance112-byte layout/flags, GrowBuf append/reserve/grow/write/fill/packed/reset/release/limit admission, lazy/cache identity and full pipeline key, binding declarations and layouts.",
+    "Read critical table placeholder/widget append, reanchoring/placement/revision/color/hidden flag and retire/bury ownership paths, bounded hull extraction/placed bounds, physical/projected triangle WGSL records and coverage, normal encoding/transform, and shared clipping predicates.",
+    "Independently bound all68 current assembly files to correctly scoped rows-build01/rows, including its shader build closure, with only standard Cargo path relocation/LF normalization.",
+    "Reuse prior personally reviewed row move/hide/reveal/tint/neighbor roundtrip originals at1280/390 and54nativePASS/1ignored scope, plus original full test module compile followup. No new run claimed."
+  ],
+  "findingResolved": "Replaced misleading fourth word after spacing with word following spacing, matching actual _pad field; no Rust change.",
+  "prerequisite": "Camera final binding separately passes; rows may be bound only after camera accepted. Prepare final scoped intro and exact68-map/lesson/evidence receipt; actual status remains pending until final binding.",
+  "limitations": "Contract scoped to row storage/inspector and explained supporting dependencies. No physical-phone, production lane pick/reveal or application instancing-parity acceptance. Original GPU37 comparison FAIL retained; source hash or shader compilation alone does not establish runtime acceptance."
+}

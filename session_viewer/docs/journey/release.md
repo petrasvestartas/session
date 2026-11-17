@@ -1,11 +1,11 @@
 # Course status
 
-- The course has **1,298 checkpoints across 110 subjects**. [Records and fitting](22a-records.md) consolidates fourteen checkpoints, archives fifteen pages and passes [73 native tests](release/records-native-windows-20261114.json).
-- Early mathematics, commands, six mesh-to-viewport checkpoints and [records and fitting](release/records-runtime-windows-20261114.json) have native, WASM and browser evidence. Records passes actual file races, import history, both projections, fitting and keyboard ownership at desktop/upright dimensions.
-- Remaining: **96 unconsolidated subjects**, 4,801 ownership rewrites, structural/inventory differences, production parity and final-reference WASM startup. Viewport emulation does not establish physical-phone acceptance. See the [completion contract](completion-contract.md).
+- The active course has [nine cumulative executable subjects](active.md). Eight are accepted locally, from frame through decoding; application remains pending. The latest acceptance batch is not yet published.
+- All 22 focused tooling tests, retained-source/351-file endpoint checks and the strict site build pass. Geometry's 13 GPU tests pass. The application GPU run has 36 passes and [one reproducible failure](release/completion-application-gpu-diagnostic-windows-20261116.json); its assertion remains unchanged.
+- The [historical route](../archived/cumulative-route-20261115.md) preserves 1,298 checkpoints across 110 subjects, fixtures and original failed audits. Final review, production reconciliation and publication/CI remain required.
 
 ## Reproduce
 
-The retained reference checkpoints use the [historical bundle-server instructions](../archived/journey-release-evidence.md#reproduce). Those commands reproduce the reference, not current production acceptance. Use the [mathematics lesson's commands](03a-mathematics.md#run-and-observe) for the full stage-core checkpoint, and [Maintaining](../maintaining.md) for current course checks.
+Use [Maintaining](../maintaining.md) to assemble and run a current subject. Each lesson describes its visible result and the source scope of its native, wasm and browser evidence. The [completion contract](completion-contract.md) defines whole-course acceptance.
 
-[Earlier consolidated runtime evidence](release/history-editor-viewport-windows-20261114.json) and [documentation evidence](release/consolidation-docs-windows-20261114.json) retain their original source scope; they do not accept the changed cumulative graph.
+The [historical bundle-server instructions](../archived/journey-release-evidence.md#reproduce), [earlier runtime evidence](release/history-editor-viewport-windows-20261114.json) and [earlier documentation evidence](release/consolidation-docs-windows-20261114.json) retain their original scope. They do not accept the current route. Desktop/upright emulation does not establish physical-phone behavior.

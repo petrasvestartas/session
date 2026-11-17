@@ -28,11 +28,11 @@ Build and serve that project using the shared cache and workspace guards describ
 
 ## Acceptance
 
-The route is **incomplete**, with nine executable candidates and no blanket subject-acceptance claim. [Evidence](release.md) and each lesson distinguish native tests, wasm checks, browser behavior and physical-device acceptance. A successful source comparison or site build does not establish teaching or rendering quality.
+The route is **incomplete**. Eight of its nine executable subjects are accepted locally: frame, painting, mathematics, dock, camera, rows, geometry and decoding. Application remains pending; the latest acceptance batch is not yet published. [Evidence](release.md) and each lesson distinguish native tests, wasm checks, browser behavior and physical-device acceptance. A successful source comparison or site build does not establish teaching or rendering quality.
 
 The source teaching ledger currently has 359 paragraph witnesses across 351 Rust/WGSL source files and eight browser/build support files, with none missing. A witness binds an actual explanation to reviewed source; it is not automatic teaching acceptance. `course -- teaching` passes its source and paragraph bindings; executable and human teaching acceptance remain separate. No production source has been deliberately excluded.
 
-Remaining work includes complete source teaching, review of subject boundaries, final structural/ownership/parity reconciliation, specialized browser checks and device acceptance. Metadata round-trip byte preservation has a recorded failure: current Save normalizes component JSON spacing/key order. No production behavior change or passing byte-parity claim is implied.
+Remaining work includes the final application review, current-production and structural/ownership/parity reconciliation, and publication/CI. The application GPU comparison has a [reproduced failure](release/completion-application-gpu-diagnostic-windows-20261116.json). Metadata round-trip byte preservation has a recorded failure: current Save normalizes component JSON spacing/key order. No production behavior change or passing byte-parity claim is implied.
 
 ## Historical reconstruction
 

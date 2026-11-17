@@ -1,0 +1,1033 @@
+{
+  "status": "Eight subjects accepted within reviewed scope; application pending; course incomplete",
+  "scope": "Eight accepted cumulative subjects (frame through decoding), chapter digest enforcement, homepage 9-checkpoint count, subject-owned chapter grouping, geometry-visibility-decoding navigation, bottom-right UTC timestamp and desktop/upright layout verification; no viewer behavior change or physical-device claim",
+  "accepted": [
+    "frame",
+    "painting",
+    "mathematics",
+    "dock",
+    "camera",
+    "rows",
+    "geometry",
+    "decoding"
+  ],
+  "pending": [
+    "application"
+  ],
+  "tooling": {
+    "passed": 22,
+    "failed": 0
+  },
+  "activeAudit": {
+    "scope": "Active cumulative assemblies only; historical checks and teaching/runtime acceptance remain separate",
+    "checkpoints": [
+      {
+        "subject": "frame",
+        "files": 13
+      },
+      {
+        "subject": "painting",
+        "files": 15
+      },
+      {
+        "subject": "mathematics",
+        "files": 41
+      },
+      {
+        "subject": "dock",
+        "files": 45
+      },
+      {
+        "subject": "camera",
+        "files": 47
+      },
+      {
+        "subject": "rows",
+        "files": 68
+      },
+      {
+        "subject": "geometry",
+        "files": 166
+      },
+      {
+        "subject": "decoding",
+        "files": 170
+      },
+      {
+        "subject": "application",
+        "files": 369
+      }
+    ],
+    "failures": [],
+    "productionFiles": 351,
+    "missing": [],
+    "extra": [],
+    "changed": [],
+    "passed": true
+  },
+  "docs": {
+    "result": {
+      "scope": "Eight accepted scoped subjects and assigned chapter hashes; manifest homepage count and chapter grouping correction; strict site",
+      "commands": [
+        {
+          "name": "teaching-tests",
+          "exitCode": 0
+        },
+        {
+          "name": "active-audit",
+          "exitCode": 0
+        },
+        {
+          "name": "strict-site",
+          "exitCode": 0
+        }
+      ],
+      "postguards": "passed",
+      "outputs": []
+    },
+    "delivery": {
+      "base": "/docs/",
+      "assetUrls": [
+        "/docs/assets/main-BDIBoFMP.js",
+        "/docs/assets/main-B4Gnh6tv.css"
+      ],
+      "indexSha256": "f4377616ab1f5df7104fbd4f236ea08c30094ef38eb647bb0246175fd4081b35"
+    },
+    "resources": {
+      "platform": "windows-job-object",
+      "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+      "laneMutex": "Local\\SessionViewerCourseImageJob",
+      "affinityOffset": 8,
+      "requiredAffinityMask": "0x300",
+      "maximumOtherLaneProcessors": 8,
+      "maximumOtherLaneMemoryMiB": 8192,
+      "maximumAggregateOurProcessors": 10,
+      "maximumAggregateOurMemoryMiB": 14336,
+      "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+      "requestedProcessors": 2,
+      "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+      "startedUtc": "2026-11-16T07:43:35.0392157Z",
+      "executable": "C:\\Program Files\\Git\\bin\\bash.exe",
+      "arguments": [
+        "C:/pc/3_code/code_rust/wood_research/wood/tools/buildslot.sh",
+        "tutorial-completion-docs33",
+        "timeout",
+        "230s",
+        "C:\\Users\\Petras\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+        "-B",
+        "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\completion-docs33.py"
+      ],
+      "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_tests",
+      "timeoutSeconds": 240,
+      "jobCommitLimitBytes": 6442450944,
+      "swapCapSupported": false,
+      "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+      "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+      "exitCode": 0,
+      "timedOut": false,
+      "elapsedSeconds": 51.595,
+      "peakJobCommitBytes": 1360216064,
+      "affinityMask": "0x300",
+      "processors": 2,
+      "processId": 39568,
+      "descendantsAtCleanup": 1
+    }
+  },
+  "browserResources": {
+    "platform": "windows-job-object",
+    "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+    "laneMutex": "Local\\SessionViewerCourseImageJob",
+    "affinityOffset": 8,
+    "requiredAffinityMask": "0x300",
+    "maximumOtherLaneProcessors": 8,
+    "maximumOtherLaneMemoryMiB": 8192,
+    "maximumAggregateOurProcessors": 10,
+    "maximumAggregateOurMemoryMiB": 14336,
+    "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+    "requestedProcessors": 2,
+    "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+    "startedUtc": "2026-11-17T06:01:23.8666740Z",
+    "executable": "C:\\Program Files\\Git\\bin\\bash.exe",
+    "arguments": [
+      "C:/pc/3_code/code_rust/wood_research/wood/tools/buildslot.sh",
+      "--run",
+      "tutorial-support-docs-browser08",
+      "timeout",
+      "370s",
+      "C:\\Users\\Petras\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+      "-B",
+      "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\support-docs-browser08.py"
+    ],
+    "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer",
+    "timeoutSeconds": 380,
+    "jobCommitLimitBytes": 6442450944,
+    "swapCapSupported": false,
+    "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+    "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+    "exitCode": 0,
+    "timedOut": false,
+    "elapsedSeconds": 11.425,
+    "peakJobCommitBytes": 554811392,
+    "affinityMask": "0x300",
+    "processors": 2,
+    "processId": 2960,
+    "descendantsAtCleanup": 1
+  },
+  "browser": {
+    "passed": true,
+    "scope": "Eight accepted scoped subjects, homepage 9-checkpoint count, subject-owned chapter grouping, geometry-visibility-decoding navigation, bottom-right build timestamp and desktop/upright documentation layout; no viewer runtime or physical-device acceptance",
+    "cliCourseHome": [
+      {
+        "width": 1280,
+        "checkpoints": 9,
+        "chapterOwner": "geometry",
+        "navigation": "geometry/visibility/decoding"
+      },
+      {
+        "width": 390,
+        "checkpoints": 9,
+        "chapterOwner": "geometry",
+        "navigation": "geometry/visibility/decoding"
+      }
+    ],
+    "homeChecks": [
+      {
+        "width": 1280,
+        "checkpoints": 9,
+        "chapterOwner": "geometry",
+        "navigation": "geometry/visibility/decoding",
+        "sectionTitles": [
+          "Render kernel geometry",
+          "Run the application"
+        ]
+      },
+      {
+        "width": 390,
+        "checkpoints": 9,
+        "chapterOwner": "geometry",
+        "navigation": "geometry/visibility/decoding",
+        "sectionTitles": [
+          "Render kernel geometry",
+          "Run the application"
+        ]
+      }
+    ],
+    "records": [
+      {
+        "slug": "course",
+        "width": 1280,
+        "file": "course-home-1280.png",
+        "footer": "Docs built 2026-11-16 07:43:40 UTC",
+        "footerBox": {
+          "x": 1058.078125,
+          "y": 774.609375,
+          "width": 185.921875,
+          "height": 21.390625
+        }
+      },
+      {
+        "slug": "course-chapters",
+        "width": 1280,
+        "file": "course-home-chapters-1280.png",
+        "footer": "Docs built 2026-11-16 07:43:40 UTC",
+        "sectionTitles": [
+          "Render kernel geometry",
+          "Run the application"
+        ],
+        "geomLinksCount": 1,
+        "appLinksCount": 9
+      },
+      {
+        "slug": "active",
+        "heading": "Acceptance",
+        "expected": "Eight of its nine executable subjects are accepted locally",
+        "width": 1280,
+        "file": "active-eight-of-its-nine-executable-subjects-are-accepted-locally-1280.png",
+        "footer": "Docs built 2026-11-16 07:43:40 UTC",
+        "footerBox": {
+          "x": 1058.078125,
+          "y": 774.609375,
+          "width": 185.921875,
+          "height": 21.390625
+        }
+      },
+      {
+        "slug": "release",
+        "heading": "Course status",
+        "expected": "Eight are accepted locally, from frame through decoding",
+        "width": 1280,
+        "file": "release-eight-are-accepted-locally-from-frame-through-decoding-1280.png",
+        "footer": "Docs built 2026-11-16 07:43:40 UTC",
+        "footerBox": {
+          "x": 1058.078125,
+          "y": 774.609375,
+          "width": 185.921875,
+          "height": 21.390625
+        }
+      },
+      {
+        "slug": "completion-frame",
+        "heading": "Open a GPU frame",
+        "expected": "recorded Windows Intel WebGPU",
+        "width": 1280,
+        "file": "completion-frame-recorded-windows-intel-webgpu-1280.png",
+        "footer": "Docs built 2026-11-16 07:43:40 UTC",
+        "footerBox": {
+          "x": 1058.078125,
+          "y": 774.609375,
+          "width": 185.921875,
+          "height": 21.390625
+        }
+      },
+      {
+        "slug": "completion-painting",
+        "heading": "Paint shapes and text",
+        "expected": "recorded Windows Intel WebGPU",
+        "width": 1280,
+        "file": "completion-painting-recorded-windows-intel-webgpu-1280.png",
+        "footer": "Docs built 2026-11-16 07:43:40 UTC",
+        "footerBox": {
+          "x": 1058.078125,
+          "y": 774.609375,
+          "width": 185.921875,
+          "height": 21.390625
+        }
+      },
+      {
+        "slug": "completion-mathematics",
+        "heading": "Kernel motion values",
+        "expected": "At parameter",
+        "width": 1280,
+        "file": "completion-mathematics-at-parameter-1280.png",
+        "footer": "Docs built 2026-11-16 07:43:40 UTC",
+        "footerBox": {
+          "x": 1058.078125,
+          "y": 774.609375,
+          "width": 185.921875,
+          "height": 21.390625
+        }
+      },
+      {
+        "slug": "completion-dock",
+        "heading": "Enter commands",
+        "expected": "recorded Windows Intel WebGPU",
+        "width": 1280,
+        "file": "completion-dock-recorded-windows-intel-webgpu-1280.png",
+        "footer": "Docs built 2026-11-16 07:43:40 UTC",
+        "footerBox": {
+          "x": 1058.078125,
+          "y": 774.609375,
+          "width": 185.921875,
+          "height": 21.390625
+        }
+      },
+      {
+        "slug": "completion-camera",
+        "heading": "Project and fit a scene",
+        "expected": "fifth cumulative subject is reviewed",
+        "width": 1280,
+        "file": "completion-camera-fifth-cumulative-subject-is-reviewed-1280.png",
+        "footer": "Docs built 2026-11-16 07:43:40 UTC",
+        "footerBox": {
+          "x": 1058.078125,
+          "y": 774.609375,
+          "width": 185.921875,
+          "height": 21.390625
+        }
+      },
+      {
+        "slug": "completion-camera",
+        "heading": "Motion and fitting",
+        "expected": "cursor's offset",
+        "width": 1280,
+        "file": "completion-camera-cursor-s-offset-1280.png",
+        "footer": "Docs built 2026-11-16 07:43:40 UTC",
+        "footerBox": {
+          "x": 1058.078125,
+          "y": 774.609375,
+          "width": 185.921875,
+          "height": 21.390625
+        }
+      },
+      {
+        "slug": "completion-rows",
+        "heading": "Prerequisites and ownership",
+        "expected": "word following spacing carries the packed edge colour",
+        "width": 1280,
+        "file": "completion-rows-word-following-spacing-carries-the-packed-edge-colour-1280.png",
+        "footer": "Docs built 2026-11-16 07:43:40 UTC",
+        "footerBox": {
+          "x": 1058.078125,
+          "y": 774.609375,
+          "width": 185.921875,
+          "height": 21.390625
+        }
+      },
+      {
+        "slug": "completion-geometry",
+        "heading": "Validation",
+        "expected": "13 original tests",
+        "width": 1280,
+        "file": "completion-geometry-13-original-tests-1280.png",
+        "footer": "Docs built 2026-11-16 07:43:40 UTC",
+        "footerBox": {
+          "x": 1058.078125,
+          "y": 774.609375,
+          "width": 185.921875,
+          "height": 21.390625
+        }
+      },
+      {
+        "slug": "completion-visibility",
+        "heading": "Validation",
+        "expected": "13-test GPU run",
+        "width": 1280,
+        "file": "completion-visibility-13-test-gpu-run-1280.png",
+        "footer": "Docs built 2026-11-16 07:43:40 UTC",
+        "footerBox": {
+          "x": 1058.078125,
+          "y": 774.609375,
+          "width": 185.921875,
+          "height": 21.390625
+        }
+      },
+      {
+        "slug": "completion-decoding",
+        "heading": "Bounded input",
+        "expected": "two-million-object counter sums points",
+        "width": 1280,
+        "file": "completion-decoding-two-million-object-counter-sums-points-1280.png",
+        "footer": "Docs built 2026-11-16 07:43:40 UTC",
+        "footerBox": {
+          "x": 1058.078125,
+          "y": 774.609375,
+          "width": 185.921875,
+          "height": 21.390625
+        }
+      },
+      {
+        "slug": "completion-documents",
+        "heading": "Validation",
+        "expected": "moving_one_placement_leaves_the_other_where_it_was",
+        "width": 1280,
+        "file": "completion-documents-moving-one-placement-leaves-the-other-where-it-was-1280.png",
+        "footer": "Docs built 2026-11-16 07:43:40 UTC",
+        "footerBox": {
+          "x": 1058.078125,
+          "y": 774.609375,
+          "width": 185.921875,
+          "height": 21.390625
+        }
+      },
+      {
+        "slug": "completion-application",
+        "heading": "Validation",
+        "expected": "31 pixels differing by three channel levels",
+        "width": 1280,
+        "file": "completion-application-31-pixels-differing-by-three-channel-levels-1280.png",
+        "footer": "Docs built 2026-11-16 07:43:40 UTC",
+        "footerBox": {
+          "x": 1058.078125,
+          "y": 774.609375,
+          "width": 185.921875,
+          "height": 21.390625
+        }
+      },
+      {
+        "slug": "course",
+        "width": 390,
+        "file": "course-home-390.png",
+        "footer": "Docs built 2026-11-16 07:43:40 UTC",
+        "footerBox": {
+          "x": 168.078125,
+          "y": 818.609375,
+          "width": 185.921875,
+          "height": 21.390625
+        }
+      },
+      {
+        "slug": "course-chapters",
+        "width": 390,
+        "file": "course-home-chapters-390.png",
+        "footer": "Docs built 2026-11-16 07:43:40 UTC",
+        "sectionTitles": [
+          "Render kernel geometry",
+          "Run the application"
+        ],
+        "geomLinksCount": 1,
+        "appLinksCount": 9
+      },
+      {
+        "slug": "course-drawer",
+        "width": 390,
+        "file": "course-drawer-390.png",
+        "footer": "Docs built 2026-11-16 07:43:40 UTC"
+      },
+      {
+        "slug": "active",
+        "heading": "Acceptance",
+        "expected": "Eight of its nine executable subjects are accepted locally",
+        "width": 390,
+        "file": "active-eight-of-its-nine-executable-subjects-are-accepted-locally-390.png",
+        "footer": "Docs built 2026-11-16 07:43:40 UTC",
+        "footerBox": {
+          "x": 168.078125,
+          "y": 818.609375,
+          "width": 185.921875,
+          "height": 21.390625
+        }
+      },
+      {
+        "slug": "release",
+        "heading": "Course status",
+        "expected": "Eight are accepted locally, from frame through decoding",
+        "width": 390,
+        "file": "release-eight-are-accepted-locally-from-frame-through-decoding-390.png",
+        "footer": "Docs built 2026-11-16 07:43:40 UTC",
+        "footerBox": {
+          "x": 168.078125,
+          "y": 818.609375,
+          "width": 185.921875,
+          "height": 21.390625
+        }
+      },
+      {
+        "slug": "completion-frame",
+        "heading": "Open a GPU frame",
+        "expected": "recorded Windows Intel WebGPU",
+        "width": 390,
+        "file": "completion-frame-recorded-windows-intel-webgpu-390.png",
+        "footer": "Docs built 2026-11-16 07:43:40 UTC",
+        "footerBox": {
+          "x": 168.078125,
+          "y": 818.609375,
+          "width": 185.921875,
+          "height": 21.390625
+        }
+      },
+      {
+        "slug": "completion-painting",
+        "heading": "Paint shapes and text",
+        "expected": "recorded Windows Intel WebGPU",
+        "width": 390,
+        "file": "completion-painting-recorded-windows-intel-webgpu-390.png",
+        "footer": "Docs built 2026-11-16 07:43:40 UTC",
+        "footerBox": {
+          "x": 168.078125,
+          "y": 818.609375,
+          "width": 185.921875,
+          "height": 21.390625
+        }
+      },
+      {
+        "slug": "completion-mathematics",
+        "heading": "Kernel motion values",
+        "expected": "At parameter",
+        "width": 390,
+        "file": "completion-mathematics-at-parameter-390.png",
+        "footer": "Docs built 2026-11-16 07:43:40 UTC",
+        "footerBox": {
+          "x": 168.078125,
+          "y": 818.609375,
+          "width": 185.921875,
+          "height": 21.390625
+        }
+      },
+      {
+        "slug": "completion-dock",
+        "heading": "Enter commands",
+        "expected": "recorded Windows Intel WebGPU",
+        "width": 390,
+        "file": "completion-dock-recorded-windows-intel-webgpu-390.png",
+        "footer": "Docs built 2026-11-16 07:43:40 UTC",
+        "footerBox": {
+          "x": 168.078125,
+          "y": 818.609375,
+          "width": 185.921875,
+          "height": 21.390625
+        }
+      },
+      {
+        "slug": "completion-camera",
+        "heading": "Project and fit a scene",
+        "expected": "fifth cumulative subject is reviewed",
+        "width": 390,
+        "file": "completion-camera-fifth-cumulative-subject-is-reviewed-390.png",
+        "footer": "Docs built 2026-11-16 07:43:40 UTC",
+        "footerBox": {
+          "x": 168.078125,
+          "y": 818.609375,
+          "width": 185.921875,
+          "height": 21.390625
+        }
+      },
+      {
+        "slug": "completion-camera",
+        "heading": "Motion and fitting",
+        "expected": "cursor's offset",
+        "width": 390,
+        "file": "completion-camera-cursor-s-offset-390.png",
+        "footer": "Docs built 2026-11-16 07:43:40 UTC",
+        "footerBox": {
+          "x": 168.078125,
+          "y": 818.609375,
+          "width": 185.921875,
+          "height": 21.390625
+        }
+      },
+      {
+        "slug": "completion-rows",
+        "heading": "Prerequisites and ownership",
+        "expected": "word following spacing carries the packed edge colour",
+        "width": 390,
+        "file": "completion-rows-word-following-spacing-carries-the-packed-edge-colour-390.png",
+        "footer": "Docs built 2026-11-16 07:43:40 UTC",
+        "footerBox": {
+          "x": 168.078125,
+          "y": 818.609375,
+          "width": 185.921875,
+          "height": 21.390625
+        }
+      },
+      {
+        "slug": "completion-geometry",
+        "heading": "Validation",
+        "expected": "13 original tests",
+        "width": 390,
+        "file": "completion-geometry-13-original-tests-390.png",
+        "footer": "Docs built 2026-11-16 07:43:40 UTC",
+        "footerBox": {
+          "x": 168.078125,
+          "y": 818.609375,
+          "width": 185.921875,
+          "height": 21.390625
+        }
+      },
+      {
+        "slug": "completion-visibility",
+        "heading": "Validation",
+        "expected": "13-test GPU run",
+        "width": 390,
+        "file": "completion-visibility-13-test-gpu-run-390.png",
+        "footer": "Docs built 2026-11-16 07:43:40 UTC",
+        "footerBox": {
+          "x": 168.078125,
+          "y": 818.609375,
+          "width": 185.921875,
+          "height": 21.390625
+        }
+      },
+      {
+        "slug": "completion-decoding",
+        "heading": "Bounded input",
+        "expected": "two-million-object counter sums points",
+        "width": 390,
+        "file": "completion-decoding-two-million-object-counter-sums-points-390.png",
+        "footer": "Docs built 2026-11-16 07:43:40 UTC",
+        "footerBox": {
+          "x": 168.078125,
+          "y": 818.609375,
+          "width": 185.921875,
+          "height": 21.390625
+        }
+      },
+      {
+        "slug": "completion-documents",
+        "heading": "Validation",
+        "expected": "moving_one_placement_leaves_the_other_where_it_was",
+        "width": 390,
+        "file": "completion-documents-moving-one-placement-leaves-the-other-where-it-was-390.png",
+        "footer": "Docs built 2026-11-16 07:43:40 UTC",
+        "footerBox": {
+          "x": 168.078125,
+          "y": 818.609375,
+          "width": 185.921875,
+          "height": 21.390625
+        }
+      },
+      {
+        "slug": "completion-application",
+        "heading": "Validation",
+        "expected": "31 pixels differing by three channel levels",
+        "width": 390,
+        "file": "completion-application-31-pixels-differing-by-three-channel-levels-390.png",
+        "footer": "Docs built 2026-11-16 07:43:40 UTC",
+        "footerBox": {
+          "x": 168.078125,
+          "y": 818.609375,
+          "width": 185.921875,
+          "height": 21.390625
+        }
+      }
+    ],
+    "navigation": [
+      {
+        "width": 1280,
+        "to": "completion-visibility"
+      },
+      {
+        "width": 1280,
+        "to": "completion-decoding"
+      },
+      {
+        "width": 390,
+        "to": "completion-visibility"
+      },
+      {
+        "width": 390,
+        "to": "completion-decoding"
+      }
+    ],
+    "errors": []
+  },
+  "visualReview": {
+    "originalImagesViewed": 33,
+    "footer": "2026-11-16T07:43:40Z",
+    "result": "Personally viewed all 33 original 1280x800 and 390x844 captures. Homepage reports 9 executable subject checkpoints; homepage Subject chapters groups Decide which ink is visible under Render kernel geometry and the nine application chapters under Run the application; left sidebar and 390 drawer use Subject chapters (not Application chapters) with MainLayout.vue's existing flat single-lesson link for visibility above collapsible Run the application; geometry-to-visibility-to-decoding pager navigation, six kernel motion APIs, camera/rows/decoding/GPU validation prose and bottom-right UTC build footer all render cleanly without horizontal overflow."
+  },
+  "artifacts": [
+    {
+      "path": "target/completion-docs33/active-audit.log",
+      "sha256": "dc13e08fa0696c49d90e01721cfc979a1b33c67f1012831ee6c088e3acdf6d43",
+      "bytes": 788
+    },
+    {
+      "path": "target/completion-docs33/baseline-deltas.json",
+      "sha256": "40728042f643c93442bf6064abeae72c6455154f38aae3a7555b9257bb7fd5c1",
+      "bytes": 5576
+    },
+    {
+      "path": "target/completion-docs33/command.json",
+      "sha256": "e45ae49fdd5141213b2dfb8cc120dbdd0a45732e8c3f6a977f78cf1cee7d8231",
+      "bytes": 406
+    },
+    {
+      "path": "target/completion-docs33/delivery.json",
+      "sha256": "a97c1e2d4c9ccd9f4653b0f62608595cca798f095f1c6e71846b700a35fbf3ed",
+      "bytes": 210
+    },
+    {
+      "path": "target/completion-docs33/dispatch.ps1",
+      "sha256": "842c9e4f9587d7a79156dad1738539f85c0cf4537c540484812ce22e7fa8c080",
+      "bytes": 665
+    },
+    {
+      "path": "target/completion-docs33/plan.json",
+      "sha256": "b4acf0519f9dd18351da8f222d75401d60f73df0b8c5f73543004a09ef4fef46",
+      "bytes": 1033306
+    },
+    {
+      "path": "target/completion-docs33/resources.json",
+      "sha256": "9c6db568a5f8ca9bee883c020e3200411897c4f90ae1abada28803387a8c3451",
+      "bytes": 1881
+    },
+    {
+      "path": "target/completion-docs33/result.json",
+      "sha256": "9c8ce4bf8d23a86da6b3ea79857a029c3702c3ae71525206a9df76a673929187",
+      "bytes": 418
+    },
+    {
+      "path": "target/completion-docs33/strict-site.log",
+      "sha256": "d0cd4014cafc8460e6978c23eececd291c4d1ceb9e748bc6bab515ed824a6b4b",
+      "bytes": 486671
+    },
+    {
+      "path": "target/completion-docs33/teaching-tests.log",
+      "sha256": "8a7e270ee24852b31ef291ea5750501aab4d1ce4295edca1d69287a538086f6f",
+      "bytes": 2199
+    },
+    {
+      "path": "target/support-docs-browser08.py",
+      "sha256": "16a124db8c0b4f478a508f9f550a4d819ad2389a48e3d3f08f667c79e26acc19",
+      "bytes": 2456
+    },
+    {
+      "path": "target/support-docs-browser08-job/capture.cjs",
+      "sha256": "34fbddc3d6d45e9f3bbe7bf33840ba253e8fa9435fface317f2e0a4e2d7953d3",
+      "bytes": 12222
+    },
+    {
+      "path": "target/support-docs-browser08-job/command.json",
+      "sha256": "c74d0a4b043cfe3e097426e2b9bdeb2410ce9acd63650477a42652368a3efaa3",
+      "bytes": 417
+    },
+    {
+      "path": "target/support-docs-browser08-job/dispatch.ps1",
+      "sha256": "2e57ba6f9ac8b79025d76bccd00959947efafb23fd9b91a1a64251634f8a958a",
+      "bytes": 742
+    },
+    {
+      "path": "target/support-docs-browser08-job/pins.json",
+      "sha256": "b95d86b9743e5d32431e95a592ccf67fde35370bec32c650249aed040aa8977c",
+      "bytes": 4556
+    },
+    {
+      "path": "target/support-docs-browser08-job/resources.json",
+      "sha256": "476052e1b9c8494ad1fc877854101eacc7b6417ba845b8ae2090f2b9fbd143a0",
+      "bytes": 1922
+    },
+    {
+      "path": "target/support-docs-browser08/active-eight-of-its-nine-executable-subjects-are-accepted-locally-1280.png",
+      "sha256": "de664ed54d67b356d9d5e4a4438c5fe7dc35ff22c1abdd89fbb292e087bafad4",
+      "bytes": 117820
+    },
+    {
+      "path": "target/support-docs-browser08/active-eight-of-its-nine-executable-subjects-are-accepted-locally-390.png",
+      "sha256": "7f775e0ef5acf612102ea3ffc3952b49ad42368ae5d437cd196ec0544318529b",
+      "bytes": 46323
+    },
+    {
+      "path": "target/support-docs-browser08/completion-application-31-pixels-differing-by-three-channel-levels-1280.png",
+      "sha256": "fcf6bff7aa447571a2d7d0bc83ac13df2939880603c6ac22b85e8a3be1e1ea89",
+      "bytes": 112708
+    },
+    {
+      "path": "target/support-docs-browser08/completion-application-31-pixels-differing-by-three-channel-levels-390.png",
+      "sha256": "11e4afd2085c8016056333daaebc5b8ab9d80cb3acd1ba5a4f1ca3813f85e6de",
+      "bytes": 38296
+    },
+    {
+      "path": "target/support-docs-browser08/completion-camera-cursor-s-offset-1280.png",
+      "sha256": "eb98480ec65948ca3281aec0d131dd40fbba6d8237ae2a52519acb8fbb6a5e53",
+      "bytes": 114016
+    },
+    {
+      "path": "target/support-docs-browser08/completion-camera-cursor-s-offset-390.png",
+      "sha256": "c47e43bd466873fd1bdbfc296bd2a13bbad3a5d8fb62146f3bc949cbdabedcad",
+      "bytes": 45935
+    },
+    {
+      "path": "target/support-docs-browser08/completion-camera-fifth-cumulative-subject-is-reviewed-1280.png",
+      "sha256": "bb7de4e6c6067b91ae787a1587a494987b75c49a37eefc3e4c98c809ccc2d5e0",
+      "bytes": 128515
+    },
+    {
+      "path": "target/support-docs-browser08/completion-camera-fifth-cumulative-subject-is-reviewed-390.png",
+      "sha256": "4aaee7e9725af6ea0bb52111991f807c1a46da077c45dd497605e96ac2cb0ae1",
+      "bytes": 48196
+    },
+    {
+      "path": "target/support-docs-browser08/completion-decoding-two-million-object-counter-sums-points-1280.png",
+      "sha256": "db9969c68dc1277b7df13cb2f00a7fa1ac2a8f067480c201d57fb52c4430804c",
+      "bytes": 124701
+    },
+    {
+      "path": "target/support-docs-browser08/completion-decoding-two-million-object-counter-sums-points-390.png",
+      "sha256": "80a1938569ee1a657fc6fdb39d05dd212320d97d9f59003930fd1d169c1f7e4e",
+      "bytes": 46507
+    },
+    {
+      "path": "target/support-docs-browser08/completion-dock-recorded-windows-intel-webgpu-1280.png",
+      "sha256": "56324e52f29e2360d46eb4badcd1a35f9ecb501dc11e0e3626dbf992dbe26cb9",
+      "bytes": 108952
+    },
+    {
+      "path": "target/support-docs-browser08/completion-dock-recorded-windows-intel-webgpu-390.png",
+      "sha256": "4d5d9b0b619950d7f64ddf3805a0f59eac361c70f6440466ff2cabf814990dcc",
+      "bytes": 42298
+    },
+    {
+      "path": "target/support-docs-browser08/completion-documents-moving-one-placement-leaves-the-other-where-it-was-1280.png",
+      "sha256": "135e2058497d86cb6866d88e11a88017cf38755a436484e1c11eb396db8bc704",
+      "bytes": 131317
+    },
+    {
+      "path": "target/support-docs-browser08/completion-documents-moving-one-placement-leaves-the-other-where-it-was-390.png",
+      "sha256": "89833ef5fc5251ff3132749a64b5d4d6e4df32a4bc8bcd40b224a2b5cf20796c",
+      "bytes": 41618
+    },
+    {
+      "path": "target/support-docs-browser08/completion-frame-recorded-windows-intel-webgpu-1280.png",
+      "sha256": "06db2c16cbbc86044e4ef16a780ea6d33c33a9c93730cb11b5533f8c50d0e645",
+      "bytes": 125668
+    },
+    {
+      "path": "target/support-docs-browser08/completion-frame-recorded-windows-intel-webgpu-390.png",
+      "sha256": "c05dc05d20fe1b23c38bb3ce47befa42c16225aa1e0bd0c6b52f5c896325e58d",
+      "bytes": 43884
+    },
+    {
+      "path": "target/support-docs-browser08/completion-geometry-13-original-tests-1280.png",
+      "sha256": "cccaf7611bd1f8f606e5a96a4d2e73d52563737905b5abf55f18fbd2f7f0adfd",
+      "bytes": 130690
+    },
+    {
+      "path": "target/support-docs-browser08/completion-geometry-13-original-tests-390.png",
+      "sha256": "3d04bddd99053f717853e72acb5139b132baae4bef74521fd4aeffd1b8759537",
+      "bytes": 44157
+    },
+    {
+      "path": "target/support-docs-browser08/completion-mathematics-at-parameter-1280.png",
+      "sha256": "5783f1c50321a8796b403f9781190f6add0d8d8c7762f7374ec10d63b19b6fe9",
+      "bytes": 136828
+    },
+    {
+      "path": "target/support-docs-browser08/completion-mathematics-at-parameter-390.png",
+      "sha256": "e048db2f6aba413a0dba82f0f1689856ac3f60eab1d8b62871bbdf423eb11649",
+      "bytes": 41865
+    },
+    {
+      "path": "target/support-docs-browser08/completion-painting-recorded-windows-intel-webgpu-1280.png",
+      "sha256": "91ca00257d5116305a2ae83637be21ca84c81ed6202d57f9769483f3ac7b8325",
+      "bytes": 100749
+    },
+    {
+      "path": "target/support-docs-browser08/completion-painting-recorded-windows-intel-webgpu-390.png",
+      "sha256": "03e8c733de6aa68054363db7f8b248bd68941b19c18167eb7d1397408b4c3af7",
+      "bytes": 42480
+    },
+    {
+      "path": "target/support-docs-browser08/completion-rows-word-following-spacing-carries-the-packed-edge-colour-1280.png",
+      "sha256": "bdc4159fc155872f32b4e64515f2119107cb957737aa64e4ea135bbeb54d1402",
+      "bytes": 125029
+    },
+    {
+      "path": "target/support-docs-browser08/completion-rows-word-following-spacing-carries-the-packed-edge-colour-390.png",
+      "sha256": "00a7830e954587529fdaeecf67a3d47e7b3cf39bf48ed0913c36f921e00ae416",
+      "bytes": 45647
+    },
+    {
+      "path": "target/support-docs-browser08/completion-visibility-13-test-gpu-run-1280.png",
+      "sha256": "afc6b6ba7da25e07de1517aa61e140b89df2eaa3f0a94cfeb8eeed9e508996ea",
+      "bytes": 116032
+    },
+    {
+      "path": "target/support-docs-browser08/completion-visibility-13-test-gpu-run-390.png",
+      "sha256": "d6cf0070d4e57b8c3f3d8cde858eaca571154c77fb9fd1dcdd6d8b2561a66ab0",
+      "bytes": 37801
+    },
+    {
+      "path": "target/support-docs-browser08/course-drawer-390.png",
+      "sha256": "ded0852e2aaaba52aeddeecb849f871d9cd026eedad602c50a6337c020325746",
+      "bytes": 32445
+    },
+    {
+      "path": "target/support-docs-browser08/course-home-1280.png",
+      "sha256": "9e5ceeb44cf2e1d62d932d830a8de8837aa93d2eceff3e3b425c925f70deffcf",
+      "bytes": 73251
+    },
+    {
+      "path": "target/support-docs-browser08/course-home-390.png",
+      "sha256": "620f0c003ba5ae23e7c256a495731360b2b24340bc3b2dbf8f32154700ccda18",
+      "bytes": 37821
+    },
+    {
+      "path": "target/support-docs-browser08/course-home-chapters-1280.png",
+      "sha256": "d608f4f5d1b5022097f27cabf65bd63ebaab73655dc106978d93bf730451ccbf",
+      "bytes": 62767
+    },
+    {
+      "path": "target/support-docs-browser08/course-home-chapters-390.png",
+      "sha256": "82cccb4ca01dd722290bda25627266733182fabda45bdf8d54476499f9bc568c",
+      "bytes": 32109
+    },
+    {
+      "path": "target/support-docs-browser08/release-eight-are-accepted-locally-from-frame-through-decoding-1280.png",
+      "sha256": "8bfea682bb5c57475b806d7a81c197ccf9a94b97830fd668a10641b9e74dd11b",
+      "bytes": 82860
+    },
+    {
+      "path": "target/support-docs-browser08/release-eight-are-accepted-locally-from-frame-through-decoding-390.png",
+      "sha256": "92e9149cef39d558cf86459087f64bd668a65287c50356e26ba8cc4662782ca6",
+      "bytes": 39126
+    },
+    {
+      "path": "target/support-docs-browser08/result.json",
+      "sha256": "1d31e0ed119b320f127ec432806b14cf72df1c8e716823eab4ea45f7372ba61f",
+      "bytes": 14827
+    }
+  ],
+  "inputs": [
+    {
+      "path": "docs/journey/active-course.json",
+      "sha256": "dbdcc8dcc0e2ef40da0f3092e1783bfc59496b45b21896321f3d64b0d9f0cb58",
+      "bytes": 4228
+    },
+    {
+      "path": "docs/journey/active.md",
+      "sha256": "f03c91a950027d6c57200c3f039f8386174538b1c1ad018f4ed71a9990c36615",
+      "bytes": 4541
+    },
+    {
+      "path": "docs/journey/release.md",
+      "sha256": "c784f2d44a48f2ede585694c98316ec03c33fe284480c11d26bb7ac9e0aeecc4",
+      "bytes": 1455
+    },
+    {
+      "path": "docs/journey/completion-teaching.json",
+      "sha256": "772bfa42f347a367049db50e430f3d97e0f2fb57310c077b881f98c8df72a70f",
+      "bytes": 292121
+    },
+    {
+      "path": "docs/journey/completion-frame.md",
+      "sha256": "a0b4d71d4f84c7837c68de2f86142961f2513ac92a59dd4f1da893a174cffdcc",
+      "bytes": 11615
+    },
+    {
+      "path": "docs/journey/completion-painting.md",
+      "sha256": "35c5a56ed3d573e1669b6e5ce9e2866a692befe5f0c6b9d931de990e9c06ec3b",
+      "bytes": 5235
+    },
+    {
+      "path": "docs/journey/completion-mathematics.md",
+      "sha256": "e0b383123a6b94c3a906ec409f1dc831f7bdb9141c7afd57023a12d43cbd29b8",
+      "bytes": 26892
+    },
+    {
+      "path": "docs/journey/completion-dock.md",
+      "sha256": "a56ed95e483d50c4f3d6d2abeb3d6be30f39979fbda7c3d8542bb10daa8ec710",
+      "bytes": 7493
+    },
+    {
+      "path": "docs/journey/completion-camera.md",
+      "sha256": "d2107620c6a29bb170aaefb119be7851222c52cf4497f84dca4a47bf94c39137",
+      "bytes": 6025
+    },
+    {
+      "path": "docs/journey/completion-rows.md",
+      "sha256": "6207b69e14b966e2c08a51d10f935e68796b4d4a69ca674ce63cae7c21a9a1bb",
+      "bytes": 15964
+    },
+    {
+      "path": "docs/journey/completion-geometry.md",
+      "sha256": "bf6464708018e108c527d554b34374bedabbb70b3567147cb0297c9854a9fb7c",
+      "bytes": 50148
+    },
+    {
+      "path": "docs/journey/completion-visibility.md",
+      "sha256": "912f6343488eae566712e1e8b80d13dcc89905829f67d5e7dc075b5019ce4207",
+      "bytes": 15506
+    },
+    {
+      "path": "docs/journey/completion-decoding.md",
+      "sha256": "b6d05acbd50e6020b985fa2a4b4099f6421e54a60015997d774b526990a80227",
+      "bytes": 8221
+    },
+    {
+      "path": "docs/journey/completion-application.md",
+      "sha256": "48c60c024ea94371febe5820c88134da498ce9b40c980aaf36c1e362a2259545",
+      "bytes": 12403
+    },
+    {
+      "path": "docs/journey/completion-documents.md",
+      "sha256": "92b05383269c3c5bcd9d5d7a528bddd6a2a301f2ce3eebc81a4608719323d819",
+      "bytes": 23845
+    },
+    {
+      "path": "docs/maintaining.md",
+      "sha256": "34ee27fff7e221ff3badc8fe39f18186b84a65c6d8379f24793081348aa272d1",
+      "bytes": 19428
+    },
+    {
+      "path": "tests/course-home.cjs",
+      "sha256": "fec32e908239784a7cf00328328fa4dde61a7011d2973c6be0199c4fbb5c2f21",
+      "bytes": 2151
+    }
+  ],
+  "limitations": [
+    "Application acceptance remains pending: instanced_frames_match_the_baked_scene fails with 31 pixels differing by 3 channel levels in the turned scene (exceeding unchanged 2-level assertion).",
+    "Saved fixture archive byte-exact comparison remains failed due to component JSON spacing/key order and protobuf Mesh map ordering; selected semantic values and instance/interaction bytes match.",
+    "Desktop Chrome Intel Gen-12LP and 390x844 upright emulation do not establish physical-phone or hardware device acceptance.",
+    "Pre-merge snapshot on session commit d28dde7e96cefebf8676731830087fe16cb16c9e; upstream origin/main stage commits require subsequent merge and stage reconciliation."
+  ]
+}

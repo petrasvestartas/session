@@ -161,12 +161,32 @@
       "subject": "Frame and painting acceptance",
       "scope": "Two scoped subjects accepted with source/lesson/runtime review;22tooling+acceptanceaudit+strictsite and14 reviewed desktop/upright docs captures. Seven subjects remain pending.",
       "path": "session_viewer/docs/journey/release/completion-first-subjects-windows-20261116.json"
+    },
+    {
+      "subject": "geometry GPU assertions",
+      "scope": "13 original GPU assertions executed and passed on cumulative geometry source; selected adapter unobserved.",
+      "path": "session_viewer/docs/journey/release/completion-geometry-gpu-windows-20261116.json"
+    },
+    {
+      "subject": "application GPU assertions and diagnostic",
+      "scope": "37 original application GPU assertions: 36 passed and instanced_frames_match_the_baked_scene failed; diagnostic reproduces 31 pixels differing by 3 channel levels in turned scene with 8 reviewed PPM/PNG captures and unchanged assertion.",
+      "path": "session_viewer/docs/journey/release/completion-application-gpu-diagnostic-windows-20261116.json"
+    },
+    {
+      "subject": "Four-subject intermediate docs/browser check",
+      "scope": "Automated docs32 and browser07 passed; visual review identified homepage 0-checkpoint count and sidebar Application chapters grouping defects, preserved before fix.",
+      "path": "session_viewer/docs/journey/release/completion-four-subjects-windows-20261116.json"
+    },
+    {
+      "subject": "Eight accepted subjects and browser08 verification",
+      "scope": "Frame through decoding accepted within reviewed scope; docs33 (22 tests, active-audit 351 files, strict site) and browser08 (homepage 9-count, subject-owned chapter grouping, geometry-visibility-decoding navigation, UTC footer, 33 personally viewed desktop/upright captures) passed. Application remains pending.",
+      "path": "session_viewer/docs/journey/release/completion-eight-subjects-windows-20261117.json"
     }
   ],
   "open": [
-    "Formal lesson/source/applicable-runtime acceptance for seven remaining cumulative subjects; frame and painting accepted within recorded scope",
-    "Final production reconciliation against the pinned destination and other agents changes",
-    "Complete scope review of browser evidence, retaining desktop/device distinctions",
+    "Application acceptance remains pending: instanced_frames_match_the_baked_scene has 31 turned-scene pixels differing by 3 levels (>2 threshold); viewer behavior and test threshold remain unchanged",
+    "Merge and reconcile 6 upstream origin/main stage commits and 2 reviewed cap-source30 figure commits against pinned destination 87f844e41d08ef104fc071d5bc18163ffe9a4353",
+    "Physical phone/hardware device acceptance remains distinct from desktop WebGPU and 390x844 upright emulation",
     "Original byte-exact archive comparison remains failed: component JSON serialization and schema-defined Mesh map ordering differ; separate selected-value comparison passes without changing the serializer"
   ]
 }

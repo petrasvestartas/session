@@ -1,0 +1,28 @@
+{
+  "status": "SCOPED_CAMERA_CONTRACT_REVIEW_PASS_FINAL_RECEIPT_BINDING_PENDING",
+  "reviewedUtc": "2026-11-16T07:27:29.478497+00:00",
+  "subject": "camera",
+  "sourceBinding": {
+    "path": ".codex\\viewer-quality-20261028\\remaining-four-full-source-binding-root-review.json",
+    "sha256": "657feba5119255305b63234268cf8f357c40f2b9718c1c5dd3be8a1c03f20576",
+    "bytes": 167408
+  },
+  "runtimeOriginalReview": {
+    "path": ".codex\\viewer-quality-20261028\\completion-camera-browser13-docs08-original-root-review.json",
+    "sha256": "e8ef3f55a0dce730a715d20c03aaf7e2c071854754156635aa3b53c341083ca7",
+    "bytes": 26793
+  },
+  "lesson": {
+    "path": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\docs\\journey\\completion-camera.md",
+    "sha256": "61644051878b8425122f22d5eeab682796f4e2a158e49c091100f355331cca84",
+    "bytes": 5955
+  },
+  "reviewScope": [
+    "Read full camera lesson and entire camera implementation before tests, plus zoom-distance helper/wheel regression and entire course camera fixture.",
+    "Confirmed scene/meter conversion, derived pose, anchor-relative reverse-Z view/projection/lens shift, perspective eye rays versus parallel orthographic rays, algebraic cursor-anchor zoom, corner-based fitting and named view behavior.",
+    "Corrected ray/zoom lesson matches actual code; fixture uses twelve egui wire edges, real production camera and homogeneous point projection, no hidden-surface or production GPU-lane claim.",
+    "Independently generated all47 current camera assembly files and matched checked completion-camera01/camera after only standard Cargo path materialization/LF normalization.",
+    "Reuse prior Root personally viewed ten camera originals at1280/390, actual keyboard/drag/projection/zoom/fit/Home and prior33nativePASS/1ignored scope; no new runtime or screenshot claimed."
+  ],
+  "limitations": "Current four prerequisites accepted locally; camera remains pending until final scoped intro/source/lesson/evidence receipt binding and fresh audit. Upright emulation is not physical-phone qualification. Separate GPU13 fatal-shader pass does not rewrite dated33/1 receipt. No other subject or full-course acceptance."
+}

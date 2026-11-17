@@ -1,0 +1,646 @@
+{
+  "status": "failed-reproduced",
+  "scope": "Single original instanced-versus-baked assertion with its existing optional captures",
+  "result": {
+    "scope": "Diagnostic repeat of original failing instance-versus-baked assertion with original optional image capture; no threshold change",
+    "exitCode": 101,
+    "tests": [
+      {
+        "name": "app::scene::instances::tests::gpu::instanced_frames_match_the_baked_scene",
+        "result": "FAILED"
+      }
+    ],
+    "failure": "Original GPU suite did not pass the selected original test; see unmodified log",
+    "postguards": "passed",
+    "adapterScope": "VIEWER_ADAPTER=NVIDIA requested; selected adapter unobserved unless emitted by original test log. No phone/device acceptance.",
+    "logSha256": "5261819bff074ce3d6e44e8faf0f1cd0e42ec44314c0108bd0fe55d5def08a0d"
+  },
+  "resources": {
+    "platform": "windows-job-object",
+    "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+    "laneMutex": "Local\\SessionViewerCourseImageJob",
+    "affinityOffset": 8,
+    "requiredAffinityMask": "0x300",
+    "maximumOtherLaneProcessors": 8,
+    "maximumOtherLaneMemoryMiB": 8192,
+    "maximumAggregateOurProcessors": 10,
+    "maximumAggregateOurMemoryMiB": 14336,
+    "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+    "requestedProcessors": 2,
+    "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+    "startedUtc": "2026-11-16T07:20:25.7665001Z",
+    "executable": "C:\\Program Files\\Git\\bin\\bash.exe",
+    "arguments": [
+      "C:/pc/3_code/code_rust/wood_research/wood/tools/buildslot.sh",
+      "tutorial-application-gpu03",
+      "timeout",
+      "590s",
+      "C:\\Users\\Petras\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+      "-B",
+      "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\application-gpu03.py"
+    ],
+    "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\application-check02\\project",
+    "timeoutSeconds": 595,
+    "jobCommitLimitBytes": 6442450944,
+    "swapCapSupported": false,
+    "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+    "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+    "exitCode": 1,
+    "timedOut": false,
+    "elapsedSeconds": 7.233,
+    "peakJobCommitBytes": 822181888,
+    "affinityMask": "0x300",
+    "processors": 2,
+    "processId": 41364,
+    "descendantsAtCleanup": 1
+  },
+  "images": {
+    "originals": [
+      {
+        "path": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\application-gpu03\\shots\\placed_false_false_baked.ppm",
+        "sha256": "2c8ed3fc7795dac30fce0f5a294a24f9c27a7cfb94ab383bfde8ddfd9d6749da",
+        "png": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\application-gpu03\\shots\\placed_false_false_baked.png",
+        "pngSha256": "fe1f610f063236b47151d910b304dec053c60cd67709e5e88bf8f679be852bd4"
+      },
+      {
+        "path": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\application-gpu03\\shots\\placed_false_false_instanced.ppm",
+        "sha256": "2c8ed3fc7795dac30fce0f5a294a24f9c27a7cfb94ab383bfde8ddfd9d6749da",
+        "png": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\application-gpu03\\shots\\placed_false_false_instanced.png",
+        "pngSha256": "fe1f610f063236b47151d910b304dec053c60cd67709e5e88bf8f679be852bd4"
+      },
+      {
+        "path": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\application-gpu03\\shots\\placed_true_false_baked.ppm",
+        "sha256": "3ea92a57f19f620b608bc503558bd277f80cb1069ba4146609a78313899eb289",
+        "png": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\application-gpu03\\shots\\placed_true_false_baked.png",
+        "pngSha256": "ba36f9c79ade954629fd332d019e83cbfe3d8c0a34d3a4e49984fb85ce671a24"
+      },
+      {
+        "path": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\application-gpu03\\shots\\placed_true_false_instanced.ppm",
+        "sha256": "3ea92a57f19f620b608bc503558bd277f80cb1069ba4146609a78313899eb289",
+        "png": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\application-gpu03\\shots\\placed_true_false_instanced.png",
+        "pngSha256": "ba36f9c79ade954629fd332d019e83cbfe3d8c0a34d3a4e49984fb85ce671a24"
+      },
+      {
+        "path": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\application-gpu03\\shots\\placed_true_true_baked.ppm",
+        "sha256": "501707263695b96eafb1c252aa60ef9ff4270d8215ed54dfe972f03cb77d0a97",
+        "png": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\application-gpu03\\shots\\placed_true_true_baked.png",
+        "pngSha256": "a9cefbcf692f61131c4411831c609559c0c8d1aa4d72645fb9b909e8065f6075"
+      },
+      {
+        "path": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\application-gpu03\\shots\\placed_true_true_instanced.ppm",
+        "sha256": "501707263695b96eafb1c252aa60ef9ff4270d8215ed54dfe972f03cb77d0a97",
+        "png": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\application-gpu03\\shots\\placed_true_true_instanced.png",
+        "pngSha256": "a9cefbcf692f61131c4411831c609559c0c8d1aa4d72645fb9b909e8065f6075"
+      },
+      {
+        "path": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\application-gpu03\\shots\\turned_false_false_baked.ppm",
+        "sha256": "2ee7145abbb3761263ca7ac2c943506d1121743bf35595733566ef60b85fd2e7",
+        "png": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\application-gpu03\\shots\\turned_false_false_baked.png",
+        "pngSha256": "857ce7224de0d1f5ce6252f39445b981752428fc368bf52f29ee2cb2a3e0101b"
+      },
+      {
+        "path": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\application-gpu03\\shots\\turned_false_false_instanced.ppm",
+        "sha256": "f9a6e5fe7a1fff834b837a9e4c726bb778147076ca3cd5930557871d106e3fe9",
+        "png": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\application-gpu03\\shots\\turned_false_false_instanced.png",
+        "pngSha256": "292ded5ad243e4625ef1becc8513015e9197baa455f935f85575a28b573730e8"
+      }
+    ],
+    "pixelEqualityOfPngConversions": true,
+    "differenceOver2": [
+      {
+        "xy": [
+          193,
+          122
+        ],
+        "instanced": [
+          246,
+          246,
+          246
+        ],
+        "baked": [
+          243,
+          243,
+          243
+        ],
+        "maxDifference": 3
+      },
+      {
+        "xy": [
+          207,
+          124
+        ],
+        "instanced": [
+          216,
+          216,
+          216
+        ],
+        "baked": [
+          213,
+          213,
+          213
+        ],
+        "maxDifference": 3
+      },
+      {
+        "xy": [
+          208,
+          129
+        ],
+        "instanced": [
+          246,
+          246,
+          246
+        ],
+        "baked": [
+          243,
+          243,
+          243
+        ],
+        "maxDifference": 3
+      },
+      {
+        "xy": [
+          144,
+          133
+        ],
+        "instanced": [
+          221,
+          221,
+          221
+        ],
+        "baked": [
+          218,
+          218,
+          218
+        ],
+        "maxDifference": 3
+      },
+      {
+        "xy": [
+          142,
+          134
+        ],
+        "instanced": [
+          223,
+          223,
+          223
+        ],
+        "baked": [
+          220,
+          220,
+          220
+        ],
+        "maxDifference": 3
+      },
+      {
+        "xy": [
+          267,
+          134
+        ],
+        "instanced": [
+          246,
+          246,
+          246
+        ],
+        "baked": [
+          243,
+          243,
+          243
+        ],
+        "maxDifference": 3
+      },
+      {
+        "xy": [
+          115,
+          138
+        ],
+        "instanced": [
+          245,
+          245,
+          245
+        ],
+        "baked": [
+          242,
+          242,
+          242
+        ],
+        "maxDifference": 3
+      },
+      {
+        "xy": [
+          110,
+          139
+        ],
+        "instanced": [
+          227,
+          227,
+          227
+        ],
+        "baked": [
+          224,
+          224,
+          224
+        ],
+        "maxDifference": 3
+      },
+      {
+        "xy": [
+          116,
+          140
+        ],
+        "instanced": [
+          238,
+          238,
+          238
+        ],
+        "baked": [
+          235,
+          235,
+          235
+        ],
+        "maxDifference": 3
+      },
+      {
+        "xy": [
+          189,
+          143
+        ],
+        "instanced": [
+          239,
+          239,
+          239
+        ],
+        "baked": [
+          236,
+          236,
+          236
+        ],
+        "maxDifference": 3
+      },
+      {
+        "xy": [
+          131,
+          144
+        ],
+        "instanced": [
+          223,
+          223,
+          223
+        ],
+        "baked": [
+          220,
+          220,
+          220
+        ],
+        "maxDifference": 3
+      },
+      {
+        "xy": [
+          241,
+          147
+        ],
+        "instanced": [
+          246,
+          246,
+          246
+        ],
+        "baked": [
+          243,
+          243,
+          243
+        ],
+        "maxDifference": 3
+      },
+      {
+        "xy": [
+          179,
+          148
+        ],
+        "instanced": [
+          246,
+          246,
+          246
+        ],
+        "baked": [
+          243,
+          243,
+          243
+        ],
+        "maxDifference": 3
+      },
+      {
+        "xy": [
+          290,
+          150
+        ],
+        "instanced": [
+          246,
+          246,
+          246
+        ],
+        "baked": [
+          243,
+          243,
+          243
+        ],
+        "maxDifference": 3
+      },
+      {
+        "xy": [
+          308,
+          150
+        ],
+        "instanced": [
+          246,
+          246,
+          246
+        ],
+        "baked": [
+          243,
+          243,
+          243
+        ],
+        "maxDifference": 3
+      },
+      {
+        "xy": [
+          247,
+          152
+        ],
+        "instanced": [
+          198,
+          198,
+          198
+        ],
+        "baked": [
+          195,
+          195,
+          195
+        ],
+        "maxDifference": 3
+      },
+      {
+        "xy": [
+          138,
+          163
+        ],
+        "instanced": [
+          246,
+          246,
+          246
+        ],
+        "baked": [
+          243,
+          243,
+          243
+        ],
+        "maxDifference": 3
+      },
+      {
+        "xy": [
+          150,
+          165
+        ],
+        "instanced": [
+          246,
+          246,
+          246
+        ],
+        "baked": [
+          243,
+          243,
+          243
+        ],
+        "maxDifference": 3
+      },
+      {
+        "xy": [
+          241,
+          168
+        ],
+        "instanced": [
+          246,
+          246,
+          246
+        ],
+        "baked": [
+          243,
+          243,
+          243
+        ],
+        "maxDifference": 3
+      },
+      {
+        "xy": [
+          152,
+          170
+        ],
+        "instanced": [
+          246,
+          246,
+          246
+        ],
+        "baked": [
+          243,
+          243,
+          243
+        ],
+        "maxDifference": 3
+      },
+      {
+        "xy": [
+          264,
+          170
+        ],
+        "instanced": [
+          229,
+          229,
+          229
+        ],
+        "baked": [
+          226,
+          226,
+          226
+        ],
+        "maxDifference": 3
+      },
+      {
+        "xy": [
+          110,
+          173
+        ],
+        "instanced": [
+          184,
+          184,
+          184
+        ],
+        "baked": [
+          181,
+          181,
+          181
+        ],
+        "maxDifference": 3
+      },
+      {
+        "xy": [
+          196,
+          175
+        ],
+        "instanced": [
+          246,
+          246,
+          246
+        ],
+        "baked": [
+          243,
+          243,
+          243
+        ],
+        "maxDifference": 3
+      },
+      {
+        "xy": [
+          193,
+          179
+        ],
+        "instanced": [
+          246,
+          246,
+          246
+        ],
+        "baked": [
+          243,
+          243,
+          243
+        ],
+        "maxDifference": 3
+      },
+      {
+        "xy": [
+          155,
+          184
+        ],
+        "instanced": [
+          246,
+          246,
+          246
+        ],
+        "baked": [
+          243,
+          243,
+          243
+        ],
+        "maxDifference": 3
+      },
+      {
+        "xy": [
+          173,
+          190
+        ],
+        "instanced": [
+          246,
+          246,
+          246
+        ],
+        "baked": [
+          243,
+          243,
+          243
+        ],
+        "maxDifference": 3
+      },
+      {
+        "xy": [
+          119,
+          196
+        ],
+        "instanced": [
+          216,
+          216,
+          216
+        ],
+        "baked": [
+          213,
+          213,
+          213
+        ],
+        "maxDifference": 3
+      },
+      {
+        "xy": [
+          147,
+          197
+        ],
+        "instanced": [
+          246,
+          246,
+          246
+        ],
+        "baked": [
+          243,
+          243,
+          243
+        ],
+        "maxDifference": 3
+      },
+      {
+        "xy": [
+          158,
+          197
+        ],
+        "instanced": [
+          246,
+          246,
+          246
+        ],
+        "baked": [
+          243,
+          243,
+          243
+        ],
+        "maxDifference": 3
+      },
+      {
+        "xy": [
+          123,
+          211
+        ],
+        "instanced": [
+          246,
+          246,
+          246
+        ],
+        "baked": [
+          243,
+          243,
+          243
+        ],
+        "maxDifference": 3
+      },
+      {
+        "xy": [
+          128,
+          219
+        ],
+        "instanced": [
+          246,
+          246,
+          246
+        ],
+        "baked": [
+          243,
+          243,
+          243
+        ],
+        "maxDifference": 3
+      }
+    ],
+    "maximumDifference": 3
+  },
+  "review": "Personally reviewed all eight pixel-identical PNG conversions. Placed pairs match; turned scene has the same visible arrangement. Pixel measurement finds31 pixels differing by exactly3 channel levels, which still fails the original assertion. Visual similarity does not replace that assertion.",
+  "limitations": [
+    "Actual adapter not emitted",
+    "No threshold or source change",
+    "No further retries; original GPU02 failure retained"
+  ]
+}

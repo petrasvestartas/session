@@ -1,0 +1,397 @@
+{
+  "status": "failed",
+  "scope": "37 original application GPU assertions; 36 passed and one failed",
+  "sourceCommit": "d28dde7e96cefebf8676731830087fe16cb16c9e",
+  "result": {
+    "scope": "Remaining fixed native GPU assertions for scene editing, clipping, ambient, outlines and widget; no CPU suite/bench rerun",
+    "exitCode": 101,
+    "tests": [
+      {
+        "name": "app::scene::instances::tests::gpu::ambient_occlusion_of_turned_instances",
+        "result": "ok"
+      },
+      {
+        "name": "app::scene::instances::tests::gpu::instance_edits_write_their_own_slots",
+        "result": "ok"
+      },
+      {
+        "name": "app::scene::instances::tests::gpu::instanced_frames_match_the_baked_scene",
+        "result": "FAILED"
+      },
+      {
+        "name": "app::scene::sync::split_tests::gpu::arrowheads_follow_edits",
+        "result": "ok"
+      },
+      {
+        "name": "app::scene::sync::split_tests::gpu::compaction_is_exact_and_shrinks",
+        "result": "ok"
+      },
+      {
+        "name": "app::scene::sync::split_tests::gpu::edit_then_undo_is_pixel_and_id_identical",
+        "result": "ok"
+      },
+      {
+        "name": "app::scene::sync::split_tests::gpu::kill_leaves_no_pixels_and_no_ids",
+        "result": "ok"
+      },
+      {
+        "name": "app::scene::sync::split_tests::gpu::streamed_rows_survive_edits_and_compaction",
+        "result": "ok"
+      },
+      {
+        "name": "app::walk::frames::gpu_tests::a_solid_hides_the_grid_not_the_arrows",
+        "result": "ok"
+      },
+      {
+        "name": "app::walk::tests::contacts_on_their_face_draw_in_front_of_it",
+        "result": "ok"
+      },
+      {
+        "name": "engine::gpu::backdrop::gpu_tests::the_grid_lies_on_the_construction_plane",
+        "result": "ok"
+      },
+      {
+        "name": "engine::gpu::clip::editing_tests::gpu::a_cut_cube_caps_its_section_and_nothing_else",
+        "result": "ok"
+      },
+      {
+        "name": "engine::gpu::clip::editing_tests::gpu::a_dowel_inside_a_beam_never_shows_through",
+        "result": "ok"
+      },
+      {
+        "name": "engine::gpu::clip::editing_tests::gpu::a_nested_section_picks_the_innermost_solid",
+        "result": "ok"
+      },
+      {
+        "name": "engine::gpu::clip::editing_tests::gpu::a_plane_on_a_face_shows_one_thing",
+        "result": "ok"
+      },
+      {
+        "name": "engine::gpu::clip::editing_tests::gpu::an_open_mesh_gets_no_cap",
+        "result": "ok"
+      },
+      {
+        "name": "engine::gpu::clip::editing_tests::gpu::brep_sections_are_watertight",
+        "result": "ok"
+      },
+      {
+        "name": "engine::gpu::clip::editing_tests::gpu::cut_away_geometry_cannot_be_picked",
+        "result": "ok"
+      },
+      {
+        "name": "engine::gpu::clip::editing_tests::gpu::far_from_the_origin_the_section_holds",
+        "result": "ok"
+      },
+      {
+        "name": "engine::gpu::clip::editing_tests::gpu::from_the_kept_side_the_cap_hides_behind_kept_faces",
+        "result": "ok"
+      },
+      {
+        "name": "engine::gpu::clip::editing_tests::gpu::ink_lanes_lose_the_cut_part",
+        "result": "ok"
+      },
+      {
+        "name": "engine::gpu::clip::editing_tests::gpu::instanced_solids_cap_like_baked_ones",
+        "result": "ok"
+      },
+      {
+        "name": "engine::gpu::clip::editing_tests::gpu::mirrored_and_inward_solids_cap_like_any_other",
+        "result": "ok"
+      },
+      {
+        "name": "engine::gpu::clip::editing_tests::gpu::overlapping_boxes_are_capped_as_their_union",
+        "result": "ok"
+      },
+      {
+        "name": "engine::gpu::clip::editing_tests::gpu::sections_default_to_light_grey_with_black_boundaries",
+        "result": "ok"
+      },
+      {
+        "name": "engine::gpu::clip::editing_tests::gpu::stacked_boxes_cut_where_they_meet",
+        "result": "ok"
+      },
+      {
+        "name": "engine::gpu::clip::editing_tests::gpu::two_planes_cap_the_corner",
+        "result": "ok"
+      },
+      {
+        "name": "engine::gpu::ssao::tests::navigation_preserves_the_same_image_and_needs_no_settling",
+        "result": "ok"
+      },
+      {
+        "name": "engine::gpu::ssao::tests::occlusion_darkens_contact_and_releases_its_small_uniform",
+        "result": "ok"
+      },
+      {
+        "name": "engine::gpu::ssao::tests::rotation_reprojects_ground_shadows_without_erasing_them",
+        "result": "ok"
+      },
+      {
+        "name": "engine::gpu::ssao::tests::toggles_and_resizes_compile_nothing_after_the_first_frame",
+        "result": "ok"
+      },
+      {
+        "name": "engine::gpu::surface_outline::tests::curved_and_flat_outlines_keep_the_same_width_when_edges_are_shown",
+        "result": "ok"
+      },
+      {
+        "name": "engine::gpu::surface_outline::tests::selected_cad_edges_do_not_paint_over_the_black_silhouette",
+        "result": "ok"
+      },
+      {
+        "name": "engine::gpu::surface_outline::tests::selected_silhouette_is_black_visible_only_and_releases_coverage",
+        "result": "ok"
+      },
+      {
+        "name": "engine::gpu::surface_outline::tests::toggles_flips_and_resizes_compile_nothing_twice",
+        "result": "ok"
+      },
+      {
+        "name": "engine::gpu::surface_outline::tests::touching_and_overlapping_solids_have_one_continuous_outline",
+        "result": "ok"
+      },
+      {
+        "name": "state::edit::egui_tests_25::the_widget_reaches_the_pixels",
+        "result": "ok"
+      }
+    ],
+    "failure": "Original GPU suite did not pass all37tests; see unmodified log",
+    "postguards": "passed",
+    "adapterScope": "VIEWER_ADAPTER=NVIDIA requested; selected adapter unobserved unless emitted by original test log. No phone/device acceptance.",
+    "logSha256": "bd94895bc38431a65c77af7e1df421ff242f99b3d041b7b80a8f0bdcbde38b77"
+  },
+  "resources": {
+    "platform": "windows-job-object",
+    "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+    "laneMutex": "Local\\SessionViewerCourseImageJob",
+    "affinityOffset": 8,
+    "requiredAffinityMask": "0x300",
+    "maximumOtherLaneProcessors": 8,
+    "maximumOtherLaneMemoryMiB": 8192,
+    "maximumAggregateOurProcessors": 10,
+    "maximumAggregateOurMemoryMiB": 14336,
+    "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+    "requestedProcessors": 2,
+    "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+    "startedUtc": "2026-11-16T07:18:31.4406687Z",
+    "executable": "C:\\Program Files\\Git\\bin\\bash.exe",
+    "arguments": [
+      "C:/pc/3_code/code_rust/wood_research/wood/tools/buildslot.sh",
+      "tutorial-application-gpu02",
+      "timeout",
+      "590s",
+      "C:\\Users\\Petras\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+      "-B",
+      "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\application-gpu02.py"
+    ],
+    "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\application-check02\\project",
+    "timeoutSeconds": 595,
+    "jobCommitLimitBytes": 6442450944,
+    "swapCapSupported": false,
+    "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+    "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+    "exitCode": 1,
+    "timedOut": false,
+    "elapsedSeconds": 38.456,
+    "peakJobCommitBytes": 1082126336,
+    "affinityMask": "0x300",
+    "processors": 2,
+    "processId": 17976,
+    "descendantsAtCleanup": 1
+  },
+  "selection": {
+    "expectedTests": [
+      "app::scene::instances::tests::gpu::ambient_occlusion_of_turned_instances",
+      "app::scene::instances::tests::gpu::instance_edits_write_their_own_slots",
+      "app::scene::instances::tests::gpu::instanced_frames_match_the_baked_scene",
+      "app::scene::sync::split_tests::gpu::arrowheads_follow_edits",
+      "app::scene::sync::split_tests::gpu::compaction_is_exact_and_shrinks",
+      "app::scene::sync::split_tests::gpu::edit_then_undo_is_pixel_and_id_identical",
+      "app::scene::sync::split_tests::gpu::kill_leaves_no_pixels_and_no_ids",
+      "app::scene::sync::split_tests::gpu::streamed_rows_survive_edits_and_compaction",
+      "app::walk::frames::gpu_tests::a_solid_hides_the_grid_not_the_arrows",
+      "app::walk::tests::contacts_on_their_face_draw_in_front_of_it",
+      "engine::gpu::backdrop::gpu_tests::the_grid_lies_on_the_construction_plane",
+      "engine::gpu::clip::editing_tests::gpu::a_cut_cube_caps_its_section_and_nothing_else",
+      "engine::gpu::clip::editing_tests::gpu::a_dowel_inside_a_beam_never_shows_through",
+      "engine::gpu::clip::editing_tests::gpu::a_nested_section_picks_the_innermost_solid",
+      "engine::gpu::clip::editing_tests::gpu::a_plane_on_a_face_shows_one_thing",
+      "engine::gpu::clip::editing_tests::gpu::an_open_mesh_gets_no_cap",
+      "engine::gpu::clip::editing_tests::gpu::brep_sections_are_watertight",
+      "engine::gpu::clip::editing_tests::gpu::cut_away_geometry_cannot_be_picked",
+      "engine::gpu::clip::editing_tests::gpu::far_from_the_origin_the_section_holds",
+      "engine::gpu::clip::editing_tests::gpu::from_the_kept_side_the_cap_hides_behind_kept_faces",
+      "engine::gpu::clip::editing_tests::gpu::ink_lanes_lose_the_cut_part",
+      "engine::gpu::clip::editing_tests::gpu::instanced_solids_cap_like_baked_ones",
+      "engine::gpu::clip::editing_tests::gpu::mirrored_and_inward_solids_cap_like_any_other",
+      "engine::gpu::clip::editing_tests::gpu::overlapping_boxes_are_capped_as_their_union",
+      "engine::gpu::clip::editing_tests::gpu::sections_default_to_light_grey_with_black_boundaries",
+      "engine::gpu::clip::editing_tests::gpu::stacked_boxes_cut_where_they_meet",
+      "engine::gpu::clip::editing_tests::gpu::two_planes_cap_the_corner",
+      "engine::gpu::ssao::tests::navigation_preserves_the_same_image_and_needs_no_settling",
+      "engine::gpu::ssao::tests::occlusion_darkens_contact_and_releases_its_small_uniform",
+      "engine::gpu::ssao::tests::rotation_reprojects_ground_shadows_without_erasing_them",
+      "engine::gpu::ssao::tests::toggles_and_resizes_compile_nothing_after_the_first_frame",
+      "engine::gpu::surface_outline::tests::curved_and_flat_outlines_keep_the_same_width_when_edges_are_shown",
+      "engine::gpu::surface_outline::tests::selected_cad_edges_do_not_paint_over_the_black_silhouette",
+      "engine::gpu::surface_outline::tests::selected_silhouette_is_black_visible_only_and_releases_coverage",
+      "engine::gpu::surface_outline::tests::toggles_flips_and_resizes_compile_nothing_twice",
+      "engine::gpu::surface_outline::tests::touching_and_overlapping_solids_have_one_continuous_outline",
+      "state::edit::egui_tests_25::the_widget_reaches_the_pixels"
+    ],
+    "excluded": [
+      {
+        "name": "app::decode::tests::local_files_match_the_kernel_reader",
+        "reason": "reads the local scene files"
+      },
+      {
+        "name": "app::scene::instances::tests::gpu::bench_frames",
+        "reason": "Benchmark/stress/capture utility, outside finite assertion batch"
+      },
+      {
+        "name": "app::scene::instances::tests::gpu::instanced_file_against_its_baked_twin",
+        "reason": "measurement: INSTANCING_PAIR=<instanced.pb>,<baked.pb>"
+      },
+      {
+        "name": "app::scene::sync::split_tests::gpu::bench_edit_phases",
+        "reason": "Benchmark/stress/capture utility, outside finite assertion batch"
+      },
+      {
+        "name": "app::walk::frames::gpu_tests::plane_stress",
+        "reason": "Benchmark/stress/capture utility, outside finite assertion batch"
+      },
+      {
+        "name": "engine::gpu::backdrop::gpu_tests::actual_grid_pixels_keep_far_fractions_and_return_to_the_same_near_frame",
+        "reason": "requires Windows WARP and the adjacent DXC libraries"
+      },
+      {
+        "name": "engine::gpu::context::initial_prewarm_reuses_pipelines_and_leaves_other_modes_lazy",
+        "reason": "Passed geometry-gpu01; same retained implementation"
+      },
+      {
+        "name": "engine::gpu::device::invalid_gpu_shader_is_fatal",
+        "reason": "Passed geometry-gpu01; same retained implementation"
+      },
+      {
+        "name": "engine::gpu::objects::gpu_tests::one_row_moves_and_its_neighbour_does_not",
+        "reason": "Passed geometry-gpu01; same retained implementation"
+      },
+      {
+        "name": "engine::gpu::ssao::tests::bench_ambient",
+        "reason": "Benchmark/stress/capture utility, outside finite assertion batch"
+      },
+      {
+        "name": "engine::gpu::ssao::tests::benchmark_arctic",
+        "reason": "Benchmark/stress/capture utility, outside finite assertion batch"
+      },
+      {
+        "name": "engine::gpu::surface_outline::tests::bench_outline",
+        "reason": "Benchmark/stress/capture utility, outside finite assertion batch"
+      },
+      {
+        "name": "engine::gpu::surface_outline::tests::outline_captures",
+        "reason": "Benchmark/stress/capture utility, outside finite assertion batch"
+      },
+      {
+        "name": "engine::gpu::text::plane::tests::fixed_plane_obeys_solid_depth_orientation_cache_and_release",
+        "reason": "Passed geometry-gpu01; same retained implementation"
+      },
+      {
+        "name": "engine::gpu::text::tests::actual_glyph_coverage_obeys_depth_clip_motion_and_release",
+        "reason": "Passed geometry-gpu01; same retained implementation"
+      },
+      {
+        "name": "engine::gpu::text::tests::continuous_world_scale_evicts_without_reshaping_or_stale_instances",
+        "reason": "Passed geometry-gpu01; same retained implementation"
+      },
+      {
+        "name": "engine::gpu::text::tests::nameplate_has_black_background_white_ink_centering_and_clean_release",
+        "reason": "Passed geometry-gpu01; same retained implementation"
+      },
+      {
+        "name": "engine::gpu::text_outline::tests::canceled_completion_is_discarded_and_next_pick_still_completes",
+        "reason": "Passed geometry-gpu01; same retained implementation"
+      },
+      {
+        "name": "engine::gpu::text_outline::tests::isolated_outline_keeps_coverage_selection_and_identity",
+        "reason": "Passed geometry-gpu01; same retained implementation"
+      },
+      {
+        "name": "engine::gpu::triangle_tiles::tests::a_resting_view_consumes_overflow_and_stops_redrawing_after_growth",
+        "reason": "Passed geometry-gpu01; same retained implementation"
+      },
+      {
+        "name": "engine::gpu::triangle_tiles::tests::a_slow_drag_drops_lists_a_scene_change_left_behind",
+        "reason": "Passed geometry-gpu01; same retained implementation"
+      },
+      {
+        "name": "engine::gpu::triangle_tiles::tests::projection_cache_tracks_camera_hidden_state_replacement_and_release",
+        "reason": "Passed geometry-gpu01; same retained implementation"
+      },
+      {
+        "name": "engine::pipelines::geometry::meshes_tests::pipelines_compile_on_first_use_and_once_per_target",
+        "reason": "Passed geometry-gpu01; same retained implementation"
+      }
+    ],
+    "scope": "Remaining fixed native GPU assertions for scene editing, clipping, ambient, outlines and widget; no CPU suite/bench rerun"
+  },
+  "failure": {
+    "scene": "turned",
+    "rotate": false,
+    "ssao": false,
+    "drawnPixels": 28659,
+    "idMismatches": 47,
+    "colorDifferenceOver2": 31,
+    "colorDifferenceOver8": 0,
+    "assertion": "differ * 2000 <= drawn",
+    "unchanged": true
+  },
+  "priorAttempt": {
+    "scope": "application-gpu01 launcher encoding failure before Cargo",
+    "resources": {
+      "platform": "windows-job-object",
+      "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+      "laneMutex": "Local\\SessionViewerCourseImageJob",
+      "affinityOffset": 8,
+      "requiredAffinityMask": "0x300",
+      "maximumOtherLaneProcessors": 8,
+      "maximumOtherLaneMemoryMiB": 8192,
+      "maximumAggregateOurProcessors": 10,
+      "maximumAggregateOurMemoryMiB": 14336,
+      "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+      "requestedProcessors": 2,
+      "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+      "startedUtc": "2026-11-16T07:18:02.9099022Z",
+      "executable": "C:\\Program Files\\Git\\bin\\bash.exe",
+      "arguments": [
+        "C:/pc/3_code/code_rust/wood_research/wood/tools/buildslot.sh",
+        "tutorial-application-gpu01",
+        "timeout",
+        "590s",
+        "C:\\Users\\Petras\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+        "-B",
+        "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\application-gpu01.py"
+      ],
+      "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\application-check02\\project",
+      "timeoutSeconds": 595,
+      "jobCommitLimitBytes": 6442450944,
+      "swapCapSupported": false,
+      "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+      "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+      "exitCode": 1,
+      "timedOut": false,
+      "elapsedSeconds": 0.744,
+      "peakJobCommitBytes": 48566272,
+      "affinityMask": "0x300",
+      "processors": 2,
+      "processId": 15380,
+      "descendantsAtCleanup": 1
+    }
+  },
+  "limitations": [
+    "Actual selected adapter not emitted",
+    "23 exclusions retain explicit reasons; they are not counted as passing",
+    "No production code or test threshold changed",
+    "This is a failed acceptance check, not whole-suite success"
+  ]
+}

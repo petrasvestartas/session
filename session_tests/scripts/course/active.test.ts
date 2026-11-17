@@ -66,18 +66,21 @@ test('acceptance audit rejects changed review, source and teaching inputs', () =
     const course = load(); course.subjects = [course.subjects[0]];
     const subject = course.subjects[0], files = {'src/frame.rs': 'pub fn draw() {}\n'};
     const lesson = '# Frame\nExplain submission and presentation.\n';
+    const chapterPath = 'journey/frame-resources.md', chapter = 'Explain frame resource ownership.';
+    subject.chapters = [chapterPath];
     const proofPath = 'journey/release/browser-review.json', proof = '{"observed":"white frame"}';
     const raw = JSON.stringify({status: 'accepted', subject: subject.id,
         files: {'src/frame.rs': hash(files['src/frame.rs'])},
-        lesson: {path: subject.page, sha256: hash(lesson)}, evidence: [{path: proofPath, sha256: hash(proof)}]});
+        lesson: {path: subject.page, sha256: hash(lesson)}, chapters: {[chapterPath]: hash(chapter)}, evidence: [{path: proofPath, sha256: hash(proof)}]});
     subject.acceptance = 'accepted';
     subject.review = {path: 'journey/release/frame-review.json', sha256: hash(raw)};
-    const read = (name: string) => name === subject.page ? lesson : name === proofPath ? proof : raw;
+    const read = (name: string) => name === subject.page ? lesson : name === chapterPath ? chapter : name === proofPath ? proof : raw;
     assert.deepEqual(auditAcceptance(course, () => files, read), []);
     assert.match(auditAcceptance(course, () => files, name => read(name) + ' ').join(), /review digest changed/);
     assert.match(auditAcceptance(course, () => ({'src/frame.rs': 'changed'}), read).join(), /checkpoint source changed/);
     assert.match(auditAcceptance(course, () => files, name => name === subject.page ? 'changed' : raw).join(), /lesson changed/);
     assert.match(auditAcceptance(course, () => files, name => name === proofPath ? 'changed' : read(name)).join(), /supporting evidence changed/);
+    assert.match(auditAcceptance(course, () => files, name => name === chapterPath ? 'changed' : read(name)).join(), /chapter changed or missing/);
 });
 
 test('active audit rejects rewritten implementation and a missing endpoint source', () => {

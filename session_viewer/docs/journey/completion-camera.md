@@ -2,7 +2,7 @@
 
 Orbit a blue wireframe cube, switch projection, and fit its bounds using the production camera.
 
-This fifth cumulative subject is a draft. Its wasm build, native suite and desktop/upright browser interactions pass; full subject acceptance remains pending.
+This fifth cumulative subject is reviewed against its native tests, independent wasm build and recorded Windows Intel WebGPU interactions at desktop and upright sizes. The later renderer and application have separate acceptance.
 
 ## Prerequisites and ownership
 
@@ -40,7 +40,7 @@ The near and far arguments are reversed deliberately: nearby depth is one. A lat
 
 Read `orbit`, `pan`, `zoom_at` and `fit_in` in [the retained camera source](../../src/camera.rs). Orbit composes yaw about world up with pitch about the camera's right axis, then normalizes the quaternion. Pan moves the target in the camera plane; its distance-dependent scale keeps movement useful across zoom levels. Zoom changes distance multiplicatively and clamps it away from zero.
 
-`ray` unprojects a screen position into a world-space origin and direction. `zoom_at` compares the cursor's target-plane intersection before and after changing distance, then adjusts the target so that point remains under the cursor. Parallel rays and invalid viewport dimensions cannot produce a valid intersection. Picking later consumes this same ray implementation.
+`ray` maps a screen position to a world-space origin and direction. Perspective rays begin at the eye; orthographic rays are parallel and begin behind the scene. Empty viewports or nonfinite cursor coordinates are rejected. `zoom_at` computes the cursor's offset on the target plane and shifts the target by the fraction removed by zooming, keeping that point under the cursor. Picking later consumes the same ray implementation.
 
 Fitting visits the box corners in camera coordinates and chooses a distance that satisfies both horizontal and vertical limits. `fit_in` also accounts for panels through the usable frame; fitting only a box radius would miss that constraint. Changing units preserves the conversion between scene coordinates and metres. Named views select orthographic projection and set the orientation explicitly, while `grow_extent` extends the depth range without moving the camera.
 

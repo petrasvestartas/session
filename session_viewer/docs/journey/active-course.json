@@ -37,7 +37,11 @@
         "painting"
       ],
       "chapters": [],
-      "acceptance": "pending"
+      "acceptance": "accepted",
+      "review": {
+        "path": "journey/release/completion-mathematics-acceptance-20261116.json",
+        "sha256": "65ecc66b9942f8a29596a8cc26772df9cd056325aa05d8488c34b61ad421dea1"
+      }
     },
     {
       "id": "dock",
@@ -47,7 +51,11 @@
         "mathematics"
       ],
       "chapters": [],
-      "acceptance": "pending"
+      "acceptance": "accepted",
+      "review": {
+        "path": "journey/release/completion-dock-acceptance-20261116.json",
+        "sha256": "a523277f9552679fde4df5e4e470b9a8d6f4682750ebbff1f7fd1cd36e84aea9"
+      }
     },
     {
       "id": "camera",
@@ -57,7 +65,11 @@
         "dock"
       ],
       "chapters": [],
-      "acceptance": "pending"
+      "acceptance": "accepted",
+      "review": {
+        "path": "journey/release/completion-camera-acceptance-20261116.json",
+        "sha256": "a794a575aeb4854c9fb64e2aee04ed49b6bf738f18ea105aab0e83ebda223210"
+      }
     },
     {
       "id": "rows",
@@ -67,7 +79,11 @@
         "camera"
       ],
       "chapters": [],
-      "acceptance": "pending"
+      "acceptance": "accepted",
+      "review": {
+        "path": "journey/release/completion-rows-acceptance-20261116.json",
+        "sha256": "b15b7375a47cf571f1832cc581c2652719993c660f932c8c13840dc5d196acf1"
+      }
     },
     {
       "id": "geometry",
@@ -76,8 +92,14 @@
       "prerequisites": [
         "rows"
       ],
-      "chapters": [],
-      "acceptance": "pending"
+      "chapters": [
+        "journey/completion-visibility.md"
+      ],
+      "acceptance": "accepted",
+      "review": {
+        "path": "journey/release/completion-geometry-acceptance-20261116.json",
+        "sha256": "51c31b708ad1fa8a30cda53aacd732b0847694aa26efde43f3b9783fe0dc2473"
+      }
     },
     {
       "id": "decoding",
@@ -87,7 +109,11 @@
         "geometry"
       ],
       "chapters": [],
-      "acceptance": "pending"
+      "acceptance": "accepted",
+      "review": {
+        "path": "journey/release/completion-decoding-acceptance-20261116.json",
+        "sha256": "b6c401bfc9a5a156d7aec5ec677e70b38c4db246fe2335e4f7a9cb6da47f134d"
+      }
     },
     {
       "id": "application",
@@ -105,7 +131,6 @@
         "journey/completion-text.md",
         "journey/completion-streaming.md",
         "journey/stage-scene.md",
-        "journey/completion-visibility.md",
         "journey/completion-debugging.md"
       ],
       "acceptance": "pending"

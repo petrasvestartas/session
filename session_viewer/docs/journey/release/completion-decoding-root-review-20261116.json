@@ -1,0 +1,29 @@
+{
+  "status": "SCOPED_SUBJECT_CONTRACT_REVIEW_PASS_FINAL_RECEIPT_BINDING_PENDING",
+  "reviewedUtc": "2026-11-16T07:40:07.992480+00:00",
+  "sourceBinding": {
+    "path": ".codex\\viewer-quality-20261028\\remaining-four-full-source-binding-root-review.json",
+    "sha256": "657feba5119255305b63234268cf8f357c40f2b9718c1c5dd3be8a1c03f20576",
+    "bytes": 167408
+  },
+  "noManifestMutation": true,
+  "subject": "decoding",
+  "lesson": {
+    "path": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\docs\\journey\\completion-decoding.md",
+    "sha256": "f864ff1709397207d5964dcdd6327aaabbac722a15f24bde144c114ba160cd14",
+    "bytes": 8108
+  },
+  "runtimeOriginalReview": {
+    "path": ".codex\\viewer-quality-20261028\\decoding-browser16-original-root-review.json",
+    "sha256": "bae542430b3b54baa78ef2991d9461e0f0a28db96c93b01f4cd3a2745b598bd2",
+    "bytes": 15878
+  },
+  "reviewScope": [
+    "Read complete lesson, complete scheduler and actual async decoder inspector fixture; inspected Reader window/checked fields, varint representability, object validation-before-kernel conversion, source collection count/reserve, graph GUID/attributes, explicit-stack tree and instance transform folding.",
+    "Confirmed one-MiB normal JS window with large-object release,512MiB file limit,25k-yield pacer and64-level tree guard. Corrected two-million count wording to actual included geometry+instances, excluding planes/boxes/components; no behavior change.",
+    "Independently generated current170-file assembly and verified checked decoding-check01/decoding; only same three named include-marker lines differ.",
+    "Reuse prior Root four unique personally viewed valid/error/recovery originals spanning six new states at1280/390, preceding92 byte-identical, actual195nativePASS14ignored (13GPU and one local-file scope). No new decode/browser run claimed."
+  ],
+  "prerequisites": "Geometry must be bound/accepted first. Prepare final scoped intro and exact170 template/lesson/evidence receipt, with actual malformed-header E and unchanged original-byte retry R scope.",
+  "limitations": "Bundled real comparison bytes/decoder inspector, not HTTP fetching, hierarchy/file UI, every hostile input or physical-device acceptance. Dated195/14 receipt retained; no silent default-suite count rewrite. Application GPU instancing failure remains separate and unaccepted."
+}

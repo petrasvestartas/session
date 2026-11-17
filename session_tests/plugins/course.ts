@@ -151,7 +151,8 @@ function navGroups(bySlug: Map<string, string>): Group[] {
           }));
     if (book.comparison) lessonGroups.push({title: 'Reference comparison', slugs: [pageSlug(path.join(DOCS, book.comparison.page))]});
     groups.splice(1, 0, {title: 'Cumulative subjects', slugs: active().subjects.map(subject => pageSlug(path.join(DOCS, subject.page)))},
-      {title: 'Application chapters', slugs: active().subjects.flatMap(subject => subject.chapters.map(page => pageSlug(path.join(DOCS, page))))},
+      {title: 'Subject chapters', slugs: active().subjects.flatMap(subject => subject.chapters.map(page => pageSlug(path.join(DOCS, page)))),
+        sections: active().subjects.filter(subject => subject.chapters.length).map(subject => ({title: subject.title, slugs: subject.chapters.map(page => pageSlug(path.join(DOCS, page)))}))},
       {title: 'Historical checkpoint subjects', slugs: lessonGroups.flatMap(group => group.slugs), sections: lessonGroups});
     const reference = groups.find((g) => g.title === 'Course');
     if (reference) reference.title = 'Archived tutorials';
@@ -516,7 +517,7 @@ function fetchPage(url) {
   return loaded.get(url);
 }
 ` : '';
-    return `${fetchPage}export const groups = ${JSON.stringify(groups)};\nexport const pages = ${JSON.stringify(meta)};\nexport const loaders = {${loaders.join(',\n')}};\n`;
+    return `${fetchPage}export const checkpointCount = ${active().subjects.length};\nexport const groups = ${JSON.stringify(groups)};\nexport const pages = ${JSON.stringify(meta)};\nexport const loaders = {${loaders.join(',\n')}};\n`;
   };
 
   const kernelModule = () => {

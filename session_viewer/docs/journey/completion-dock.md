@@ -2,7 +2,7 @@
 
 Type and complete commands, choose an option, and expand retained command history using the production command dock.
 
-This cumulative candidate follows [mathematics](completion-mathematics.md). Its wasm build and desktop/upright browser interactions pass; complete subject acceptance remains pending.
+This cumulative subject follows [mathematics](completion-mathematics.md). Its implementation and lesson are reviewed against the recorded Windows Intel WebGPU command interactions at desktop and upright sizes. The remaining course has separate acceptance.
 
 ## Prerequisites and ownership
 

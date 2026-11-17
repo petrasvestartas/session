@@ -1,0 +1,39 @@
+{
+  "status": "SCOPED_CONTRACT_REVIEW_PASSED_FINAL_RECEIPT_BINDING_PENDING",
+  "subjects": [
+    "mathematics",
+    "dock"
+  ],
+  "sourceBinding": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\math-dock-current-full-source-binding-root-review.json",
+    "sha256": "fb5b89d85ddd944055d70019bd20d3e41d0f9401b6026609e14f2edad6a79c72",
+    "bytes": 19564
+  },
+  "runtimeOriginalReview": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\completion-browser11-native01-original-pixel-root-review.json",
+    "sha256": "354520f8ee4d06858e4b9b5a352bb5d04badf38d93755ed8beb527ecf9982cd3",
+    "bytes": 14554
+  },
+  "lessons": [
+    {
+      "path": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\docs\\journey\\completion-mathematics.md",
+      "sha256": "e0b383123a6b94c3a906ec409f1dc831f7bdb9141c7afd57023a12d43cbd29b8",
+      "bytes": 26892
+    },
+    {
+      "path": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\docs\\journey\\completion-dock.md",
+      "sha256": "a56ed95e483d50c4f3d6d2abeb3d6be30f39979fbda7c3d8542bb10daa8ec710",
+      "bytes": 7493
+    }
+  ],
+  "reviewScope": [
+    "Read both complete lessons, corrected Vector0.5 paragraph and six live kernel implementations.",
+    "Read dock model, focus/completion/cancellation/output, panel/view/theme and190-line actual course fixture. Confirmed command_open requests focus each frame, focus_command caret request is one-shot, Escape conditional, output consumed once.",
+    "Read complete Presentation, Mode contract/math adapter and Tween; critical action add/remove ownership, replay/navigation/theme, primitive matching/LCS and atlas ownership implementations. Not a claim of line-by-line review of all41 files.",
+    "Independently bound current mathematics41/dock45 entire assembly maps to checkedpartial08 using standard Cargo path materialization and normalized LF.",
+    "Reused prior personally reviewed actual Intel desktop/upright four-step/reverse/theme/slide and Hello/ColorBlue/Clear behavior; no new runtime run claimed."
+  ],
+  "prerequisites": "Frame/painting are independently accepted locally. Mathematics must be bound/accepted before dock; current statuses remain pending until final scoped intros and receipts bind exact sources/lessons/evidence.",
+  "limitations": "No remaining contract finding after Vector qualifier correction. Physical-phone keyboard and later scene/commands subjects remain separate. Application GPU instancing failure is retained, does not relabel unchanged math/dock fixture outcomes. No manifest mutation or blanket course acceptance.",
+  "reviewedUtc": "2026-11-16T07:23:15.146034+00:00"
+}

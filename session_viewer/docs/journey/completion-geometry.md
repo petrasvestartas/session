@@ -2,7 +2,7 @@
 
 Draw a mesh, a boundary representation, an arrowed curve and a numerical matrix using the production GPU renderer.
 
-This seventh cumulative checkpoint is a candidate. Its independent wasm build and retention checks pass; browser interactions pass at desktop and upright sizes; 185 native tests pass with 13 ignored; complete teaching acceptance is pending.
+This seventh cumulative subject has reviewed teaching and recorded desktop/upright Windows Intel WebGPU evidence for its four-object fixture. Its independent wasm build, 185 default native tests and separate 13 GPU tests pass. Complete renderer runtime acceptance remains pending, including the instanced-color comparison described below.
 
 ## Prerequisites and ownership
 
@@ -286,4 +286,6 @@ Each lane stores its own primitive representation but carries the same object-ro
 
 ## Validation
 
-The seven-subject retention suite passes four tests. Independent wasm checking and optimized browser packaging use the checkpoint's own shader build script, without an inherited shader output directory. The cumulative native suite passes 185 tests with 13 ignored. Full production native test modules also compile after the adapter extraction; that separate check does not execute the entire production suite. Browser interactions pass 92 captures across seven modes at desktop and upright sizes. Original scene captures show sampled-segment reveal, face/stroke toggles, projection and orbit with exact return states. Complete renderer teaching remains pending. Picking, multisampling, physical-phone rendering, streaming and the final application require their own checks.
+The seven-subject retention suite passes four tests. Independent wasm checking and optimized browser packaging use the checkpoint's own shader build script, without an inherited shader output directory. The cumulative native suite passes 185 tests with 13 ignored in its default run. A separate [GPU run](release/completion-geometry-gpu-windows-20261116.json) executes those 13 original tests successfully, covering row isolation, glyph depth and cache release, outline picking, triangle-list invalidation and pipeline reuse. The log does not identify the selected adapter. Full production native test modules also compile after the adapter extraction; that separate check does not execute the entire production suite. Browser interactions pass 92 captures across seven modes at desktop and upright sizes. Original scene captures show sampled-segment reveal, face/stroke toggles, projection and orbit with exact return states. Complete renderer runtime acceptance remains pending. Picking, multisampling, physical-phone rendering, streaming and the final application require their own checks.
+
+The separate [application GPU run](release/completion-application-gpu-windows-20261116.json) passes 36 assertions, including clipping, ambient and outline checks, but fails instanced-versus-baked color parity. The failure is reproduced with the original assertion unchanged. This checkpoint's mesh/BRep/curve/Matrix fixture does not exercise that parity and cannot establish complete renderer acceptance.

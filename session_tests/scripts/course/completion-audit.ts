@@ -23,6 +23,10 @@ export function auditAcceptance(course: ActiveCourse, assemble: (subject: string
             if (review.lesson?.path !== subject.page
                 || review.lesson.sha256 !== hash(read(subject.page).replaceAll('\r\n', '\n')))
                 throw Error('reviewed lesson changed');
+            const chapters = review.chapters ?? {};
+            if (Object.keys(chapters).length !== subject.chapters.length
+                || subject.chapters.some(name => chapters[name] !== hash(read(name).replaceAll('\r\n', '\n'))))
+                throw Error('reviewed chapter changed or missing');
             if (!Array.isArray(review.evidence) || !review.evidence.length)
                 throw Error('review has no supporting evidence');
             for (const proof of review.evidence) {

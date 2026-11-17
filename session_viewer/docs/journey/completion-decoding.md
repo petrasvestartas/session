@@ -2,7 +2,7 @@
 
 Read a real session file, inspect its decoded contents, and recover from malformed bytes with a filename-specific error.
 
-This eighth cumulative checkpoint is a candidate. Compilation, native execution and browser evidence are recorded separately below.
+This eighth cumulative subject is reviewed against its independent wasm build, native suite and recorded Windows Intel WebGPU valid/error/recovery interactions at desktop and upright sizes. HTTP loading and document UI have separate acceptance.
 
 ## Prerequisites and ownership
 
@@ -20,7 +20,7 @@ Add the decoder, validator, scheduler and inspector registration while retaining
 
 `Reader` borrows that body. Its byte-range operation uses checked addition before slicing: an overflowing length must become an error, not an out-of-bounds read. A JavaScript body normally uses a one-MiB window. One larger object can require a larger window; after decoding that object, the oversized allocation is released. This is a bounded normal working set, not a claim that every individual object fits one MiB.
 
-The whole-file decoder rejects bodies over 512 MiB and directs larger cloud data to streaming. Validation also limits source objects to two million and hierarchy depth to 64. These are explicit resource bounds checked before an unrestricted conversion can consume the application.
+The whole-file decoder rejects bodies over 512 MiB and directs larger cloud data to streaming. Its two-million-object counter sums points, lines, polylines, point clouds, meshes, NURBS curves and surfaces, BReps, elements and instances. Planes, boxes and components are outside this counter. Hierarchy depth is limited separately to 64. These bounds protect different parts of decoding; the object counter is not a cap on every protobuf record.
 
 ### Protobuf fields and validation
 

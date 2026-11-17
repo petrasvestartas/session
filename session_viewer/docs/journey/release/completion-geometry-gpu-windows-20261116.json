@@ -1,0 +1,167 @@
+{
+  "status": "All13 original geometry GPU tests passed in a separate invocation",
+  "scope": "Cumulative geometry checkpoint native GPU assertions only; does not establish selected hardware identity or phone behavior",
+  "sourceCommit": "d28dde7e96cefebf8676731830087fe16cb16c9e",
+  "sourceApplicability": "166current files match independently compiledgeometry-native02 source after standard Cargo paths and3reviewed include-marker-only changes",
+  "result": {
+    "scope": "Only the13 previously ignored geometry checkpoint GPU tests; original assertions/features/lock retained; no benchmark or full CPU rerun",
+    "exitCode": 0,
+    "tests": [
+      {
+        "name": "engine::gpu::context::initial_prewarm_reuses_pipelines_and_leaves_other_modes_lazy",
+        "result": "ok"
+      },
+      {
+        "name": "engine::gpu::device::invalid_gpu_shader_is_fatal",
+        "result": "ok"
+      },
+      {
+        "name": "engine::gpu::objects::gpu_tests::one_row_moves_and_its_neighbour_does_not",
+        "result": "ok"
+      },
+      {
+        "name": "engine::gpu::text::plane::tests::fixed_plane_obeys_solid_depth_orientation_cache_and_release",
+        "result": "ok"
+      },
+      {
+        "name": "engine::gpu::text::tests::actual_glyph_coverage_obeys_depth_clip_motion_and_release",
+        "result": "ok"
+      },
+      {
+        "name": "engine::gpu::text::tests::continuous_world_scale_evicts_without_reshaping_or_stale_instances",
+        "result": "ok"
+      },
+      {
+        "name": "engine::gpu::text::tests::nameplate_has_black_background_white_ink_centering_and_clean_release",
+        "result": "ok"
+      },
+      {
+        "name": "engine::gpu::text_outline::tests::canceled_completion_is_discarded_and_next_pick_still_completes",
+        "result": "ok"
+      },
+      {
+        "name": "engine::gpu::text_outline::tests::isolated_outline_keeps_coverage_selection_and_identity",
+        "result": "ok"
+      },
+      {
+        "name": "engine::gpu::triangle_tiles::tests::a_resting_view_consumes_overflow_and_stops_redrawing_after_growth",
+        "result": "ok"
+      },
+      {
+        "name": "engine::gpu::triangle_tiles::tests::a_slow_drag_drops_lists_a_scene_change_left_behind",
+        "result": "ok"
+      },
+      {
+        "name": "engine::gpu::triangle_tiles::tests::projection_cache_tracks_camera_hidden_state_replacement_and_release",
+        "result": "ok"
+      },
+      {
+        "name": "engine::pipelines::geometry::meshes_tests::pipelines_compile_on_first_use_and_once_per_target",
+        "result": "ok"
+      }
+    ],
+    "failure": null,
+    "postguards": "passed",
+    "adapterScope": "NVIDIA requested, not proof of actual selected adapter; no hardware acceptance unless emitted identity is observed",
+    "logSha256": "5225cec790e0cf58ec1c0935c20dcc0d95226332fa985a90c73015b0324cf34c"
+  },
+  "resources": {
+    "platform": "windows-job-object",
+    "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+    "laneMutex": "Local\\SessionViewerCourseImageJob",
+    "affinityOffset": 8,
+    "requiredAffinityMask": "0x300",
+    "maximumOtherLaneProcessors": 8,
+    "maximumOtherLaneMemoryMiB": 8192,
+    "maximumAggregateOurProcessors": 10,
+    "maximumAggregateOurMemoryMiB": 14336,
+    "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+    "requestedProcessors": 2,
+    "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+    "startedUtc": "2026-11-16T07:08:22.4175774Z",
+    "executable": "C:\\Program Files\\Git\\bin\\bash.exe",
+    "arguments": [
+      "C:/pc/3_code/code_rust/wood_research/wood/tools/buildslot.sh",
+      "tutorial-geometry-gpu01",
+      "timeout",
+      "590s",
+      "C:\\Users\\Petras\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+      "-B",
+      "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\geometry-gpu01.py"
+    ],
+    "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\geometry-native02\\project",
+    "timeoutSeconds": 595,
+    "jobCommitLimitBytes": 6442450944,
+    "swapCapSupported": false,
+    "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+    "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+    "exitCode": 0,
+    "timedOut": false,
+    "elapsedSeconds": 27.962,
+    "peakJobCommitBytes": 1258577920,
+    "affinityMask": "0x300",
+    "processors": 2,
+    "processId": 42504,
+    "descendantsAtCleanup": 1
+  },
+  "compilation": "Cargo freshly compiled same linked checkpoint in12.49seconds; originalfeatures/lock and assertions retained",
+  "execution": "13passed0failed0ignored,185filtered;9.91seconds",
+  "actualAdapter": "Not emitted by this harness. VIEWER_ADAPTER=NVIDIA was requested; this is not proof of selectedhardware.",
+  "artifacts": [
+    {
+      "path": "target/geometry-gpu01/plan.json",
+      "sha256": "1d6dabf9eb1363a8d2ddfdeb86cc2716209e235a7c81b4f0551f1ceb9ef2577c",
+      "bytes": 1533723
+    },
+    {
+      "path": "target/geometry-gpu01/started.json",
+      "sha256": "74acb51532cc6d0f00749af0bb97001fe241e16a011a723e523ae3ce26cf04bc",
+      "bytes": 1449
+    },
+    {
+      "path": "target/geometry-gpu01/result.json",
+      "sha256": "d2b14cb34d27e1ff4303846c89a0cbf4c86907880987e2fa33f0120178e3755e",
+      "bytes": 2320
+    },
+    {
+      "path": "target/geometry-gpu01/resources.json",
+      "sha256": "3331fdae90cfc280bc424fe09fa909527ff20d1c07dcde9dbbffaec60f334d10",
+      "bytes": 1912
+    },
+    {
+      "path": "target/geometry-gpu01/gpu-tests.log",
+      "sha256": "5225cec790e0cf58ec1c0935c20dcc0d95226332fa985a90c73015b0324cf34c",
+      "bytes": 33079
+    },
+    {
+      "path": "target/geometry-gpu01/baseline-deltas.json",
+      "sha256": "0e334e2c122198f8668f65e86a4d3cd692915c23ee75bbb2cfa782181aeb5783",
+      "bytes": 4608
+    },
+    {
+      "path": "target/geometry-gpu01/dispatch.ps1",
+      "sha256": "e196e244bd069a249b6e599848482830ebbcfc31d528911026768f1c68474f70",
+      "bytes": 695
+    },
+    {
+      "path": "target/geometry-gpu01/command.json",
+      "sha256": "d914f4546b43b17bf6cfeb5ddc582760d19c475fee089235b8b78a47ae78bf1d",
+      "bytes": 398
+    },
+    {
+      "path": "target/geometry-gpu01.py",
+      "sha256": "1ea3537ceb62e636527f0f5b688f26e624e05a7b21330b9ea4b956a0e5826fa4",
+      "bytes": 2252
+    },
+    {
+      "path": "target/remaining-checkpoint-source-review.json",
+      "sha256": "4ae35aed03b6d21b710821eb81029e2d59d6143e83ae04177742be1f6dffa422",
+      "bytes": 2332
+    }
+  ],
+  "originalEvidence": "The earlier185PASS13ignored receipt remains unchanged; this separate run closes those13execution gaps only.",
+  "limitations": [
+    "No application-dependent clipping/ambient/streaming tests were selected.",
+    "No broad device or physical-phone acceptance."
+  ]
+}

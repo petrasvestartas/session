@@ -2,7 +2,7 @@
 
 Align equations, display matrices and replay a mathematical derivation using the retained production stage implementation.
 
-This is a candidate replacement immediately after [Paint shapes and text](completion-painting.md). Its partial project passes wasm typechecking and browser interaction checks; full subject acceptance remains pending for this assembly.
+This cumulative subject follows [Paint shapes and text](completion-painting.md). Its implementation and lesson are reviewed against the recorded Windows Intel WebGPU checks at desktop and upright sizes. The remaining course has separate acceptance.
 
 ## Prerequisites and ownership
 
@@ -174,7 +174,7 @@ The clock supplies a normalized, eased parameter. The kernel supplies the value 
 
 Read these live kernel implementations and their tests; the mathematics checkpoint already depends on this kernel. The later scene subject connects their results to scene rows.
 
-- [Vector::lerp](../../../session_rust/src/vector.rs): Each component is halfway between its endpoints. Between `(2, 0, 0)` and `(0, 2, 0)`, the result is `(1, 1, 0)`. This does not preserve vector length. Use it for component motion, not as a rotation algorithm.
+- [Vector::lerp](../../../session_rust/src/vector.rs): At parameter `0.5`, each component is halfway between its endpoints. Between `(2, 0, 0)` and `(0, 2, 0)`, the result is `(1, 1, 0)`. This does not preserve vector length. Use it for component motion, not as a rotation algorithm.
 
 - [Color::lerp](../../../session_rust/src/color.rs): Red, green, blue and alpha are blended component by component; the result keeps the first colour's name. This is interpolation of stored channels, with no perceptual colour-space conversion.
 

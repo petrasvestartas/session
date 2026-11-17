@@ -3,7 +3,7 @@
     <h1>Viewer course</h1>
     <p class="lead">
       Build the Session Viewer from Rust and wgpu fundamentals to its production rendering paths.
-      The route organizes {{ readerLessonCount.toLocaleString('en-US') }} executable subject checkpoints.
+      The route organizes {{ checkpointCount.toLocaleString('en-US') }} executable subject checkpoints.
       Teaching coverage and full-course acceptance remain in progress.
       Historical reconstruction stays available in its archive group.
     </p>
@@ -29,12 +29,9 @@
 </template>
 
 <script setup lang="ts">
-import { groups, pages } from 'virtual:course';
+import { checkpointCount, groups, pages } from 'virtual:course';
 import { latestCodingLesson } from '../courseOrder';
 const latestLesson = latestCodingLesson(pages);
-const chapterGroups = groups.filter(group => /^\d+ · /.test(group.title));
-const readerLessonCount = chapterGroups
-  .reduce((count, group) => count + group.slugs.length, 0);
 </script>
 
 <style scoped>

@@ -1,0 +1,47 @@
+{
+  "status": "SCOPED_SUBJECT_CONTRACT_REVIEW_PASS_FINAL_RECEIPT_BINDING_PENDING",
+  "reviewedUtc": "2026-11-16T07:40:07.992480+00:00",
+  "sourceBinding": {
+    "path": ".codex\\viewer-quality-20261028\\remaining-four-full-source-binding-root-review.json",
+    "sha256": "657feba5119255305b63234268cf8f357c40f2b9718c1c5dd3be8a1c03f20576",
+    "bytes": 167408
+  },
+  "noManifestMutation": true,
+  "subject": "geometry",
+  "lessons": [
+    {
+      "path": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\docs\\journey\\completion-geometry.md",
+      "sha256": "031558cfc6396abef123f268fecf4a436303cc56d1bfda6732e165436c3dad3d",
+      "bytes": 50040
+    },
+    {
+      "path": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\docs\\journey\\completion-visibility.md",
+      "sha256": "912f6343488eae566712e1e8b80d13dcc89905829f67d5e7dc075b5019ce4207",
+      "bytes": 15506
+    }
+  ],
+  "runtimeOriginalReview": {
+    "path": ".codex\\viewer-quality-20261028\\completion-browser15-geometry-original-root-review.json",
+    "sha256": "2776dce08ef7b3e5833761ef3b673f8172071d58db5b59de22c951222d8067cd",
+    "bytes": 11204
+  },
+  "gpu13Review": {
+    "path": ".codex\\viewer-quality-20261028\\geometry-gpu13-terminal-log-root-review.json",
+    "sha256": "35eceedb6bb357f802f53f182731358f450386432adc98bafade3ad381009ba4",
+    "bytes": 2990
+  },
+  "failedInstancingParity": {
+    "path": ".codex\\viewer-quality-20261028\\application-gpu37-failure-eight-original-pixel-root-review.json",
+    "sha256": "74e1d64fea7bd13d81e3c75fded5b6b5519d891f195cf6a4bfd2513619bf41f1",
+    "bytes": 7357
+  },
+  "reviewScope": [
+    "Read complete rendering overview and visibility chapter; actual166-file assembly binds checked project with only three named include-marker changes.",
+    "Read complete four-object geometry fixture and lane lifecycle/registry, critical actual frame/pass order and upload packing/Matrix conversion; reused already reviewed row/buffer/layout/normal/projected-record/clipping contracts. Read explanations for remaining resource owners; not a claim of line-by-line review of all166 files.",
+    "Actual fixture uses production mesh/BRep/arrowed NURBS/kernelMatrix geometry, placement/bounds, complete renderer device setup, frame uniforms and encoded GPU draws. Sampled-segment reveal, W curve lane, O opacity/face participation, projection and orbit match earlier personally reviewed92 original-state bindings.",
+    "GPU13 original outcomes verified independently, selected adapter unobserved. Runtime shader compilation and row/glyph/picking/cache tests have their recorded scope, distinct from source-only WGSL checks.",
+    "New explicit limitation in both chapters preserves application37 invocation36PASS/1FAIL and original repeated instanced/baked color parity failure. The simple fixture does not exercise that parity."
+  ],
+  "prerequisites": "Exactly six earlier subjects accepted locally. Final geometry receipt must bind all166 templates, overview and assigned visibility chapter, supporting proofs and final scoped intro.",
+  "limitations": "Review passes teaching and recorded four-object fixture scope. Complete renderer/application runtime, arbitrary BRep curved contours, every clipping/multisample case, physical-phone and natural dense cloud remain separate. Source30 actual capMSAA4 qualification is independent. Known instanced parity FAIL is not accepted or overridden."
+}

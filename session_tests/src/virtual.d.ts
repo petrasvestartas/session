@@ -1,4 +1,5 @@
 declare module 'virtual:course' {
+  export const checkpointCount: number;
   export const groups: { title: string; slugs: string[]; sections?: { title: string; slugs: string[] }[] }[];
   export const pages: Record<string, { title: string; prev?: string; next?: string }>;
   export const loaders: Record<string, () => Promise<{ default: CoursePage }>>;

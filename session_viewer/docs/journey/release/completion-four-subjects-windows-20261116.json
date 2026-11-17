@@ -1,0 +1,341 @@
+{
+  "status": "Automated checks passed; visual review found homepage count and chapter grouping defects",
+  "scope": "Four accepted subject bindings, chapter enforcement and current documentation rendering; no new production runtime acceptance",
+  "docs": {
+    "result": {
+      "scope": "Four accepted subjects and new chapter-binding rejection check; reviewed geometry/application GPU evidence and navigation; strict site",
+      "commands": [
+        {
+          "name": "teaching-tests",
+          "exitCode": 0
+        },
+        {
+          "name": "active-audit",
+          "exitCode": 0
+        },
+        {
+          "name": "strict-site",
+          "exitCode": 0
+        }
+      ],
+      "postguards": "passed",
+      "outputs": []
+    },
+    "resources": {
+      "platform": "windows-job-object",
+      "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+      "laneMutex": "Local\\SessionViewerCourseImageJob",
+      "affinityOffset": 8,
+      "requiredAffinityMask": "0x300",
+      "maximumOtherLaneProcessors": 8,
+      "maximumOtherLaneMemoryMiB": 8192,
+      "maximumAggregateOurProcessors": 10,
+      "maximumAggregateOurMemoryMiB": 14336,
+      "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+      "requestedProcessors": 2,
+      "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+      "startedUtc": "2026-11-16T07:26:03.5885413Z",
+      "executable": "C:\\Program Files\\Git\\bin\\bash.exe",
+      "arguments": [
+        "C:/pc/3_code/code_rust/wood_research/wood/tools/buildslot.sh",
+        "tutorial-completion-docs32",
+        "timeout",
+        "230s",
+        "C:\\Users\\Petras\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+        "-B",
+        "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\completion-docs32.py"
+      ],
+      "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_tests",
+      "timeoutSeconds": 240,
+      "jobCommitLimitBytes": 6442450944,
+      "swapCapSupported": false,
+      "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+      "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+      "exitCode": 0,
+      "timedOut": false,
+      "elapsedSeconds": 60.813,
+      "peakJobCommitBytes": 1279877120,
+      "affinityMask": "0x300",
+      "processors": 2,
+      "processId": 26156,
+      "descendantsAtCleanup": 1
+    }
+  },
+  "browser": {
+    "passed": true,
+    "scope": "Final source teaching documentation rendering and footer; no runtime or complete source-delivery acceptance",
+    "records": [
+      {
+        "slug": "course",
+        "width": 1280,
+        "file": "course-home-1280.png",
+        "footer": "Docs built 2026-11-16 07:26:09 UTC"
+      },
+      {
+        "slug": "completion-mathematics",
+        "heading": "Lay out and animate mathematics",
+        "expected": "recorded Windows Intel WebGPU",
+        "width": 1280,
+        "file": "completion-mathematics-recorded-windows-intel-webgpu-1280.png",
+        "footer": "Docs built 2026-11-16 07:26:09 UTC"
+      },
+      {
+        "slug": "completion-dock",
+        "heading": "Enter commands",
+        "expected": "recorded Windows Intel WebGPU",
+        "width": 1280,
+        "file": "completion-dock-recorded-windows-intel-webgpu-1280.png",
+        "footer": "Docs built 2026-11-16 07:26:09 UTC"
+      },
+      {
+        "slug": "completion-mathematics",
+        "heading": "Kernel motion values",
+        "expected": "At parameter",
+        "width": 1280,
+        "file": "completion-mathematics-at-parameter-1280.png",
+        "footer": "Docs built 2026-11-16 07:26:09 UTC"
+      },
+      {
+        "slug": "completion-camera",
+        "heading": "Motion and fitting",
+        "expected": "cursor's offset",
+        "width": 1280,
+        "file": "completion-camera-cursor-s-offset-1280.png",
+        "footer": "Docs built 2026-11-16 07:26:09 UTC"
+      },
+      {
+        "slug": "completion-geometry",
+        "heading": "Validation",
+        "expected": "13 original tests",
+        "width": 1280,
+        "file": "completion-geometry-13-original-tests-1280.png",
+        "footer": "Docs built 2026-11-16 07:26:09 UTC"
+      },
+      {
+        "slug": "completion-visibility",
+        "heading": "Validation",
+        "expected": "13-test GPU run",
+        "width": 1280,
+        "file": "completion-visibility-13-test-gpu-run-1280.png",
+        "footer": "Docs built 2026-11-16 07:26:09 UTC"
+      },
+      {
+        "slug": "completion-application",
+        "heading": "Validation",
+        "expected": "31 pixels",
+        "width": 1280,
+        "file": "completion-application-31-pixels-1280.png",
+        "footer": "Docs built 2026-11-16 07:26:09 UTC"
+      },
+      {
+        "slug": "course",
+        "width": 390,
+        "file": "course-home-390.png",
+        "footer": "Docs built 2026-11-16 07:26:09 UTC"
+      },
+      {
+        "slug": "completion-mathematics",
+        "heading": "Lay out and animate mathematics",
+        "expected": "recorded Windows Intel WebGPU",
+        "width": 390,
+        "file": "completion-mathematics-recorded-windows-intel-webgpu-390.png",
+        "footer": "Docs built 2026-11-16 07:26:09 UTC"
+      },
+      {
+        "slug": "completion-dock",
+        "heading": "Enter commands",
+        "expected": "recorded Windows Intel WebGPU",
+        "width": 390,
+        "file": "completion-dock-recorded-windows-intel-webgpu-390.png",
+        "footer": "Docs built 2026-11-16 07:26:09 UTC"
+      },
+      {
+        "slug": "completion-mathematics",
+        "heading": "Kernel motion values",
+        "expected": "At parameter",
+        "width": 390,
+        "file": "completion-mathematics-at-parameter-390.png",
+        "footer": "Docs built 2026-11-16 07:26:09 UTC"
+      },
+      {
+        "slug": "completion-camera",
+        "heading": "Motion and fitting",
+        "expected": "cursor's offset",
+        "width": 390,
+        "file": "completion-camera-cursor-s-offset-390.png",
+        "footer": "Docs built 2026-11-16 07:26:09 UTC"
+      },
+      {
+        "slug": "completion-geometry",
+        "heading": "Validation",
+        "expected": "13 original tests",
+        "width": 390,
+        "file": "completion-geometry-13-original-tests-390.png",
+        "footer": "Docs built 2026-11-16 07:26:09 UTC"
+      },
+      {
+        "slug": "completion-visibility",
+        "heading": "Validation",
+        "expected": "13-test GPU run",
+        "width": 390,
+        "file": "completion-visibility-13-test-gpu-run-390.png",
+        "footer": "Docs built 2026-11-16 07:26:09 UTC"
+      },
+      {
+        "slug": "completion-application",
+        "heading": "Validation",
+        "expected": "31 pixels",
+        "width": 390,
+        "file": "completion-application-31-pixels-390.png",
+        "footer": "Docs built 2026-11-16 07:26:09 UTC"
+      }
+    ],
+    "navigation": [
+      {
+        "width": 1280,
+        "to": "completion-visibility"
+      },
+      {
+        "width": 1280,
+        "to": "completion-decoding"
+      },
+      {
+        "width": 390,
+        "to": "completion-visibility"
+      },
+      {
+        "width": 390,
+        "to": "completion-decoding"
+      }
+    ],
+    "errors": []
+  },
+  "browserResources": {
+    "platform": "windows-job-object",
+    "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+    "laneMutex": "Local\\SessionViewerCourseImageJob",
+    "affinityOffset": 8,
+    "requiredAffinityMask": "0x300",
+    "maximumOtherLaneProcessors": 8,
+    "maximumOtherLaneMemoryMiB": 8192,
+    "maximumAggregateOurProcessors": 10,
+    "maximumAggregateOurMemoryMiB": 14336,
+    "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+    "requestedProcessors": 2,
+    "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+    "startedUtc": "2026-11-16T07:28:07.5241601Z",
+    "executable": "C:\\Program Files\\Git\\bin\\bash.exe",
+    "arguments": [
+      "C:/pc/3_code/code_rust/wood_research/wood/tools/buildslot.sh",
+      "--run",
+      "tutorial-support-docs-browser07",
+      "timeout",
+      "370s",
+      "C:\\Users\\Petras\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+      "-B",
+      "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\support-docs-browser07.py"
+    ],
+    "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer",
+    "timeoutSeconds": 380,
+    "jobCommitLimitBytes": 6442450944,
+    "swapCapSupported": false,
+    "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+    "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+    "exitCode": 0,
+    "timedOut": false,
+    "elapsedSeconds": 7.493,
+    "peakJobCommitBytes": 541749248,
+    "affinityMask": "0x300",
+    "processors": 2,
+    "processId": 37472,
+    "descendantsAtCleanup": 1
+  },
+  "artifacts": [
+    {
+      "path": "session_viewer\\target\\support-docs-browser07\\course-home-1280.png",
+      "sha256": "dce51808cdfa99cde67219f91db7dfbebfb43c35355e8330ddf1c2aca7f827eb",
+      "bytes": 73434
+    },
+    {
+      "path": "session_viewer\\target\\support-docs-browser07\\completion-mathematics-recorded-windows-intel-webgpu-1280.png",
+      "sha256": "64a47d8fe836c55d15fcf9d20e872f6346d22d7f8643c7f32afb4e5890c91db5",
+      "bytes": 143915
+    },
+    {
+      "path": "session_viewer\\target\\support-docs-browser07\\completion-dock-recorded-windows-intel-webgpu-1280.png",
+      "sha256": "5ab0f6392f6ccacd444b2507572a4142242536e0b80bfee82df888752eec5d6c",
+      "bytes": 109182
+    },
+    {
+      "path": "session_viewer\\target\\support-docs-browser07\\completion-mathematics-at-parameter-1280.png",
+      "sha256": "5d0532e22f6347666336d1007c6637f3cbe40b5a43fce0f573f06dc3e423360f",
+      "bytes": 137046
+    },
+    {
+      "path": "session_viewer\\target\\support-docs-browser07\\completion-camera-cursor-s-offset-1280.png",
+      "sha256": "b05d9ccefac30c1348502a6577e5acba7e6261d1a11a90ae682104ed88fe7c59",
+      "bytes": 114223
+    },
+    {
+      "path": "session_viewer\\target\\support-docs-browser07\\completion-geometry-13-original-tests-1280.png",
+      "sha256": "1e394ad1947f76deeb0e7c95d91d15362d240da998f08708ffc32c378b2e65b8",
+      "bytes": 126939
+    },
+    {
+      "path": "session_viewer\\target\\support-docs-browser07\\completion-visibility-13-test-gpu-run-1280.png",
+      "sha256": "3dc760d36a0836ffed569680e1772a76e3052439798b2168ab2a2fda166f221d",
+      "bytes": 115762
+    },
+    {
+      "path": "session_viewer\\target\\support-docs-browser07\\completion-application-31-pixels-1280.png",
+      "sha256": "222fef70c1cb6148c11e60d541cb23820f388cfbe41d8e06ca371bab8385d29c",
+      "bytes": 112902
+    },
+    {
+      "path": "session_viewer\\target\\support-docs-browser07\\course-home-390.png",
+      "sha256": "261f7502ae6920d0ed37ab88d7aa3bda8488a6602873438a1e6b5c52e977eda8",
+      "bytes": 37791
+    },
+    {
+      "path": "session_viewer\\target\\support-docs-browser07\\completion-mathematics-recorded-windows-intel-webgpu-390.png",
+      "sha256": "dfafe80b34f202c4c6561154b50551a4a2be9f5ddcd560a3f85cea5017d71412",
+      "bytes": 47337
+    },
+    {
+      "path": "session_viewer\\target\\support-docs-browser07\\completion-dock-recorded-windows-intel-webgpu-390.png",
+      "sha256": "8e03068324b0abc2fedddf8dcc6a0b2d1ea17f7bc3c2f20cdb9aa6484f404a3d",
+      "bytes": 42303
+    },
+    {
+      "path": "session_viewer\\target\\support-docs-browser07\\completion-mathematics-at-parameter-390.png",
+      "sha256": "557b158be5d9c15bd762e05ecf17579df65016a014283d2737cab02e58af7fae",
+      "bytes": 41873
+    },
+    {
+      "path": "session_viewer\\target\\support-docs-browser07\\completion-camera-cursor-s-offset-390.png",
+      "sha256": "ff4f071b305901edc114c5248855b43df6c5f8d4ced699db0aad72c13503835c",
+      "bytes": 45891
+    },
+    {
+      "path": "session_viewer\\target\\support-docs-browser07\\completion-geometry-13-original-tests-390.png",
+      "sha256": "2c2dd910193a91c18814857ee39ea594117e52bde7f6e7ade156b180b0a3e065",
+      "bytes": 37658
+    },
+    {
+      "path": "session_viewer\\target\\support-docs-browser07\\completion-visibility-13-test-gpu-run-390.png",
+      "sha256": "0ee8490a79a606beeb47de5084429baae752e9a4e283d445722c3c6d93ad30a3",
+      "bytes": 35678
+    },
+    {
+      "path": "session_viewer\\target\\support-docs-browser07\\completion-application-31-pixels-390.png",
+      "sha256": "ff3e299ca2742dcaf50a97f09871bc341632203e364b2a9b33b0edd30ce551c0",
+      "bytes": 38298
+    }
+  ],
+  "review": "All16 original PNGs personally viewed. UTC build footer visible bottom-right on home and checked lessons at1280/390; corrected Vector/camera text readable; geometry-to-visibility-to-decoding navigation succeeds.",
+  "visualFindings": [
+    "Home incorrectly reports0 executable checkpoints despite actual9. Automated07 assertions did not check this count.",
+    "Static sidebar groups visibility under Application chapters although its active manifest owner is geometry. Pager order is correct."
+  ],
+  "next": "Fix manifest-backed home count and chapter grouping, then verify both explicitly in a new browser check; preserve this evidence."
+}
