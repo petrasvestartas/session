@@ -4,7 +4,6 @@
 
 # Chapter 3: full algebraic derivation of dl_k / dx_0 on one single page (no chain rule).
 title: LENGTH DERIVATIVE
-split: 0.28
 grid: {center: [3.5, 3.5], size: 9, step: 1}
 camera: {yaw: -52, pitch: 22, fit: [n0, n1, '[5.4, 3.6, 0.25]']}
 palette: {free: pink}
@@ -31,21 +30,21 @@ slides:
               - {id: nk, point: n1, color: fixed, label: 'n_k'}
               - {id: n0, point: X, color: free, label: 'n_0'}
             dur: 0.6
-          - eq: {tex: 'l_k &= \sqrt{(x_k - x_0)^2 + (y_k - y_0)^2 + (z_k - z_0)^2}', size: 18, gap: 2}
-          - eq: {tex: 'l_k^2 &= (x_k - x_0)^2 + (y_k - y_0)^2 + (z_k - z_0)^2', size: 18, gap: 8}
-          - eq: {tex: '(l_k + \Delta l_k)^2 &= \big(x_k - (x_0 + \Delta x_0)\big)^2 + (y_k - y_0)^2 + (z_k - z_0)^2', size: 18, gap: 8}
-          - eq: {tex: '(l_k + \Delta l_k)^2 &= \big((x_k - x_0) - \Delta x_0\big)^2 + (y_k - y_0)^2 + (z_k - z_0)^2', size: 18, gap: 8}
+          - {tex: 'l_k = \sqrt{(x_k - x_0)^2 + (y_k - y_0)^2 + (z_k - z_0)^2}', align: left, size: 17, gap: 2}
+          - {tex: 'l_k^2 = (x_k - x_0)^2 + (y_k - y_0)^2 + (z_k - z_0)^2', align: left, size: 17, gap: 8}
+          - {tex: '(l_k + \Delta l_k)^2 = \big(x_k - (x_0 + \Delta x_0)\big)^2 + (y_k - y_0)^2 + (z_k - z_0)^2', align: left, size: 17, gap: 8}
+          - {tex: '(l_k + \Delta l_k)^2 = \big((x_k - x_0) - \Delta x_0\big)^2 + (y_k - y_0)^2 + (z_k - z_0)^2', align: left, size: 17, gap: 8}
       - say: 'Square $l_k$, shift $x_0$, expand, cancel, and divide by $2\,l_k\,\Delta x_0$.'
         do:
-          - eq: {tex: 'l_k^2 + 2\,l_k\,\Delta l_k + \cancel{(\Delta l_k)^2} &= (x_k - x_0)^2 - 2\,(x_k - x_0)\,\Delta x_0 + \cancel{(\Delta x_0)^2} + (y_k - y_0)^2 + (z_k - z_0)^2', size: 18, gap: 8}
+          - {tex: 'l_k^2 + 2\,l_k\,\Delta l_k + \cancel{(\Delta l_k)^2} = (x_k - x_0)^2 - 2\,(x_k - x_0)\,\Delta x_0 + \cancel{(\Delta x_0)^2} + (y_k - y_0)^2 + (z_k - z_0)^2', align: left, size: 15, gap: 8}
       - say: 'Square $l_k$, shift $x_0$, expand, cancel, and divide by $2\,l_k\,\Delta x_0$.'
         do:
-          - eq: {tex: '\cancel{l_k^2} + 2\,l_k\,\Delta l_k &= \cancel{(x_k - x_0)^2} - 2\,(x_k - x_0)\,\Delta x_0 + \cancel{(y_k - y_0)^2} + \cancel{(z_k - z_0)^2}', size: 18, gap: 8}
-          - eq: {tex: '2\,l_k\,\Delta l_k &= -2\,(x_k - x_0)\,\Delta x_0', size: 18, gap: 8}
-          - eq: {tex: '\frac{\Delta l_k}{\Delta x_0} &= \frac{-\cancel{2}\,(x_k - x_0)\,\cancel{\Delta x_0}}{\cancel{2}\,l_k\,\cancel{\Delta x_0}} = \frac{-(x_k - x_0)}{l_k}', size: 19, gap: 8}
+          - {tex: '\cancel{l_k^2} + 2\,l_k\,\Delta l_k = \cancel{(x_k - x_0)^2} - 2\,(x_k - x_0)\,\Delta x_0 + \cancel{(y_k - y_0)^2} + \cancel{(z_k - z_0)^2}', align: left, size: 16, gap: 8}
+          - {tex: '2\,l_k\,\Delta l_k = -2\,(x_k - x_0)\,\Delta x_0', align: left, size: 17, gap: 8}
+          - {tex: '\frac{\Delta l_k}{\Delta x_0} = \frac{-\cancel{2}\,(x_k - x_0)\,\cancel{\Delta x_0}}{\cancel{2}\,l_k\,\cancel{\Delta x_0}} = \frac{-(x_k - x_0)}{l_k}', align: left, size: 18, gap: 8}
       - say: 'Square $l_k$, shift $x_0$, expand, cancel, and divide by $2\,l_k\,\Delta x_0$.'
         do:
           - add: {id: unit, arrow: [n0, 'n0 + (n0 - n1)/len(n0, n1)*1.6'], color: yellow, width: 3.6}
           - derive: {from: unit, id: unitx, arrow: [n0, 'n0 + [(x(n0) - x(n1))/len(n0, n1)*1.6, 0, 0]'], color: x, width: 3.6}
-          - eq: {tex: '\frac{\partial l_k}{\partial x_0} &= \frac{x_0 - x_k}{l_k} = \frac{u_k}{l_k} = \cos\alpha_k \qquad \Big(e_0:\;\frac{3 - 0}{4.250} = \textcolor{pos}{+0.706}\Big)', size: 19, gap: 8, color: yellow}
+          - {tex: '\frac{\partial l_k}{\partial x_0} = \frac{-(x_k - x_0)}{l_k} = -\cos\alpha_k = \frac{u_k}{l_k} \qquad \Big(e_0:\;\frac{3 - 0}{4.250} = \textcolor{pos}{+0.706}\Big)', align: left, size: 17, gap: 8, color: yellow}
           - highlight: [unitx]

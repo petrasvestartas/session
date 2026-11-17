@@ -2,9 +2,8 @@
 # Open local: http://127.0.0.1:8770/?stage=decks/force-density-derivation/index.yaml&data=off&chapter=4&step=1
 # Open live: https://petrasvestartas.github.io/session/?stage=force-density-derivation&chapter=4&step=1
 
-# Chapter 4: what the Jacobian matrix is, and how C_N^T U L^-1 builds it on one page.
+# Chapter 4: collecting length derivatives into the Jacobian C_N^T U L^-1 to project 3D forces.
 title: JACOBIAN MATRIX
-split: 0.28
 grid: {center: [3.5, 3.5], size: 9, step: 1}
 camera: {yaw: -58, pitch: 26}
 palette: {free: pink}
@@ -17,7 +16,7 @@ net:
 slides:
   - title: JACOBIAN MATRIX
     steps:
-      - say: 'The Jacobian collects $\partial l_k / \partial x_0$, built as $\mathbf{C}_N^{T}\,\mathbf{U}\,\mathbf{L}^{-1}$.'
+      - say: 'Collecting $\partial l_k / \partial x_0$ forms $\mathbf{C}_N^{T}\mathbf{U}\mathbf{L}^{-1}$ of direction cosines.'
         show: net
         do:
           - row:
@@ -27,25 +26,25 @@ slides:
               - {id: Jrat, matrix: {rows: [['\tfrac{u_1}{l_1}'], ['\tfrac{u_2}{l_2}'], ['\tfrac{u_3}{l_3}'], ['\tfrac{u_4}{l_4}']], signs: false}}
               - '='
               - {id: Jnum, matrix: {rows: [['0.706'], ['-0.441'], ['0.526'], ['-0.893']]}}
-            size: 16
-      - say: 'The Jacobian collects $\partial l_k / \partial x_0$, built as $\mathbf{C}_N^{T}\,\mathbf{U}\,\mathbf{L}^{-1}$.'
+            size: 15
+      - say: 'Collecting $\partial l_k / \partial x_0$ forms $\mathbf{C}_N^{T}\mathbf{U}\mathbf{L}^{-1}$ of direction cosines.'
         do:
           - row:
               - '\mathbf{U} ='
               - {id: Umat, matrix: {rows: [[3, 0, 0, 0], [0, -2, 0, 0], [0, 0, 3, 0], [0, 0, 0, -4]]}}
-              - '\quad \mathbf{L}^{-1} ='
+              - '\;\mathbf{L}^{-1} ='
               - {id: Linv, matrix: {rows: [['\tfrac{1}{4.250}', 0, 0, 0], [0, '\tfrac{1}{4.535}', 0, 0], [0, 0, '\tfrac{1}{5.706}', 0], [0, 0, 0, '\tfrac{1}{4.479}']], signs: false}}
-            size: 15
+            size: 13
             gap: 8
-      - say: 'The Jacobian collects $\partial l_k / \partial x_0$, built as $\mathbf{C}_N^{T}\,\mathbf{U}\,\mathbf{L}^{-1}$.'
+      - say: 'Collecting $\partial l_k / \partial x_0$ forms $\mathbf{C}_N^{T}\mathbf{U}\mathbf{L}^{-1}$ of direction cosines.'
         do:
           - row:
-              - '\mathbf{J}^{T} = \mathbf{C}_N^{T}\,\mathbf{U}\,\mathbf{L}^{-1} ='
+              - '\mathbf{C}_N^{T}\mathbf{U}\mathbf{L}^{-1} ='
               - {id: CNTj, matrix: {rows: [[1, 1, 1, 1]]}}
               - {id: ULj, matrix: {rows: [['0.706', 0, 0, 0], [0, '-0.441', 0, 0], [0, 0, '0.526', 0], [0, 0, 0, '-0.893']]}}
               - '='
               - {id: JT, matrix: {rows: [['0.706', '-0.441', '0.526', '-0.893']], empty: true}}
-            size: 15
+            size: 13
             gap: 8
           - color: {target: 'CNTj[0,:]', color: yellow}
           - color: {target: 'ULj[0,0]', color: yellow, with: true}
@@ -61,4 +60,4 @@ slides:
           - fly: {from: 'ULj[3,3]', to: 'JT[0,3]'}
           - color: {target: 'CNTj[0,:]', color: reset}
           - color: {target: 'ULj[3,3]', color: reset, with: true}
-          - {tex: '\mathbf{J}^{T} = \Big(\frac{\partial \mathbf{l}}{\partial \mathbf{x}_N}\Big)^{T} = \mathbf{C}_N^{T}\,\mathbf{U}\,\mathbf{L}^{-1} \quad\Longrightarrow\quad \mathbf{J}^{T}\mathbf{f} = \mathbf{C}_N^{T}\,\mathbf{U}\,\mathbf{L}^{-1}\,\mathbf{f} = \mathbf{p}_x', size: 19, gap: 8, color: yellow}
+          - {tex: '\mathbf{J}^{T} = \mathbf{C}_N^{T}\,\mathbf{U}\,\mathbf{L}^{-1} \;\Longrightarrow\; \mathbf{C}_N^{T}\,\mathbf{U}\,\mathbf{L}^{-1}\,\mathbf{f} = \mathbf{p}_x', size: 18, gap: 8, color: yellow}

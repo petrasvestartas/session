@@ -4,7 +4,6 @@
 
 # Chapter 6: full derivation of materialization and cable cut lengths on one page.
 title: MATERIALIZATION DERIVATION
-split: 0.28
 grid: {center: [3.5, 3.5], size: 9, step: 1}
 camera: {yaw: -58, pitch: 26}
 palette: {free: pink}
@@ -20,13 +19,13 @@ slides:
       - say: 'Hooke''s law links stretch to $\mathbf{q}$ and isolates every cut length $l_{0,k}$.'
         show: net
         do:
-          - eq: {tex: 'f_k &= \frac{EA_k}{l_{0,k}}\,\Delta l_k \quad\Longrightarrow\quad \Delta l_k = l_k - l_{0,k} = \frac{f_k\,l_{0,k}}{EA_k}', size: 19, gap: 4}
-          - eq: {tex: '\Delta\mathbf{l} &= \mathbf{l} - \mathbf{l}_0 = \mathbf{L}_0\,(\mathbf{EA})^{-1}\,\mathbf{f} = \mathbf{L}_0\,(\mathbf{EA})^{-1}\,\mathbf{L}\,\mathbf{q}', size: 19, gap: 10}
+          - {tex: 'f_k = \frac{EA_k}{l_{0,k}}\,\Delta l_k \quad\Longrightarrow\quad \Delta l_k = l_k - l_{0,k} = \frac{f_k\,l_{0,k}}{EA_k}', align: left, size: 18, gap: 4}
+          - {tex: '\Delta\mathbf{l} = \mathbf{l} - \mathbf{l}_0 = \mathbf{L}_0\,(\mathbf{EA})^{-1}\,\mathbf{f} = \mathbf{L}_0\,(\mathbf{EA})^{-1}\,\mathbf{L}\,\mathbf{q}', align: left, size: 18, gap: 10}
       - say: 'Hooke''s law links stretch to $\mathbf{q}$ and isolates every cut length $l_{0,k}$.'
         do:
-          - eq: {tex: '\mathbf{q} &= (\mathbf{EA})\,\mathbf{L}_0^{-1}\,\mathbf{L}^{-1}\,\Delta\mathbf{l}, \qquad q_k = \frac{\Delta l_k\,EA_k}{l_{0,k}\,l_k} = \frac{f_k}{l_k}', size: 19, gap: 10}
+          - {tex: '\mathbf{q} = (\mathbf{EA})\,\mathbf{L}_0^{-1}\,\mathbf{L}^{-1}\,\Delta\mathbf{l}, \qquad q_k = \frac{\Delta l_k\,EA_k}{l_{0,k}\,l_k} = \frac{f_k}{l_k}', align: left, size: 18, gap: 10}
       - say: 'Hooke''s law links stretch to $\mathbf{q}$ and isolates every cut length $l_{0,k}$.'
         do:
-          - eq: {tex: '\mathbf{l} &= \mathbf{l}_0 + \mathbf{L}_0\,(\mathbf{EA})^{-1}\,\mathbf{f} = \big(\mathbf{I} + (\mathbf{EA})^{-1}\,\mathbf{F}\big)\,\mathbf{l}_0', size: 19, gap: 10}
-          - eq: {tex: '\mathbf{l}_0 &= \big(\mathbf{I} + (\mathbf{EA})^{-1}\,\mathbf{Q}\,\mathbf{L}\big)^{-1}\,\mathbf{l}, \qquad l_{0,k} = \frac{l_k}{1 + \dfrac{f_k}{EA_k}} = \frac{l_k}{1 + \dfrac{q_k\,l_k}{EA_k}}', size: 19, gap: 10, color: yellow}
-          - {tex: '\Delta\mathbf{l}\text{: stretch},\quad \mathbf{l}\text{: stretched length},\quad \mathbf{l}_0\text{: cut length},\quad E\text{: Young modulus},\quad A\text{: area}', size: 17, gap: 10, color: dim}
+          - {tex: '\mathbf{l} = \mathbf{l}_0 + \mathbf{L}_0\,(\mathbf{EA})^{-1}\,\mathbf{f} = \big(\mathbf{I} + (\mathbf{EA})^{-1}\,\mathbf{F}\big)\,\mathbf{l}_0', align: left, size: 18, gap: 10}
+          - {tex: '\mathbf{l}_0 = \big(\mathbf{I} + (\mathbf{EA})^{-1}\,\mathbf{Q}\,\mathbf{L}\big)^{-1}\,\mathbf{l}, \quad l_{0,k} = \frac{l_k}{1 + \dfrac{f_k}{EA_k}} = \frac{l_k}{1 + \dfrac{q_k\,l_k}{EA_k}}', align: left, size: 17, gap: 10, color: yellow}
+          - {tex: '\Delta\mathbf{l}\text{: stretch},\quad \mathbf{l}\text{: stretched},\quad \mathbf{l}_0\text{: cut length},\quad E\text{: modulus},\quad A\text{: area}', align: left, size: 16, gap: 10, color: dim}

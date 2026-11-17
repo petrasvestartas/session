@@ -2,9 +2,8 @@
 # Open local: http://127.0.0.1:8770/?stage=decks/force-density-derivation/index.yaml&data=off&chapter=5&step=1
 # Open live: https://petrasvestartas.github.io/session/?stage=force-density-derivation&chapter=5&step=1
 
-# Chapter 5: equilibrium in matrix form, linearization, and factor swap on full-view pages.
+# Chapter 5: projecting 3D forces with the Jacobian, linearizing with q = L^-1 f, and solving x_N.
 title: MATRIX EQUILIBRIUM
-split: 0.28
 grid: {center: [3.5, 3.5], size: 9, step: 1}
 camera: {yaw: -58, pitch: 26}
 palette: {free: pink}
@@ -17,7 +16,7 @@ points:
 slides:
   - title: EQUILIBRIUM TO LINEAR SOLVE
     steps:
-      - say: 'Substitute $\mathbf{q} = \mathbf{L}^{-1}\mathbf{f}$, swap $\mathbf{U}\mathbf{q} = \mathbf{Q}\mathbf{C}\mathbf{x}$, and solve $\mathbf{x}_N$.'
+      - say: 'Project 3D tensions with $\mathbf{C}_N^{T}\mathbf{U}\mathbf{L}^{-1}$, set $\mathbf{q} = \mathbf{L}^{-1}\mathbf{f}$, and solve $\mathbf{x}_N$.'
         do:
           - add:
               - {id: n1, point: n1, color: fixed, label: 'n_1'}
@@ -35,19 +34,19 @@ slides:
               - {id: p, arrow: [n0, 'n0 + [0, 0, -2.5]'], color: load, width: 3.6, label: 'p'}
               - {id: n0, point: n0, color: free, label: 'n_0'}
             dur: 0.6
-          - eq: {tex: '\frac{u_1}{l_1}f_1 + \frac{u_2}{l_2}f_2 + \frac{u_3}{l_3}f_3 + \frac{u_4}{l_4}f_4 &= p_x', size: 19, gap: 4}
-          - eq: {tex: '\mathbf{C}_N^{T}\,\mathbf{U}\,\mathbf{L}^{-1}\,\mathbf{f} &= \mathbf{p}_x \qquad \text{(nonlinear in }\mathbf{L}^{-1}\text{)}', size: 19, gap: 8}
-      - say: 'Substitute $\mathbf{q} = \mathbf{L}^{-1}\mathbf{f}$, swap $\mathbf{U}\mathbf{q} = \mathbf{Q}\mathbf{C}\mathbf{x}$, and solve $\mathbf{x}_N$.'
+          - {tex: '\frac{u_1}{l_1}f_1 + \frac{u_2}{l_2}f_2 + \frac{u_3}{l_3}f_3 + \frac{u_4}{l_4}f_4 = p_x', align: left, size: 18, gap: 4}
+          - {tex: '\mathbf{C}_N^{T}\,\mathbf{U}\,\mathbf{L}^{-1}\,\mathbf{f} = \mathbf{p}_x \qquad \big(\text{Jacobian projects }\mathbf{f}\big)', align: left, size: 18, gap: 8}
+      - say: 'Project 3D tensions with $\mathbf{C}_N^{T}\mathbf{U}\mathbf{L}^{-1}$, set $\mathbf{q} = \mathbf{L}^{-1}\mathbf{f}$, and solve $\mathbf{x}_N$.'
         do:
-          - eq: {tex: '\mathbf{C}_N^{T}\,\mathbf{U}\,\mathbf{q} &= \mathbf{p}_x \qquad \big(\text{define }\mathbf{q} = \mathbf{L}^{-1}\mathbf{f},\; q_k = f_k / l_k\big)', size: 19, gap: 8}
-          - eq: {tex: '\mathbf{C}_N^{T}\,\mathbf{Q}\,\mathbf{C}\,\mathbf{x} &= \mathbf{p}_x \qquad \big(\text{swap }\mathbf{U}\,\mathbf{q} = \mathbf{Q}\,\mathbf{u} = \mathbf{Q}\,\mathbf{C}\,\mathbf{x}\big)', size: 19, gap: 8}
-      - say: 'Substitute $\mathbf{q} = \mathbf{L}^{-1}\mathbf{f}$, swap $\mathbf{U}\mathbf{q} = \mathbf{Q}\mathbf{C}\mathbf{x}$, and solve $\mathbf{x}_N$.'
+          - {tex: '\mathbf{C}_N^{T}\,\mathbf{U}\,\mathbf{q} = \mathbf{p}_x \qquad \big(\text{set }\mathbf{q} = \mathbf{L}^{-1}\mathbf{f},\; q_k = f_k / l_k\big)', align: left, size: 18, gap: 8}
+          - {tex: '\mathbf{C}_N^{T}\,\mathbf{Q}\,\mathbf{C}\,\mathbf{x} = \mathbf{p}_x \qquad \big(\text{swap }\mathbf{U}\mathbf{q} = \mathbf{Q}\mathbf{u} = \mathbf{Q}\mathbf{C}\mathbf{x}\big)', align: left, size: 18, gap: 8}
+      - say: 'Project 3D tensions with $\mathbf{C}_N^{T}\mathbf{U}\mathbf{L}^{-1}$, set $\mathbf{q} = \mathbf{L}^{-1}\mathbf{f}$, and solve $\mathbf{x}_N$.'
         do:
-          - eq: {tex: '\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N\,\mathbf{x}_N + \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{x}_F &= \mathbf{p}_x \qquad \big(\text{split free }\mathbf{x}_N\text{ and fixed }\mathbf{x}_F\big)', size: 19, gap: 8}
-          - eq: {tex: '(\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N)\,\mathbf{x}_N &= \mathbf{p}_x - \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{x}_F', size: 19, gap: 8}
-      - say: 'Substitute $\mathbf{q} = \mathbf{L}^{-1}\mathbf{f}$, swap $\mathbf{U}\mathbf{q} = \mathbf{Q}\mathbf{C}\mathbf{x}$, and solve $\mathbf{x}_N$.'
+          - {tex: '\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N\,\mathbf{x}_N + \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{x}_F = \mathbf{p}_x \qquad \big(\text{split }\mathbf{x}_N, \mathbf{x}_F\big)', align: left, size: 18, gap: 8}
+          - {tex: '(\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N)\,\mathbf{x}_N = \mathbf{p}_x - \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{x}_F', align: left, size: 18, gap: 8}
+      - say: 'Project 3D tensions with $\mathbf{C}_N^{T}\mathbf{U}\mathbf{L}^{-1}$, set $\mathbf{q} = \mathbf{L}^{-1}\mathbf{f}$, and solve $\mathbf{x}_N$.'
         do:
-          - eq: {tex: '\mathbf{x}_N &= (\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N)^{-1}\,(\mathbf{p}_x - \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{x}_F) \qquad \big(\text{same for }\mathbf{y}_N, \mathbf{z}_N;\; \mathbf{f} = \mathbf{L}\,\mathbf{q}\big)', size: 19, gap: 10, color: yellow}
+          - {tex: '\mathbf{x}_N = (\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N)^{-1}\,(\mathbf{p}_x - \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{x}_F) \qquad \big(\mathbf{f} = \mathbf{L}\,\mathbf{q}\big)', align: left, size: 18, gap: 10, color: yellow}
 
   - title: WHY $\mathbf{U}\,\mathbf{q} = \mathbf{Q}\,\mathbf{u}$ WORKS
     steps:
@@ -59,7 +58,7 @@ slides:
               - {matrix: {rows: [[q_1], [q_2], [q_3], [q_4]], signs: false}}
               - '='
               - {id: uq, matrix: {rows: [[u_1 q_1], [u_2 q_2], [u_3 q_3], [u_4 q_4]], signs: false, empty: true}}
-            size: 20
+            size: 18
           - show: ['uq[:,0]']
           - row:
               - '\mathbf{Q}\,\mathbf{u} ='
@@ -67,8 +66,8 @@ slides:
               - {matrix: {rows: [[u_1], [u_2], [u_3], [u_4]], signs: false}}
               - '='
               - {id: qu, matrix: {rows: [[q_1 u_1], [q_2 u_2], [q_3 u_3], [q_4 u_4]], signs: false, empty: true}}
-            size: 20
-            gap: 12
+            size: 18
+            gap: 10
           - show: ['qu[:,0]']
           - highlight: ['uq[:,0]', 'qu[:,0]']
-          - eq: {tex: '\mathbf{U}\,\mathbf{q} = \mathbf{Q}\,\mathbf{u} = \mathbf{Q}\,\mathbf{C}\,\mathbf{x}', size: 23, gap: 14, color: yellow}
+          - eq: {tex: '\mathbf{U}\,\mathbf{q} = \mathbf{Q}\,\mathbf{u} = \mathbf{Q}\,\mathbf{C}\,\mathbf{x}', size: 22, gap: 12, color: yellow}

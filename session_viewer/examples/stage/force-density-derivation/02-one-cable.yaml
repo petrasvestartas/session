@@ -4,7 +4,6 @@
 
 # Chapter 2: one cable, its 3D length, and how it changes under a tiny shift on one page.
 title: ONE CABLE
-split: 0.36
 grid: {center: [3.5, 3.5], size: 9, step: 1}
 camera: {yaw: -58, pitch: 24}
 palette: {free: pink}
