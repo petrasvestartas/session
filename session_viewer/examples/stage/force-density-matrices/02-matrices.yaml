@@ -54,8 +54,11 @@ slides:
           - fly: {from: 'Cm[:,2]', to: 'CFs[:,1]', with: true}
           - fly: {from: 'Cm[:,3]', to: 'CFs[:,2]', with: true}
           - fly: {from: 'Cm[:,4]', to: 'CFs[:,3]', with: true}
-          - box: {id: bcn0, target: 'CNs[cells]', color: yellow}
-          - box: {id: bcf0, target: 'CFs[cells]', color: yellow, with: true}
+          - color: {target: 'CNs[:,0]', color: yellow}
+          - color: {target: 'CFs[0,0]', color: yellow, with: true}
+          - color: {target: 'CFs[1,1]', color: yellow, with: true}
+          - color: {target: 'CFs[2,2]', color: yellow, with: true}
+          - color: {target: 'CFs[3,3]', color: yellow, with: true}
           - {tex: 'C_{e,i} = \textcolor{pos}{+1}\text{ (cable start)}, \qquad \textcolor{neg}{-1}\text{ (cable end)}, \qquad \textcolor{dim}{0}\text{ (not connected)}', size: 21, gap: 18}
 
   - title: 'TRANSPOSE $\mathbf{C}_N^{T}$'
@@ -76,7 +79,7 @@ slides:
           - fly: {from: 'CNcol[1,0]', to: 'CNrow[0,1]'}
           - fly: {from: 'CNcol[2,0]', to: 'CNrow[0,2]'}
           - fly: {from: 'CNcol[3,0]', to: 'CNrow[0,3]'}
-          - box: {id: bcnt, target: 'CNrow[cells]', color: yellow}
+          - color: {target: 'CNrow[0,:]', color: yellow}
           - {tex: '(\mathbf{C}_N)_{k,1} = \textcolor{pos}{1}\;\;(4\times 1\text{ column}) \quad\longrightarrow\quad (\mathbf{C}_N^{T})_{1,k} = \textcolor{pos}{1}\;\;(1\times 4\text{ row})', size: 22, gap: 18}
 
   - title: 'FORCE DENSITY MATRIX $\mathbf{Q}$'
@@ -98,7 +101,10 @@ slides:
           - fly: {from: 'qcol[2,0]', to: 'Qm[2,2]'}
           - fly: {from: 'qcol[3,0]', to: 'Qm[3,3]'}
           - show: [Qm]
-          - box: {id: bqm, target: 'Qm[cells]', color: yellow}
+          - color: {target: 'Qm[0,0]', color: yellow}
+          - color: {target: 'Qm[1,1]', color: yellow, with: true}
+          - color: {target: 'Qm[2,2]', color: yellow, with: true}
+          - color: {target: 'Qm[3,3]', color: yellow, with: true}
           - {tex: 'Q_{kk} = q_k = \textcolor{pos}{1}\text{ kN/m (chosen per cable)}, \qquad Q_{ij} = \textcolor{dim}{0}\;\;(i \neq j)', size: 22, gap: 18}
 
   - title: 'COORDINATE VECTORS'
@@ -115,8 +121,8 @@ slides:
               - {id: XFv, matrix: {rows: [[0], [5], [0], [7]], rowlabels: [n_1, n_2, n_3, n_4]}}
             size: 26
             gap: 24
-          - box: {id: bxnv, target: 'XNv[cells]', color: yellow}
-          - box: {id: bxfv, target: 'XFv[cells]', color: yellow, with: true}
+          - color: {target: 'XNv[0,0]', color: yellow}
+          - color: {target: 'XFv[:,0]', color: yellow, with: true}
           - highlight: [n0, n1, n2, n3, n4]
           - {tex: 'x_0\text{ is unknown (free node }n_0\text{)}; \qquad n_1(\textcolor{dim}{0},0,0),\; n_2(\textcolor{pos}{5},0,3),\; n_3(\textcolor{dim}{0},7,3),\; n_4(\textcolor{pos}{7},5,0)\text{ are fixed}', size: 21, gap: 18}
 
@@ -140,7 +146,7 @@ slides:
           - fly: {from: 'pall[0,0]', to: 'pxv[0,0]'}
           - fly: {from: 'pall[0,1]', to: 'pyv[0,0]', with: true}
           - fly: {from: 'pall[0,2]', to: 'pzv[0,0]', with: true}
-          - box: {id: bpx, target: 'pxv[cells]', color: yellow}
+          - color: {target: 'pxv[0,0]', color: yellow}
           - highlight: [load_n0]
           - {tex: 'p_x = \textcolor{dim}{0}\text{ kN}, \qquad p_y = \textcolor{dim}{0}\text{ kN}, \qquad p_z = \textcolor{neg}{-5}\text{ kN}', size: 22, gap: 18}
 
@@ -160,23 +166,24 @@ slides:
               - {id: QC, matrix: {rows: [[1], [1], [1], [1]], name: '\mathbf{Q}\mathbf{C}_N', empty: true}}
             size: 25
             gap: 20
-          - box: {id: bqr0, target: 'Qa[0,:]', color: yellow}
-          - box: {id: bcna, target: 'CNa[:,0]', color: yellow, with: true}
+          - color: {target: 'Qa[0,:]', color: yellow}
+          - color: {target: 'CNa[:,0]', color: yellow, with: true}
           - eq: {id: qc1, tex: '(\mathbf{Q}\mathbf{C}_N)_1 &= \textcolor{pos}{1}\cdot\textcolor{pos}{1} + \textcolor{dim}{0}\cdot\textcolor{pos}{1} + \textcolor{dim}{0}\cdot\textcolor{pos}{1} + \textcolor{dim}{0}\cdot\textcolor{pos}{1} = \textcolor{pos}{ {{1}} }', size: 20, gap: 14}
           - fly: {from: 'qc1{1}', to: 'QC[0,0]'}
-          - {remove: [bqr0], dur: 0.15}
-          - box: {id: bqr1, target: 'Qa[1,:]', color: yellow}
+          - color: {target: 'Qa[0,:]', color: reset}
+          - color: {target: 'Qa[1,:]', color: yellow, with: true}
           - eq: {id: qc2, tex: '(\mathbf{Q}\mathbf{C}_N)_2 &= \textcolor{dim}{0}\cdot\textcolor{pos}{1} + \textcolor{pos}{1}\cdot\textcolor{pos}{1} + \textcolor{dim}{0}\cdot\textcolor{pos}{1} + \textcolor{dim}{0}\cdot\textcolor{pos}{1} = \textcolor{pos}{ {{1}} }', size: 20, gap: 6}
           - fly: {from: 'qc2{1}', to: 'QC[1,0]'}
-          - {remove: [bqr1], dur: 0.15}
-          - box: {id: bqr2, target: 'Qa[2,:]', color: yellow}
+          - color: {target: 'Qa[1,:]', color: reset}
+          - color: {target: 'Qa[2,:]', color: yellow, with: true}
           - eq: {id: qc3, tex: '(\mathbf{Q}\mathbf{C}_N)_3 &= \textcolor{dim}{0}\cdot\textcolor{pos}{1} + \textcolor{dim}{0}\cdot\textcolor{pos}{1} + \textcolor{pos}{1}\cdot\textcolor{pos}{1} + \textcolor{dim}{0}\cdot\textcolor{pos}{1} = \textcolor{pos}{ {{1}} }', size: 20, gap: 6}
           - fly: {from: 'qc3{1}', to: 'QC[2,0]'}
-          - {remove: [bqr2], dur: 0.15}
-          - box: {id: bqr3, target: 'Qa[3,:]', color: yellow}
+          - color: {target: 'Qa[2,:]', color: reset}
+          - color: {target: 'Qa[3,:]', color: yellow, with: true}
           - eq: {id: qc4, tex: '(\mathbf{Q}\mathbf{C}_N)_4 &= \textcolor{dim}{0}\cdot\textcolor{pos}{1} + \textcolor{dim}{0}\cdot\textcolor{pos}{1} + \textcolor{dim}{0}\cdot\textcolor{pos}{1} + \textcolor{pos}{1}\cdot\textcolor{pos}{1} = \textcolor{pos}{ {{1}} }', size: 20, gap: 6}
           - fly: {from: 'qc4{1}', to: 'QC[3,0]'}
-          - remove: [bqr3, bcna]
+          - color: {target: 'Qa[3,:]', color: reset}
+          - color: {target: 'CNa[:,0]', color: reset, with: true}
       - say: 'On the left, $\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N$ sums all four force densities to $4$.'
         do:
           - color: {target: 'balance{\mathbf{C}_N^{T}}', color: yellow}
@@ -191,11 +198,12 @@ slides:
               - {id: DN, matrix: {rows: [[4]], name: '\mathbf{C}_N^{T}\mathbf{Q}\mathbf{C}_N', empty: true}}
             size: 25
             gap: 18
-          - box: {id: bct, target: 'CT[0,:]', color: yellow}
-          - box: {id: bqc2, target: 'QC2[:,0]', color: yellow, with: true}
+          - color: {target: 'CT[0,:]', color: yellow}
+          - color: {target: 'QC2[:,0]', color: yellow, with: true}
           - {tex: '\textcolor{pos}{1}\cdot\textcolor{pos}{1} + \textcolor{pos}{1}\cdot\textcolor{pos}{1} + \textcolor{pos}{1}\cdot\textcolor{pos}{1} + \textcolor{pos}{1}\cdot\textcolor{pos}{1} = \textcolor{pos}{1} + \textcolor{pos}{1} + \textcolor{pos}{1} + \textcolor{pos}{1} = \textcolor{pos}{ {{4}} }', id: dotA, size: 22, gap: 16}
           - fly: {from: 'dotA{4}', to: 'DN[0,0]'}
-          - remove: [bct, bqc2]
+          - color: {target: 'CT[0,:]', color: reset}
+          - color: {target: 'QC2[:,0]', color: reset, with: true}
           - {tex: '(\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N)\,x_0 = (q_1 + q_2 + q_3 + q_4)\,x_0 = \textcolor{pos}{4}\,x_0', size: 22, gap: 10}
 
   - title: 'RIGHT SIDE'
@@ -215,32 +223,33 @@ slides:
               - {id: DF, matrix: {rows: [[-1, -1, -1, -1]], collabels: [n_1, n_2, n_3, n_4], name: '\mathbf{C}_N^{T}\mathbf{Q}\mathbf{C}_F', empty: true}}
             size: 25
             gap: 20
-          - box: {id: bctq, target: 'CTQ[0,:]', color: yellow}
-          - box: {id: bcf0, target: 'CFb[:,0]', color: yellow, with: true}
+          - color: {target: 'CTQ[0,:]', color: yellow}
+          - color: {target: 'CFb[:,0]', color: yellow, with: true}
           - color: {target: e0, color: yellow, with: true}
           - eq: {id: b1, tex: '(\mathbf{C}_N^{T}\mathbf{Q}\mathbf{C}_F)_{11} &= \textcolor{pos}{1}\cdot\textcolor{neg}{(-1)} + \textcolor{pos}{1}\cdot\textcolor{dim}{0} + \textcolor{pos}{1}\cdot\textcolor{dim}{0} + \textcolor{pos}{1}\cdot\textcolor{dim}{0} = \textcolor{neg}{ {{-1}} }', size: 21, gap: 16}
           - fly: {from: 'b1{-1}', to: 'DF[0,0]'}
       - say: 'On the right, $\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{x}_F$ combines the anchor coordinates.'
         do:
-          - {remove: [bcf0], dur: 0.15}
+          - color: {target: 'CFb[:,0]', color: reset}
           - color: {target: e0, color: reset, with: true}
-          - box: {id: bcf1, target: 'CFb[:,1]', color: yellow}
+          - color: {target: 'CFb[:,1]', color: yellow, with: true}
           - color: {target: e1, color: yellow, with: true}
           - eq: {id: b2, tex: '(\mathbf{C}_N^{T}\mathbf{Q}\mathbf{C}_F)_{12} &= \textcolor{pos}{1}\cdot\textcolor{dim}{0} + \textcolor{pos}{1}\cdot\textcolor{neg}{(-1)} + \textcolor{pos}{1}\cdot\textcolor{dim}{0} + \textcolor{pos}{1}\cdot\textcolor{dim}{0} = \textcolor{neg}{ {{-1}} }', size: 21, gap: 10}
           - fly: {from: 'b2{-1}', to: 'DF[0,1]'}
-          - {remove: [bcf1], dur: 0.15}
+          - color: {target: 'CFb[:,1]', color: reset}
           - color: {target: e1, color: reset, with: true}
-          - box: {id: bcf2, target: 'CFb[:,2]', color: yellow}
+          - color: {target: 'CFb[:,2]', color: yellow, with: true}
           - color: {target: e2, color: yellow, with: true}
           - eq: {id: b3, tex: '(\mathbf{C}_N^{T}\mathbf{Q}\mathbf{C}_F)_{13} &= \textcolor{pos}{1}\cdot\textcolor{dim}{0} + \textcolor{pos}{1}\cdot\textcolor{dim}{0} + \textcolor{pos}{1}\cdot\textcolor{neg}{(-1)} + \textcolor{pos}{1}\cdot\textcolor{dim}{0} = \textcolor{neg}{ {{-1}} }', size: 21, gap: 10}
           - fly: {from: 'b3{-1}', to: 'DF[0,2]'}
-          - {remove: [bcf2], dur: 0.15}
+          - color: {target: 'CFb[:,2]', color: reset}
           - color: {target: e2, color: reset, with: true}
-          - box: {id: bcf3, target: 'CFb[:,3]', color: yellow}
+          - color: {target: 'CFb[:,3]', color: yellow, with: true}
           - color: {target: e3, color: yellow, with: true}
           - eq: {id: b4, tex: '(\mathbf{C}_N^{T}\mathbf{Q}\mathbf{C}_F)_{14} &= \textcolor{pos}{1}\cdot\textcolor{dim}{0} + \textcolor{pos}{1}\cdot\textcolor{dim}{0} + \textcolor{pos}{1}\cdot\textcolor{dim}{0} + \textcolor{pos}{1}\cdot\textcolor{neg}{(-1)} = \textcolor{neg}{ {{-1}} }', size: 21, gap: 10}
           - fly: {from: 'b4{-1}', to: 'DF[0,3]'}
-          - remove: [bctq, bcf3]
+          - color: {target: 'CTQ[0,:]', color: reset}
+          - color: {target: 'CFb[:,3]', color: reset, with: true}
           - color: {target: e3, color: reset, with: true}
       - say: 'On the right, $\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{x}_F$ combines the anchor coordinates.'
         do:
@@ -260,11 +269,12 @@ slides:
               - {id: PB, matrix: {rows: [[-12]], empty: true}}
             size: 25
             gap: 18
-          - box: {id: bdf2, target: 'DF2[0,:]', color: yellow}
-          - box: {id: bxf2, target: 'XF2[:,0]', color: yellow, with: true}
+          - color: {target: 'DF2[0,:]', color: yellow}
+          - color: {target: 'XF2[:,0]', color: yellow, with: true}
           - {tex: '\textcolor{neg}{(-1)}\cdot\textcolor{dim}{0} + \textcolor{neg}{(-1)}\cdot\textcolor{pos}{5} + \textcolor{neg}{(-1)}\cdot\textcolor{dim}{0} + \textcolor{neg}{(-1)}\cdot\textcolor{pos}{7} = \textcolor{dim}{0} \textcolor{neg}{- 5} + \textcolor{dim}{0} \textcolor{neg}{- 7} = \textcolor{neg}{ {{-12}} }', id: pbdot, size: 21, gap: 14}
           - fly: {from: 'pbdot{-12}', to: 'PB[0,0]'}
-          - remove: [bdf2, bxf2]
+          - color: {target: 'DF2[0,:]', color: reset}
+          - color: {target: 'XF2[:,0]', color: reset, with: true}
           - {tex: '\textcolor{pos}{4\,x_0} = \textcolor{load}{p_x} - (\textcolor{neg}{-12}) = \textcolor{dim}{0} + \textcolor{pos}{12} \quad\Longrightarrow\quad x_0 = \frac{\textcolor{pos}{12}}{\textcolor{pos}{4}} = \textcolor{pos}{3}', size: 23, gap: 12}
 
   - title: 'SOLVE $x, y, z$'
@@ -285,19 +295,20 @@ slides:
               - {id: PBall, matrix: {rows: [[-12, -12, -6]], collabels: [x, y, z], empty: true}}
             size: 24
             gap: 20
-          - box: {id: bdfa, target: 'DFall[0,:]', color: yellow}
-          - box: {id: bxfa0, target: 'XFall[:,0]', color: yellow, with: true}
+          - color: {target: 'DFall[0,:]', color: yellow}
+          - color: {target: 'XFall[:,0]', color: yellow, with: true}
           - eq: {id: sx, tex: 'x\text{-col:} &\quad \textcolor{neg}{(-1)}\cdot\textcolor{dim}{0} + \textcolor{neg}{(-1)}\cdot\textcolor{pos}{5} + \textcolor{neg}{(-1)}\cdot\textcolor{dim}{0} + \textcolor{neg}{(-1)}\cdot\textcolor{pos}{7} = \textcolor{neg}{ {{-12}} }', size: 20, gap: 14}
           - fly: {from: 'sx{-12}', to: 'PBall[0,0]'}
-          - {remove: [bxfa0], dur: 0.15}
-          - box: {id: bxfa1, target: 'XFall[:,1]', color: yellow}
+          - color: {target: 'XFall[:,0]', color: reset}
+          - color: {target: 'XFall[:,1]', color: yellow, with: true}
           - eq: {id: sy, tex: 'y\text{-col:} &\quad \textcolor{neg}{(-1)}\cdot\textcolor{dim}{0} + \textcolor{neg}{(-1)}\cdot\textcolor{dim}{0} + \textcolor{neg}{(-1)}\cdot\textcolor{pos}{7} + \textcolor{neg}{(-1)}\cdot\textcolor{pos}{5} = \textcolor{neg}{ {{-12}} }', size: 20, gap: 8}
           - fly: {from: 'sy{-12}', to: 'PBall[0,1]'}
-          - {remove: [bxfa1], dur: 0.15}
-          - box: {id: bxfa2, target: 'XFall[:,2]', color: yellow}
+          - color: {target: 'XFall[:,1]', color: reset}
+          - color: {target: 'XFall[:,2]', color: yellow, with: true}
           - eq: {id: sz, tex: 'z\text{-col:} &\quad \textcolor{neg}{(-1)}\cdot\textcolor{dim}{0} + \textcolor{neg}{(-1)}\cdot\textcolor{pos}{3} + \textcolor{neg}{(-1)}\cdot\textcolor{pos}{3} + \textcolor{neg}{(-1)}\cdot\textcolor{dim}{0} = \textcolor{neg}{ {{-6}} }', size: 20, gap: 8}
           - fly: {from: 'sz{-6}', to: 'PBall[0,2]'}
-          - remove: [bdfa, bxfa2]
+          - color: {target: 'DFall[0,:]', color: reset}
+          - color: {target: 'XFall[:,2]', color: reset, with: true}
       - say: 'Equating left and right along $x, y, z$ gives $n_0 = (3,\,3,\,0.25)$.'
         do:
           - color: {target: 'balance{\mathbf{C}_N^{T}}', color: pos}
