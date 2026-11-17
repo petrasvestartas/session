@@ -17,7 +17,7 @@ blocks:
   balance:
     - eq:
         id: balance
-        tex: '{{\mathbf{C}_N^{T}}}{{\mathbf{Q}\,}}{{\mathbf{C}_N}}\,{{\mathbf{x}_N}} = {{\mathbf{p}_x}} - {{\mathbf{C}_N^{T}\,}}{{\mathbf{Q}}}\,{{\mathbf{C}_F}}\,{{\mathbf{x}_F}}'
+        tex: '{{\mathbf{x}_N}} = ({{\mathbf{C}_N^{T}}}{{\mathbf{Q}\,}}{{\mathbf{C}_N}})^{ {{-1}} }\,({{\mathbf{p}_x}} - {{\mathbf{C}_N^{T}\,}}{{\mathbf{Q}}}\,{{\mathbf{C}_F}}\,{{\mathbf{x}_F}})'
         size: 24
         gap: 4
 slides:
@@ -150,9 +150,9 @@ slides:
           - highlight: [load_n0]
           - {tex: 'p_x = \textcolor{dim}{0}\text{ kN}, \qquad p_y = \textcolor{dim}{0}\text{ kN}, \qquad p_z = \textcolor{neg}{-5}\text{ kN}', size: 22, gap: 18}
 
-  - title: 'LEFT SIDE'
+  - title: 'FIRST BRACKET'
     steps:
-      - say: 'On the left, $\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N$ sums all four force densities to $4$.'
+      - say: 'First bracket: $\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N = 4$, so $(\cdot)^{-1}$ divides by $4$.'
         balance: true
         do:
           - color: {target: 'balance{\mathbf{Q}\,}', color: yellow}
@@ -184,10 +184,10 @@ slides:
           - fly: {from: 'qc4{1}', to: 'QC[3,0]'}
           - color: {target: 'Qa[3,:]', color: reset}
           - color: {target: 'CNa[:,0]', color: reset, with: true}
-      - say: 'On the left, $\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N$ sums all four force densities to $4$.'
+      - say: 'First bracket: $\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N = 4$, so $(\cdot)^{-1}$ divides by $4$.'
         do:
           - color: {target: 'balance{\mathbf{C}_N^{T}}', color: yellow}
-          - color: {target: 'balance{\mathbf{x}_N}', color: yellow, with: true}
+          - color: {target: 'balance{-1}', color: yellow, with: true}
           - remove: [qc1, qc2, qc3, qc4]
           - row:
               - '\mathbf{C}_N^{T}(\mathbf{Q}\,\mathbf{C}_N) ='
@@ -204,11 +204,11 @@ slides:
           - fly: {from: 'dotA{4}', to: 'DN[0,0]'}
           - color: {target: 'CT[0,:]', color: reset}
           - color: {target: 'QC2[:,0]', color: reset, with: true}
-          - {tex: '(\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N)\,x_0 = (q_1 + q_2 + q_3 + q_4)\,x_0 = \textcolor{pos}{4}\,x_0', size: 22, gap: 10}
+          - {tex: '(\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N)^{-1} = [\textcolor{pos}{4}]^{-1} = \textcolor{pos}{\tfrac{1}{4}}', size: 23, gap: 10}
 
-  - title: 'RIGHT SIDE'
+  - title: 'SECOND BRACKET'
     steps:
-      - say: 'On the right, $\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{x}_F$ combines the anchor coordinates.'
+      - say: 'Second bracket: $\mathbf{p}_x - \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{x}_F$ gives $0 - (-12) = 12$.'
         balance: true
         do:
           - color: {target: 'balance{\mathbf{C}_N^{T}\,}', color: yellow}
@@ -228,7 +228,7 @@ slides:
           - color: {target: e0, color: yellow, with: true}
           - eq: {id: b1, tex: '(\mathbf{C}_N^{T}\mathbf{Q}\mathbf{C}_F)_{11} &= \textcolor{pos}{1}\cdot\textcolor{neg}{(-1)} + \textcolor{pos}{1}\cdot\textcolor{dim}{0} + \textcolor{pos}{1}\cdot\textcolor{dim}{0} + \textcolor{pos}{1}\cdot\textcolor{dim}{0} = \textcolor{neg}{ {{-1}} }', size: 21, gap: 16}
           - fly: {from: 'b1{-1}', to: 'DF[0,0]'}
-      - say: 'On the right, $\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{x}_F$ combines the anchor coordinates.'
+      - say: 'Second bracket: $\mathbf{p}_x - \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{x}_F$ gives $0 - (-12) = 12$.'
         do:
           - color: {target: 'CFb[:,0]', color: reset}
           - color: {target: e0, color: reset, with: true}
@@ -251,13 +251,10 @@ slides:
           - color: {target: 'CTQ[0,:]', color: reset}
           - color: {target: 'CFb[:,3]', color: reset, with: true}
           - color: {target: e3, color: reset, with: true}
-      - say: 'On the right, $\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{x}_F$ combines the anchor coordinates.'
+      - say: 'Second bracket: $\mathbf{p}_x - \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{x}_F$ gives $0 - (-12) = 12$.'
         do:
           - color: {target: 'balance{\mathbf{x}_F}', color: yellow}
-          - color: {target: 'balance{\mathbf{p}_x}', color: load, with: true}
-          - color: {target: 'balance{\mathbf{C}_N^{T}}', color: pos, with: true}
-          - color: {target: 'balance{\mathbf{Q}\,}', color: pos, with: true}
-          - color: {target: 'balance{\mathbf{C}_N}', color: pos, with: true}
+          - color: {target: 'balance{\mathbf{p}_x}', color: yellow, with: true}
           - color: {target: 'balance{\mathbf{x}_N}', color: pos, with: true}
           - remove: [b1, b2, b3, b4]
           - row:
@@ -275,11 +272,11 @@ slides:
           - fly: {from: 'pbdot{-12}', to: 'PB[0,0]'}
           - color: {target: 'DF2[0,:]', color: reset}
           - color: {target: 'XF2[:,0]', color: reset, with: true}
-          - {tex: '\textcolor{pos}{4\,x_0} = \textcolor{load}{p_x} - (\textcolor{neg}{-12}) = \textcolor{dim}{0} + \textcolor{pos}{12} \quad\Longrightarrow\quad x_0 = \frac{\textcolor{pos}{12}}{\textcolor{pos}{4}} = \textcolor{pos}{3}', size: 23, gap: 12}
+          - {tex: 'x_0 = \textcolor{pos}{\tfrac{1}{4}}\,\bigl(\textcolor{dim}{0} - (\textcolor{neg}{-12})\bigr) = \frac{\textcolor{pos}{12}}{\textcolor{pos}{4}} = \textcolor{pos}{3}', size: 23, gap: 12}
 
   - title: 'SOLVE $x, y, z$'
     steps:
-      - say: 'Equating left and right along $x, y, z$ gives $n_0 = (3,\,3,\,0.25)$.'
+      - say: 'Applying the same equation to $x, y, z$ gives $n_0 = (3,\,3,\,0.25)$.'
         balance: true
         do:
           - color: {target: 'balance{\mathbf{C}_N^{T}\,}', color: yellow}
@@ -309,11 +306,12 @@ slides:
           - fly: {from: 'sz{-6}', to: 'PBall[0,2]'}
           - color: {target: 'DFall[0,:]', color: reset}
           - color: {target: 'XFall[:,2]', color: reset, with: true}
-      - say: 'Equating left and right along $x, y, z$ gives $n_0 = (3,\,3,\,0.25)$.'
+      - say: 'Applying the same equation to $x, y, z$ gives $n_0 = (3,\,3,\,0.25)$.'
         do:
           - color: {target: 'balance{\mathbf{C}_N^{T}}', color: pos}
           - color: {target: 'balance{\mathbf{Q}\,}', color: pos, with: true}
           - color: {target: 'balance{\mathbf{C}_N}', color: pos, with: true}
+          - color: {target: 'balance{-1}', color: pos, with: true}
           - color: {target: 'balance{\mathbf{x}_N}', color: yellow, with: true}
           - color: {target: 'balance{\mathbf{p}_x}', color: load, with: true}
           - remove: [sx, sy, sz]

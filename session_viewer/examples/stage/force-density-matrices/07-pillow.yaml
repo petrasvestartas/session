@@ -2,7 +2,7 @@
 # Open local: http://127.0.0.1:8770/?stage=decks/force-density-matrices/index.yaml&data=off&chapter=7&step=1
 # Open live: https://petrasvestartas.github.io/session/?stage=force-density-matrices&chapter=7&step=1
 
-# Chapter 7: a 10x10 pillow grid and solving denser grids with SciPy Cholesky.
+# Chapter 7: a 10x10 pillow grid and complete runnable SciPy Cholesky script.
 title: PILLOW GRID
 grid: {center: [4.5, 4.5], size: 12, step: 1}
 camera: {yaw: -52, pitch: 30}
@@ -28,16 +28,28 @@ slides:
 
   - title: 'SCIPY CHOLESKY'
     steps:
-      - say: 'SciPy Cholesky factors symmetric $\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N$ once for $x, y, z$.'
-        do:
-          - eq: {tex: '\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N = \mathbf{L}\,\mathbf{L}^{T}', size: 24, gap: 8}
-          - code: |
-              from scipy.linalg import cho_factor, cho_solve
+      - say: 'Complete runnable SciPy Cholesky script for the 10x10 grid.'
+        size: 16
+        code: |
+          import numpy as np
+          from scipy.linalg import cho_factor, cho_solve
 
-              # C_N.T @ Q @ C_N is symmetric and positive-definite (q > 0)
-              A = C_N.T @ Q @ C_N
-              b = p - C_N.T @ Q @ C_F @ x_F
+          n = 10
+          xyz = np.array([[c, r, 0.0] for r in range(n) for c in range(n)])
+          edges = ([(r*n + c, r*n + c + 1) for r in range(n) for c in range(n - 1)] +
+                   [(r*n + c, (r + 1)*n + c) for r in range(n - 1) for c in range(n)])
 
-              # Cholesky uses half the work of LU, factored once for x, y, z
-              L, low = cho_factor(A, lower=True)
-              x_N = cho_solve((L, low), b)
+          C = np.zeros((len(edges), n * n))
+          for e, (i, j) in enumerate(edges):
+              C[e, i], C[e, j] = 1.0, -1.0
+
+          fixed = [k for k in range(n * n) if k // n in (0, n - 1) or k % n in (0, n - 1)]
+          free  = [k for k in range(n * n) if k not in fixed]
+          C_N, C_F = C[:, free], C[:, fixed]
+          Q, x_F   = np.eye(len(edges)), xyz[fixed]
+          p        = np.tile([0.0, 0.0, 0.35], (len(free), 1))
+
+          # C_N.T @ Q @ C_N is symmetric positive-definite: Cholesky factors once
+          L, low = cho_factor(C_N.T @ Q @ C_N, lower=True)
+          x_N    = cho_solve((L, low), p - C_N.T @ Q @ C_F @ x_F)
+          print(x_N.shape, round(x_N[:, 2].max(), 3))   # (64, 3) 2.025
