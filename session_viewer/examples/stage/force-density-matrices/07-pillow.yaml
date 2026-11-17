@@ -2,46 +2,42 @@
 # Open local: http://127.0.0.1:8770/?stage=decks/force-density-matrices/index.yaml&data=off&chapter=7&step=1
 # Open live: https://petrasvestartas.github.io/session/?stage=force-density-matrices&chapter=7&step=1
 
-# Chapter 7: a pillow. The whole boundary is fixed and every free node carries a load.
-title: A pillow
+# Chapter 7: a 10x10 pillow grid and solving denser grids with SciPy Cholesky.
+title: PILLOW GRID
 grid: {center: [4.5, 4.5], size: 12, step: 1}
 camera: {yaw: -52, pitch: 30}
+palette: {free: pink}
 net:
   grid: [10, 10]
   fixed: boundary
   q: 1
   load: [0, 0, 0.35]
 slides:
-  - title: Fixed boundary, loaded nodes
+  - title: 'PILLOW GRID'
     steps:
-      - say: 'The same grid. Now all 36 boundary nodes are fixed, and the 64 inner nodes are free.'
-        show: [cables, fixed]
-      - say: 'Every free node carries the same upward load, like air pressure inside a cushion.'
-        show: loads
-      - say: 'The unknowns: 64 nodes, three coordinates each.'
-        eq: '\mathbf{D}_N\,\mathbf{x}_N = \mathbf{p} - \mathbf{D}_F\,\mathbf{x}_F'
-
-  - title: The three right-hand sides
-    steps:
-      - say: '$\mathbf{D}_N$ is 64 × 64, with the same pattern as before: the diagonal and the four neighbours.'
-        matrix: DN
-      - say: 'Along $x$ and $y$ there is no load. The right-hand side is only the pull of the boundary, so the nodes stay on their grid.'
-        eq: '\mathbf{D}_N\,\mathbf{x}_N = -\mathbf{D}_F\,\mathbf{x}_F'
-      - say: 'Along $z$ the boundary sits at $z = 0$, so it adds nothing. The right-hand side is the load alone.'
-        eq: '\mathbf{D}_N\,\mathbf{z}_N = \mathbf{p}_z'
-
-  - title: Solve
-    steps:
-      - say: 'One factorisation, three substitutions. Each node rises until its four cables balance its load.'
+      - say: 'A 100-node grid with a fixed rim rises into a cushion.'
+        show: [cables, fixed, loads]
+        row:
+          - {id: C, matrix: C}
+          - '\;\longrightarrow\;'
+          - {id: CN, matrix: CN}
+          - {id: CF, matrix: CF}
+        size: 26
+      - say: 'A 100-node grid with a fixed rim rises into a cushion.'
         solve: true
-      - say: 'For an inner node: $4z_0 - z_1 - z_2 - z_3 - z_4 = p_z$. It sits $p_z/4$ above the average of its neighbours.'
-        eq: 'z_0 = \tfrac{1}{4}\,(z_1 + z_2 + z_3 + z_4) + \tfrac{1}{4}\,p_z'
 
-  - title: A linear system answers linearly
+  - title: 'SCIPY CHOLESKY'
     steps:
-      - say: 'Double the load: every height doubles. The matrix stays; only the right-hand side changes.'
-        solve: {load: [0, 0, 0.7]}
-      - say: 'Back to the first load. Double every force density instead: the matrix doubles, so the heights halve.'
-        solve: {q: 2}
-      - say: 'Loads set the right-hand side. Force densities set the matrix. Fixed points set both. One solve gives the shape.'
-        solve: true
+      - say: 'SciPy Cholesky factors symmetric $\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N$ once for $x, y, z$.'
+        do:
+          - eq: {tex: '\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N = \mathbf{L}\,\mathbf{L}^{T}', size: 24, gap: 8}
+          - code: |
+              from scipy.linalg import cho_factor, cho_solve
+
+              # C_N.T @ Q @ C_N is symmetric and positive-definite (q > 0)
+              A = C_N.T @ Q @ C_N
+              B = P - C_N.T @ Q @ C_F @ X_F
+
+              # Cholesky uses half the work of LU, factored once for x, y, z
+              L, low = cho_factor(A, lower=True)
+              X_N = cho_solve((L, low), B)

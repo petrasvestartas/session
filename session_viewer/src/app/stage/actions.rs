@@ -316,7 +316,7 @@ impl Stage {
                 let mut o = self.make(&spec);
                 o.color = c;
                 o.width = 2.4;
-                o.boxed = Some((target.clone(), 7.0));
+                o.boxed = Some((target.clone(), 0.0));
                 self.insert(o);
                 push(
                     self,

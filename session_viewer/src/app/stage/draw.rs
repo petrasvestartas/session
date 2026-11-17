@@ -144,7 +144,7 @@ impl Stage {
             b[1] - pad,
             b[2] - b[0] + 2.0 * pad,
             b[3] - b[1] + 2.0 * pad,
-            9.0,
+            5.0,
         );
         pts.push(pts[0]);
         let n = ((pts.len() as f32) * grow.clamp(0.0, 1.0)).ceil() as usize;
