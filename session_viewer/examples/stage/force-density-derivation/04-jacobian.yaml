@@ -1,0 +1,82 @@
+# cd /home/pv/brg/code_cpp/wood_research/session/session_viewer && aws s3 sync examples/stage s3://session-viewer-data/stage/ --delete --exclude '*' --include '*.yaml' --content-type application/yaml --cache-control no-cache --profile r2 --endpoint-url https://0520459c6817bd96c1e25fcb49461c4e.r2.cloudflarestorage.com
+# Open local: http://127.0.0.1:8770/?stage=decks/force-density-derivation/index.yaml&data=off&chapter=4&step=1
+# Open live: https://petrasvestartas.github.io/session/?stage=force-density-derivation&chapter=4&step=1
+
+# Chapter 4: Linkwitz (6.22)-(6.24) — what the Jacobian matrix is, and how C_N^T U L^-1 builds it.
+title: JACOBIAN MATRIX
+grid: {center: [3.5, 3.5], size: 9, step: 1}
+camera: {yaw: -58, pitch: 26}
+palette: {free: pink}
+net:
+  fixed: {n1: [0, 0, 0], n2: [5, 0, 3], n3: [0, 7, 3], n4: [7, 5, 0]}
+  free: {n0: [3, 3, 0.25]}
+  cables: {e0: [n0, n1], e1: [n0, n2], e2: [n0, n3], e3: [n0, n4]}
+  q: 1
+  load: {n0: [0, 0, -5]}
+slides:
+  - title: WHAT IS THE JACOBIAN
+    steps:
+      - say: 'The Jacobian $\mathbf{J}$ collects all cable length derivatives in one matrix.'
+        show: net
+        do:
+          - row:
+              - '\mathbf{J} = \frac{\partial \mathbf{l}}{\partial x_0} ='
+              - {id: Jcol, matrix: {rows: [['\dfrac{\partial l_1}{\partial x_0}'], ['\dfrac{\partial l_2}{\partial x_0}'], ['\dfrac{\partial l_3}{\partial x_0}'], ['\dfrac{\partial l_4}{\partial x_0}']], rowlabels: [e_0, e_1, e_2, e_3], signs: false}}
+              - '='
+              - {id: Jrat, matrix: {rows: [['\dfrac{u_1}{l_1}'], ['\dfrac{u_2}{l_2}'], ['\dfrac{u_3}{l_3}'], ['\dfrac{u_4}{l_4}']], signs: false}}
+              - '='
+              - {id: Jnum, matrix: {rows: [['0.706'], ['-0.441'], ['0.526'], ['-0.893']]}}
+            size: 23
+          - {tex: '\text{Row }k\text{ tells how cable }e_k\text{ stretches per unit shift of }x_0;\quad m\text{ cables }\times\; n_N\text{ free nodes}', size: 20, gap: 16, color: dim}
+          - {tex: '\mathbf{J}^{T} = \Big(\frac{\partial \mathbf{l}}{\partial x_0}\Big)^{T} = [\textcolor{pos}{0.706},\; \textcolor{neg}{-0.441},\; \textcolor{pos}{0.526},\; \textcolor{neg}{-0.893}]', size: 22, gap: 14}
+
+  - title: DIAGONAL MATRICES $\mathbf{U}$ AND $\mathbf{L}^{-1}$
+    steps:
+      - say: 'Build diagonal $\mathbf{U}$ from differences $\mathbf{u} = \mathbf{C}\,\mathbf{x}$ and $\mathbf{L}^{-1}$ from lengths.'
+        do:
+          - row:
+              - '\mathbf{u} = \mathbf{C}\,\mathbf{x} ='
+              - {id: ucol, matrix: {rows: [[3], [-2], [3], [-4]], rowlabels: [e_0, e_1, e_2, e_3]}}
+              - '\;\longrightarrow\;\mathbf{U} ='
+              - {id: Umat, matrix: {rows: [[3, 0, 0, 0], [0, -2, 0, 0], [0, 0, 3, 0], [0, 0, 0, -4]]}}
+            size: 22
+          - row:
+              - '\mathbf{l} ='
+              - {id: lcol, matrix: {rows: [['4.250'], ['4.535'], ['5.706'], ['4.479']], rowlabels: [e_0, e_1, e_2, e_3]}}
+              - '\;\longrightarrow\;\mathbf{L}^{-1} ='
+              - {id: Linv, matrix: {rows: [['\tfrac{1}{4.250}', 0, 0, 0], [0, '\tfrac{1}{4.535}', 0, 0], [0, 0, '\tfrac{1}{5.706}', 0], [0, 0, 0, '\tfrac{1}{4.479}']], signs: false}}
+            size: 21
+            gap: 14
+
+  - title: JACOBIAN AS MATRIX PRODUCT
+    steps:
+      - say: 'Multiplying $\mathbf{C}_N^{T}\,\mathbf{U}\,\mathbf{L}^{-1}$ builds the transposed Jacobian (6.24).'
+        do:
+          - row:
+              - '\mathbf{U}\,\mathbf{L}^{-1} ='
+              - {id: UL, matrix: {rows: [['0.706', 0, 0, 0], [0, '-0.441', 0, 0], [0, 0, '0.526', 0], [0, 0, 0, '-0.893']]}}
+            size: 22
+          - row:
+              - '\mathbf{J}^{T} = \mathbf{C}_N^{T}\,\mathbf{U}\,\mathbf{L}^{-1} ='
+              - {id: CNTj, matrix: {rows: [[1, 1, 1, 1]], name: '\mathbf{C}_N^{T}'}}
+              - '\quad'
+              - {id: ULj, matrix: {rows: [['0.706', 0, 0, 0], [0, '-0.441', 0, 0], [0, 0, '0.526', 0], [0, 0, 0, '-0.893']], name: '\mathbf{U}\mathbf{L}^{-1}'}}
+              - '='
+              - {id: JT, matrix: {rows: [['0.706', '-0.441', '0.526', '-0.893']], name: '\mathbf{J}^{T}', empty: true}}
+            size: 21
+            gap: 14
+          - color: {target: 'CNTj[0,:]', color: yellow}
+          - color: {target: 'ULj[0,0]', color: yellow, with: true}
+          - fly: {from: 'ULj[0,0]', to: 'JT[0,0]'}
+          - color: {target: 'ULj[0,0]', color: reset}
+          - color: {target: 'ULj[1,1]', color: yellow, with: true}
+          - fly: {from: 'ULj[1,1]', to: 'JT[0,1]'}
+          - color: {target: 'ULj[1,1]', color: reset}
+          - color: {target: 'ULj[2,2]', color: yellow, with: true}
+          - fly: {from: 'ULj[2,2]', to: 'JT[0,2]'}
+          - color: {target: 'ULj[2,2]', color: reset}
+          - color: {target: 'ULj[3,3]', color: yellow, with: true}
+          - fly: {from: 'ULj[3,3]', to: 'JT[0,3]'}
+          - color: {target: 'CNTj[0,:]', color: reset}
+          - color: {target: 'ULj[3,3]', color: reset, with: true}
+          - {tex: '\Big(\frac{\partial \mathbf{l}}{\partial \mathbf{x}_N}\Big)^{T} = \mathbf{C}_N^{T}\,\mathbf{U}\,\mathbf{L}^{-1} \qquad (6.24)', size: 23, gap: 14, color: yellow}

@@ -2,7 +2,7 @@
 # Open local: http://127.0.0.1:8770/?stage=decks/force-density-materialization/index.yaml&data=off&chapter=1&step=1
 # Open live: https://petrasvestartas.github.io/session/?stage=force-density-materialization&chapter=1&step=1
 
-# Chapter 1: from solved coordinates and force densities to cable forces and cut lengths.
+# Chapter 1: applying the cable force and cut-length formulas to the solved net.
 title: MATERIALIZATION
 grid: {center: [3.5, 3.5], size: 9, step: 1}
 camera: {yaw: -58, pitch: 26}
@@ -29,17 +29,16 @@ slides:
               - {id: schek.name, text: '**Hans-Jörg Schek**', width: 7.5483870968}
           - eq: {tex: 'f_k = q_k\,l_k, \qquad l_{0,k} = \frac{l_k}{1 + \dfrac{f_k}{EA}}', size: 28, gap: 24}
 
-  - title: CUT LENGTH FORMULA
+  - title: LENGTHS AND FORCES
     steps:
-      - say: 'Measure stretched lengths $l_k$, get forces $f_k$, then apply Hooke''s law.'
+      - say: 'Measure stretched lengths $l_k$ and compute forces $f_k = q_k\,l_k$.'
         do:
           - row:
               - {id: lv, matrix: {rows: [['4.250'], ['4.535'], ['5.706'], ['4.479']], rowlabels: [e_0, e_1, e_2, e_3], name: '\mathbf{l}\text{ (m)}'}}
               - '\qquad'
               - {id: fv, matrix: {rows: [['4.250'], ['4.535'], ['5.706'], ['4.479']], name: '\mathbf{f} = \mathbf{q}\cdot\mathbf{l}\text{ (kN)}'}}
-            size: 25
-          - eq: {tex: 'f_k &= \frac{EA}{l_{0,k}}\,(l_k - l_{0,k})', size: 25, gap: 22}
-          - eq: {tex: 'l_{0,k} &= \frac{l_k}{1 + \dfrac{f_k}{EA}} = \frac{l_k}{1 + \dfrac{q_k\,l_k}{EA}}', size: 25, gap: 14, color: yellow}
+            size: 26
+          - eq: {tex: 'l_{0,k} = \frac{l_k}{1 + \dfrac{f_k}{EA}}', size: 26, gap: 22, color: yellow}
 
   - title: EXAMPLE CABLE $e_0$
     steps:

@@ -2,21 +2,22 @@
 # Open local: http://127.0.0.1:8770/?stage=decks/force-density-derivation/index.yaml&data=off&chapter=3&step=1
 # Open live: https://petrasvestartas.github.io/session/?stage=force-density-derivation&chapter=3&step=1
 
-# Chapter 3: method 1, the tiny nudge, steps A to G of the notes.
-title: Method 1 · the tiny nudge
+# Chapter 3: full algebraic derivation of dl_k / dx_0 via a tiny nudge (Steps A-G, no chain rule).
+title: LENGTH DERIVATIVE
 grid: {center: [3.5, 3.5], size: 9, step: 1}
 camera: {yaw: -52, pitch: 22, fit: [n0, n1, '[5.4, 3.6, 0.25]']}
+palette: {free: pink}
 points:
   n0: [3, 3, 0.25]
-  X: [3, 3, 0.25]         # the node we nudge; it starts on n0
+  X: [3, 3, 0.25]
   n1: [0, 0, 0]
   n2: [5, 0, 3]
   n3: [0, 7, 3]
   n4: [7, 5, 0]
 slides:
-  - title: 'Method 1 · square, then nudge'
+  - title: SQUARE AND SHIFT
     steps:
-      - say: '**Step A.** Square both sides of the distance formula. The root is gone.'
+      - say: 'Square both sides to clear the root, then shift $x_0$ to $x_0 + \Delta x_0$.'
         do:
           - add:
               - {id: o2, point: n2, color: fixed, opacity: 0.25}
@@ -31,40 +32,44 @@ slides:
             dur: 0.8
           - eq: 'l_k = \sqrt{(x_k - x_0)^2 + (y_k - y_0)^2 + (z_k - z_0)^2}'
           - becomes: 'l_k^2 = (x_k - x_0)^2 + (y_k - y_0)^2 + (z_k - z_0)^2'
-      - say: '**Step B.** Shift $x_0$ to $x_0 + \Delta x_0$. The length becomes $l_k + \Delta l_k$. Only the $x$-term changes.'
+      - say: 'Square both sides to clear the root, then shift $x_0$ to $x_0 + \Delta x_0$.'
         then: {id: B, tex: '(l_k + \Delta l_k)^2 = \big(x_k - (x_0 + \Delta x_0)\big)^2 + (y_k - y_0)^2 + (z_k - z_0)^2'}
         highlight: [B]
 
-  - title: 'Expand both sides'
+  - title: EXPAND BOTH SIDES
     steps:
-      - say: '**Step C.** Expand the left side with $(a + b)^2 = a^2 + 2ab + b^2$.'
-        eq: '(l_k + \Delta l_k)^2 = l_k^2 + 2 l_k \Delta l_k + (\Delta l_k)^2'
-      - say: '$\Delta l_k$ is tiny, so its square is negligible: drop it.'
+      - say: 'Expand $(a \pm b)^2$ on both sides and drop tiny $(\Delta l_k)^2$ and $(\Delta x_0)^2$.'
         do:
-          - becomes: '(l_k + \Delta l_k)^2 = l_k^2 + 2 l_k \Delta l_k + \cancel{(\Delta l_k)^2}'
-          - becomes: '(l_k + \Delta l_k)^2 \approx l_k^2 + 2 l_k \Delta l_k'
-      - say: '**Step D.** On the right, regroup the shifted $x$-term. Expand it the same way.'
+          - eq: '(l_k + \Delta l_k)^2 = l_k^2 + 2\,l_k\,\Delta l_k + (\Delta l_k)^2'
+          - becomes: '(l_k + \Delta l_k)^2 = l_k^2 + 2\,l_k\,\Delta l_k + \cancel{(\Delta l_k)^2}'
+          - becomes: '(l_k + \Delta l_k)^2 \approx l_k^2 + 2\,l_k\,\Delta l_k'
+      - say: 'Expand $(a \pm b)^2$ on both sides and drop tiny $(\Delta l_k)^2$ and $(\Delta x_0)^2$.'
         do:
           - eq: '\big(x_k - (x_0 + \Delta x_0)\big)^2 = \big((x_k - x_0) - \Delta x_0\big)^2'
-          - then: '\big((x_k - x_0) - \Delta x_0\big)^2 = (x_k - x_0)^2 - 2(x_k - x_0)\Delta x_0 + (\Delta x_0)^2'
-      - say: 'Again $(\Delta x_0)^2 \approx 0$.'
-        do:
-          - becomes: '\big((x_k - x_0) - \Delta x_0\big)^2 = (x_k - x_0)^2 - 2(x_k - x_0)\Delta x_0 + \cancel{(\Delta x_0)^2}'
-          - becomes: '\big((x_k - x_0) - \Delta x_0\big)^2 \approx (x_k - x_0)^2 - 2(x_k - x_0)\Delta x_0'
+          - then: '\big((x_k - x_0) - \Delta x_0\big)^2 = (x_k - x_0)^2 - 2\,(x_k - x_0)\,\Delta x_0 + (\Delta x_0)^2'
+          - becomes: '\big((x_k - x_0) - \Delta x_0\big)^2 = (x_k - x_0)^2 - 2\,(x_k - x_0)\,\Delta x_0 + \cancel{(\Delta x_0)^2}'
+          - becomes: '\big((x_k - x_0) - \Delta x_0\big)^2 \approx (x_k - x_0)^2 - 2\,(x_k - x_0)\,\Delta x_0'
 
-  - title: 'Subtract and divide'
+  - title: SUBTRACT AND DIVIDE
     steps:
-      - say: '**Step E.** Put both expanded sides together.'
-        eq: 'l_k^2 + 2 l_k \Delta l_k = (x_k - x_0)^2 - 2(x_k - x_0)\Delta x_0 + (y_k - y_0)^2 + (z_k - z_0)^2'
-      - say: '**Step F.** Subtract the original $l_k^2 = (x_k - x_0)^2 + (y_k - y_0)^2 + (z_k - z_0)^2$ from both sides.'
+      - say: 'Subtract the original $l_k^2$ equation and divide by $2\,l_k\,\Delta x_0$.'
         do:
-          - becomes: '\cancel{l_k^2} + 2 l_k \Delta l_k = \cancel{(x_k - x_0)^2} - 2(x_k - x_0)\Delta x_0 + \cancel{(y_k - y_0)^2} + \cancel{(z_k - z_0)^2}'
-          - becomes: '2 l_k \Delta l_k = -2(x_k - x_0)\Delta x_0'
-      - say: '**Step G.** Divide both sides by $2 l_k \Delta x_0$.'
+          - eq: 'l_k^2 + 2\,l_k\,\Delta l_k = (x_k - x_0)^2 - 2\,(x_k - x_0)\,\Delta x_0 + (y_k - y_0)^2 + (z_k - z_0)^2'
+          - becomes: '\cancel{l_k^2} + 2\,l_k\,\Delta l_k = \cancel{(x_k - x_0)^2} - 2\,(x_k - x_0)\,\Delta x_0 + \cancel{(y_k - y_0)^2} + \cancel{(z_k - z_0)^2}'
+          - becomes: '2\,l_k\,\Delta l_k = -2\,(x_k - x_0)\,\Delta x_0'
+      - say: 'Subtract the original $l_k^2$ equation and divide by $2\,l_k\,\Delta x_0$.'
         do:
-          - eq: '\frac{\Delta l_k}{\Delta x_0} = \frac{-2(x_k - x_0)\Delta x_0}{2 l_k \Delta x_0}'
-          - becomes: '\frac{\Delta l_k}{\Delta x_0} = \frac{-\cancel{2}(x_k - x_0)\cancel{\Delta x_0}}{\cancel{2} l_k \cancel{\Delta x_0}}'
+          - eq: '\frac{\Delta l_k}{\Delta x_0} = \frac{-2\,(x_k - x_0)\,\Delta x_0}{2\,l_k\,\Delta x_0}'
+          - becomes: '\frac{\Delta l_k}{\Delta x_0} = \frac{-\cancel{2}\,(x_k - x_0)\,\cancel{\Delta x_0}}{\cancel{2}\,l_k\,\cancel{\Delta x_0}}'
           - becomes: '\frac{\Delta l_k}{\Delta x_0} = \frac{-(x_k - x_0)}{l_k}'
-      - say: 'In the limit $\Delta x_0 \to 0$ the ratio is the exact partial derivative.'
-        eq: {id: R, tex: '\frac{\partial l_k}{\partial x_0} = \frac{-(x_k - x_0)}{l_k}', color: accent}
-        highlight: [R]
+          - eq: {id: R, tex: '\frac{\partial l_k}{\partial x_0} = \frac{-(x_k - x_0)}{l_k} = \frac{x_0 - x_k}{l_k}', color: yellow}
+
+  - title: DIRECTION COSINE
+    steps:
+      - say: 'Geometrically, $\partial l_k / \partial x_0$ is the cable direction cosine along $x$.'
+        do:
+          - {tex: '\frac{\partial l_k}{\partial x_0} = \frac{x_0 - x_k}{l_k} = \frac{u_k}{l_k} = \cos\alpha_k', size: 26, color: yellow}
+          - add: {id: unit, arrow: [n0, 'n0 + (n0 - n1)/len(n0, n1)*1.6'], color: yellow, width: 3.6}
+          - derive: {from: unit, id: unitx, arrow: [n0, 'n0 + [(x(n0) - x(n1))/len(n0, n1)*1.6, 0, 0]'], color: x, width: 3.6}
+          - eq: {id: m2, tex: '\text{Cable }e_0:\quad \frac{\partial l_1}{\partial x_0} = \frac{3 - 0}{4.250} = \textcolor{pos}{+0.706}', size: 24, gap: 18}
+          - highlight: [unitx]

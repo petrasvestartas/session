@@ -1,0 +1,40 @@
+# cd /home/pv/brg/code_cpp/wood_research/session/session_viewer && aws s3 sync examples/stage s3://session-viewer-data/stage/ --delete --exclude '*' --include '*.yaml' --content-type application/yaml --cache-control no-cache --profile r2 --endpoint-url https://0520459c6817bd96c1e25fcb49461c4e.r2.cloudflarestorage.com
+# Open local: http://127.0.0.1:8770/?stage=decks/force-density-derivation/index.yaml&data=off&chapter=6&step=1
+# Open live: https://petrasvestartas.github.io/session/?stage=force-density-derivation&chapter=6&step=1
+
+# Chapter 6: Linkwitz 6.5 (6.34)-(6.37) — full derivation of materialization and cable cut lengths.
+title: MATERIALIZATION DERIVATION
+grid: {center: [3.5, 3.5], size: 9, step: 1}
+camera: {yaw: -58, pitch: 26}
+palette: {free: pink}
+net:
+  fixed: {n1: [0, 0, 0], n2: [5, 0, 3], n3: [0, 7, 3], n4: [7, 5, 0]}
+  free: {n0: [3, 3, 0.25]}
+  cables: {e0: [n0, n1], e1: [n0, n2], e2: [n0, n3], e3: [n0, n4]}
+  q: 1
+  load: {n0: [0, 0, -5]}
+slides:
+  - title: HOOKE LAW
+    steps:
+      - say: 'Axial stiffness $EA_k / l_{0,k}$ links cable force $f_k$ to stretch $\Delta l_k$.'
+        show: net
+        do:
+          - eq: {tex: 'f_k = \frac{EA_k}{l_{0,k}}\cdot\Delta l_k \quad\Longrightarrow\quad \Delta l_k = l_k - l_{0,k} = \frac{f_k\,l_{0,k}}{EA_k}', size: 24, gap: 18}
+          - eq: {tex: '\Delta\mathbf{l} = \mathbf{l} - \mathbf{l}_0 = \mathbf{L}_0\,(\mathbf{EA})^{-1}\,\mathbf{f} = \mathbf{L}_0\,(\mathbf{EA})^{-1}\,\mathbf{L}\,\mathbf{q} \qquad (6.34)', size: 22, gap: 18}
+          - {tex: '\Delta\mathbf{l}\text{: stretch},\quad \mathbf{l}\text{: stretched length},\quad \mathbf{l}_0\text{: cut length},\quad E\text{: Young modulus},\quad A\text{: area}', size: 19, gap: 16, color: dim}
+
+  - title: FORCE DENSITY FROM MATERIAL
+    steps:
+      - say: 'Solving (6.34) for $\mathbf{q}$ links force density to pre-stretch and stiffness.'
+        do:
+          - eq: {tex: '\mathbf{q} &= (\mathbf{EA})\,\mathbf{L}_0^{-1}\,\mathbf{L}^{-1}\,\Delta\mathbf{l} \qquad (6.35)', size: 25, gap: 20}
+          - eq: {id: qk, tex: 'q_k &= \frac{\Delta l_k\,EA_k}{l_{0,k}\,l_k} = \frac{\big(EA_k\,\Delta l_k / l_{0,k}\big)}{l_k} = \frac{f_k}{l_k}', size: 25, gap: 18, color: yellow}
+          - {indicate: [qk], color: yellow}
+
+  - title: CUT LENGTHS IN MATRIX FORM
+    steps:
+      - say: 'Factoring out $\mathbf{l}_0$ and inverting gives every cable cut length.'
+        do:
+          - eq: {tex: '\mathbf{l} &= \mathbf{l}_0 + \mathbf{L}_0\,(\mathbf{EA})^{-1}\,\mathbf{f} = \big(\mathbf{I} + (\mathbf{EA})^{-1}\,\mathbf{F}\big)\,\mathbf{l}_0 \qquad (6.36)', size: 22, gap: 16}
+          - eq: {tex: '\mathbf{l}_0 &= \big(\mathbf{I} + (\mathbf{EA})^{-1}\,\mathbf{F}\big)^{-1}\,\mathbf{l} = \big(\mathbf{I} + (\mathbf{EA})^{-1}\,\mathbf{Q}\,\mathbf{L}\big)^{-1}\,\mathbf{l} \qquad (6.37)', size: 22, gap: 14}
+          - eq: {tex: 'l_{0,k} &= \frac{l_k}{1 + \dfrac{f_k}{EA_k}} = \frac{l_k}{1 + \dfrac{q_k\,l_k}{EA_k}}', size: 25, gap: 16, color: yellow}
