@@ -1,0 +1,302 @@
+{
+  "status": "verified",
+  "date": "2026-11-17",
+  "scope": "Reconciled session/main documentation build (completion-docs34) and browser verification (support-docs-browser10; failed cross-origin fetch attempt support-docs-browser09 preserved): 22 focused tooling tests, 8 accepted scoped subjects (20261116 frame/painting + 20261117 mathematics..decoding), 359 teaching witnesses, 351-file endpoint audit, strict site build, homepage 9-checkpoint count, subject-owned chapter grouping, geometry-visibility-decoding navigation, 6 kernel motion repository links, bottom-right UTC timestamp, and 39 reviewed desktop/upright captures; application remains pending and physical-device acceptance is not claimed",
+  "docsBuildJob": {
+    "manifest": "session_viewer/target/completion-docs34/resources.json",
+    "manifestSha256": "1d7e3866521f4dbce1e2964fb18f0edbe1e2e6f14ed06c7a9ff3533bf517f0f1",
+    "planSha256": "28df3e413778767d5a0967e1b6d7d60692a5a588996c0d16c1e15e4a3228f1d0",
+    "resultSha256": "c5137ee1e9f6d53ab8fea424f3ef5e5eb79a53dc6cf390fc83225fe3519ed201",
+    "processId": 40228,
+    "exitCode": 0,
+    "elapsedSeconds": 55.495,
+    "peakJobCommitBytes": 1293795328,
+    "pinnedInputsVerified": 4035,
+    "commands": [
+      {
+        "name": "teaching-tests",
+        "exitCode": 0
+      },
+      {
+        "name": "active-audit",
+        "exitCode": 0
+      },
+      {
+        "name": "teaching",
+        "exitCode": 0
+      },
+      {
+        "name": "strict-site",
+        "exitCode": 0
+      }
+    ],
+    "delivery": {
+      "base": "/docs/",
+      "assetUrls": [
+        "/docs/assets/main-BMrF4JHD.js",
+        "/docs/assets/main-B4Gnh6tv.css"
+      ],
+      "indexSha256": "7db25b518d2c961b3a77757ad3d1162f8fd4b99a63b2af69c2976b4824fd6875"
+    }
+  },
+  "preservedFailedAttempt": {
+    "manifest": "session_viewer/target/support-docs-browser09-job/resources.json",
+    "manifestSha256": "f5ea0cfe308b05304e8b2ee90964a60ad38917ced2cc4671a71548d599302406",
+    "processId": 45620,
+    "exitCode": 1,
+    "reason": "capture.cjs called fetch() from localhost against external https://github.com/petrasvestartas/session_rust/... links; replaced in browser10 by exact repository href assertions while preserving browser09 intact"
+  },
+  "browserJob": {
+    "manifest": "session_viewer/target/support-docs-browser10-job/resources.json",
+    "manifestSha256": "efccd95dcaf0fdf0f0ee529b2c2d3e6793ea54f5d33db7047e1292619ffba540",
+    "resultSha256": "752732c0d381b7c478faf4d692cb6dd3934f5e6e09bdaaf23780cd72be423a03",
+    "processId": 45736,
+    "exitCode": 0,
+    "elapsedSeconds": 11.717,
+    "peakJobCommitBytes": 563179520,
+    "pinnedInputsVerified": 5804,
+    "cliCourseHome": [
+      {
+        "width": 1280,
+        "checkpoints": 9,
+        "chapterOwner": "geometry",
+        "navigation": "geometry/visibility/decoding"
+      },
+      {
+        "width": 390,
+        "checkpoints": 9,
+        "chapterOwner": "geometry",
+        "navigation": "geometry/visibility/decoding"
+      }
+    ],
+    "kernelSourceChecks": [
+      {
+        "api": "Vector::lerp",
+        "href": "https://github.com/petrasvestartas/session_rust/blob/main/src/vector.rs"
+      },
+      {
+        "api": "Color::lerp",
+        "href": "https://github.com/petrasvestartas/session_rust/blob/main/src/color.rs"
+      },
+      {
+        "api": "Line::lerp",
+        "href": "https://github.com/petrasvestartas/session_rust/blob/main/src/line.rs"
+      },
+      {
+        "api": "Polyline::resampled",
+        "href": "https://github.com/petrasvestartas/session_rust/blob/main/src/polyline.rs"
+      },
+      {
+        "api": "Polyline::morph",
+        "href": "https://github.com/petrasvestartas/session_rust/blob/main/src/polyline.rs"
+      },
+      {
+        "api": "Xform::interpolate",
+        "href": "https://github.com/petrasvestartas/session_rust/blob/main/src/xform.rs"
+      }
+    ],
+    "footerStamp": "Docs built 2026-11-17 06:52:55 UTC",
+    "capturesCount": 39,
+    "captures": [
+      {
+        "file": "active-eight-of-its-nine-executable-subjects-are-accepted-1280.png",
+        "bytes": 117388,
+        "sha256": "75ba3052c8759b9e2e806bb424f1b42fa24f07667b8ca166c77242f14c93e1db"
+      },
+      {
+        "file": "active-eight-of-its-nine-executable-subjects-are-accepted-390.png",
+        "bytes": 46397,
+        "sha256": "db14e1ca7645f247e52e277510898f1c2089a330552e6fa2b6b8b82f55897543"
+      },
+      {
+        "file": "completion-application-31-pixels-differing-by-three-channel-levels-1280.png",
+        "bytes": 112715,
+        "sha256": "0a3ddb731504297de289ddc38b5db1873e700bd449533a45b7c26d15e8dfacd4"
+      },
+      {
+        "file": "completion-application-31-pixels-differing-by-three-channel-levels-390.png",
+        "bytes": 38194,
+        "sha256": "962807d523a7bbf6ccbd2051d19544ae0c8591dab7f80307688b072a655bbca6"
+      },
+      {
+        "file": "completion-camera-cursor-s-offset-1280.png",
+        "bytes": 113925,
+        "sha256": "eb4a57574815bca2fc630bcca6ce1826cb6cd15ca8c2678c3c6c9856bef24a3a"
+      },
+      {
+        "file": "completion-camera-cursor-s-offset-390.png",
+        "bytes": 45834,
+        "sha256": "7c880b0920e5a348791e85027e6e8779838d8b3930d47beb1d44e928a480931d"
+      },
+      {
+        "file": "completion-camera-fifth-cumulative-subject-is-reviewed-1280.png",
+        "bytes": 128423,
+        "sha256": "798007dbcf345d8eec12817925727b7f551dcf4e64defc25cec655f5956e669d"
+      },
+      {
+        "file": "completion-camera-fifth-cumulative-subject-is-reviewed-390.png",
+        "bytes": 48141,
+        "sha256": "607eddc8612d377705a1dd3d60b201404398f4d8b16a270c2e106f9dcdf53cea"
+      },
+      {
+        "file": "completion-debugging-instanced-frames-match-the-baked-scene-1280.png",
+        "bytes": 127085,
+        "sha256": "429f6533e030466b595fa9fb3f4b4da3f9cdf80fa547587687f94876a2bbefe0"
+      },
+      {
+        "file": "completion-debugging-instanced-frames-match-the-baked-scene-390.png",
+        "bytes": 37859,
+        "sha256": "52cd1d4f2e9c5c551d64584b7fcad0a1f790903b00ec0f47e215a320cde2bfd2"
+      },
+      {
+        "file": "completion-decoding-two-million-object-counter-sums-points-1280.png",
+        "bytes": 124608,
+        "sha256": "c4cb90d0f0f73e7c1cc1ffa4fd94104fa9bf3d96a2db0a6e94f5f4fda2165ab0"
+      },
+      {
+        "file": "completion-decoding-two-million-object-counter-sums-points-390.png",
+        "bytes": 46407,
+        "sha256": "281f9e00cc7a4ad3f5ded2dffdd028ef1105f5479d0d17b2e49af887df5178ba"
+      },
+      {
+        "file": "completion-dock-recorded-windows-intel-webgpu-1280.png",
+        "bytes": 108863,
+        "sha256": "11df811b82fa23b2331bb6f84da37d43e6fcaedfd50497cc98dee344d0a05e58"
+      },
+      {
+        "file": "completion-dock-recorded-windows-intel-webgpu-390.png",
+        "bytes": 42198,
+        "sha256": "9d29779def66b2dd5c5b05560af006438745dc711023c07b2bf7aea393d70f08"
+      },
+      {
+        "file": "completion-documents-moving-one-placement-leaves-the-other-where-it-was-1280.png",
+        "bytes": 131222,
+        "sha256": "7bb5cb7723efaaa6cd823163c3d27bd5c2a5ebb300d2a9a0d20955ff2f900fae"
+      },
+      {
+        "file": "completion-documents-moving-one-placement-leaves-the-other-where-it-was-390.png",
+        "bytes": 41518,
+        "sha256": "0d96ef95c9f860774e3c7c3a54c8532b3bc31739cbceca80ee09ae7b9c8cfbfe"
+      },
+      {
+        "file": "completion-frame-recorded-windows-intel-webgpu-1280.png",
+        "bytes": 125575,
+        "sha256": "ce8de47d5d53b0cc85df1f26ca874f02613fd0bee187d5cf2f25c09e55ee44c1"
+      },
+      {
+        "file": "completion-frame-recorded-windows-intel-webgpu-390.png",
+        "bytes": 43789,
+        "sha256": "096f083ba5869316ae012cca02caa3df43b12de16446db35231b1c4b518e8a12"
+      },
+      {
+        "file": "completion-geometry-13-original-tests-1280.png",
+        "bytes": 130591,
+        "sha256": "9a5902efa6e1ec0f043e992cc0a98ac9bf4c0df76572e9ef8ef9ad480ff87304"
+      },
+      {
+        "file": "completion-geometry-13-original-tests-390.png",
+        "bytes": 44051,
+        "sha256": "04b465ce5b36c73c175a2b8756030356631735b7a9d7cca4944f582c8b9d0efd"
+      },
+      {
+        "file": "completion-mathematics-at-parameter-1280.png",
+        "bytes": 137139,
+        "sha256": "22ad385c89174c801f8f237ff56cf5f58cc07d33781114884bdbd183d877fd05"
+      },
+      {
+        "file": "completion-mathematics-at-parameter-390.png",
+        "bytes": 41750,
+        "sha256": "84a47ba0edd6ddd79393de747eb25a250ded97a00957bd60213ca8c3b52a2bcb"
+      },
+      {
+        "file": "completion-mathematics-object-with-options-1280.png",
+        "bytes": 138065,
+        "sha256": "56cf7a5bc9d305d76560bff632e3e8c77ad6d94fce10e382c9657bd5606d2f5b"
+      },
+      {
+        "file": "completion-mathematics-object-with-options-390.png",
+        "bytes": 46767,
+        "sha256": "621e362d0d99b1d7ae04ef1c92999886c269e88e6abbc3199aa39d5d8342d9be"
+      },
+      {
+        "file": "completion-painting-recorded-windows-intel-webgpu-1280.png",
+        "bytes": 100658,
+        "sha256": "2732f42cfc211b576251c588a248a21cac60da7168b1ee896786e61820420426"
+      },
+      {
+        "file": "completion-painting-recorded-windows-intel-webgpu-390.png",
+        "bytes": 42384,
+        "sha256": "a360aa8a814fd5f14169e246713efd3c20ba3d8af77300aa572b6f2c39744de9"
+      },
+      {
+        "file": "completion-rows-word-following-spacing-carries-the-packed-edge-colour-1280.png",
+        "bytes": 124936,
+        "sha256": "230cd4107d267cd212b84f92e6493c84513167c64c40c31269760f561ec91dd4"
+      },
+      {
+        "file": "completion-rows-word-following-spacing-carries-the-packed-edge-colour-390.png",
+        "bytes": 45552,
+        "sha256": "5ecf8dbfe5d61c78ae69ed900c5a82b3a41269d07bdc04efc4882839fa4d1bf1"
+      },
+      {
+        "file": "completion-visibility-13-test-gpu-run-1280.png",
+        "bytes": 115939,
+        "sha256": "43e570e08e262cd1428eed646666f43b4ce84b0a73cd1879fc8d27437e394763"
+      },
+      {
+        "file": "completion-visibility-13-test-gpu-run-390.png",
+        "bytes": 37700,
+        "sha256": "badd99ce2a8a7636de6f5e2b4d5fc3caa30c0a54032efd861aafdbe73b7c3f0b"
+      },
+      {
+        "file": "course-drawer-390.png",
+        "bytes": 32360,
+        "sha256": "0761b3342966dea1cd67f7c4d43a01786f878fc3fd836740267ada608a6bcdcf"
+      },
+      {
+        "file": "course-home-1280.png",
+        "bytes": 73154,
+        "sha256": "239fb6123d638c8b14c483595190024c9ecc509c86086ad775e56482ee3f611e"
+      },
+      {
+        "file": "course-home-390.png",
+        "bytes": 37725,
+        "sha256": "46d3407d812892ea603a111591531edfa79652f1553050e3ebec8e7a5a682b9d"
+      },
+      {
+        "file": "course-home-chapters-1280.png",
+        "bytes": 62670,
+        "sha256": "f6850f87d4e7c07a39917816370bfff1b72c36b4998962d2665075584b36e1f1"
+      },
+      {
+        "file": "course-home-chapters-390.png",
+        "bytes": 32009,
+        "sha256": "1a7e8ebaaf984e8ee5d947e53f826a7545c4e9b0f8fb1fbb50b4e437864e2c42"
+      },
+      {
+        "file": "release-eight-are-accepted-from-frame-through-decoding-1280.png",
+        "bytes": 83917,
+        "sha256": "89cc188dad283419677060f39c44ee429bb01c42a1e9332e38744470722200f3"
+      },
+      {
+        "file": "release-eight-are-accepted-from-frame-through-decoding-390.png",
+        "bytes": 39953,
+        "sha256": "988212b542d788aaeed56bf2b4cec2466ad5212c4ca2958501239ad83578e36a"
+      },
+      {
+        "file": "stage-scene-stage-reconciliation-receipt-1280.png",
+        "bytes": 128989,
+        "sha256": "ce3e723fe55c729708d5577613016ae5cc8ac78aa1dbf5b84ae31dc750af519a"
+      },
+      {
+        "file": "stage-scene-stage-reconciliation-receipt-390.png",
+        "bytes": 49646,
+        "sha256": "19245d3d09c5b1e27b443f408845f52e794f3e364890752143c4a7b3b16f42b0"
+      }
+    ]
+  },
+  "limitations": [
+    "Documentation layout and link verification do not establish viewer runtime or physical-device acceptance",
+    "Application acceptance remains pending on app::scene::instances::tests::gpu::instanced_frames_match_the_baked_scene (36 passed, 1 failed)"
+  ]
+}

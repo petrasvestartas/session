@@ -1672,11 +1672,11 @@
   {
     "path": "src/app/stage/deck.rs",
     "owner": "mathematics",
-    "sourceSha256": "b4628a578378372cf4cb5558bd45fa6de718f0cb41016622e37846a8be9d01b1",
+    "sourceSha256": "ae3794844e43ef39d4539058c67ef60206ef7078fb3a6e72f2e2f19b4e81256c",
     "explanation": {
       "page": "journey/completion-mathematics.md",
       "heading": "### Deck data and errors",
-      "paragraph": "An index names chapter files. The chapter parser expands short keys and author blocks into actions. It carries the chapter name into errors; playback adds the step context. Unknown names and unsupported TeX must be reported rather than silently dropping the requested content. The overlap check uses laid-out ink bounds, not string lengths."
+      "paragraph": "An index names chapter files. The chapter parser expands short keys and author blocks into actions, merging step-level appearance and alignment options onto both scalar and nested `eq`, `then` and `tex` formula definitions through `object_with_options` without discarding their TeX text. It carries the chapter name into errors; playback adds the step context. Unknown names and unsupported TeX must be reported rather than silently dropping the requested content. The overlap check uses laid-out ink bounds, not string lengths."
     }
   },
   {
@@ -1802,11 +1802,11 @@
   {
     "path": "src/app/stage/paint.rs",
     "owner": "mathematics",
-    "sourceSha256": "be4eb804a3a204bf6393f4942d94849c85c665e09152cebcfb657c4e375d876e",
+    "sourceSha256": "8a06cc62bc4b0b148e70db608835c111e9e6eb39dfdb773ab39cc6a12106adac",
     "explanation": {
       "page": "journey/completion-mathematics.md",
       "heading": "### Frame and letterbox",
-      "paragraph": "The design space is 1600 by 900. An 800 by 800 viewport fits it at half scale, leaving 175 points above and below. `pt` maps authored coordinates into screen points; `slide` reverses that mapping for input. Upright composition gives the scene and column separate mappings. It does not change the formula's authored coordinates."
+      "paragraph": "The design space is 1600 by 900. An 800 by 800 viewport fits it at half scale, leaving 175 points above and below. `pt` maps authored coordinates into screen points; `slide` reverses that mapping for input. Upright composition gives the scene and column separate mappings. It does not change the formula's authored coordinates. At the top left of the slide, `paint.rs` draws the current slide title when present and falls back to the chapter title when the slide title is empty."
     }
   },
   {
@@ -1852,11 +1852,11 @@
   {
     "path": "src/app/stage/tests.rs",
     "owner": "mathematics",
-    "sourceSha256": "54bde7512f9757e27a6cd410768bda421a952921c6b5f70c3d558b5c18b15000",
+    "sourceSha256": "a2153f14a19ddbd6f22133ede0c30a65201938d2fdc44a3c2807262efa82ce63",
     "explanation": {
       "page": "journey/completion-mathematics.md",
       "heading": "### Test the model and its host separately",
-      "paragraph": "`tests.rs` uses the real fonts and shipped chapter files. Its formula tests distinguish math-axis fraction placement, named parts, spaces and unsupported commands. Deck checks replay actions at rest and during playback, inspect layout errors, and exercise matrix filling and theme changes. These assertions test the interpretation of a deck; they do not initialize a browser GPU or establish physical-phone interaction."
+      "paragraph": "`tests.rs` uses the real fonts and shipped chapter files. Its formula tests distinguish math-axis fraction placement, named parts, spaces, nested and scalar `tex`/`eq`/`then` option merging, and unsupported commands. Deck checks replay actions at rest and during playback, inspect layout errors, and exercise matrix filling and theme changes. These assertions test the interpretation of a deck; they do not initialize a browser GPU or establish physical-phone interaction."
     }
   },
   {

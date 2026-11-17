@@ -181,12 +181,26 @@
       "subject": "Eight accepted subjects and browser08 verification",
       "scope": "Frame through decoding accepted within reviewed scope; docs33 (22 tests, active-audit 351 files, strict site) and browser08 (homepage 9-count, subject-owned chapter grouping, geometry-visibility-decoding navigation, UTC footer, 33 personally viewed desktop/upright captures) passed. Application remains pending.",
       "path": "session_viewer/docs/journey/release/completion-eight-subjects-windows-20261117.json"
+    },
+    {
+      "subject": "Stage upstream reconciliation (Rust, wasm, Trunk and WebGPU browser)",
+      "scope": "Merged origin/main (8f35fcb4d) and source30 figures (d5fcbe9e0): 7 stage-containing cumulative wasm checks, mathematics 20/20 native tests (1 ignored), application 19/19 app::stage native tests, Trunk release bundle, and 14 chapter/viewport Chrome 157 Intel Gen-12LP cases (158 forward steps, 32 personally viewed PNGs, 0 overlaps/errors).",
+      "path": "session_viewer/docs/journey/release/completion-stage-reconciliation-windows-20261117.json"
+    },
+    {
+      "subject": "Production baseline reconciliation ledger",
+      "scope": "Reconciles all 103 production/support/example file deltas between pinned planning commit 87f844e41d08ef104fc071d5bc18163ffe9a4353 and merged session/main across cumulative boundaries, include markers, and upstream stage commits while preserving 351-file endpoint parity and 1,298 historical checkpoints.",
+      "path": "session_viewer/docs/journey/release/completion-production-reconciliation-20261117.json"
+    },
+    {
+      "subject": "Reconciled eight-subject site build and browser10 verification",
+      "scope": "docs34 (4035 pins, 22 tooling tests, active-audit 351 files/8 accepted subjects with 20261116 frame/painting and 20261117 mathematics..decoding receipts, teaching 359/359, strict site) and browser10 (39 captures at 1280/390, 6 kernel motion repo links, UTC footer 2026-11-17 06:52:55 UTC); failed cross-origin fetch attempt browser09 preserved.",
+      "path": "session_viewer/docs/journey/release/completion-reconciled-site-windows-20261117.json"
     }
   ],
   "open": [
-    "Application acceptance remains pending: instanced_frames_match_the_baked_scene has 31 turned-scene pixels differing by 3 levels (>2 threshold); viewer behavior and test threshold remain unchanged",
-    "Merge and reconcile 6 upstream origin/main stage commits and 2 reviewed cap-source30 figure commits against pinned destination 87f844e41d08ef104fc071d5bc18163ffe9a4353",
-    "Physical phone/hardware device acceptance remains distinct from desktop WebGPU and 390x844 upright emulation",
+    "Application acceptance remains pending: app::scene::instances::tests::gpu::instanced_frames_match_the_baked_scene has 31 turned-scene pixels differing by 3 levels (>2 threshold); viewer behavior and test threshold remain unchanged per instruction",
+    "Physical phone/hardware device acceptance and full ignored native lifecycle/oracle/WARP suites remain distinct from desktop Intel WebGPU and 390x844 upright emulation",
     "Original byte-exact archive comparison remains failed: component JSON serialization and schema-defined Mesh map ordering differ; separate selected-value comparison passes without changing the serializer"
   ]
 }

@@ -44,7 +44,7 @@ Type the coordinate mapping in [paint.rs](code/03a-mathematics-cumulative-18-pai
 --8<-- "journey/code/03a-mathematics-cumulative-18-paint.rs:frame"
 ```
 
-The design space is 1600 by 900. An 800 by 800 viewport fits it at half scale, leaving 175 points above and below. `pt` maps authored coordinates into screen points; `slide` reverses that mapping for input. Upright composition gives the scene and column separate mappings. It does not change the formula's authored coordinates.
+The design space is 1600 by 900. An 800 by 800 viewport fits it at half scale, leaving 175 points above and below. `pt` maps authored coordinates into screen points; `slide` reverses that mapping for input. Upright composition gives the scene and column separate mappings. It does not change the formula's authored coordinates. At the top left of the slide, `paint.rs` draws the current slide title when present and falls back to the chapter title when the slide title is empty.
 
 ### Font metrics and TeX
 
@@ -220,7 +220,7 @@ Copy [deck.rs](code/03a-mathematics-cumulative-5-deck.rs), [eval.rs](code/03a-ma
 --8<-- "journey/code/03a-mathematics-cumulative-5-deck.rs:schema"
 ```
 
-An index names chapter files. The chapter parser expands short keys and author blocks into actions. It carries the chapter name into errors; playback adds the step context. Unknown names and unsupported TeX must be reported rather than silently dropping the requested content. The overlap check uses laid-out ink bounds, not string lengths.
+An index names chapter files. The chapter parser expands short keys and author blocks into actions, merging step-level appearance and alignment options onto both scalar and nested `eq`, `then` and `tex` formula definitions through `object_with_options` without discarding their TeX text. It carries the chapter name into errors; playback adds the step context. Unknown names and unsupported TeX must be reported rather than silently dropping the requested content. The overlap check uses laid-out ink bounds, not string lengths.
 
 `eval.rs` reads expressions with recursive descent: `expr` handles addition, `term` handles multiplication, and `factor` handles literals, names, vectors and grouping. The `Val` enum distinguishes a scalar from a three-component vector. Addition requires matching kinds; multiplication permits scaling a vector by a scalar but rejects multiplying two points. `Points` supplies named values without coupling evaluation to a GPU scene. Predict `(a+b)/2` for two named points, then try `a+2`: the first is their midpoint, while the second reports incompatible kinds.
 
@@ -252,7 +252,7 @@ The action stream constructs every state, including removed objects and named gr
 
 ### Test the model and its host separately
 
-`tests.rs` uses the real fonts and shipped chapter files. Its formula tests distinguish math-axis fraction placement, named parts, spaces and unsupported commands. Deck checks replay actions at rest and during playback, inspect layout errors, and exercise matrix filling and theme changes. These assertions test the interpretation of a deck; they do not initialize a browser GPU or establish physical-phone interaction.
+`tests.rs` uses the real fonts and shipped chapter files. Its formula tests distinguish math-axis fraction placement, named parts, spaces, nested and scalar `tex`/`eq`/`then` option merging, and unsupported commands. Deck checks replay actions at rest and during playback, inspect layout errors, and exercise matrix filling and theme changes. These assertions test the interpretation of a deck; they do not initialize a browser GPU or establish physical-phone interaction.
 
 `presentation_tests.rs` supplies pictures and a minimal chapter to the same `Presentation` constructor. It checks picture order and aspect ratios, reversible frame coordinates at desktop/upright sizes, and a second settled egui frame that still contains shapes without requesting another repaint. The mode test uses an integer host and verifies it stays unchanged through navigation and theme changes. That last assertion demonstrates why mathematical playback can finish before scene integration exists.
 
@@ -260,6 +260,6 @@ The action stream constructs every state, including removed objects and named gr
 
 The 41-file partial project passes its locked wasm Cargo check. The cumulative tooling tests retain every earlier implementation unchanged and check that actual production source is used. The complete viewer also passes native and default/tutorial wasm typechecks after the dependency extraction.
 
-The previous [standalone mathematics evidence](../lessons/03a-math/full-browser-evidence.json) and [earlier cumulative evidence](release/cumulative-mathematics-registration-windows-20261114.json) retain their own source scope. They do not establish acceptance for this new assembly. The new linked bundle passes all four visible steps, exact backward reconstruction, theme round trips and slide navigation at desktop and upright dimensions; the native candidate suite passes 19 tests with one GPU-dependent test ignored.
+The previous [standalone mathematics evidence](../lessons/03a-math/full-browser-evidence.json) and [earlier cumulative evidence](release/cumulative-mathematics-registration-windows-20261114.json) retain their own source scope. They do not establish acceptance for this new assembly. The linked bundle passes all four visible steps, exact backward reconstruction, theme round trips and slide navigation at desktop and upright dimensions; the native candidate suite passes 20 tests with one GPU-dependent test ignored, as re-verified after upstream stage option and slide-heading updates in [the stage reconciliation receipt](release/completion-stage-reconciliation-windows-20261117.json).
 
 The [current interaction receipt](release/completion-partials-windows-20261115.json) records Chrome 157 and the Intel Gen-12LP adapter. Upright viewport emulation is not a physical-phone test, and these checks do not accept the remaining cumulative course.

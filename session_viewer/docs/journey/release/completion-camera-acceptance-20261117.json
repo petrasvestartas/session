@@ -1,0 +1,120 @@
+{
+  "status": "accepted",
+  "subject": "camera",
+  "scope": "Cumulative camera subject; recorded native/wasm and Windows Intel desktop/upright interactions only",
+  "destination": "87f844e41d08ef104fc071d5bc18163ffe9a4353",
+  "files": {
+    "src/engine/gpu/device.rs": "ced1cff229cd47c5cc3de6d7713b7049ce2181cac444226bd27053b397774a20",
+    "src/app/launch.rs": "f1bdd451838790b61b9a52ea2aaa3097bf7f68b5721fd7d7ca633ca3c915b5c9",
+    "examples/course/canvas.rs": "9c542080ed079fa6734fa0d81a5991fdb6cb7e443f2b5324638ab11456311b63",
+    "examples/course/frame.rs": "916fb538f088d1d28783559a7955f463c7b2650ac2d7d0184eeec12158aae787",
+    "examples/course/entry.rs": "f57ce9f8b4ded8cee3b213c075e031cce236988de352b7f9d0c87cba9ffb1b6d",
+    "src/lib.rs": "496f1afd22d38c8521855e5116e0f8a98eb7c5b881cf374c596b65aefa24f0d4",
+    "src/engine/mod.rs": "d85682a3e4d80e225660f76129d3b93dfa99f6c953f2b4b1470d253c702e99e2",
+    "src/app/mod.rs": "6fdb9083e31fb78cddaa8cbca0b23a8521efe9441f1891a7878999be70224d09",
+    "src/engine/gpu/mod.rs": "42031767e9491cc27bf7fe65137ecc9d82b7a3a48b158ad36d51c34c6b5796bc",
+    "examples/course/registration.rs": "a5ba80fdbdb26aff24d074f4fc2a73cba5b1b315f6e675d933d47d6a70165c37",
+    "src/engine/gpu/ui.rs": "bcd2014f8a5c3cefae45889453d46c4d8080fe3885e2d2edaad1b294696907b2",
+    "examples/course/painting.rs": "d57c027f79370d3acce115da2b43aca2511c72421b4cd7f3cfb21c6a299749eb",
+    "src/app/mode.rs": "f17428ca405925e878ae6a19e6cd20955b51c46161a743abaa0ea4ccb20ad776",
+    "src/app/stage/actions.rs": "b5ce046152cd3795108f9a252b80c36ddfe8c7feb1c34bd9144c8d356851464b",
+    "src/app/stage/check.rs": "af16790646943f02d4a57f6c7104578455adf480eed6932836336b9a3f9ff93d",
+    "src/app/stage/deck.rs": "ae3794844e43ef39d4539058c67ef60206ef7078fb3a6e72f2e2f19b4e81256c",
+    "src/app/stage/draw.rs": "e0c095450c0fee8659a577be4fa41dff8609b81745ac4801a2f49ecb216ec43b",
+    "src/app/stage/eval.rs": "32d9122344a1b35e78050095f402d7651f2c88cdf3e78d2d75e5312bd19b1f21",
+    "src/app/stage/font.rs": "6645dbf2bedf6d3d372da3f8acf2b018bea725d89fa0291b7d62ffd8c17c500c",
+    "src/app/stage/geometry.rs": "8cf47a513ba7e62566d483960658b77c6af9ecd0b4c0c1eec00a9471ba71bc3f",
+    "src/app/stage/layout.rs": "4ebcd476d756971c9a613bc17f998a07b4bbfde1a4d851a6796259e47478c748",
+    "src/app/stage/matrix.rs": "a478d50c41e1eb4966562107235664ee797f5567423aaa1bfccb0427544b55fd",
+    "src/app/stage/math_mode.rs": "c2f4202757d8be7f9496b3e3e992c19851a0b342c8d9dee74604ce23d812e33e",
+    "src/app/stage/morph.rs": "630f4c05c1becb397e9ca42a5f7a51a2db8329a56e648088c1d7ce613cab090d",
+    "src/app/stage/net.rs": "ed05913412f3f89692c644cebefccb4267415e45fb883c03ad0e1097edb788a8",
+    "src/app/stage/object.rs": "49ba380ec63351e3db9c8dd65c0680e0c09dc7494fcb02815df8c909c8eaefc6",
+    "src/app/stage/paint.rs": "8a06cc62bc4b0b148e70db608835c111e9e6eb39dfdb773ab39cc6a12106adac",
+    "src/app/stage/presentation.rs": "a8ecbd44d4090efa0e5de8bd0fd131dd6e1ea4b8410f5e182a125b7228906158",
+    "src/app/stage/presentation_tests.rs": "bb48da53f3314e5b173d8e7ff8ac7e4671143d9f5277dee03473f3bf0835a28e",
+    "src/app/stage/run.rs": "92501f32ea13bebed0f35006be924709a1c719e803343886c0bf476ffcbf266a",
+    "src/app/stage/tests.rs": "a2153f14a19ddbd6f22133ede0c30a65201938d2fdc44a3c2807262efa82ce63",
+    "src/app/stage/tex.rs": "de2b9d5716171c01ec91111e140b0e20928d981bdf14654f2c3cc3f3542424d3",
+    "src/app/stage/tween.rs": "31f13764cc04bb045a1c6247f3cdceedfcb64734a69bc8531b116ec82b69c3c1",
+    "src/app/stage/view.rs": "25ed3b8aad6f6251f3a7c02fe6f8506bae72eb1eb4c75b299dc7b1642ecda63c",
+    "src/app/stage/mod.rs": "ca1a44b69463af7de517c335825b73a5b61aaaff7a846aec3a243d9c4247dbcc",
+    "examples/course/mathematics.rs": "d81943c4fa1d21b359fe353917ad521d95841b49b8f8319867611045b7517291",
+    "examples/course/index.yaml": "93e66a5f8c5115571bb57d70afcb1a46094652aa88c081bd5f39ae9425297203",
+    "docs/lessons/03a-math/example.yaml": "8df5f57f8a57fb33b47f03f13db3d75c86889202b6fe707b17a769a6d4aa7e0a",
+    "src/command_dock/mod.rs": "a54df69dcadec39f2d03f8f6e99025bd8737184d9ba9a6431f27f300ffe9ca25",
+    "src/command_dock/view.rs": "2b6c7b55d1257a7be5736edd22e69194655b6e14d4dfbffe5c1c01e86456f204",
+    "src/command_dock/theme.rs": "2064473cf413d0be10ca1f71440db34e11912c30893a360f11e446a5ffa2099d",
+    "examples/course/dock.rs": "a727b0b8e691ddcf1b0658f7075afbaaa6d7d94ff7e1adb5ca9f3ef2c2734e03",
+    "src/camera.rs": "76793d7e307fdb36a20148fa0e54e143da9af2fd0245186d37148a3ab26544b9",
+    "examples/course/camera.rs": "dcd25888699330fcf22e4159d58123c0d326dcb73d7d06fbdee7da7a011bac33",
+    "Cargo.toml": "f8527c5e3d3b1323e50dcf25f1f77886975312711ded0549e4b9999b6752f139",
+    "Cargo.lock": "759436e009af2c748678dd0e3c0e5a36848c95c0782e986804bdea72ffb65f93",
+    "index.html": "95892b097daa427fc43bd3da6352de1e199b7f526ed55bd41787eb16e734970c"
+  },
+  "lesson": {
+    "path": "journey/completion-camera.md",
+    "sha256": "fe944162c4fb2c9d7afaed400f6f696319de15e53ed8d33406ef047b06556b28"
+  },
+  "chapters": {},
+  "contractReview": {
+    "goal": "Blue wireframe cube, orbit/projection/fit",
+    "prerequisites": "Frame, painting, mathematics, dock; scene GPU lanes deferred",
+    "design": "Pose derived from orientation, meter/scene conversion, anchored reverse-Z projection, panel lens shift, target-plane cursor zoom, corner-based fit, camera-only egui fixture",
+    "experiment": "Toggle perspective at an oblique orientation and predict converging edges",
+    "answer": "NDC y points up; screen y points down",
+    "checkpoint": "47file independent wasm;33nativePASS1ignored; mouse/keyboard/zoom/projection/fit at1280/390",
+    "correction": "Read ray/zoom_at implementation; corrected lesson and its teaching witness to parallel orthographic rays and algebraic cursor-offset zoom, no implementation change"
+  },
+  "sourceReview": {
+    "subject": "camera",
+    "folder": "completion-camera01/camera",
+    "files": 47,
+    "exact": 47,
+    "markersOnly": 0,
+    "missing": [],
+    "changes": [],
+    "stageReconciliation20261117": {
+      "updatedSharedStageFiles": [
+        "src/app/stage/deck.rs",
+        "src/app/stage/paint.rs",
+        "src/app/stage/tests.rs"
+      ],
+      "receipt": "journey/release/completion-stage-reconciliation-windows-20261117.json"
+    }
+  },
+  "evidence": [
+    {
+      "path": "journey/release/completion-camera-windows-20261115.json",
+      "sha256": "308011bde8c85cd9008f9de62090caed167de1b0dde43e8dd8e4b3e291b4902c"
+    },
+    {
+      "path": "journey/release/completion-four-subjects-windows-20261116.json",
+      "sha256": "3062cd5978ebb1a8de8037c6ae6b1ae52b03a83793fe3f1bc528102dd49159a7"
+    },
+    {
+      "path": "journey/release/completion-camera-root-review-20261116.json",
+      "sha256": "00b5ad7c862753a38205907fba4c859d832d4b02d6c3af8427d0877bbf9c7563"
+    },
+    {
+      "path": "journey/release/completion-stage-reconciliation-windows-20261117.json",
+      "sha256": "4e94fc59ea124772b6cec3aadf262329d99d7b2f43050dea210aeeb0594c0c2b"
+    },
+    {
+      "path": "journey/release/completion-production-reconciliation-20261117.json",
+      "sha256": "d286c2807abcc98c7d1fbff548f10003d067102d2a38a20f487a51b87afd6a93"
+    }
+  ],
+  "validation": [
+    "47file source closure exactly matches independently checked camera project",
+    "33 native tests passed; one GPU-dependent test ignored in recorded suite",
+    "Actual keyboard and mouse orbit, projection round trips, zoom, fit and Home at1280/390",
+    "Corrected ray/zoom explanation rendered in browser07; separate home count finding preserved",
+    "Re-verified on merged session/main (2026-11-17) after upstream stage deck/paint/tests updates: locked wasm check passed, stage native suites passed (20/20 mathematics, 19/19 application stage), and stage browser playback passed"
+  ],
+  "limitations": [
+    "No physical-phone or production GPU-lane acceptance",
+    "Application instance GPU comparison remains failed",
+    "Manifest acceptance requires independent final binding"
+  ]
+}

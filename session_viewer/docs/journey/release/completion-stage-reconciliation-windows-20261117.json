@@ -1,0 +1,511 @@
+{
+  "status": "verified",
+  "date": "2026-11-17",
+  "mergedSessionHead": "51fa83ab7",
+  "upstreamStageHead": "8f35fcb4db9643a9d719366a9c61062621330db8",
+  "scope": "Stage source and deck reconciliation after merging origin/main (8f35fcb4d) and origin/codex/viewer-cap-source30-20261113 (d5fcbe9e0): locked wasm checks on all seven stage-containing cumulative assemblies, native stage tests on mathematics and application, Trunk production build, and Chrome 157 Intel Gen-12LP WebGPU playback at 1280x800 and 390x844; desktop emulation only, no physical-device claim",
+  "reconciledStageSources": {
+    "src/app/stage/deck.rs": {
+      "beforeLfSha256": "b4628a578378372cf4cb5558bd45fa6de718f0cb41016622e37846a8be9d01b1",
+      "afterLfSha256": "ae3794844e43ef39d4539058c67ef60206ef7078fb3a6e72f2e2f19b4e81256c",
+      "summary": "object_with_options and scalar/nested eq, then and tex option merging without losing TeX content"
+    },
+    "src/app/stage/paint.rs": {
+      "beforeLfSha256": "be4eb804a3a204bf6393f4942d94849c85c665e09152cebcfb657c4e375d876e",
+      "afterLfSha256": "8a06cc62bc4b0b148e70db608835c111e9e6eb39dfdb773ab39cc6a12106adac",
+      "summary": "Top-left slide header shows non-empty slide title and falls back to chapter title when empty"
+    },
+    "src/app/stage/tests.rs": {
+      "beforeLfSha256": "54bde7512f9757e27a6cd410768bda421a952921c6b5f70c3d558b5c18b15000",
+      "afterLfSha256": "a2153f14a19ddbd6f22133ede0c30a65201938d2fdc44a3c2807262efa82ce63",
+      "summary": "Adds nested_tex_and_equation_options_keep_their_content unit test"
+    }
+  },
+  "rustAndWasmJob": {
+    "manifest": "session_viewer/target/stage-reconcile-20261117-rust/resources.json",
+    "manifestSha256": "0ef4628224775f4a213a1c7f9be7feabc607f5c0003ef99716d54cd4fdfcc686",
+    "planSha256": "b982a7215c28ebb740bd9fa1f8137bfa13c3a52b6a07397dfc7180d8407ae2b2",
+    "resultSha256": "b77d00eb9c3ab1282944f1cf46b0d5b0ed7888baf0078bed3ca96b354ab69413",
+    "processId": 13416,
+    "exitCode": 0,
+    "elapsedSeconds": 190.623,
+    "peakJobCommitBytes": 1936076800,
+    "affinityMask": "0x300",
+    "postguards": "passed",
+    "pinnedInputsVerified": 2512,
+    "commands": [
+      {
+        "name": "completion-unit-tests",
+        "exitCode": 0,
+        "elapsedSeconds": 0.684
+      },
+      {
+        "name": "mathematics-assemble",
+        "exitCode": 0,
+        "elapsedSeconds": 0.259
+      },
+      {
+        "name": "mathematics-wasm-tutorial",
+        "exitCode": 0,
+        "elapsedSeconds": 9.171
+      },
+      {
+        "name": "dock-assemble",
+        "exitCode": 0,
+        "elapsedSeconds": 0.272
+      },
+      {
+        "name": "dock-wasm-tutorial",
+        "exitCode": 0,
+        "elapsedSeconds": 1.49
+      },
+      {
+        "name": "camera-assemble",
+        "exitCode": 0,
+        "elapsedSeconds": 0.29
+      },
+      {
+        "name": "camera-wasm-tutorial",
+        "exitCode": 0,
+        "elapsedSeconds": 1.643
+      },
+      {
+        "name": "rows-assemble",
+        "exitCode": 0,
+        "elapsedSeconds": 0.265
+      },
+      {
+        "name": "rows-wasm-tutorial",
+        "exitCode": 0,
+        "elapsedSeconds": 2.926
+      },
+      {
+        "name": "geometry-assemble",
+        "exitCode": 0,
+        "elapsedSeconds": 0.308
+      },
+      {
+        "name": "geometry-wasm-tutorial",
+        "exitCode": 0,
+        "elapsedSeconds": 4.972
+      },
+      {
+        "name": "decoding-assemble",
+        "exitCode": 0,
+        "elapsedSeconds": 0.308
+      },
+      {
+        "name": "decoding-wasm-tutorial",
+        "exitCode": 0,
+        "elapsedSeconds": 4.446
+      },
+      {
+        "name": "application-assemble",
+        "exitCode": 0,
+        "elapsedSeconds": 0.399
+      },
+      {
+        "name": "application-wasm-tutorial",
+        "exitCode": 0,
+        "elapsedSeconds": 9.394
+      },
+      {
+        "name": "application-wasm-production",
+        "exitCode": 0,
+        "elapsedSeconds": 5.201
+      },
+      {
+        "name": "mathematics-native-tests",
+        "exitCode": 0,
+        "elapsedSeconds": 23.364
+      },
+      {
+        "name": "application-native-stage-tests",
+        "exitCode": 0,
+        "elapsedSeconds": 29.28
+      },
+      {
+        "name": "application-wasm-release-build",
+        "exitCode": 0,
+        "elapsedSeconds": 80.192
+      },
+      {
+        "name": "application-trunk-production-build",
+        "exitCode": 0,
+        "elapsedSeconds": 6.106
+      }
+    ],
+    "nativeSuites": {
+      "mathematics": {
+        "passed": 20,
+        "failed": 0,
+        "ignored": 1
+      },
+      "applicationStage": {
+        "passed": 19,
+        "failed": 0,
+        "ignored": 0,
+        "filteredOut": 651
+      }
+    }
+  },
+  "browserJob": {
+    "manifest": "session_viewer/target/stage-reconcile-20261117-browser/resources.json",
+    "manifestSha256": "72ace4bb656431c1c1525d2810e8c1b813fc033edc31ca33504d5d1e3fd80407",
+    "resultSha256": "6bd97d6a11d907aec395993f58db7da40b0f71c8e712ca8a47e163ae0aaea547",
+    "processId": 40684,
+    "exitCode": 0,
+    "elapsedSeconds": 96.857,
+    "peakJobCommitBytes": 829812736,
+    "affinityMask": "0x300",
+    "browser": "157.0.8103.79",
+    "adapters": [
+      {
+        "vendor": "intel",
+        "architecture": "gen-12lp",
+        "device": "",
+        "description": ""
+      }
+    ],
+    "cases": [
+      {
+        "deck": "equilibrium",
+        "chapter": 1,
+        "tag": "eq1",
+        "viewport": {
+          "width": 1280,
+          "height": 800
+        },
+        "stepsSettled": 21,
+        "forwardSteps": 19,
+        "frames": [
+          {
+            "file": "eq1-1280-first.png",
+            "sha256": "6dd935fb0e22e977cbae46ae9eedbd9c162daa924e7b83169f28c7e3e1db51cf"
+          },
+          {
+            "file": "eq1-1280-last.png",
+            "sha256": "3dbd5a21b6ff7843cf5e469d307b6cca354d2575f144a766766ea74905755a4d"
+          },
+          {
+            "file": "eq1-1280-back.png",
+            "sha256": "4a1808f48683c302afa690a462d5440f98a227af8c5b24c0b60f59b9bec4003d"
+          },
+          {
+            "file": "eq1-1280-dark.png",
+            "sha256": "16b967417d4c7da713228cb2489fc7a968e89947b7ba1afe5ca36fa5f40bc4a5"
+          }
+        ],
+        "errors": 0,
+        "gpuErrors": 0
+      },
+      {
+        "deck": "equilibrium",
+        "chapter": 1,
+        "tag": "eq1",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "stepsSettled": 21,
+        "forwardSteps": 19,
+        "frames": [
+          {
+            "file": "eq1-390-first.png",
+            "sha256": "967025dcf034863530482d43686cccad783f7df56ac48a8a7bd8a487d9f96548"
+          },
+          {
+            "file": "eq1-390-last.png",
+            "sha256": "bfcc6d2e06e0a233c0502418e7ab4ee626bc9e48181e10c6edd8d7dd0c0745c2"
+          },
+          {
+            "file": "eq1-390-back.png",
+            "sha256": "a31797b55a16ba49349b44b9131cf6e5c33b114e3ee75ee5dfc1d325e6288f7a"
+          },
+          {
+            "file": "eq1-390-dark.png",
+            "sha256": "2e646d8f3460192ab70a419ac63a7cf39aabd708527b021feb96d67eb85902ee"
+          }
+        ],
+        "errors": 0,
+        "gpuErrors": 0
+      },
+      {
+        "deck": "force-density",
+        "chapter": 1,
+        "tag": "fd1",
+        "viewport": {
+          "width": 1280,
+          "height": 800
+        },
+        "stepsSettled": 6,
+        "forwardSteps": 4,
+        "frames": [
+          {
+            "file": "fd1-1280-first.png",
+            "sha256": "498f0b1856b7fae037d579be610ddf3a66f03e12eaa1ce72ded3c3b5d076803a"
+          },
+          {
+            "file": "fd1-1280-last.png",
+            "sha256": "44dff53f7188c52a174b369408a7de07211cef4c9e5f293b3eb45a28750e477a"
+          },
+          {
+            "file": "fd1-1280-back.png",
+            "sha256": "95447ae9961e517bbc6a23d558c9c95a29ac8def353671d819be674badb0b8ee"
+          },
+          {
+            "file": "fd1-1280-dark.png",
+            "sha256": "97d8c80474c2ac20a08072d5f4b2b84f9a9bf92e2fd2b616b09c6c2399f1c8aa"
+          }
+        ],
+        "errors": 0,
+        "gpuErrors": 0
+      },
+      {
+        "deck": "force-density",
+        "chapter": 1,
+        "tag": "fd1",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "stepsSettled": 6,
+        "forwardSteps": 4,
+        "frames": [
+          {
+            "file": "fd1-390-first.png",
+            "sha256": "0f0475fb38998a590956433dac3f0836e5e77b1fff38154c21c33b3aad628c8b"
+          },
+          {
+            "file": "fd1-390-last.png",
+            "sha256": "007715f83ff7330378d5dd3972a99186d03debd2bef02c09395bde7e1f7bf27c"
+          },
+          {
+            "file": "fd1-390-back.png",
+            "sha256": "49a2e7fb2e67e12eb357787136efe55944758295b258800c6d869459892e47bb"
+          },
+          {
+            "file": "fd1-390-dark.png",
+            "sha256": "0e23e191a5bf3b409b6b8cf65820eb6a9b633a6eb08f7e700d4114f71cd61768"
+          }
+        ],
+        "errors": 0,
+        "gpuErrors": 0
+      },
+      {
+        "deck": "force-density",
+        "chapter": 2,
+        "tag": "fd2",
+        "viewport": {
+          "width": 1280,
+          "height": 800
+        },
+        "stepsSettled": 6,
+        "forwardSteps": 4,
+        "frames": [
+          {
+            "file": "fd2-1280-first.png",
+            "sha256": "e7114b6192b363c4134a1879595d8e857db38c26175cac29ba1d9973629d77ab"
+          },
+          {
+            "file": "fd2-1280-last.png",
+            "sha256": "faccd4665ac8cd93184b45b9f16265a333b811fd6d808389e5d723d3687ec158"
+          },
+          {
+            "file": "fd2-1280-back.png",
+            "sha256": "fe5d60d8e7e0fafff7b866894c670d8962975215b0a0119594c6d82359c1fd3c"
+          },
+          {
+            "file": "fd2-1280-dark.png",
+            "sha256": "9bf452eab456727f64e29203527dd095b5731b1dea08220db11254d8e9dc15d4"
+          }
+        ],
+        "errors": 0,
+        "gpuErrors": 0
+      },
+      {
+        "deck": "force-density",
+        "chapter": 2,
+        "tag": "fd2",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "stepsSettled": 6,
+        "forwardSteps": 4,
+        "frames": [
+          {
+            "file": "fd2-390-first.png",
+            "sha256": "dfe6b8eccd501f714a32ed54085717a1c210c0a25b66a11c9e83e11a58c1861d"
+          },
+          {
+            "file": "fd2-390-last.png",
+            "sha256": "83f74658beb256da0e2968ee6d5a189459e32e41bf59da9aada1c4aabb699732"
+          },
+          {
+            "file": "fd2-390-back.png",
+            "sha256": "380a3493f15001195eed6f2c90df95bb35f0b2902ca82e500316090de60795ed"
+          },
+          {
+            "file": "fd2-390-dark.png",
+            "sha256": "685cf1468e4de5830bf318cfb7de429c7b8d45943c940c5adbc8f09211f0373d"
+          }
+        ],
+        "errors": 0,
+        "gpuErrors": 0
+      },
+      {
+        "deck": "force-density",
+        "chapter": 3,
+        "tag": "fd3",
+        "viewport": {
+          "width": 1280,
+          "height": 800
+        },
+        "stepsSettled": 27,
+        "forwardSteps": 25,
+        "frames": [],
+        "errors": 0,
+        "gpuErrors": 0
+      },
+      {
+        "deck": "force-density",
+        "chapter": 3,
+        "tag": "fd3",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "stepsSettled": 27,
+        "forwardSteps": 25,
+        "frames": [],
+        "errors": 0,
+        "gpuErrors": 0
+      },
+      {
+        "deck": "force-density",
+        "chapter": 4,
+        "tag": "fd4",
+        "viewport": {
+          "width": 1280,
+          "height": 800
+        },
+        "stepsSettled": 11,
+        "forwardSteps": 9,
+        "frames": [],
+        "errors": 0,
+        "gpuErrors": 0
+      },
+      {
+        "deck": "force-density",
+        "chapter": 4,
+        "tag": "fd4",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "stepsSettled": 11,
+        "forwardSteps": 9,
+        "frames": [],
+        "errors": 0,
+        "gpuErrors": 0
+      },
+      {
+        "deck": "force-density",
+        "chapter": 5,
+        "tag": "fd5",
+        "viewport": {
+          "width": 1280,
+          "height": 800
+        },
+        "stepsSettled": 9,
+        "forwardSteps": 7,
+        "frames": [],
+        "errors": 0,
+        "gpuErrors": 0
+      },
+      {
+        "deck": "force-density",
+        "chapter": 5,
+        "tag": "fd5",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "stepsSettled": 9,
+        "forwardSteps": 7,
+        "frames": [],
+        "errors": 0,
+        "gpuErrors": 0
+      },
+      {
+        "deck": "force-density-matrices",
+        "chapter": 7,
+        "tag": "fdm7",
+        "viewport": {
+          "width": 1280,
+          "height": 800
+        },
+        "stepsSettled": 13,
+        "forwardSteps": 11,
+        "frames": [
+          {
+            "file": "fdm7-1280-first.png",
+            "sha256": "309311c51110c4afb87da317d8f1a134f55de01a5111f66e0375accef264dba3"
+          },
+          {
+            "file": "fdm7-1280-last.png",
+            "sha256": "f488b5835978edc9837058dc4b783184ada04c5bb8736da8cf66fd5e91832316"
+          },
+          {
+            "file": "fdm7-1280-back.png",
+            "sha256": "8d7854dbe69a85ba47c6bd7a1401981172ae52ce730bce4100eaab02d36659cd"
+          },
+          {
+            "file": "fdm7-1280-dark.png",
+            "sha256": "172445a54882077459602899ed57fcb03f2534c112c7a329e5fc5421adf33012"
+          }
+        ],
+        "errors": 0,
+        "gpuErrors": 0
+      },
+      {
+        "deck": "force-density-matrices",
+        "chapter": 7,
+        "tag": "fdm7",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "stepsSettled": 13,
+        "forwardSteps": 11,
+        "frames": [
+          {
+            "file": "fdm7-390-first.png",
+            "sha256": "a53932f7983bd868e6922c1dcd37b9e3e9c76400bc64a72304fa0557cd8d8827"
+          },
+          {
+            "file": "fdm7-390-last.png",
+            "sha256": "5d73ab0cd985676a7ad22470974c637d64d89b1d3dd34a4d8efa3f8470bde2d2"
+          },
+          {
+            "file": "fdm7-390-back.png",
+            "sha256": "a7f1413cc2a92897622d5a29aa73d37bad555998a4045d16ed4cc84b85957a89"
+          },
+          {
+            "file": "fdm7-390-dark.png",
+            "sha256": "0d82b78ae962456ea43f1691dd0b933941af982ef47269e1b167ec1e0dc8fb00"
+          }
+        ],
+        "errors": 0,
+        "gpuErrors": 0
+      }
+    ],
+    "totalForwardStepsChecked": 158,
+    "capturesVisuallyReviewed": 32
+  },
+  "limitations": [
+    "Desktop Windows Chrome 157 Intel Gen-12LP WebGPU and 390x844 viewport/touch emulation do not establish physical-phone acceptance",
+    "Application GPU instanced_frames_match_the_baked_scene remains failed (36 passed, 1 failed) with viewer behavior and threshold preserved unchanged"
+  ]
+}
