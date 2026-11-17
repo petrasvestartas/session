@@ -61,4 +61,4 @@ slides:
           - fly: {from: 'ULj[3,3]', to: 'JT[0,3]'}
           - color: {target: 'CNTj[0,:]', color: reset}
           - color: {target: 'ULj[3,3]', color: reset, with: true}
-          - {tex: '\Big(\frac{\partial \mathbf{l}}{\partial \mathbf{x}_N}\Big)^{T} = \mathbf{C}_N^{T}\,\mathbf{U}\,\mathbf{L}^{-1}', size: 20, gap: 8, color: yellow}
+          - {tex: '\mathbf{J}^{T} = \Big(\frac{\partial \mathbf{l}}{\partial \mathbf{x}_N}\Big)^{T} = \mathbf{C}_N^{T}\,\mathbf{U}\,\mathbf{L}^{-1} \quad\Longrightarrow\quad \mathbf{J}^{T}\mathbf{f} = \mathbf{C}_N^{T}\,\mathbf{U}\,\mathbf{L}^{-1}\,\mathbf{f} = \mathbf{p}_x', size: 19, gap: 8, color: yellow}

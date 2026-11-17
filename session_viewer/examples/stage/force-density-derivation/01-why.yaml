@@ -2,9 +2,9 @@
 # Open local: http://127.0.0.1:8770/?stage=decks/force-density-derivation/index.yaml&data=off&chapter=1&step=1
 # Open live: https://petrasvestartas.github.io/session/?stage=force-density-derivation&chapter=1&step=1
 
-# Chapter 1: why the linear equilibrium formula and cut-length formula hold, and the derivation roadmap.
+# Chapter 1: why Linkwitz and Schek used the Jacobian (virtual work + geodesy) and the derivation roadmap.
 title: WHY IT WORKS
-split: 0.36
+split: 0.34
 grid: {center: [3.5, 3.5], size: 9, step: 1}
 camera: {yaw: -58, pitch: 26}
 palette: {free: pink}
@@ -31,14 +31,25 @@ slides:
           - eq: {tex: '\mathbf{x}_N &= (\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N)^{-1}\,(\mathbf{p}_x - \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{x}_F)', size: 23, gap: 20}
           - eq: {tex: 'l_{0,k} &= \frac{l_k}{1 + \dfrac{q_k\,l_k}{EA}}', size: 23, gap: 12}
 
+  - title: WHY THE JACOBIAN?
+    steps:
+      - say: 'Virtual work and geodesy turn cable stretches into force balance.'
+        do:
+          - solve: true
+          - {text: '**1. Virtual work:** shift $n_0$ by $\Delta x_0$ so cable stretch work equals load work:', align: left, size: 20, gap: 6}
+          - eq: {tex: 'f_1\,\Delta l_1 + f_2\,\Delta l_2 + f_3\,\Delta l_3 + f_4\,\Delta l_4 &= p_x\,\Delta x_0', size: 21, gap: 10}
+          - {text: '**2. Divide by $\Delta x_0 \to 0$:** length derivatives multiply cable tensions:', align: left, size: 20, gap: 12}
+          - eq: {tex: '\frac{\partial l_1}{\partial x_0}f_1 + \frac{\partial l_2}{\partial x_0}f_2 + \frac{\partial l_3}{\partial x_0}f_3 + \frac{\partial l_4}{\partial x_0}f_4 &= p_x', size: 21, gap: 10}
+          - {text: '**3. Geodesy (Munich 1972):** surveyors pack all $\partial l_k / \partial \mathbf{x}_N$ into Jacobian $\mathbf{J}$:', align: left, size: 20, gap: 12}
+          - eq: {tex: '\mathbf{J}^{T}\,\mathbf{f} &= \mathbf{p}_x', size: 23, gap: 10, color: yellow}
+
   - title: QUESTION AND ROADMAP
     steps:
       - say: 'Cables have square-root lengths, yet five steps make the solve linear.'
         do:
           - eq: {tex: 'l_k = \sqrt{(x_k - x_0)^2 + (y_k - y_0)^2 + (z_k - z_0)^2}', size: 23, gap: 10, color: yellow}
-          - solve: true
           - {text: '**1. Cable length $l_k$:** 3D Pythagoras between free node and anchor', align: left, size: 21, gap: 16}
-          - {text: '**2. Tiny nudge $\partial l_k / \partial x_0$:** square-root derivative without chain rule', align: left, size: 21, gap: 12}
-          - {text: '**3. Jacobian matrix $\mathbf{J}$:** collect all length derivatives into $\mathbf{C}_N^{T}\mathbf{U}\mathbf{L}^{-1}$', align: left, size: 21, gap: 12}
-          - {text: '**4. Force density $\mathbf{q} = \mathbf{L}^{-1}\mathbf{f}$:** eliminate square roots and isolate $\mathbf{x}_N$', align: left, size: 21, gap: 12}
+          - {text: '**2. Tiny nudge $\partial l_k / \partial x_0$:** square-root derivative gives direction cosine', align: left, size: 21, gap: 12}
+          - {text: '**3. Jacobian matrix $\mathbf{J}$:** collect all $\partial l_k / \partial \mathbf{x}_N$ into $\mathbf{C}_N^{T}\mathbf{U}\mathbf{L}^{-1}$', align: left, size: 21, gap: 12}
+          - {text: '**4. Force density $\mathbf{q} = \mathbf{L}^{-1}\mathbf{f}$:** eliminate square roots in $\mathbf{J}^{T}\mathbf{f} = \mathbf{p}_x$', align: left, size: 21, gap: 12}
           - {text: '**5. Materialization $\mathbf{l}_0$:** Hooke''s law from force densities to cut lengths', align: left, size: 21, gap: 12}
