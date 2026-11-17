@@ -103,7 +103,8 @@ fn mathematics_mode_navigates_and_paints_without_a_scene_host() {
     let mode: &mut dyn Mode<usize> = &mut p;
     assert!(!mode.key(Key::Character("unknown"), 125.0));
     assert!(mode.key(Key::Named(NamedKey::ArrowRight), 125.0));
-    let light = mode.background();
+    let before = mode.background();
+    assert_eq!(before, [0.0, 0.0, 0.0, 1.0]);
     for (now, key) in [(10_000.0, None), (20_000.0, Some("t"))] {
         if let Some(key) = key {
             assert!(mode.key(Key::Character(key), now - 1000.0));
@@ -116,7 +117,8 @@ fn mathematics_mode_navigates_and_paints_without_a_scene_host() {
         );
         assert!(!output.shapes.is_empty());
     }
-    assert_ne!(mode.background(), light);
+    assert_ne!(mode.background(), before);
+    assert_eq!(mode.background(), [1.0, 1.0, 1.0, 1.0]);
     assert!(mode.key(Key::Named(NamedKey::ArrowLeft), 20_000.0));
     assert_eq!(host, 42);
     assert_eq!(p.stage.progress().0, 0);

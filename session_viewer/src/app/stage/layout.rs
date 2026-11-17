@@ -123,10 +123,12 @@ impl Stage {
                     if i > 0 {
                         x += gap;
                     }
+                    let width = item.width.map_or(e.w, |w| w as f32);
+                    let offset = x + (width - e.w) / 2.0;
                     let base = out.prims.len();
                     for p in &e.prims {
                         let mut q = *p;
-                        q.x += x;
+                        q.x += offset;
                         if q.color.is_none() {
                             q.color = color;
                         }
@@ -149,7 +151,7 @@ impl Stage {
                     }
                     out.h = out.h.max(e.h);
                     out.d = out.d.max(e.d);
-                    x += e.w;
+                    x += width;
                 }
                 out.w = x;
                 Rc::new(out)

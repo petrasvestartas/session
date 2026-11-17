@@ -3,9 +3,10 @@
 # Open live: https://petrasvestartas.github.io/session/?stage=force-density-matrices&chapter=1&step=1
 
 # Chapter 1: where this presentation is heading, and the givens of the five nodes written as matrices for the first time.
-title: The givens as matrices
+title: FORCE DENSITY MATRICES
 grid: {center: [3.5, 3.5], size: 9, step: 1}
 camera: {yaw: -58, pitch: 26}
+palette: {free: pink}
 net:
   fixed: {n1: [0, 0, 0], n2: [5, 0, 3], n3: [0, 7, 3], n4: [7, 5, 0]}
   free: {n0: [3.6, 3.4, 1.9]}        # drawn at a guess; its true place is the answer
@@ -13,78 +14,19 @@ net:
   q: 1
   load: {n0: [0, 0, -5]}
 slides:
-  - title: The givens as matrices
+  - title: FORCE DENSITY MATRICES
     steps:
-      - say: 'Force density 2: the method of Klaus Linkwitz and Hans-Jörg Schek, Stuttgart, 1971, written with matrices.'
-        row:
-          - {id: linkwitz, image: {src: ../force-density/img/linkwitz.png, height: 6.5}}
-          - '\quad'
-          - {id: schek, image: {src: ../force-density/img/schek.png, height: 6.5}}
-        text: '**Klaus Linkwitz** $\qquad\qquad\qquad$ **Hans-Jörg Schek**'
-
-  - title: Where this presentation is heading
-    steps:
-      - say: 'Presentation 1 solved one free node with plain sums. This one writes them for any number of nodes. It ends in three lines, one per coordinate. Here they are a tool; presentation 3 derives them.'
-        eq: {tex: '\mathbf{x}_N = (\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N)^{-1}\,(\mathbf{p}_x - \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{x}_F)', color: x}
-      - say: 'The same line for $y$ and for $z$.'
+      - say: 'The five-node problem written with matrices.'
+        show: net
         do:
+          - row:
+              - {id: linkwitz, image: {src: ../force-density/img/linkwitz.png, height: 6.5}}
+              - '\quad'
+              - {id: schek, image: {src: ../force-density/img/schek.png, height: 6.5}}
+          - row:
+              - {id: linkwitz.name, text: '**Klaus Linkwitz**', width: 7.7580645161}
+              - '\quad'
+              - {id: schek.name, text: '**Hans-Jörg Schek**', width: 7.5483870968}
+          - eq: {tex: '\mathbf{x}_N = (\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N)^{-1}\,(\mathbf{p}_x - \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{x}_F)', color: x}
           - eq: {tex: '\mathbf{y}_N = (\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N)^{-1}\,(\mathbf{p}_y - \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{y}_F)', color: y}
           - eq: {tex: '\mathbf{z}_N = (\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N)^{-1}\,(\mathbf{p}_z - \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{z}_F)', color: z}
-      - say: 'On the right is what we know, on the left what we want. Every bold letter is an array. This chapter builds the arrays on the right.'
-        do:
-          - text: '**known:** $\mathbf{x}_F$ fixed nodes, $\mathbf{p}$ loads, $\mathbf{C}$ connectivity, $\mathbf{Q}$ force densities'
-          - text: '**wanted:** $\mathbf{x}_N$, $\mathbf{y}_N$, $\mathbf{z}_N$, the free nodes'
-
-  - title: The same five nodes
-    steps:
-      - say: 'The five nodes of presentation 1: fixed nodes $n_1,\dots,n_4$, free node $n_0$, cables $e_0,\dots,e_3$, a load $p$ on $n_0$.'
-        show: net
-      - say: 'Presentation 1 listed the givens as numbers. Here each becomes an array, as a computer needs.'
-        text: 'fixed nodes $\quad$ load $\quad$ connectivity $\quad$ force densities'
-
-  - title: 'Given 1 · the fixed nodes'
-    steps:
-      - say: 'The coordinates of the four fixed nodes, in metres, form the matrix $\mathbf{x}_F$.'
-        do:
-          - matrix: {of: xF, empty: true}
-          - morph: {target: n1.label, label: n1, tex: 'n_1\,(0,\,0,\,0)', dur: 0.6}
-          - morph: {target: n2.label, label: n2, tex: 'n_2\,(5,\,0,\,3)', dur: 0.6, with: true}
-          - morph: {target: n3.label, label: n3, tex: 'n_3\,(0,\,7,\,3)', dur: 0.6, with: true}
-          - morph: {target: n4.label, label: n4, tex: 'n_4\,(7,\,5,\,0)', dur: 0.6, with: true}
-      - say: 'One row per node, one column per axis.'
-        do:
-          - fly: {from: n1.label, to: 'xF[0,:]'}
-          - fly: {from: n2.label, to: 'xF[1,:]', with: true, delay: 0.2}
-          - fly: {from: n3.label, to: 'xF[2,:]', with: true, delay: 0.2}
-          - fly: {from: n4.label, to: 'xF[3,:]', with: true, delay: 0.2}
-          - morph: {target: n1.label, label: n1, tex: 'n_1', dur: 0.5}
-          - morph: {target: n2.label, label: n2, tex: 'n_2', dur: 0.5, with: true}
-          - morph: {target: n3.label, label: n3, tex: 'n_3', dur: 0.5, with: true}
-          - morph: {target: n4.label, label: n4, tex: 'n_4', dur: 0.5, with: true}
-
-  - title: 'Given 2 · the load'
-    steps:
-      - say: 'The load on the free node, 5 kN down, becomes $\mathbf{p}$: one row per free node.'
-        highlight: [load_n0]
-        matrix: p
-
-  - title: 'Given 3 · the connectivity matrix'
-    steps:
-      - say: '$\mathbf{C}$ records which cable joins which nodes: one row per cable, one column per node.'
-        matrix: {of: C, empty: true}
-      - say: 'Cable $e_0$ runs from $n_0$ to $n_1$: $+1$ under $n_0$, $-1$ under $n_1$.'
-        do:
-          - color: {target: e0, color: accent}
-          - show: ['C[0,:]']
-          - color: {target: e0, color: reset}
-      - say: 'The other cables follow the same rule.'
-        show: ['C[1,:]', 'C[2,:]', 'C[3,:]']
-
-  - title: 'Given 4 · the force densities'
-    steps:
-      - say: 'For each cable we choose one number: its force divided by its length.'
-        eq: 'q = \frac{\text{force in the cable}}{\text{length of the cable}}'
-      - say: 'Every cable gets $q = 1$ kN/m: one entry per cable in the column $\mathbf{q}$.'
-        matrix: q
-      - say: 'We know neither the forces nor the lengths. We only fix their ratio, as in presentation 1.'
-        highlight: [q]

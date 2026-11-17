@@ -17,10 +17,11 @@ Keys: **→ / Space** next step, **←** back, **↓ / ↑** next and previous s
 
 ## White and black
 
-A deck plays on white by default, with the ETH Zurich | BRG marks at the bottom right in the ink
+A deck plays on black by default, with the ETH Zurich | BRG marks at the bottom right in the ink
 colour. The slide shows no key hints and no documentation corner; the title and the step's
-sentence are drawn in the ink colour. `theme: dark` in `index.yaml` starts it on black, `&theme=dark` or `&theme=light` in the
-address overrides the deck, and **T** swaps the ground at the same step.
+sentence are drawn in the ink colour. `theme: light` or `theme: dark` in `index.yaml` chooses the
+initial ground, `&theme=dark` or `&theme=light` in the address overrides the deck, and **T** swaps
+the ground at the same step.
 
 Both grounds know the same colour names, so a deck never names a hex colour for one ground only:
 
@@ -124,7 +125,7 @@ Each key is one thing that happens with the sentence. Keys play top to bottom.
 | `code: \|` + indented lines | program text in a monospace face, `#` comments dimmed |
 | `image: img/portrait.png` | a PNG from the deck folder; `image: {src: img/a.png, height: 8}` sets its height in em. Publish pictures with the same `aws s3 sync`, using `--include '*.png' --content-type image/png` and no `--delete` |
 | `matrix: DN` | a matrix of the net by name (table below), or `{rows: [[1, -1], [0, 1]]}` typed by hand |
-| `row: ['\mathbf{u} =', {id: C, matrix: C}, ...]` | formulas and matrices on one line |
+| `row: ['\mathbf{u} =', {id: C, matrix: C}, ...]` | formulas and matrices on one line; an item such as `{text: name, width: 7.75}` is centred in a fixed-width slot (em) |
 | `show: [cables, fixed]` | draws parts of the net: `fixed`, `free`, `cables`, `loads` or `net` (all of it) |
 | `show: forces` | one line per cable of the solved net, blue and thin for a small force, pink and thick for a large one |
 | `solve: true` | moves the free nodes to equilibrium; `solve: {load: [0, 0, 1], q: 2, rim: 6}` solves a changed net |

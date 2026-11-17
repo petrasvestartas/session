@@ -11,7 +11,7 @@ pub const PINNED: &str = "\u{1}picture:";
 pub struct Index {
     pub title: String,
     pub chapters: Vec<String>,
-    pub theme: Option<Theme>, // `theme: light` or `theme: dark`; white when not given.
+    pub theme: Option<Theme>, // `theme: light` or `theme: dark`; black when not given.
 }
 
 /// One chapter file: a 3D scene shared by its slides.
@@ -141,6 +141,7 @@ pub struct RowItem {
     pub id: Option<String>,
     pub content: Content,
     pub color: Option<String>,
+    pub width: Option<f64>, // Fixed slot width in em; content is centred within it.
 }
 
 /// A matrix of rounded cells.
@@ -449,11 +450,13 @@ fn content(m: &Mapping, at: &str, cx: &Cx) -> Result<Content, String> {
                             id: get(im, "id").and_then(text),
                             content: content(im, at, cx)?,
                             color: get(im, "color").and_then(text),
+                            width: get(im, "width").and_then(num),
                         },
                         other => RowItem {
                             id: None,
                             content: Content::Tex(text(other).unwrap_or_default()),
                             color: None,
+                            width: None,
                         },
                     });
                 }
@@ -745,8 +748,8 @@ fn action(v: &Value, at: &str, cx: &mut Cx) -> Result<Action, String> {
 /// The ground of a deck: white or black. Every colour name exists in both.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum Theme {
-    #[default]
     Light,
+    #[default]
     Dark,
 }
 

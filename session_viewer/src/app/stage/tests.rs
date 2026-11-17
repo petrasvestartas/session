@@ -326,6 +326,27 @@ slides:
 }
 
 #[test]
+fn row_items_center_text_in_fixed_width_slots() {
+    let src = "slides: [{title: a, steps: [{row: [{id: left, text: x, width: 4}, {id: right, text: y}]}]}]";
+    let chapter = deck::chapter(src, "row.yaml").unwrap();
+    let index = deck::index("name: t\nchapters: [row.yaml]").unwrap();
+    let mut stage = run::Stage::new(Rc::new(fonts()), index, vec![chapter]);
+    stage.rebuild(0, Some(0));
+    assert!(stage.errors.is_empty(), "{:?}", stage.errors);
+    let row = &stage.objs[0];
+    let first_x = row.groups["left"]
+        .iter()
+        .map(|&i| row.expr.prims[i].x)
+        .fold(f32::INFINITY, f32::min);
+    let second_x = row.groups["right"]
+        .iter()
+        .map(|&i| row.expr.prims[i].x)
+        .fold(f32::INFINITY, f32::min);
+    assert!(first_x > 1.0, "first item is centred: {first_x}");
+    assert!(second_x > 4.0, "second item follows the slot: {second_x}");
+}
+
+#[test]
 fn both_grounds_name_the_same_colours() {
     let light = deck::theme_palette(deck::Theme::Light);
     let dark = deck::theme_palette(deck::Theme::Dark);
@@ -363,12 +384,12 @@ fn the_ground_swaps_at_the_same_step() {
     let (index, chapters) = deck("force-density");
     let mut stage = run::Stage::new(Rc::new(fonts()), index, chapters);
     pictures(&mut stage, "force-density");
-    assert_eq!(stage.theme, deck::Theme::Light);
+    assert_eq!(stage.theme, deck::Theme::Dark);
     stage.rebuild(0, Some(2));
     let before = (stage.chapter, stage.step, stage.objs.len());
-    stage.set_theme(deck::Theme::Dark, 0.0);
-    assert_eq!(stage.palette("bg"), [0.0, 0.0, 0.0, 1.0]);
-    assert_eq!((stage.chapter, stage.step, stage.objs.len()), before);
     stage.set_theme(deck::Theme::Light, 0.0);
     assert_eq!(stage.palette("bg"), [1.0, 1.0, 1.0, 1.0]);
+    assert_eq!((stage.chapter, stage.step, stage.objs.len()), before);
+    stage.set_theme(deck::Theme::Dark, 0.0);
+    assert_eq!(stage.palette("bg"), [0.0, 0.0, 0.0, 1.0]);
 }
