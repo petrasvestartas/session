@@ -90,6 +90,53 @@ fn text_keeps_its_spaces() {
 }
 
 #[test]
+fn nested_tex_and_equation_options_keep_their_content() {
+    let src = r#"
+slides:
+  - title: Load
+    steps:
+      - say: 'What is the force in the cables?'
+        do:
+          - tex: {tex: 'f_1 = \ ?\qquad f_2 = \ ?', align: left}
+      - say: 'The node equilibrium.'
+        eq: {tex: '\mathbf{f}_1 + \mathbf{f}_2 + \mathbf{p} = \mathbf{0}', align: left}
+      - say: 'A scalar equation with options.'
+        eq: 'x = 1'
+        align: left
+        color: x
+      - say: 'A nested follow-up equation.'
+        then: {tex: 'x = 2', align: left}
+      - say: 'A scalar follow-up equation.'
+        then: 'x = 3'
+        align: left
+"#;
+    let chapter = deck::chapter(src, "nested.yaml").unwrap();
+    let expected = [
+        r"f_1 = \ ?\qquad f_2 = \ ?",
+        r"\mathbf{f}_1 + \mathbf{f}_2 + \mathbf{p} = \mathbf{0}",
+        "x = 1",
+        "x = 2",
+        "x = 3",
+    ];
+    for (step, expected) in chapter.slides[0].steps.iter().zip(expected) {
+        let object = match &step.actions.last().unwrap().kind {
+            deck::Kind::Add(objects) => &objects[0],
+            deck::Kind::Derive { obj, .. } => obj,
+            _ => panic!("the step must write a formula"),
+        };
+        let deck::Content::Tex(actual) = &object.content else {
+            panic!("the step must contain TeX");
+        };
+        assert_eq!(actual.as_str(), expected);
+        assert_eq!(object.align.as_deref(), Some("left"));
+    }
+    let deck::Kind::Add(objects) = &chapter.slides[0].steps[2].actions[0].kind else {
+        unreachable!()
+    };
+    assert_eq!(objects[0].color.as_deref(), Some("x"));
+}
+
+#[test]
 fn expressions_resolve_points() {
     struct Named;
     impl super::eval::Points for Named {

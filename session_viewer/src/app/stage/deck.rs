@@ -1285,10 +1285,40 @@ fn act(kind: Kind) -> Action {
     }
 }
 
+fn object_with_options(
+    v: &Value,
+    options: &Mapping,
+    at: &str,
+    cx: &mut Cx,
+) -> Result<ObjSpec, String> {
+    let Value::Mapping(nested) = v else {
+        return object(v, at, cx);
+    };
+    let mut merged = nested.clone();
+    for (key, value) in options {
+        if looks(key, value) {
+            merged.insert(key.clone(), value.clone());
+        }
+    }
+    object(&Value::Mapping(merged), at, cx)
+}
+
 /// An equation written by `eq` or `then`: named `eq<n>` and aligned on its equals sign.
 fn equation(v: &Value, at: &str, cx: &mut Cx) -> Result<ObjSpec, String> {
     let mut o = match v {
-        Value::Mapping(_) => object(v, at, cx)?,
+        Value::Mapping(m) => {
+            if let Some(eq) = get(m, "eq").or_else(|| get(m, "then")) {
+                if eq.is_mapping() {
+                    object_with_options(eq, m, at, cx)?
+                } else {
+                    let mut normalized = m.clone();
+                    normalized.insert(Value::String("tex".into()), eq.clone());
+                    object(&Value::Mapping(normalized), at, cx)?
+                }
+            } else {
+                object(v, at, cx)?
+            }
+        }
         _ => plain(cx.auto(), Content::Tex(text(v).unwrap_or_default())),
     };
     if o.id.starts_with("_auto") {
@@ -1774,12 +1804,12 @@ fn step(m: &Mapping, at: &str, cx: &mut Cx) -> Result<Vec<Action>, String> {
                 }
             }
             "eq" => {
-                let o = equation(v, at, cx)?;
+                let o = equation(&one, at, cx)?;
                 cx.eq = Some(o.id.clone());
                 out.push(act(Kind::Add(vec![o])));
             }
             "then" => {
-                let obj = equation(v, at, cx)?;
+                let obj = equation(&one, at, cx)?;
                 let from = cx.eq.replace(obj.id.clone());
                 let from = from.ok_or_else(|| format!("{at}: no equation before it"))?;
                 out.push(act(Kind::Derive {
@@ -1797,7 +1827,15 @@ fn step(m: &Mapping, at: &str, cx: &mut Cx) -> Result<Vec<Action>, String> {
                     map: Vec::new(),
                 }));
             }
-            "text" | "code" | "image" | "matrix" | "row" | "tex" => {
+            "tex" => {
+                let o = if v.is_mapping() {
+                    object_with_options(v, m, at, cx)?
+                } else {
+                    object(&one, at, cx)?
+                };
+                out.push(act(Kind::Add(vec![o])));
+            }
+            "text" | "code" | "image" | "matrix" | "row" => {
                 out.push(act(Kind::Add(vec![object(&one, at, cx)?])))
             }
             "highlight" => out.push(act(Kind::Indicate(strings(v), None))),
