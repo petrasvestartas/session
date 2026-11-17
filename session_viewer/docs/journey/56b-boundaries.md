@@ -70,15 +70,15 @@ Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving reb
 
 ### Recorded visual result
 
-**Previous native render — current verification pending.**
+**Source31 native image reviewed.**
 
 The blue parametric roof and black domain boundaries remain visible.
 
-![Native renderer output for prove straight and circular shared boundaries.](../screenshots/journey/55g-surface.png)
+![Native presentation at this checkpoint.](../screenshots/journey/56b-boundaries-2336125cd76e.png)
 
-*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
+*Fresh Rust/NVIDIA raw-DPR4 presentation, personally reviewed at 2560 × 1920. Inherited parametric roof presentation with original visible boundaries and correct far-boundary occlusion. This fixture does not draw a BRep row; shared CAD constraints, canonical pixel checks and browser behavior remain separate. Fixed-resolution pixel checks and browser controls require separate acceptance.*
 
-This historical reference image is retained here for the following lessons. It does not establish acceptance of their current source.
+This scene continues [9.1.8 · Draw and pick the original parametric roof](55g-surface.md). This checkpoint was captured independently; its new source behavior requires separate state checks.
 
 <details>
 <summary>Code explanation and diagram</summary>

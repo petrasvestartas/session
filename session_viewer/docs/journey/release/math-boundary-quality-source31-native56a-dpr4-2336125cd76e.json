@@ -1,0 +1,76 @@
+{
+  "preexistingImageReused": false,
+  "publisher": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-native56a-growth2g-case-56a-03\\publish.mjs",
+    "sha256": "c438eba99c1d41c2cf777e3d75b992aafdb8fa6e35d03b806790885b93175f58"
+  },
+  "originalPublisher": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-native56a-growth2g-case-56a-03\\publish-original-template.mjs",
+    "sha256": "05ff6f4a9685265729aa09b58339812e077f199aa95359fa253a6ece046b733b"
+  },
+  "batchCaptureReady": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-native56a-growth2g-case-56a-03\\capture-ready.json",
+    "sha256": "e9410d531c118478a694c06df4d3715046ba344b0f4e703398e3b4d54990f677"
+  },
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-16T06:17:42.590Z",
+  "id": "56a-shared",
+  "lane": "native",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-56a-shared-22080349dcd57e8bda43\\capture.json.gz",
+    "sha256": "05821364ddf2a7bfe2d91078797eae3212906621ee7f03065410b3a9f083683a",
+    "bytes": 110055
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-native56a-growth2g-case-56a-03\\capture-result.json",
+    "sha256": "e5ae4bd4b799ce86f3166ef350241848e3370db1c8d4cb84e16588e27ad1385e"
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-native56a-growth2g-56a-03-execution.json",
+    "sha256": "0b5cd5454002a0c958a71770db5ebf270e1aa448bd277f95a69387af8a949cca"
+  },
+  "boundedTerminal": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-native56a-growth2g-case-56a-03\\bounded-terminal.json",
+    "sha256": "78a5fb6fe77291ee60c1aeebdb00cda4d4fa5a1e6b34b8357775b3e8e5f6492a"
+  },
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-31-stage-aware-native-density.json",
+    "sha256": "7e9980c097467f8f4a60519e63aef9bfdd87122e72179d1f35f1849391ade57a"
+  },
+  "sourceFreezeCoverage": {
+    "matchedFiles": 555,
+    "basis": "Pinned Native wrapper preflight and postflight; live hashes rechecked"
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\56a-shared-2336125cd76e.png",
+    "sha256": "2336125cd76efe41a0418b87dbf27dda53d4f1b922926dea89b31cd62f877a3e"
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\55zc-follow-original-constrained-trim-labels.png",
+    "sha256": "56f6f5a4bf1ac72b0a8d31a78e80b8b4b71881310dca4530ea0dcfcc7a3a3915"
+  },
+  "aliasManifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\image-aliases.json",
+    "sha256": "59a41176fb5daa71125bf02fc487c3fb2edbef2e4a35f20487a21999268affae"
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root personally inspected the original 2560x1920 raw DPR4 PNG. The blue shaded parametric roof patch and visible black boundary segments are readable on white; the central far boundary is correctly occluded. The 55g constructor retains four boundary curves and 64 edge entries; every boundary need not be visible from this isometric camera. No forced hidden black line or early apparent contour was added; contours are introduced later at 63f/63g/63h. Actual fresh Rust compilation and guarded 2 GiB GPU draw with fixture assertions qualify this presentation only; canonical 640-pixel, full-callback and current nine-subject behavior remain separate. The old alias manifest and previous PNG bytes must remain unchanged.",
+  "canonicalBehaviorExecuted": false,
+  "scope": "Source31 56a-shared rawDPR4 image presentation. Actual fixture scope is stated in Rootreview; canonical640pixel/full-unit/browser acceptance remains separate. Original fixedpixel function bodies and oldaliases/pixels retained.",
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-native56a-growth2g-case-56a-03\\publication.json",
+    "sha256": "a164d92b64b26a9a4b3d79593a5b1b345d858ae00064e710f5ae814c44012cf2"
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-56a-shared-22080349dcd57e8bda43\\publication.json",
+    "sha256": "f1afcb56668249df6f5c99877f8278e65ee719a65e8afc22e5002e7fe48e04d2"
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-56a-shared-22080349dcd57e8bda43\\retirement.json.gz",
+    "sha256": "85bffa71bda6e0aa3e2c575e06dae231483aa6b5f496a51de9da059db6f8ea40"
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-56a-shared-22080349dcd57e8bda43\\retired.json",
+    "sha256": "f055c8a8c09817d478b9dda4455cc73d0a50434a53ba08673cd65abbb9ad79b9"
+  }
+}

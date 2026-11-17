@@ -117,6 +117,8 @@ pub fn edge_chains(b: &BRep, fms: &[Mesh]) -> Vec<Option<EdgeChain>> {
 
 ## <a id="checkpoint-56a-shared"></a>2. Mesh incident faces with shared boundary constraints
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/56a-shared-2336125cd76e.png). Native presentation of the inherited parametric roof with visible boundary segments and correct far-boundary occlusion. Constructor and image presentation only; shared CAD meshing, canonical pixel validation and browser interactions remain separate.
+
 ### 1. `src/cad_boundary.rs`
 
 Create the file and type:
@@ -369,6 +371,8 @@ session_rust = { path = "../../../session_rust", default-features = false, featu
 ```
 
 ## <a id="checkpoint-56b-boundaries"></a>3. Prove straight and circular shared boundaries
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/56b-boundaries-2336125cd76e.png). Inherited parametric roof presentation with original visible boundaries and correct far-boundary occlusion. This fixture does not draw a BRep row; shared CAD constraints, canonical pixel checks and browser behavior remain separate.
 
 ### 1. `src/cad_boundary_tests.rs`
 
