@@ -16,7 +16,7 @@ net:
 slides:
   - title: FORCE DENSITY DERIVATION
     steps:
-      - say: 'Where the equilibrium and cut-length formulas come from.'
+      - say: 'Where the equilibrium and cut-length formulas come from?'
         show: net
         do:
           - row:
@@ -46,7 +46,7 @@ slides:
       - say: 'Five steps derive both equilibrium and cable cut lengths.'
         do:
           - {text: '**1. Cable length $l_k$:** 3D Pythagoras between free node and anchor', align: left, size: 22, gap: 14}
-          - {text: '**2. Tiny nudge $\partial l_k / \partial x_0$:** how length changes when $n_0$ moves (6.4.2)', align: left, size: 22, gap: 14}
+          - {text: '**2. Tiny nudge $\partial l_k / \partial x_0$:** how length changes when $n_0$ moves', align: left, size: 22, gap: 14}
           - {text: '**3. Jacobian matrix $\mathbf{J}$:** collect all cable length derivatives into $\mathbf{C}_N^{T}\mathbf{U}\mathbf{L}^{-1}$', align: left, size: 22, gap: 14}
-          - {text: '**4. Force density $\mathbf{q} = \mathbf{L}^{-1}\mathbf{f}$:** eliminate square roots and isolate $\mathbf{x}_N$ (6.4.3)', align: left, size: 22, gap: 14}
-          - {text: '**5. Materialization $\mathbf{l}_0$:** Hooke''s law from force densities to factory cut lengths (6.5)', align: left, size: 22, gap: 14}
+          - {text: '**4. Force density $\mathbf{q} = \mathbf{L}^{-1}\mathbf{f}$:** eliminate square roots and isolate $\mathbf{x}_N$', align: left, size: 22, gap: 14}
+          - {text: '**5. Materialization $\mathbf{l}_0$:** Hooke''s law from force densities to factory cut lengths', align: left, size: 22, gap: 14}

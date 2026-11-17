@@ -2,7 +2,7 @@
 # Open local: http://127.0.0.1:8770/?stage=decks/force-density-derivation/index.yaml&data=off&chapter=3&step=1
 # Open live: https://petrasvestartas.github.io/session/?stage=force-density-derivation&chapter=3&step=1
 
-# Chapter 3: full algebraic derivation of dl_k / dx_0 via a tiny nudge (Steps A-G, no chain rule).
+# Chapter 3: full algebraic derivation of dl_k / dx_0 via a tiny nudge (no chain rule).
 title: LENGTH DERIVATIVE
 grid: {center: [3.5, 3.5], size: 9, step: 1}
 camera: {yaw: -52, pitch: 22, fit: [n0, n1, '[5.4, 3.6, 0.25]']}

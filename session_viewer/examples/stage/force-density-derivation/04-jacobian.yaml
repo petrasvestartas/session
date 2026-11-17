@@ -2,7 +2,7 @@
 # Open local: http://127.0.0.1:8770/?stage=decks/force-density-derivation/index.yaml&data=off&chapter=4&step=1
 # Open live: https://petrasvestartas.github.io/session/?stage=force-density-derivation&chapter=4&step=1
 
-# Chapter 4: Linkwitz (6.22)-(6.24) — what the Jacobian matrix is, and how C_N^T U L^-1 builds it.
+# Chapter 4: what the Jacobian matrix is, and how C_N^T U L^-1 builds it.
 title: JACOBIAN MATRIX
 grid: {center: [3.5, 3.5], size: 9, step: 1}
 camera: {yaw: -58, pitch: 26}
@@ -50,7 +50,7 @@ slides:
 
   - title: JACOBIAN AS MATRIX PRODUCT
     steps:
-      - say: 'Multiplying $\mathbf{C}_N^{T}\,\mathbf{U}\,\mathbf{L}^{-1}$ builds the transposed Jacobian (6.24).'
+      - say: 'Multiplying $\mathbf{C}_N^{T}\,\mathbf{U}\,\mathbf{L}^{-1}$ builds the transposed Jacobian.'
         do:
           - row:
               - '\mathbf{U}\,\mathbf{L}^{-1} ='
@@ -79,4 +79,4 @@ slides:
           - fly: {from: 'ULj[3,3]', to: 'JT[0,3]'}
           - color: {target: 'CNTj[0,:]', color: reset}
           - color: {target: 'ULj[3,3]', color: reset, with: true}
-          - {tex: '\Big(\frac{\partial \mathbf{l}}{\partial \mathbf{x}_N}\Big)^{T} = \mathbf{C}_N^{T}\,\mathbf{U}\,\mathbf{L}^{-1} \qquad (6.24)', size: 23, gap: 14, color: yellow}
+          - {tex: '\Big(\frac{\partial \mathbf{l}}{\partial \mathbf{x}_N}\Big)^{T} = \mathbf{C}_N^{T}\,\mathbf{U}\,\mathbf{L}^{-1}', size: 23, gap: 14, color: yellow}

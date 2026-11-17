@@ -2,7 +2,7 @@
 # Open local: http://127.0.0.1:8770/?stage=decks/force-density-derivation/index.yaml&data=off&chapter=5&step=1
 # Open live: https://petrasvestartas.github.io/session/?stage=force-density-derivation&chapter=5&step=1
 
-# Chapter 5: Linkwitz 6.4.3 (6.25)-(6.33) — equilibrium in matrix form and linearization.
+# Chapter 5: equilibrium in matrix form and linearization.
 title: MATRIX EQUILIBRIUM
 grid: {center: [3.5, 3.5], size: 9, step: 1}
 camera: {yaw: -58, pitch: 26}
@@ -34,18 +34,18 @@ slides:
               - {id: f4, arrow: [n0, 'n0 + 0.5*(n4 - n0)'], color: fixed, width: 3.6, label: 'f_4'}
               - {id: p, arrow: [n0, 'n0 + [0, 0, -2.5]'], color: load, width: 3.6, label: 'p'}
           - add: {id: n0, point: n0, color: free, label: 'n_0'}
-          - eq: {tex: '\frac{u_1}{l_1}f_1 + \frac{u_2}{l_2}f_2 + \frac{u_3}{l_3}f_3 + \frac{u_4}{l_4}f_4 &= p_x \qquad (6.25)', size: 23, gap: 18}
-          - eq: {tex: '\mathbf{C}_N^{T}\,\mathbf{U}\,\mathbf{L}^{-1}\,\mathbf{f} &= \mathbf{p}_x \qquad (6.26)', size: 25, gap: 14}
+          - eq: {tex: '\frac{u_1}{l_1}f_1 + \frac{u_2}{l_2}f_2 + \frac{u_3}{l_3}f_3 + \frac{u_4}{l_4}f_4 &= p_x', size: 23, gap: 18}
+          - eq: {tex: '\mathbf{C}_N^{T}\,\mathbf{U}\,\mathbf{L}^{-1}\,\mathbf{f} &= \mathbf{p}_x', size: 25, gap: 14}
           - {tex: '\text{Nonlinear: unknown }x_0\text{ sits inside both }\mathbf{U}\text{ and the square roots of }\mathbf{L}^{-1}', size: 20, gap: 16, color: pos}
 
   - title: FORCE DENSITY REMOVES LENGTHS
     steps:
       - say: 'Prescribing $\mathbf{q} = \mathbf{L}^{-1}\,\mathbf{f}$ eliminates $\mathbf{L}^{-1}$ and every square root.'
         do:
-          - eq: {tex: '\mathbf{q} = \mathbf{L}^{-1}\,\mathbf{f}, \qquad q_k = \frac{f_k}{l_k} \qquad (6.27)', size: 25, gap: 18, color: yellow}
+          - eq: {tex: '\mathbf{q} = \mathbf{L}^{-1}\,\mathbf{f}, \qquad q_k = \frac{f_k}{l_k}', size: 25, gap: 18, color: yellow}
           - eq: {id: s, tex: '\mathbf{C}_N^{T}\,\mathbf{U}\,{{\mathbf{L}^{-1}\,\mathbf{f}}} = \mathbf{p}_x', size: 27, gap: 20}
           - color: {target: 's{\mathbf{L}^{-1}\,\mathbf{f}}', color: yellow}
-          - morph: {target: s, tex: '\mathbf{C}_N^{T}\,\mathbf{U}\,{{\mathbf{q}}} = \mathbf{p}_x \qquad (6.28)', map: {'\mathbf{L}^{-1}\,\mathbf{f}': '\mathbf{q}'}}
+          - morph: {target: s, tex: '\mathbf{C}_N^{T}\,\mathbf{U}\,{{\mathbf{q}}} = \mathbf{p}_x', map: {'\mathbf{L}^{-1}\,\mathbf{f}': '\mathbf{q}'}}
           - {tex: '\text{Length matrix }\mathbf{L}\text{ is gone: the equilibrium equation is now linear}', size: 21, gap: 18, color: yellow}
 
   - title: THE FACTOR SWAP $\mathbf{U}\,\mathbf{q} = \mathbf{Q}\,\mathbf{u}$
@@ -76,17 +76,17 @@ slides:
     steps:
       - say: 'Substitute $\mathbf{U}\mathbf{q} = \mathbf{Q}\mathbf{C}\mathbf{x}$ and split $\mathbf{C}\mathbf{x}$ into free and fixed parts.'
         do:
-          - eq: {id: e629, tex: '\mathbf{C}_N^{T}\,{{\mathbf{U}\,\mathbf{q}}} &= \mathbf{p}_x', size: 23, gap: 16}
-          - morph: {target: e629, tex: '\mathbf{C}_N^{T}\,{{\mathbf{Q}\,\mathbf{C}\,\mathbf{x}}} &= \mathbf{p}_x \qquad (6.29)', map: {'\mathbf{U}\,\mathbf{q}': '\mathbf{Q}\,\mathbf{C}\,\mathbf{x}'}}
-          - eq: {tex: '\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N\,\mathbf{x}_N + \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{x}_F &= \mathbf{p}_x \qquad (6.30)', size: 23, gap: 14}
-          - eq: {tex: '\underbrace{\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N}_{\mathbf{D}_N}\,\mathbf{x}_N &= \mathbf{p}_x - \underbrace{\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F}_{\mathbf{D}_F}\,\mathbf{x}_F \qquad (6.31)', size: 23, gap: 14}
+          - eq: {id: eq_sub, tex: '\mathbf{C}_N^{T}\,{{\mathbf{U}\,\mathbf{q}}} &= \mathbf{p}_x', size: 23, gap: 16}
+          - morph: {target: eq_sub, tex: '\mathbf{C}_N^{T}\,{{\mathbf{Q}\,\mathbf{C}\,\mathbf{x}}} &= \mathbf{p}_x', map: {'\mathbf{U}\,\mathbf{q}': '\mathbf{Q}\,\mathbf{C}\,\mathbf{x}'}}
+          - eq: {tex: '\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N\,\mathbf{x}_N + \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{x}_F &= \mathbf{p}_x', size: 23, gap: 14}
+          - eq: {tex: '\underbrace{\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N}_{\mathbf{D}_N}\,\mathbf{x}_N &= \mathbf{p}_x - \underbrace{\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F}_{\mathbf{D}_F}\,\mathbf{x}_F', size: 23, gap: 14}
 
   - title: SOLVED MATRIX FORMULA
     steps:
       - say: 'Inverting $\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N$ gives the linear solve along $x$, $y$ and $z$.'
         do:
-          - eq: {tex: '\mathbf{x}_N &= (\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N)^{-1}\,(\mathbf{p}_x - \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{x}_F) \qquad (6.32)', size: 22, gap: 14, color: yellow}
+          - eq: {tex: '\mathbf{x}_N &= (\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N)^{-1}\,(\mathbf{p}_x - \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{x}_F)', size: 22, gap: 14, color: yellow}
           - eq: {tex: '\mathbf{y}_N &= (\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N)^{-1}\,(\mathbf{p}_y - \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{y}_F)', size: 22, gap: 10}
           - eq: {tex: '\mathbf{z}_N &= (\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N)^{-1}\,(\mathbf{p}_z - \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{z}_F)', size: 22, gap: 10}
-          - {tex: '\mathbf{f} = \mathbf{L}\,\mathbf{q} \qquad (6.33)', size: 23, gap: 16, color: pos}
+          - {tex: '\mathbf{f} = \mathbf{L}\,\mathbf{q}', size: 23, gap: 16, color: pos}
           - {tex: '\mathbf{C}_N^{T}\mathbf{U}\mathbf{L}^{-1}\mathbf{f} = \mathbf{p} \;\xrightarrow{\;\mathbf{q} = \mathbf{L}^{-1}\mathbf{f}\;}\; \mathbf{C}_N^{T}\mathbf{U}\mathbf{q} = \mathbf{p} \;\xrightarrow{\;\mathbf{U}\mathbf{q} = \mathbf{Q}\mathbf{C}\mathbf{x}\;}\; (\mathbf{C}_N^{T}\mathbf{Q}\mathbf{C}_N)\,\mathbf{x}_N = \mathbf{p} - \mathbf{C}_N^{T}\mathbf{Q}\mathbf{C}_F\mathbf{x}_F', size: 18, gap: 14}
