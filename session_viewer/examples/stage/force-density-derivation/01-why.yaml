@@ -4,6 +4,7 @@
 
 # Chapter 1: why the linear equilibrium formula and cut-length formula hold, and the derivation roadmap.
 title: WHY IT WORKS
+split: 0.36
 grid: {center: [3.5, 3.5], size: 9, step: 1}
 camera: {yaw: -58, pitch: 26}
 palette: {free: pink}
@@ -30,23 +31,14 @@ slides:
           - eq: {tex: '\mathbf{x}_N &= (\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N)^{-1}\,(\mathbf{p}_x - \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{x}_F)', size: 23, gap: 20}
           - eq: {tex: 'l_{0,k} &= \frac{l_k}{1 + \dfrac{q_k\,l_k}{EA}}', size: 23, gap: 12}
 
-  - title: THE QUESTION
+  - title: QUESTION AND ROADMAP
     steps:
-      - say: 'Cables pull along lengths with square roots, yet the solve is linear.'
+      - say: 'Cables have square-root lengths, yet five steps make the solve linear.'
         do:
-          - eq: {tex: 'l_k = \sqrt{(x_k - x_0)^2 + (y_k - y_0)^2 + (z_k - z_0)^2}', size: 24, gap: 18}
+          - eq: {tex: 'l_k = \sqrt{(x_k - x_0)^2 + (y_k - y_0)^2 + (z_k - z_0)^2}', size: 23, gap: 10, color: yellow}
           - solve: true
-          - text: '**Why do nonlinear lengths and forces turn into one linear matrix solve?**'
-            size: 22
-            gap: 20
-            color: yellow
-
-  - title: DERIVATION ROADMAP
-    steps:
-      - say: 'Five steps derive both equilibrium and cable cut lengths.'
-        do:
-          - {text: '**1. Cable length $l_k$:** 3D Pythagoras between free node and anchor', align: left, size: 22, gap: 14}
-          - {text: '**2. Tiny nudge $\partial l_k / \partial x_0$:** how length changes when $n_0$ moves', align: left, size: 22, gap: 14}
-          - {text: '**3. Jacobian matrix $\mathbf{J}$:** collect all cable length derivatives into $\mathbf{C}_N^{T}\mathbf{U}\mathbf{L}^{-1}$', align: left, size: 22, gap: 14}
-          - {text: '**4. Force density $\mathbf{q} = \mathbf{L}^{-1}\mathbf{f}$:** eliminate square roots and isolate $\mathbf{x}_N$', align: left, size: 22, gap: 14}
-          - {text: '**5. Materialization $\mathbf{l}_0$:** Hooke''s law from force densities to factory cut lengths', align: left, size: 22, gap: 14}
+          - {text: '**1. Cable length $l_k$:** 3D Pythagoras between free node and anchor', align: left, size: 21, gap: 16}
+          - {text: '**2. Tiny nudge $\partial l_k / \partial x_0$:** square-root derivative without chain rule', align: left, size: 21, gap: 12}
+          - {text: '**3. Jacobian matrix $\mathbf{J}$:** collect all length derivatives into $\mathbf{C}_N^{T}\mathbf{U}\mathbf{L}^{-1}$', align: left, size: 21, gap: 12}
+          - {text: '**4. Force density $\mathbf{q} = \mathbf{L}^{-1}\mathbf{f}$:** eliminate square roots and isolate $\mathbf{x}_N$', align: left, size: 21, gap: 12}
+          - {text: '**5. Materialization $\mathbf{l}_0$:** Hooke''s law from force densities to cut lengths', align: left, size: 21, gap: 12}

@@ -2,8 +2,9 @@
 # Open local: http://127.0.0.1:8770/?stage=decks/force-density-derivation/index.yaml&data=off&chapter=3&step=1
 # Open live: https://petrasvestartas.github.io/session/?stage=force-density-derivation&chapter=3&step=1
 
-# Chapter 3: full algebraic derivation of dl_k / dx_0 via a tiny nudge (no chain rule).
+# Chapter 3: full algebraic derivation of dl_k / dx_0 on one single page (no chain rule).
 title: LENGTH DERIVATIVE
+split: 0.28
 grid: {center: [3.5, 3.5], size: 9, step: 1}
 camera: {yaw: -52, pitch: 22, fit: [n0, n1, '[5.4, 3.6, 0.25]']}
 palette: {free: pink}
@@ -15,9 +16,9 @@ points:
   n3: [0, 7, 3]
   n4: [7, 5, 0]
 slides:
-  - title: SQUARE AND SHIFT
+  - title: SQUARE ROOT DERIVATION
     steps:
-      - say: 'Square both sides to clear the root, then shift $x_0$ to $x_0 + \Delta x_0$.'
+      - say: 'Square $l_k$, shift $x_0$, expand, cancel, and divide by $2\,l_k\,\Delta x_0$.'
         do:
           - add:
               - {id: o2, point: n2, color: fixed, opacity: 0.25}
@@ -29,47 +30,22 @@ slides:
               - {id: k, line: [X, n1], label: 'l_k', width: 3.6}
               - {id: nk, point: n1, color: fixed, label: 'n_k'}
               - {id: n0, point: X, color: free, label: 'n_0'}
-            dur: 0.8
-          - eq: 'l_k = \sqrt{(x_k - x_0)^2 + (y_k - y_0)^2 + (z_k - z_0)^2}'
-          - becomes: 'l_k^2 = (x_k - x_0)^2 + (y_k - y_0)^2 + (z_k - z_0)^2'
-      - say: 'Square both sides to clear the root, then shift $x_0$ to $x_0 + \Delta x_0$.'
-        then: {id: B, tex: '(l_k + \Delta l_k)^2 = \big(x_k - (x_0 + \Delta x_0)\big)^2 + (y_k - y_0)^2 + (z_k - z_0)^2'}
-        highlight: [B]
-
-  - title: EXPAND BOTH SIDES
-    steps:
-      - say: 'Expand $(a \pm b)^2$ on both sides and drop tiny $(\Delta l_k)^2$ and $(\Delta x_0)^2$.'
+            dur: 0.6
+          - eq: {tex: 'l_k &= \sqrt{(x_k - x_0)^2 + (y_k - y_0)^2 + (z_k - z_0)^2}', size: 18, gap: 2}
+          - eq: {tex: 'l_k^2 &= (x_k - x_0)^2 + (y_k - y_0)^2 + (z_k - z_0)^2', size: 18, gap: 8}
+          - eq: {tex: '(l_k + \Delta l_k)^2 &= \big(x_k - (x_0 + \Delta x_0)\big)^2 + (y_k - y_0)^2 + (z_k - z_0)^2', size: 18, gap: 8}
+          - eq: {tex: '(l_k + \Delta l_k)^2 &= \big((x_k - x_0) - \Delta x_0\big)^2 + (y_k - y_0)^2 + (z_k - z_0)^2', size: 18, gap: 8}
+      - say: 'Square $l_k$, shift $x_0$, expand, cancel, and divide by $2\,l_k\,\Delta x_0$.'
         do:
-          - eq: '(l_k + \Delta l_k)^2 = l_k^2 + 2\,l_k\,\Delta l_k + (\Delta l_k)^2'
-          - becomes: '(l_k + \Delta l_k)^2 = l_k^2 + 2\,l_k\,\Delta l_k + \cancel{(\Delta l_k)^2}'
-          - becomes: '(l_k + \Delta l_k)^2 \approx l_k^2 + 2\,l_k\,\Delta l_k'
-      - say: 'Expand $(a \pm b)^2$ on both sides and drop tiny $(\Delta l_k)^2$ and $(\Delta x_0)^2$.'
+          - eq: {tex: 'l_k^2 + 2\,l_k\,\Delta l_k + \cancel{(\Delta l_k)^2} &= (x_k - x_0)^2 - 2\,(x_k - x_0)\,\Delta x_0 + \cancel{(\Delta x_0)^2} + (y_k - y_0)^2 + (z_k - z_0)^2', size: 18, gap: 8}
+      - say: 'Square $l_k$, shift $x_0$, expand, cancel, and divide by $2\,l_k\,\Delta x_0$.'
         do:
-          - eq: '\big(x_k - (x_0 + \Delta x_0)\big)^2 = \big((x_k - x_0) - \Delta x_0\big)^2'
-          - then: '\big((x_k - x_0) - \Delta x_0\big)^2 = (x_k - x_0)^2 - 2\,(x_k - x_0)\,\Delta x_0 + (\Delta x_0)^2'
-          - becomes: '\big((x_k - x_0) - \Delta x_0\big)^2 = (x_k - x_0)^2 - 2\,(x_k - x_0)\,\Delta x_0 + \cancel{(\Delta x_0)^2}'
-          - becomes: '\big((x_k - x_0) - \Delta x_0\big)^2 \approx (x_k - x_0)^2 - 2\,(x_k - x_0)\,\Delta x_0'
-
-  - title: SUBTRACT AND DIVIDE
-    steps:
-      - say: 'Subtract the original $l_k^2$ equation and divide by $2\,l_k\,\Delta x_0$.'
+          - eq: {tex: '\cancel{l_k^2} + 2\,l_k\,\Delta l_k &= \cancel{(x_k - x_0)^2} - 2\,(x_k - x_0)\,\Delta x_0 + \cancel{(y_k - y_0)^2} + \cancel{(z_k - z_0)^2}', size: 18, gap: 8}
+          - eq: {tex: '2\,l_k\,\Delta l_k &= -2\,(x_k - x_0)\,\Delta x_0', size: 18, gap: 8}
+          - eq: {tex: '\frac{\Delta l_k}{\Delta x_0} &= \frac{-\cancel{2}\,(x_k - x_0)\,\cancel{\Delta x_0}}{\cancel{2}\,l_k\,\cancel{\Delta x_0}} = \frac{-(x_k - x_0)}{l_k}', size: 19, gap: 8}
+      - say: 'Square $l_k$, shift $x_0$, expand, cancel, and divide by $2\,l_k\,\Delta x_0$.'
         do:
-          - eq: 'l_k^2 + 2\,l_k\,\Delta l_k = (x_k - x_0)^2 - 2\,(x_k - x_0)\,\Delta x_0 + (y_k - y_0)^2 + (z_k - z_0)^2'
-          - becomes: '\cancel{l_k^2} + 2\,l_k\,\Delta l_k = \cancel{(x_k - x_0)^2} - 2\,(x_k - x_0)\,\Delta x_0 + \cancel{(y_k - y_0)^2} + \cancel{(z_k - z_0)^2}'
-          - becomes: '2\,l_k\,\Delta l_k = -2\,(x_k - x_0)\,\Delta x_0'
-      - say: 'Subtract the original $l_k^2$ equation and divide by $2\,l_k\,\Delta x_0$.'
-        do:
-          - eq: '\frac{\Delta l_k}{\Delta x_0} = \frac{-2\,(x_k - x_0)\,\Delta x_0}{2\,l_k\,\Delta x_0}'
-          - becomes: '\frac{\Delta l_k}{\Delta x_0} = \frac{-\cancel{2}\,(x_k - x_0)\,\cancel{\Delta x_0}}{\cancel{2}\,l_k\,\cancel{\Delta x_0}}'
-          - becomes: '\frac{\Delta l_k}{\Delta x_0} = \frac{-(x_k - x_0)}{l_k}'
-          - eq: {id: R, tex: '\frac{\partial l_k}{\partial x_0} = \frac{-(x_k - x_0)}{l_k} = \frac{x_0 - x_k}{l_k}', color: yellow}
-
-  - title: DIRECTION COSINE
-    steps:
-      - say: 'Geometrically, $\partial l_k / \partial x_0$ is the cable direction cosine along $x$.'
-        do:
-          - {tex: '\frac{\partial l_k}{\partial x_0} = \frac{x_0 - x_k}{l_k} = \frac{u_k}{l_k} = \cos\alpha_k', size: 26, color: yellow}
           - add: {id: unit, arrow: [n0, 'n0 + (n0 - n1)/len(n0, n1)*1.6'], color: yellow, width: 3.6}
           - derive: {from: unit, id: unitx, arrow: [n0, 'n0 + [(x(n0) - x(n1))/len(n0, n1)*1.6, 0, 0]'], color: x, width: 3.6}
-          - eq: {id: m2, tex: '\text{Cable }e_0:\quad \frac{\partial l_1}{\partial x_0} = \frac{3 - 0}{4.250} = \textcolor{pos}{+0.706}', size: 24, gap: 18}
+          - eq: {tex: '\frac{\partial l_k}{\partial x_0} &= \frac{x_0 - x_k}{l_k} = \frac{u_k}{l_k} = \cos\alpha_k \qquad \Big(e_0:\;\frac{3 - 0}{4.250} = \textcolor{pos}{+0.706}\Big)', size: 19, gap: 8, color: yellow}
           - highlight: [unitx]

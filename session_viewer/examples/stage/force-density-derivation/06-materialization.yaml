@@ -2,8 +2,9 @@
 # Open local: http://127.0.0.1:8770/?stage=decks/force-density-derivation/index.yaml&data=off&chapter=6&step=1
 # Open live: https://petrasvestartas.github.io/session/?stage=force-density-derivation&chapter=6&step=1
 
-# Chapter 6: full derivation of materialization and cable cut lengths.
+# Chapter 6: full derivation of materialization and cable cut lengths on one page.
 title: MATERIALIZATION DERIVATION
+split: 0.28
 grid: {center: [3.5, 3.5], size: 9, step: 1}
 camera: {yaw: -58, pitch: 26}
 palette: {free: pink}
@@ -14,27 +15,18 @@ net:
   q: 1
   load: {n0: [0, 0, -5]}
 slides:
-  - title: HOOKE LAW
+  - title: HOOKE LAW TO CUT LENGTHS
     steps:
-      - say: 'Axial stiffness $EA_k / l_{0,k}$ links cable force $f_k$ to stretch $\Delta l_k$.'
+      - say: 'Hooke''s law links stretch to $\mathbf{q}$ and isolates every cut length $l_{0,k}$.'
         show: net
         do:
-          - eq: {tex: 'f_k = \frac{EA_k}{l_{0,k}}\cdot\Delta l_k \quad\Longrightarrow\quad \Delta l_k = l_k - l_{0,k} = \frac{f_k\,l_{0,k}}{EA_k}', size: 24, gap: 18}
-          - eq: {tex: '\Delta\mathbf{l} = \mathbf{l} - \mathbf{l}_0 = \mathbf{L}_0\,(\mathbf{EA})^{-1}\,\mathbf{f} = \mathbf{L}_0\,(\mathbf{EA})^{-1}\,\mathbf{L}\,\mathbf{q}', size: 22, gap: 18}
-          - {tex: '\Delta\mathbf{l}\text{: stretch},\quad \mathbf{l}\text{: stretched length},\quad \mathbf{l}_0\text{: cut length},\quad E\text{: Young modulus},\quad A\text{: area}', size: 19, gap: 16, color: dim}
-
-  - title: FORCE DENSITY FROM MATERIAL
-    steps:
-      - say: 'Solving Hooke''s law for $\mathbf{q}$ links force density to stretch.'
+          - eq: {tex: 'f_k &= \frac{EA_k}{l_{0,k}}\,\Delta l_k \quad\Longrightarrow\quad \Delta l_k = l_k - l_{0,k} = \frac{f_k\,l_{0,k}}{EA_k}', size: 19, gap: 4}
+          - eq: {tex: '\Delta\mathbf{l} &= \mathbf{l} - \mathbf{l}_0 = \mathbf{L}_0\,(\mathbf{EA})^{-1}\,\mathbf{f} = \mathbf{L}_0\,(\mathbf{EA})^{-1}\,\mathbf{L}\,\mathbf{q}', size: 19, gap: 10}
+      - say: 'Hooke''s law links stretch to $\mathbf{q}$ and isolates every cut length $l_{0,k}$.'
         do:
-          - eq: {tex: '\mathbf{q} &= (\mathbf{EA})\,\mathbf{L}_0^{-1}\,\mathbf{L}^{-1}\,\Delta\mathbf{l}', size: 25, gap: 20}
-          - eq: {id: qk, tex: 'q_k &= \frac{\Delta l_k\,EA_k}{l_{0,k}\,l_k} = \frac{\big(EA_k\,\Delta l_k / l_{0,k}\big)}{l_k} = \frac{f_k}{l_k}', size: 25, gap: 18, color: yellow}
-          - {indicate: [qk], color: yellow}
-
-  - title: CUT LENGTHS IN MATRIX FORM
-    steps:
-      - say: 'Factoring out $\mathbf{l}_0$ and inverting gives every cable cut length.'
+          - eq: {tex: '\mathbf{q} &= (\mathbf{EA})\,\mathbf{L}_0^{-1}\,\mathbf{L}^{-1}\,\Delta\mathbf{l}, \qquad q_k = \frac{\Delta l_k\,EA_k}{l_{0,k}\,l_k} = \frac{f_k}{l_k}', size: 19, gap: 10}
+      - say: 'Hooke''s law links stretch to $\mathbf{q}$ and isolates every cut length $l_{0,k}$.'
         do:
-          - eq: {tex: '\mathbf{l} &= \mathbf{l}_0 + \mathbf{L}_0\,(\mathbf{EA})^{-1}\,\mathbf{f} = \big(\mathbf{I} + (\mathbf{EA})^{-1}\,\mathbf{F}\big)\,\mathbf{l}_0', size: 22, gap: 16}
-          - eq: {tex: '\mathbf{l}_0 &= \big(\mathbf{I} + (\mathbf{EA})^{-1}\,\mathbf{F}\big)^{-1}\,\mathbf{l} = \big(\mathbf{I} + (\mathbf{EA})^{-1}\,\mathbf{Q}\,\mathbf{L}\big)^{-1}\,\mathbf{l}', size: 22, gap: 14}
-          - eq: {tex: 'l_{0,k} &= \frac{l_k}{1 + \dfrac{f_k}{EA_k}} = \frac{l_k}{1 + \dfrac{q_k\,l_k}{EA_k}}', size: 25, gap: 16, color: yellow}
+          - eq: {tex: '\mathbf{l} &= \mathbf{l}_0 + \mathbf{L}_0\,(\mathbf{EA})^{-1}\,\mathbf{f} = \big(\mathbf{I} + (\mathbf{EA})^{-1}\,\mathbf{F}\big)\,\mathbf{l}_0', size: 19, gap: 10}
+          - eq: {tex: '\mathbf{l}_0 &= \big(\mathbf{I} + (\mathbf{EA})^{-1}\,\mathbf{Q}\,\mathbf{L}\big)^{-1}\,\mathbf{l}, \qquad l_{0,k} = \frac{l_k}{1 + \dfrac{f_k}{EA_k}} = \frac{l_k}{1 + \dfrac{q_k\,l_k}{EA_k}}', size: 19, gap: 10, color: yellow}
+          - {tex: '\Delta\mathbf{l}\text{: stretch},\quad \mathbf{l}\text{: stretched length},\quad \mathbf{l}_0\text{: cut length},\quad E\text{: Young modulus},\quad A\text{: area}', size: 17, gap: 10, color: dim}
