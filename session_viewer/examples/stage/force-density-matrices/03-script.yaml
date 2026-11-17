@@ -27,11 +27,11 @@ slides:
                         [1, 0, 0, 0, -1]])  # e3: n0 -> n4
           C_N, C_F = C[:, [0]], C[:, [1, 2, 3, 4]]
           Q   = np.diag([1.0, 1.0, 1.0, 1.0])
-          X_F = np.array([[0, 0, 0], [5, 0, 3], [0, 7, 3], [7, 5, 0]])
+          x_F = np.array([[0, 0, 0], [5, 0, 3], [0, 7, 3], [7, 5, 0]])
           p   = np.array([[0.0, 0.0, -5.0]])
       - say: 'Ten lines in NumPy build the matrices and solve for $n_0$.'
         do:
           - code: |
-              X_N = np.linalg.solve(C_N.T @ Q @ C_N, p - C_N.T @ Q @ C_F @ X_F)
-              # X_N -> [[3.0, 3.0, 0.25]]
+              x_N = np.linalg.solve(C_N.T @ Q @ C_N, p - C_N.T @ Q @ C_F @ x_F)
+              # x_N -> [[3.0, 3.0, 0.25]]
           - solve: true

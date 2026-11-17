@@ -33,6 +33,7 @@ slides:
               - {id: Cm, matrix: {rows: [[1, -1, 0, 0, 0], [1, 0, -1, 0, 0], [1, 0, 0, -1, 0], [1, 0, 0, 0, -1]], rowlabels: [e_0, e_1, e_2, e_3], collabels: [n_0, n_1, n_2, n_3, n_4], name: '\mathbf{C}', empty: true}}
               - '\;\longrightarrow\;'
               - {id: CNs, matrix: {rows: [[1], [1], [1], [1]], collabels: [n_0], name: '\mathbf{C}_N', empty: true}}
+              - '\quad'
               - {id: CFs, matrix: {rows: [[-1, 0, 0, 0], [0, -1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]], collabels: [n_1, n_2, n_3, n_4], name: '\mathbf{C}_F', empty: true}}
             size: 25
             gap: 22
@@ -153,6 +154,7 @@ slides:
           - row:
               - '\mathbf{Q}\,\mathbf{C}_N ='
               - {id: Qa, matrix: {rows: [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]], name: '\mathbf{Q}'}}
+              - '\quad'
               - {id: CNa, matrix: {rows: [[1], [1], [1], [1]], name: '\mathbf{C}_N'}}
               - '='
               - {id: QC, matrix: {rows: [[1], [1], [1], [1]], name: '\mathbf{Q}\mathbf{C}_N', empty: true}}
@@ -183,6 +185,7 @@ slides:
           - row:
               - '\mathbf{C}_N^{T}(\mathbf{Q}\,\mathbf{C}_N) ='
               - {id: CT, matrix: {rows: [[1, 1, 1, 1]], name: '\mathbf{C}_N^{T}'}}
+              - '\quad'
               - {id: QC2, matrix: {rows: [[1], [1], [1], [1]], name: '\mathbf{Q}\mathbf{C}_N'}}
               - '='
               - {id: DN, matrix: {rows: [[4]], name: '\mathbf{C}_N^{T}\mathbf{Q}\mathbf{C}_N', empty: true}}
@@ -206,6 +209,7 @@ slides:
           - row:
               - '\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F ='
               - {id: CTQ, matrix: {rows: [[1, 1, 1, 1]], name: '\mathbf{C}_N^{T}\mathbf{Q}'}}
+              - '\quad'
               - {id: CFb, matrix: {rows: [[-1, 0, 0, 0], [0, -1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]], collabels: [n_1, n_2, n_3, n_4], name: '\mathbf{C}_F'}}
               - '='
               - {id: DF, matrix: {rows: [[-1, -1, -1, -1]], collabels: [n_1, n_2, n_3, n_4], name: '\mathbf{C}_N^{T}\mathbf{Q}\mathbf{C}_F', empty: true}}
@@ -250,6 +254,7 @@ slides:
           - row:
               - '\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{x}_F ='
               - {id: DF2, matrix: {rows: [[-1, -1, -1, -1]], name: '\mathbf{C}_N^{T}\mathbf{Q}\mathbf{C}_F'}}
+              - '\quad'
               - {id: XF2, matrix: {rows: [[0], [5], [0], [7]], rowlabels: [x_1, x_2, x_3, x_4], name: '\mathbf{x}_F'}}
               - '='
               - {id: PB, matrix: {rows: [[-12]], empty: true}}
@@ -272,9 +277,10 @@ slides:
           - color: {target: 'balance{\mathbf{C}_F}', color: yellow, with: true}
           - color: {target: 'balance{\mathbf{x}_F}', color: yellow, with: true}
           - row:
-              - '\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{X}_F ='
+              - '\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{x}_F ='
               - {id: DFall, matrix: {rows: [[-1, -1, -1, -1]], name: '\mathbf{C}_N^{T}\mathbf{Q}\mathbf{C}_F'}}
-              - {id: XFall, matrix: {rows: [[0, 0, 0], [5, 0, 3], [0, 7, 3], [7, 5, 0]], rowlabels: [n_1, n_2, n_3, n_4], collabels: [x, y, z], name: '\mathbf{X}_F'}}
+              - '\quad'
+              - {id: XFall, matrix: {rows: [[0, 0, 0], [5, 0, 3], [0, 7, 3], [7, 5, 0]], rowlabels: [n_1, n_2, n_3, n_4], collabels: [x, y, z], name: '\mathbf{x}_F'}}
               - '='
               - {id: PBall, matrix: {rows: [[-12, -12, -6]], collabels: [x, y, z], empty: true}}
             size: 24

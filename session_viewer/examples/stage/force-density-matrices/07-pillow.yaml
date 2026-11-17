@@ -36,8 +36,8 @@ slides:
 
               # C_N.T @ Q @ C_N is symmetric and positive-definite (q > 0)
               A = C_N.T @ Q @ C_N
-              B = P - C_N.T @ Q @ C_F @ X_F
+              b = p - C_N.T @ Q @ C_F @ x_F
 
               # Cholesky uses half the work of LU, factored once for x, y, z
               L, low = cho_factor(A, lower=True)
-              X_N = cho_solve((L, low), B)
+              x_N = cho_solve((L, low), b)
