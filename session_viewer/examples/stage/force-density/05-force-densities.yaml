@@ -6,43 +6,27 @@
 title: Play with the force densities
 grid: {center: [3.5, 3.5], size: 9, step: 1}
 camera: {yaw: -58, pitch: 26}
+palette: {free: pink}
 net:
   fixed: {n1: [0, 0, 0], n2: [5, 0, 3], n3: [0, 7, 3], n4: [7, 5, 0]}
   free: {n0: [3.6, 3.4, 1.9]}
   cables: {e0: [n0, n1], e1: [n0, n2], e2: [n0, n3], e3: [n0, n4]}
   q: 1
 slides:
-  - title: The five nodes, no load
+  - title: FORCE DENSITIES AS WEIGHTS
     steps:
-      - say: 'The five nodes again, now without a load. Only the force densities decide where $n_0$ rests.'
+      - say: 'Without a load, force densities act as cable weights: increasing one pulls $n_0$ toward its fixed node. Each case is solved directly, without iteration.'
         show: net
-      - say: 'Each coordinate of $n_0$ is the average of the fixed nodes, weighted by the force densities.'
         do:
-          - eq: {tex: 'x_0 = \frac{q_1 x_1 + q_2 x_2 + q_3 x_3 + q_4 x_4}{q_1 + q_2 + q_3 + q_4}', color: x}
-          - eq: {tex: 'y_0 = \frac{q_1 y_1 + q_2 y_2 + q_3 y_3 + q_4 y_4}{q_1 + q_2 + q_3 + q_4}', color: y}
-          - eq: {tex: 'z_0 = \frac{q_1 z_1 + q_2 z_2 + q_3 z_3 + q_4 z_4}{q_1 + q_2 + q_3 + q_4}', color: z}
-
-  - title: Change one force density
-    keep: true
-    steps:
-      - say: 'With equal force densities, the node rests at the plain average of the four fixed nodes.'
-        do:
+          - eq: {tex: 'x_0 = \frac{q_1 x_1 + q_2 x_2 + q_3 x_3 + q_4 x_4}{q_1 + q_2 + q_3 + q_4}', color: blue}
+          - eq: {tex: 'y_0 = \frac{q_1 y_1 + q_2 y_2 + q_3 y_3 + q_4 y_4}{q_1 + q_2 + q_3 + q_4}', color: blue}
+          - eq: {tex: 'z_0 = \frac{q_1 z_1 + q_2 z_2 + q_3 z_3 + q_4 z_4}{q_1 + q_2 + q_3 + q_4}', color: blue}
           - solve: {load: {n0: [0, 0, 0]}}
           - eq: 'q = (1,\ 1,\ 1,\ 1):\quad n_0 = (3,\ 3,\ 1.5)'
-      - say: 'Give cable $e_2$ four times the force density. It counts four times as much and pulls the node toward $n_3$.'
-        do:
           - color: {target: e2, color: accent}
           - solve: {load: {n0: [0, 0, 0]}, q: {e2: 4}}
           - eq: 'q = (1,\ 1,\ 4,\ 1):\quad n_0 = (1.714,\ 4.714,\ 2.143)'
-      - say: 'Now cable $e_0$ instead. The node moves toward $n_1$.'
-        do:
           - color: {target: e2, color: reset}
           - color: {target: e0, color: accent, with: true}
           - solve: {load: {n0: [0, 0, 0]}, q: {e0: 4}}
           - eq: 'q = (4,\ 1,\ 1,\ 1):\quad n_0 = (1.714,\ 1.714,\ 0.857)'
-      - say: 'A force density is a weight. The higher it is, the closer the node moves to that fixed node. No iteration: one solve each time.'
-        do:
-          - color: {target: e0, color: reset}
-          - solve: {load: {n0: [0, 0, 0]}}
-      - say: 'One free node by hand. For a whole net, the same sums are written with matrices: the next presentation.'
-        text: '**Next:** Force density 2 · the method with matrices'

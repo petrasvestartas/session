@@ -3,9 +3,10 @@
 # Open live: https://petrasvestartas.github.io/session/?stage=force-density&chapter=3&step=1
 
 # Chapter 3: the projections of presentation 0, now in 3D at one free node. Direction cosines, force density, x0, y0, z0 by hand.
-title: Equilibrium of one node
+title: EQUILIBRIUM OF ONE NODE
 grid: {center: [3.5, 3.5], size: 9, step: 1}
 camera: {yaw: -58, pitch: 26}
+palette: {free: pink}
 points:
   n0: [3, 3, 0.25]
   n1: [0, 0, 0]
@@ -21,11 +22,9 @@ blocks:
         - {id: f3, arrow: [n0, 'n0 + 0.5*(n3 - n0)'], color: accent, width: 3.6, label: 'f_3'}
         - {id: f4, arrow: [n0, 'n0 + 0.5*(n4 - n0)'], color: accent, width: 3.6, label: 'f_4'}
 slides:
-  - title: Five nodes, four cables
+  - title: EQUILIBRIUM OF ONE NODE
     steps:
-      - say: 'In presentation 0, each force split into an $x$ and a $y$ part. Each axis summed to zero. Here we do the same, with a third axis $z$.'
-        text: 'the same projections, now along $x$, $y$ and $z$'
-      - say: 'The five nodes of the question. $n_0$ is drawn where it will rest: $(3,\ 3,\ 0.25)$.'
+      - say: 'Take cable $e_0$ alone. It runs from $n_0$ to the anchor $n_1$.'
         do:
           - add:
               - {id: n1, point: n1, color: fixed, label: 'n_1'}
@@ -38,68 +37,47 @@ slides:
               - {id: e3, line: [n0, n4], label: 'e_3'}
           - add: {id: n0, point: n0, color: free, label: 'n_0'}
           - add: {id: p, arrow: [n0, 'n0 + [0, 0, -2.5]'], color: load, width: 3.6, label: 'p'}
-      - say: 'Each cable pulls $n_0$ toward its anchor with a force $f_k$.'
         forces: true
-      - say: 'At rest, the four cable forces and the load add up to zero.'
-        do:
-          - tex: '\mathbf{f}_1 + \mathbf{f}_2 + \mathbf{f}_3 + \mathbf{f}_4 + \mathbf{p} = \mathbf{0}'
-          - highlight: [p]
-          - {text: 'A vector equation: it holds along $x$, $y$ and $z$ separately. So we need the $x$, $y$, $z$ parts of every force.', size: 23}
-
-  - title: Project one force onto the axes
-    steps:
-      - say: 'Take cable $e_0$ alone. It runs from $n_0$ to the anchor $n_1$.'
         dim: [e1, e2, e3, f2, f3, f4, p, n2, n3, n4, e1.label, e2.label, e3.label, f2.label, f3.label, f4.label, p.label, n2.label, n3.label, n4.label]
         camera: {fit: [n0, n1], yaw: -50, pitch: 22, with: true}
         add: {id: box, cuboid: [n0, n1], color: dim}
-      - say: 'Walk from $n_0$ to $n_1$ along $x$, then $y$, then $z$: three coordinate differences.'
+      - say: 'Walk from $n_0$ to $n_1$ along $x$, then $y$, then $z$:'
         do:                   # by hand rather than `project`: no z label, and the y label held off its edge
           - derive: {from: e0, id: ux, arrow: [n0, '[x(n1), y(n0), z(n0)]'], color: x, width: 3.6}
           - add: {id: uy, arrow: ['[x(n1), y(n0), z(n0)]', '[x(n1), y(n1), z(n0)]'], color: y, width: 3.6}
           - add: {id: uz, arrow: ['[x(n1), y(n1), z(n0)]', n1], color: z, width: 3.6}
-          - add:
-              - {id: ux.l, label: 'mid(n0, [x(n1), y(n0), z(n0)])', tex: '\Delta x_1 = x_1 - x_0', color: x, size: 21}
-              - {id: uy.l, label: 'mid([x(n1), y(n0), z(n0)], [x(n1), y(n1), z(n0)])', tex: '\Delta y_1 = y_1 - y_0', color: y, size: 21, dir: [-0.5, 1]}
-      - say: 'Pythagoras in 3D gives the cable length.'
+      - say: 'Pythagoras in 3D gives the cable length:'
         do:
-          - eq: {id: l1, tex: 'l_1 = \sqrt{ {{(x_1 - x_0)^2}} + {{(y_1 - y_0)^2}} + {{(z_1 - z_0)^2}} } = 4.250'}
+          - eq: {id: l1, tex: 'l_1 = \sqrt{ {{(x_1 - x_0)^2}} + {{(y_1 - y_0)^2}} + {{(z_1 - z_0)^2}} }'}
           - color: {target: 'l1{(x_1 - x_0)^2}', color: x}
           - color: {target: 'l1{(y_1 - y_0)^2}', color: y, with: true}
           - color: {target: 'l1{(z_1 - z_0)^2}', color: z, with: true}
-      - say: 'As in presentation 0: $\alpha_1$ is the angle between the cable and its $x$ part. Its cosine is that side over the length.'
+      - say: 'Cosine helps to compute projection vectors:'
         do:
           - add:
               - {id: a1, polyline: [[2.000, 3.000, 0.250], [2.005, 2.902, 0.242], [2.019, 2.805, 0.234], [2.043, 2.710, 0.226], [2.076, 2.618, 0.218], [2.119, 2.529, 0.211], [2.169, 2.445, 0.204], [2.228, 2.367, 0.197], [2.294, 2.294, 0.191]], color: x, width: 2}
               - {id: a1t, label: [1.661, 2.446, 0.204], tex: '\alpha_1', color: x}
-          - eq: {tex: '\cos\alpha_1 = \frac{|\Delta x_1|}{l_1} = \frac{3}{4.250} = 0.706', color: x}
+          - eq: {tex: '\cos\alpha_1 = \frac{|\Delta x_1|}{l_1}', color: x}
           - highlight: [ux]
-      - say: 'The force splits in the same proportion. Its $x$ part points backwards. The signed difference $x_1 - x_0 = -3$ carries that minus by itself. The same holds along $y$ and $z$.'
-        do:
           - eq: {id: fx, tex: 'f_{1,x} = -f_1\cos\alpha_1 = f_1\,\frac{x_1 - x_0}{l_1}'}
           - {indicate: [fx], color: x}
 
-  - title: Sum the components
-    steps:
-      - say: 'Do this for all four cables and add the load: equilibrium along $x$.'
+      - say: 'The equilibrium is computed for 4 cables in 3 axes. But we cannot solve the equations due to length and the square root:'
+        clear: true
         undim: [e1, e2, e3, f2, f3, f4, p, n2, n3, n4, e1.label, e2.label, e3.label, f2.label, f3.label, f4.label, p.label, n2.label, n3.label, n4.label]
         remove: [box, ux, uy, uz, ux.l, uy.l, a1, a1t]
         camera: {yaw: -58, pitch: 26, fit: [n0, n1, n2, n3, n4, U], with: true}
         eq: 'f_1\frac{x_1 - x_0}{l_1} + f_2\frac{x_2 - x_0}{l_2} + f_3\frac{x_3 - x_0}{l_3} + f_4\frac{x_4 - x_0}{l_4} + p_x = 0'
-      - say: 'The same holds along $y$ and $z$: three equations for the three unknowns $x_0$, $y_0$, $z_0$.'
         do:
           - then: 'f_1\frac{y_1 - y_0}{l_1} + f_2\frac{y_2 - y_0}{l_2} + f_3\frac{y_3 - y_0}{l_3} + f_4\frac{y_4 - y_0}{l_4} + p_y = 0'
           - then: 'f_1\frac{z_1 - z_0}{l_1} + f_2\frac{z_2 - z_0}{l_2} + f_3\frac{z_3 - z_0}{l_3} + f_4\frac{z_4 - z_0}{l_4} + p_z = 0'
-      - say: 'The catch: every length $l_k$ depends on where $n_0$ is. The unknowns sit under a square root. The equations are **non-linear**.'
-        tex: 'l_k = \sqrt{(x_k - {{x_0}})^2 + (y_k - {{y_0}})^2 + (z_k - {{z_0}})^2}'
-        id: lk
-        color: accent
+        tex: {id: lk, tex: 'l_k = \sqrt{(x_k - {{x_0}})^2 + (y_k - {{y_0}})^2 + (z_k - {{z_0}})^2}', color: accent}
         highlight: ['lk{x_0}', 'lk{y_0}', 'lk{z_0}']
 
-  - title: 'The force density trick'
-    steps:
-      - say: 'Linkwitz and Schek prescribe force over length in each cable, not the force: the **force density** $q$.'
+      - say: 'The force over length is called force density **$q$**. We express force as $q * l$ to remove the length. '
+        clear: true
         tex: 'q_k = \frac{f_k}{l_k} \qquad\Longrightarrow\qquad f_k = q_k\, l_k'
-      - say: 'Substitute $f_k = q_k l_k$ into one term of the sum.'
+        text: 'Force projection:'
         do:
           - eq: {id: t, tex: '{{f_k}}\,\frac{x_k - x_0}{l_k}'}
           - morph: {target: t, tex: '{{q_k\, l_k}}\,\frac{x_k - x_0}{l_k}', map: {'f_k': 'q_k\, l_k'}}
@@ -108,40 +86,23 @@ slides:
           - becomes: 'q_k\, \cancel{l_k}\,\frac{x_k - x_0}{\cancel{l_k}}'
           - becomes: 'q_k\,(x_k - x_0)'
       - say: 'So equilibrium along $x$ becomes **linear** in the unknown $x_0$.'
+        text: 'New Equilibrium:'
         do:
           - {tex: 'q_1(x_1 - x_0) + q_2(x_2 - x_0) + q_3(x_3 - x_0) + q_4(x_4 - x_0) + p_x = 0', id: lin}
-          - {indicate: [lin], color: free}
+          - {indicate: [lin], color: blue}
 
-  - title: Solve it by hand
-    steps:
-      - say: 'Now forget where $n_0$ is. Its three coordinates are the unknowns.'
+      - say: 'Collect unknown $x_0$, $y_0$, $z_0$ on one side.'
+        clear: true
         remove: [f1, f2, f3, f4]
         move: {point: n0, to: [3.6, 3.4, 1.9], dur: 1.2}
-      - say: 'Collect $x_0$ on one side.'
         eq: '(q_1 + q_2 + q_3 + q_4)\,x_0 = q_1 x_1 + q_2 x_2 + q_3 x_3 + q_4 x_4 + p_x'
-      - say: 'Divide: $x_0$ is a weighted average of the anchors, shifted by the load. The same holds for $y_0$ and $z_0$.'
         then: 'x_0 = \frac{q_1 x_1 + q_2 x_2 + q_3 x_3 + q_4 x_4 + p_x}{q_1 + q_2 + q_3 + q_4}'
-      - say: 'Every $q = 1$, and there is no load along $x$ or $y$. So the numbers are plain averages.'
         do:
-          - eq: {tex: 'x_0 = \frac{0 + 5 + 0 + 7 + 0}{4} = 3', color: x}
-          - eq: {tex: 'y_0 = \frac{0 + 0 + 7 + 5 + 0}{4} = 3', color: y}
-      - say: 'Without a load, $n_0$ would hang at the average anchor height, $z = 1.5$.'
-        do:
-          - eq: {tex: 'z_0 = \frac{0 + 3 + 3 + 0 + 0}{4} = 1.5', color: z}
+          - eq: {tex: 'x_0 = \frac{0 + 5 + 0 + 7 + 0}{4} = 3', color: blue}
+          - eq: {tex: 'y_0 = \frac{0 + 0 + 7 + 5 + 0}{4} = 3', color: blue}
+          - eq: {tex: 'z_0 = \frac{0 + 3 + 3 + 0 + 0}{4} = 1.5', color: blue}
           - add: {id: u0, point: U, color: dim, label: 'p = 0', dir: [-1, 0.2]}
-      - say: 'With $p_z = -5$ the average drops by $5/4$: $z_0 = 0.25$.'
+      - say: 'With $p_z = -5$ the average drops to 0.25$.'
         becomes: 'z_0 = \frac{0 + 3 + 3 + 0 - 5}{4} = 0.25'
-      - say: 'The node moves to $(3,\ 3,\ 0.25)$, where it was drawn at the start.'
         move: {point: n0, to: [3, 3, 0.25], dur: 1.6}
         highlight: [n0]
-
-  - title: The forces come back
-    steps:
-      - say: 'With the shape known, each force is its density times its length: $f_k = q_k l_k$.'
-        remove: [u0]
-        forces: true
-        tex: 'f_1 = 4.250,\quad f_2 = 4.535,\quad f_3 = 5.706,\quad f_4 = 4.479\ \text{kN}'
-      - say: 'Check along $z$: the cables lift exactly the load.'
-        do:
-          - {tex: '\sum_k q_k(z_k - z_0) = -0.25 + 2.75 + 2.75 - 0.25 = 5 = -p_z', id: ck}
-          - {indicate: [ck], color: load}

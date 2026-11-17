@@ -6,6 +6,7 @@
 title: QUESTION
 grid: {center: [3.5, 3.5], size: 9, step: 1}
 camera: {yaw: -58, pitch: 26}
+palette: {free: pink}
 net:
   fixed: {n1: [0, 0, 0], n2: [5, 0, 3], n3: [0, 7, 3], n4: [7, 5, 0]}
   free: {n0: [3.6, 3.4, 1.9]}        # drawn at a guess; its true place is the answer
@@ -21,26 +22,24 @@ slides:
 
   - title: 'ALL GIVEN VALUES'
     steps:
-      - say: 'The coordinates are in metres, the load in kilonewtons, and each force density is the cable force divided by its length.'
+      - say: 'Units: distance (m), force (kN), force desnity (kN/m).'
         do:
           - morph: {target: n1.label, label: n1, tex: 'n_1\,(0,\,0,\,0)', dur: 0.6}
           - morph: {target: n2.label, label: n2, tex: 'n_2\,(5,\,0,\,3)', dur: 0.6, with: true}
           - morph: {target: n3.label, label: n3, tex: 'n_3\,(0,\,7,\,3)', dur: 0.6, with: true}
           - morph: {target: n4.label, label: n4, tex: 'n_4\,(7,\,5,\,0)', dur: 0.6, with: true}
-          - highlight: [load_n0]
-          - eq: {tex: 'n_1 = (0,\ 0,\ 0),\qquad n_2 = (5,\ 0,\ 3)', color: fixed}
-          - eq: {tex: 'n_3 = (0,\ 7,\ 3),\qquad n_4 = (7,\ 5,\ 0)', color: fixed, gap: 40}
-          - eq: {tex: 'p = (0,\ 0,\ -5)\ \text{kN}', color: load, gap: 40}
-          - eq: {tex: 'q = \frac{\text{force in the cable}}{\text{length of the cable}}', color: pink, gap: 40}
-          - eq: {id: qs, tex: 'q_1 = q_2 = q_3 = q_4 = 1\ \text{kN/m}', color: pink, gap: 40}
-      - say: 'Each cable joins $n_0$ to a fixed node. The force-density index names that fixed node.'
-        do:
+          - eq: {tex: 'n_1 = (0,\ 0,\ 0),\qquad n_2 = (5,\ 0,\ 3)', color: ink, align: left}
+          - eq: {tex: 'n_3 = (0,\ 7,\ 3),\qquad n_4 = (7,\ 5,\ 0)', color: ink, align: left, gap: 40}
           - color: {target: e0, color: grey}
           - color: {target: e1, color: grey, with: true}
           - color: {target: e2, color: grey, with: true}
           - color: {target: e3, color: grey, with: true}
-          - tex: {tex: 'e_0:\quad n_0 \to n_1,\qquad e_1:\quad n_0 \to n_2', color: grey, gap: 40}
-          - tex: {tex: 'e_2:\quad n_0 \to n_3,\qquad e_3:\quad n_0 \to n_4', color: grey, gap: 40}
+          - tex: {tex: 'e_0:\quad n_0 \to n_1,\qquad e_1:\quad n_0 \to n_2', color: ink, align: left, gap: 40}
+          - tex: {tex: 'e_2:\quad n_0 \to n_3,\qquad e_3:\quad n_0 \to n_4', color: ink, align: left, gap: 40}
           - highlight: [e0, e1, e2, e3]
-      - say: 'We know neither the individual cable forces nor their lengths. We only fix their ratios. The next chapters show why that is enough.'
-        highlight: [qs]
+          - highlight: [load_n0]
+          - eq: {tex: 'p = (0,\ 0,\ -5)\ \text{kN}', color: ink, align: left, gap: 40}
+          - eq: {tex: 'q = \frac{\text{force in the cable}}{\text{length of the cable}}', color: ink, align: left, gap: 40}
+          - eq: {id: qs, tex: 'q_1 = q_2 = q_3 = q_4 = 1\ \text{kN/m}', color: ink, align: left, gap: 40}
+          - highlight: [qs]
+          - text: 'a proportion between force and length, we will explain this in a moment...'
