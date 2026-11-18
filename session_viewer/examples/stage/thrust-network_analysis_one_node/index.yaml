@@ -1,0 +1,12 @@
+# cd /home/pv/brg/code_cpp/wood_research/session/session_viewer && aws s3 sync examples/stage s3://session-viewer-data/stage/ --delete --exclude '*' --include '*.yaml' --content-type application/yaml --cache-control no-cache --profile r2 --endpoint-url https://0520459c6817bd96c1e25fcb49461c4e.r2.cloudflarestorage.com
+# Open local: http://127.0.0.1:8770/?stage=decks/thrust-network_analysis_one_node/index.yaml&data=off
+# Open live: https://petrasvestartas.github.io/session/?stage=thrust-network_analysis_one_node
+
+# Thrust network analysis of one node, no matrices. A session_viewer stage deck.
+name: Thrust network analysis · one node
+chapters:
+  - 01-method.yaml
+  - 02-question.yaml
+  - 03-reciprocal.yaml
+  - 04-equilibrium.yaml
+  - 05-forces.yaml

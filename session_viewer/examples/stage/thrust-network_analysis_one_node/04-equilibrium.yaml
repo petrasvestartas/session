@@ -1,0 +1,77 @@
+# cd /home/pv/brg/code_cpp/wood_research/session/session_viewer && aws s3 sync examples/stage s3://session-viewer-data/stage/ --delete --exclude '*' --include '*.yaml' --content-type application/yaml --cache-control no-cache --profile r2 --endpoint-url https://0520459c6817bd96c1e25fcb49461c4e.r2.cloudflarestorage.com
+# Open local: http://127.0.0.1:8770/?stage=decks/thrust-network_analysis_one_node/index.yaml&data=off&chapter=4&step=1
+# Open live: https://petrasvestartas.github.io/session/?stage=thrust-network_analysis_one_node&chapter=4&step=1
+
+# Chapter 4: step-by-step derivation of vertical equilibrium and numerical evaluation of node height z0.
+title: VERTICAL EQUILIBRIUM
+grid: {center: [0, 0], size: 6, step: 1, z: 0}
+camera: {yaw: -62, pitch: 25}
+palette: {free: ink}
+points:
+  n0: [0, 0, 2.2]
+  n1: [2, 0, 0.5]
+  n2: [0, 2, 0.8]
+  n3: [-2, 0, 0.5]
+  n4: [0, -2, 0.8]
+  M1: [0, 0, 0.5]
+  TOP: [0, 0, 4.8]
+slides:
+  - title: EQUILIBRIUM OF ONE NODE
+    steps:
+      - say: 'Take branch $e_1$ alone. Its horizontal run in $\Gamma$ is $l_{\mathrm{H},1}$ and its vertical rise is $z_0 - z_1$.'
+        do:
+          - add:
+              - {id: n1, point: n1, color: fixed, label: 'n_1'}
+              - {id: n2, point: n2, color: fixed, label: 'n_2'}
+              - {id: n3, point: n3, color: fixed, label: 'n_3'}
+              - {id: n4, point: n4, color: fixed, label: 'n_4'}
+              - {id: e1, line: [n0, n1], label: 'e_1'}
+              - {id: e2, line: [n0, n2], label: 'e_2'}
+              - {id: e3, line: [n0, n3], label: 'e_3'}
+              - {id: e4, line: [n0, n4], label: 'e_4'}
+              - {id: n0, point: n0, color: free, label: 'n_0'}
+              - {id: p, arrow: ['n0 + [0, 0, 1.1]', n0], color: load, width: 3.2, label: 'P_0'}
+          - dim: [e2, e3, e4, n2, n3, n4, p, e2.label, e3.label, e4.label, n2.label, n3.label, n4.label, p.label]
+          - add:
+              - {id: run1, line: [M1, n1], color: pink, width: 3.0, dash: true, label: 'l_{\mathrm{H},1}', dir: [0, -1]}
+              - {id: rise1, line: [M1, n0], color: blue, width: 3.0, dash: true, label: 'z_0 - z_1', dir: [-1, 0]}
+              - {id: a1, polyline: [[1.450, 0.000, 0.500], [1.455, 0.000, 0.616], [1.471, 0.000, 0.728], [1.498, 0.000, 0.834], [1.534, 0.000, 0.931], [1.580, 0.000, 1.018]], color: pink, width: 2}
+              - {id: a1t, label: [1.20, 0.0, 0.78], tex: '\alpha_1', color: pink}
+              - {id: m1, point: M1, color: grey, size: 0.7}
+          - eq: {tex: 'l_{\mathrm{H},1} = \sqrt{(x_0 - x_1)^2 + (y_0 - y_1)^2}', align: left}
+      - say: 'Pure axial thrust acts along the 3D member, so the force ratio equals the geometric slope $\tan\alpha_1$:'
+        do:
+          - eq: {tex: '\tan\alpha_1 = \frac{F_{\mathrm{V},1}}{F_{\mathrm{H},1}} = \frac{z_0 - z_1}{l_{\mathrm{H},1}}', align: left}
+          - eq: {id: fv1, tex: 'F_{\mathrm{V},1} = {{F_{\mathrm{H},1}}}\,\frac{z_0 - z_1}{l_{\mathrm{H},1}}', align: left}
+      - say: 'Substitute $F_{\mathrm{H},1} = \frac{1}{r}\,l^*_{\mathrm{H},1}$ from the reciprocal force diagram $\Gamma^*$. No 3D square root enters:'
+        do:
+          - morph: {target: fv1, tex: 'F_{\mathrm{V},1} = {{\frac{1}{r}\,l^*_{\mathrm{H},1}}}\,\frac{z_0 - z_1}{l_{\mathrm{H},1}}', map: {'F_{\mathrm{H},1}': '\frac{1}{r}\,l^*_{\mathrm{H},1}'}}
+      - say: 'Sum vertical thrusts over all four branches to balance the downward load $P_0$:'
+        clear: true
+        undim: [e2, e3, e4, n2, n3, n4, p, e2.label, e3.label, e4.label, n2.label, n3.label, n4.label, p.label]
+        remove: [run1, rise1, a1, a1t, m1]
+        eq: {tex: 'F_{\mathrm{V},1} + F_{\mathrm{V},2} + F_{\mathrm{V},3} + F_{\mathrm{V},4} = P_0', align: left}
+        do:
+          - eq: {id: veq, tex: 'l^*_{\mathrm{H},1}\frac{z_0 - z_1}{l_{\mathrm{H},1}} + l^*_{\mathrm{H},2}\frac{z_0 - z_2}{l_{\mathrm{H},2}} + l^*_{\mathrm{H},3}\frac{z_0 - z_3}{l_{\mathrm{H},3}} + l^*_{\mathrm{H},4}\frac{z_0 - z_4}{l_{\mathrm{H},4}} = P_0\,r', align: left}
+      - say: 'Define the known branch ratios $d_j = l^*_{\mathrm{H},j} / l_{\mathrm{H},j}$ and solve explicitly for $z_0$:'
+        do:
+          - morph: {target: veq, tex: 'd_0\,z_0 - d_1 z_1 - d_2 z_2 - d_3 z_3 - d_4 z_4 - P_0\,r = 0'}
+          - eq: {tex: 'z_0 = \frac{P_0\,r + d_1 z_1 + d_2 z_2 + d_3 z_3 + d_4 z_4}{d_1 + d_2 + d_3 + d_4}', color: blue, align: left}
+          - eq: {tex: 'z_0 = \frac{P_0 + q_1 z_1 + q_2 z_2 + q_3 z_3 + q_4 z_4}{q_1 + q_2 + q_3 + q_4}', align: left}
+          - tex: {tex: 'd_j = \frac{l^*_{\mathrm{H},j}}{l_{\mathrm{H},j}},\qquad d_0 = \sum d_j,\qquad q_j = \frac{1}{r}\,d_j', color: accent, align: left, gap: 26}
+
+  - title: NODE HEIGHT CALCULATION
+    steps:
+      - say: 'Divide each dual force length $l^*_{\mathrm{H},j}$ by its plan length $l_{\mathrm{H},j} = 2\ \text{m}$:'
+        do:
+          - eq: {tex: 'd_1 = \frac{1.5}{2.0} = 0.75,\qquad d_2 = \frac{2.0}{2.0} = 1.00', align: left}
+          - eq: {tex: 'd_3 = \frac{1.5}{2.0} = 0.75,\qquad d_4 = \frac{2.0}{2.0} = 1.00', align: left}
+          - eq: {tex: 'd_0 = 0.75 + 1.00 + 0.75 + 1.00 = 3.50\ \text{kN/m}', align: left}
+      - say: 'Add the scaled load $P_0\,r$ and weighted support heights, then divide by $d_0$:'
+        do:
+          - eq: {tex: 'P_0\,r = 10.0 \cdot 1.0 = 10.00\ \text{kN}', align: left}
+          - eq: {tex: '\sum d_j z_j = 0.75(0.5) + 1.0(0.8) + 0.75(0.5) + 1.0(0.8) = 2.35', align: left}
+          - eq: {tex: 'z_0 = \frac{10.00 + 2.35}{3.50} = \frac{12.35}{3.50} = 3.529\ \text{m}', color: blue, align: left}
+          - move: {point: n0, to: [0, 0, 3.52857], dur: 1.6}
+          - morph: {target: n0.label, label: n0, tex: 'n_0\,(0,\,0,\,3.529)', dur: 0.8}
+          - highlight: [n0]

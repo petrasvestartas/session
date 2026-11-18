@@ -10,6 +10,7 @@ https://petrasvestartas.github.io/session/?stage=force-density-matrices         
 https://petrasvestartas.github.io/session/?stage=force-density-derivation       3 · where the formula comes from: the Jacobian, the matrix form (6.4.2, 6.4.3)
 https://petrasvestartas.github.io/session/?stage=force-density-materialization  4 · elongations and unstretched lengths (6.5), résumé
 https://petrasvestartas.github.io/session/?stage=foppl-spatial-joint           5 · Föppl’s spatial joint and a simple space truss
+https://petrasvestartas.github.io/session/?stage=thrust-network_analysis_one_node 6 · thrust network analysis of one node, no matrices
 &chapter=7&step=3                                                           open at chapter 7, after its third step
 ```
 

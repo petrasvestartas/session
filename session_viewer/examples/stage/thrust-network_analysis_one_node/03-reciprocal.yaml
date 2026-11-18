@@ -1,0 +1,70 @@
+# cd /home/pv/brg/code_cpp/wood_research/session/session_viewer && aws s3 sync examples/stage s3://session-viewer-data/stage/ --delete --exclude '*' --include '*.yaml' --content-type application/yaml --cache-control no-cache --profile r2 --endpoint-url https://0520459c6817bd96c1e25fcb49461c4e.r2.cloudflarestorage.com
+# Open local: http://127.0.0.1:8770/?stage=decks/thrust-network_analysis_one_node/index.yaml&data=off&chapter=3&step=1
+# Open live: https://petrasvestartas.github.io/session/?stage=thrust-network_analysis_one_node&chapter=3&step=1
+
+# Chapter 3: horizontal equilibrium via the 2D Form Diagram Gamma and Reciprocal Force Diagram Gamma*.
+title: HORIZONTAL EQUILIBRIUM
+camera: {view: top}
+points:
+  n0: [0, 0, 0]
+  n1: [2, 0, 0]
+  n2: [0, 2, 0]
+  n3: [-2, 0, 0]
+  n4: [0, -2, 0]
+  Q0: [3.8, -1.0, 0]
+  Q1: [3.8, 1.0, 0]
+  Q2: [5.3, 1.0, 0]
+  Q3: [5.3, -1.0, 0]
+  CG: [0, 2.6, 0]
+  CF: [4.55, 2.6, 0]
+  PAD_L: [-2.4, -2.4, 0]
+  PAD_R: [5.8, 2.8, 0]
+slides:
+  - title: FORM DIAGRAM Γ
+    steps:
+      - say: 'The Form Diagram $\Gamma$ fixes the horizontal plan coordinates $(x, y)$ and projected branch lengths $l_{\mathrm{H},j}$.'
+        add:
+          - {id: gt, label: CG, tex: '\Gamma', color: accent}
+          - {id: e1, line: [n0, n1], label: 'l_{\mathrm{H},1}'}
+          - {id: e2, line: [n0, n2], label: 'l_{\mathrm{H},2}'}
+          - {id: e3, line: [n0, n3], label: 'l_{\mathrm{H},3}'}
+          - {id: e4, line: [n0, n4], label: 'l_{\mathrm{H},4}'}
+          - {id: n1, point: n1, color: fixed, label: 'n_1'}
+          - {id: n2, point: n2, color: fixed, label: 'n_2'}
+          - {id: n3, point: n3, color: fixed, label: 'n_3'}
+          - {id: n4, point: n4, color: fixed, label: 'n_4'}
+          - {id: n0, point: n0, color: free, label: 'n_0'}
+        eq: {tex: 'l_{\mathrm{H},j} = \sqrt{(x_0 - x_j)^2 + (y_0 - y_j)^2}', align: left}
+        do:
+          - eq: {tex: 'l_{\mathrm{H},1} = \sqrt{(0 - 2)^2 + (0 - 0)^2} = 2\ \text{m}', align: left}
+          - eq: {tex: 'l_{\mathrm{H},1} = l_{\mathrm{H},2} = l_{\mathrm{H},3} = l_{\mathrm{H},4} = 2\ \text{m}', align: left}
+      - say: 'In-plane equilibrium at node $n_0$ requires the four horizontal compressive thrusts to sum to zero:'
+        do:
+          - remove: [e1.label, e2.label, e3.label, e4.label]
+          - add:
+              - {id: fh1, arrow: ['0.68*n1', '0.12*n1'], color: pink, width: 3.2, label: 'F_{\mathrm{H},1}'}
+              - {id: fh2, arrow: ['0.75*n2', '0.12*n2'], color: blue, width: 3.2, label: 'F_{\mathrm{H},2}'}
+              - {id: fh3, arrow: ['0.68*n3', '0.12*n3'], color: pink, width: 3.2, label: 'F_{\mathrm{H},3}'}
+              - {id: fh4, arrow: ['0.75*n4', '0.12*n4'], color: blue, width: 3.2, label: 'F_{\mathrm{H},4}'}
+          - eq: {tex: '\mathbf{F}_{\mathrm{H},1} + \mathbf{F}_{\mathrm{H},2} + \mathbf{F}_{\mathrm{H},3} + \mathbf{F}_{\mathrm{H},4} = \mathbf{0}', align: left}
+
+  - title: RECIPROCAL FORCE DIAGRAM Γ*
+    steps:
+      - say: 'In the Reciprocal Force Diagram $\Gamma^*$, parallel dual branches $l^*_{\mathrm{H},j}$ form a closed clockwise polygon:'
+        do:
+          - add: {id: ft, label: CF, tex: '\Gamma^*', color: accent}
+          - derive: {from: fh4, id: t4, arrow: [Q0, Q1], color: blue, width: 3.2, label: 'l^*_{\mathrm{H},4}', dir: [-1, 0]}
+          - derive: {from: fh3, id: t3, arrow: [Q1, Q2], color: pink, width: 3.2, label: 'l^*_{\mathrm{H},3}', dir: [0, 1]}
+          - derive: {from: fh2, id: t2, arrow: [Q2, Q3], color: blue, width: 3.2, label: 'l^*_{\mathrm{H},2}', dir: [1, 0]}
+          - derive: {from: fh1, id: t1, arrow: [Q3, Q0], color: pink, width: 3.2, label: 'l^*_{\mathrm{H},1}', dir: [0, -1]}
+          - add:
+              - {id: q0, point: Q0, color: ink}
+              - {id: q1, point: Q1, color: ink}
+              - {id: q2, point: Q2, color: ink}
+              - {id: q3, point: Q3, color: ink}
+          - eq: {tex: 'l^*_{\mathrm{H},ji} = \sqrt{(x^*_i - x^*_j)^2 + (y^*_i - y^*_j)^2}', align: left}
+          - eq: {tex: 'F_{\mathrm{H},j} = \frac{1}{r}\,l^*_{\mathrm{H},j}', align: left}
+      - say: 'With dual coordinates $(\pm 1.5, 0)$ and $(0, \pm 2.0)$ at scale $r = 1$, horizontal thrusts balance identically:'
+        do:
+          - eq: {tex: 'F_{\mathrm{H},1} = F_{\mathrm{H},3} = 1.5\ \text{kN},\qquad F_{\mathrm{H},2} = F_{\mathrm{H},4} = 2.0\ \text{kN}', align: left}
+          - eq: {tex: '\sum F_{\mathrm{H},x} = -1.5 + 1.5 = 0,\qquad \sum F_{\mathrm{H},y} = -2.0 + 2.0 = 0', color: blue, align: left}
