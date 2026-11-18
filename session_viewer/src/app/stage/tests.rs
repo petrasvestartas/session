@@ -474,3 +474,76 @@ fn the_ground_swaps_at_the_same_step() {
     stage.set_theme(deck::Theme::Light, 0.0);
     assert_eq!(stage.palette("bg"), [1.0, 1.0, 1.0, 1.0]);
 }
+
+#[test]
+fn labels_have_halo_outlines_and_stay_above_drawings_and_clear_of_segments() {
+    let (ow, oh, pad, bytes) = super::paint::dilate_alpha(&[255], 1, 1, 4.5);
+    assert_eq!((ow, oh, pad), (13, 13, 6));
+    assert_eq!(bytes[6 * ow + 6], 255);
+    assert_eq!(bytes[6 * ow + 10], 255);
+    assert!(bytes[6 * ow + 11] > 100);
+    assert_eq!(bytes[0], 0);
+
+    let src = "
+slides:
+  - title: order
+    steps:
+      - add:
+          - {id: note, tex: 'F_{\\mathrm{H},li}', at: [960, 260]}
+          - {id: line, drawing: [{arrow: [[920, 260], [1060, 260]], color: ink}], at: [0, 0]}
+";
+    let ch = deck::chapter(src, "order.yaml").unwrap();
+    let idx = deck::index("name: t\nchapters: [order.yaml]").unwrap();
+    let mut stage = run::Stage::new(Rc::new(fonts()), idx, vec![ch]);
+    stage.rebuild(0, Some(0));
+    let draws = stage.frame(0.0);
+    let first_path = draws
+        .iter()
+        .position(|d| matches!(d, run::Draw::Path { .. }))
+        .unwrap();
+    let last_label = draws
+        .iter()
+        .rposition(|d| matches!(d, run::Draw::Label(_)))
+        .unwrap();
+    assert!(
+        first_path < last_label,
+        "2D drawings must paint before diagram labels so text stays on top"
+    );
+
+    let (index, chapters) = deck("thrust-network_analysis_one_node");
+    let mut stage = run::Stage::new(Rc::new(fonts()), index, chapters);
+    for c in 0..stage.chapters.len() {
+        for g in 0..stage.steps() {
+            stage.rebuild(c, Some(g));
+            stage.frame(0.0);
+            let view = stage.view(0.0);
+            for i in 0..stage.objs.len() {
+                let o = &stage.objs[i];
+                let Some(att) = o.attach.as_deref() else {
+                    continue;
+                };
+                let prims = stage.prims_of(i, 0.0);
+                let Some(b) = stage.bbox(&prims, None) else {
+                    continue;
+                };
+                let Some(li) = stage.objs.iter().position(|x| x.id == att) else {
+                    continue;
+                };
+                if !matches!(stage.objs[li].content, deck::Content::Line { .. }) {
+                    continue;
+                }
+                let pts = stage.geo_points(&stage.objs[li], 0.0);
+                let (p0, p1) = (view.project(pts[0]), view.project(pts[1]));
+                let hit = super::geometry::clip_len(p0, p1, b);
+                assert!(
+                    hit <= 0.5,
+                    "chapter {} step {}: label {} crosses its segment {} by {hit:.1}px ({b:?})",
+                    c + 1,
+                    g + 1,
+                    o.id,
+                    att
+                );
+            }
+        }
+    }
+}

@@ -10,6 +10,8 @@ use swash::zeno::Format;
 
 /// Side of the glyph atlas texture, pixels.
 const N: usize = 2048;
+/// Radius of the ground-colour outline around scene and diagram labels, slide pixels.
+pub(super) const LABEL_HALO: f32 = 4.5;
 
 /// The ETH Zurich and BRG marks, white on clear; the painter tints them with the ink colour.
 const LOGOS: [&[u8]; 2] = [
@@ -60,6 +62,46 @@ pub fn picture(bytes: &[u8]) -> Result<Picture, String> {
     })
 }
 
+/// Dilate an alpha mask by `radius` pixels with a subpixel Euclidean contour ramp.
+pub(super) fn dilate_alpha(
+    src: &[u8],
+    w: usize,
+    h: usize,
+    radius: f32,
+) -> (usize, usize, i32, Vec<u8>) {
+    let pad = (radius.ceil() as usize + 1).max(1);
+    let (ow, oh) = (w + 2 * pad, h + 2 * pad);
+    let mut out = vec![0.0f32; ow * oh];
+    let limit = radius + 0.6;
+    let reach = pad as isize;
+    for sy in 0..h {
+        for sx in 0..w {
+            let raw = src[sy * w + sx];
+            if raw == 0 {
+                continue;
+            }
+            let bias = raw as f32 / 255.0 - 0.5;
+            let (cx, cy) = ((sx + pad) as isize, (sy + pad) as isize);
+            for dy in -reach..=reach {
+                let row = (cy + dy) as usize * ow;
+                let dy2 = (dy * dy) as f32;
+                for dx in -reach..=reach {
+                    let d = ((dx * dx) as f32 + dy2).sqrt() - bias;
+                    if d < limit {
+                        let cov = (radius + 0.5 - d).clamp(0.0, 1.0);
+                        let cell = &mut out[row + (cx + dx) as usize];
+                        if cov > *cell {
+                            *cell = cov;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    let bytes = out.into_iter().map(|v| (v * 255.0).round() as u8).collect();
+    (ow, oh, pad as i32, bytes)
+}
+
 /// Rasterized glyphs in one egui texture.
 pub struct Atlas {
     tex: Option<TextureHandle>,
@@ -68,6 +110,7 @@ pub struct Atlas {
     logos: Vec<Picture>,        // ETH Zurich and BRG, bottom right.
     logo_tex: Vec<TextureHandle>, // Their textures, made on first use.
     slots: HashMap<(u8, u16, u16), Option<Slot>>, // By font, glyph and pixel size; None for no ink.
+    halos: HashMap<(u8, u16, u16, u8), Option<Slot>>, // Dilated halo masks by half-pixel radius.
     x: usize,                   // Packing cursor.
     y: usize,                   // Top of the current shelf.
     row: usize,                 // Height of the current shelf.
@@ -86,6 +129,7 @@ impl Atlas {
             logos: LOGOS.iter().filter_map(|b| picture(b).ok()).collect(),
             logo_tex: Vec::new(),
             slots: HashMap::new(),
+            halos: HashMap::new(),
             x: 1,
             y: 1,
             row: 0,
@@ -102,10 +146,65 @@ impl Atlas {
     /// Forget every glyph and start packing again.
     fn clear(&mut self) {
         self.slots.clear();
+        self.halos.clear();
         self.x = 1;
         self.y = 1;
         self.row = 0;
         self.overflowed = true;
+    }
+
+    /// Upload an alpha bitmap `(w, h)` into the shelf atlas and return its slot.
+    fn pack(
+        &mut self,
+        ctx: &egui::Context,
+        w: usize,
+        h: usize,
+        left: i32,
+        top: i32,
+        data: &[u8],
+    ) -> Option<Slot> {
+        let tex = self.tex.get_or_insert_with(|| {
+            ctx.load_texture(
+                "stage-glyphs",
+                egui::ColorImage::filled([N, N], Color32::TRANSPARENT),
+                TextureOptions::LINEAR,
+            )
+        });
+        if w + 2 > N || h + 2 > N {
+            return None;
+        }
+        if self.x + w + 1 > N {
+            self.x = 1;
+            self.y += self.row + 1;
+            self.row = 0;
+        }
+        if self.y + h + 1 > N {
+            self.clear();
+            return None;
+        }
+        let pixels: Vec<Color32> = data
+            .iter()
+            .map(|&a| Color32::from_rgba_premultiplied(a, a, a, a))
+            .collect();
+        tex.set_partial(
+            [self.x, self.y],
+            egui::ColorImage::new([w, h], pixels),
+            TextureOptions::LINEAR,
+        );
+        let n = N as f32;
+        let slot = Slot {
+            uv: Rect::from_min_max(
+                Pos2::new(self.x as f32 / n, self.y as f32 / n),
+                Pos2::new((self.x + w) as f32 / n, (self.y + h) as f32 / n),
+            ),
+            left,
+            top,
+            w: w as u32,
+            h: h as u32,
+        };
+        self.x += w + 1;
+        self.row = self.row.max(h);
+        Some(slot)
     }
 
     /// The atlas slot of a glyph at `px` pixels, rasterized on first use.
@@ -114,13 +213,6 @@ impl Atlas {
         if let Some(s) = self.slots.get(&key) {
             return *s;
         }
-        let tex = self.tex.get_or_insert_with(|| {
-            ctx.load_texture(
-                "stage-glyphs",
-                egui::ColorImage::filled([N, N], Color32::TRANSPARENT),
-                TextureOptions::LINEAR,
-            )
-        });
         let face = *self.faces.get(font as usize)?;
         let mut scaler = self.ctx.builder(face).size(px as f32).hint(false).build();
         let image = Render::new(&[Source::Outline])
@@ -136,43 +228,66 @@ impl Atlas {
             image.placement.width as usize,
             image.placement.height as usize,
         );
-        if w + 2 > N || h + 2 > N {
-            self.slots.insert(key, None);
+        let Some(slot) = self.pack(
+            ctx,
+            w,
+            h,
+            image.placement.left,
+            image.placement.top,
+            &image.data,
+        ) else {
+            if !self.overflowed {
+                self.slots.insert(key, None);
+            }
             return None;
-        }
-        if self.x + w + 1 > N {
-            self.x = 1;
-            self.y += self.row + 1;
-            self.row = 0;
-        }
-        if self.y + h + 1 > N {
-            self.clear();
-            return None;
-        }
-        let pixels: Vec<Color32> = image
-            .data
-            .iter()
-            .map(|&a| Color32::from_rgba_premultiplied(a, a, a, a))
-            .collect();
-        tex.set_partial(
-            [self.x, self.y],
-            egui::ColorImage::new([w, h], pixels),
-            TextureOptions::LINEAR,
-        );
-        let n = N as f32;
-        let slot = Slot {
-            uv: Rect::from_min_max(
-                Pos2::new(self.x as f32 / n, self.y as f32 / n),
-                Pos2::new((self.x + w) as f32 / n, (self.y + h) as f32 / n),
-            ),
-            left: image.placement.left,
-            top: image.placement.top,
-            w: w as u32,
-            h: h as u32,
         };
-        self.x += w + 1;
-        self.row = self.row.max(h);
         self.slots.insert(key, Some(slot));
+        Some(slot)
+    }
+
+    /// The dilated outline slot of a glyph at `px` pixels and half-pixel radius `r_half`.
+    fn halo_slot(
+        &mut self,
+        ctx: &egui::Context,
+        font: u8,
+        gid: u16,
+        px: u16,
+        r_half: u8,
+    ) -> Option<Slot> {
+        let key = (font, gid, px, r_half);
+        if let Some(s) = self.halos.get(&key) {
+            return *s;
+        }
+        let face = *self.faces.get(font as usize)?;
+        let mut scaler = self.ctx.builder(face).size(px as f32).hint(false).build();
+        let image = Render::new(&[Source::Outline])
+            .format(Format::Alpha)
+            .render(&mut scaler, gid);
+        let Some(image) = image.filter(|i| {
+            i.content == Content::Mask && i.placement.width > 0 && i.placement.height > 0
+        }) else {
+            self.halos.insert(key, None);
+            return None;
+        };
+        let (w, h) = (
+            image.placement.width as usize,
+            image.placement.height as usize,
+        );
+        let (ow, oh, pad, bytes) = dilate_alpha(&image.data, w, h, r_half as f32 * 0.5);
+        let Some(slot) = self.pack(
+            ctx,
+            ow,
+            oh,
+            image.placement.left - pad,
+            image.placement.top + pad,
+            &bytes,
+        ) else {
+            if !self.overflowed {
+                self.halos.insert(key, None);
+            }
+            return None;
+        };
+        self.halos.insert(key, Some(slot));
         Some(slot)
     }
 }
@@ -427,10 +542,81 @@ fn logos(out: &mut Out, atlas: &mut Atlas, f: &Frame, ink: Rgba) {
     }
 }
 
+/// Paint the ground-colour outline behind one label piece.
+fn halo_prim(out: &mut Out, atlas: &mut Atlas, f: &Frame, p: &DPrim, bg: Rgba, snap: bool) {
+    if p.color[3] <= 0.002 {
+        return;
+    }
+    let halo = [bg[0], bg[1], bg[2], p.color[3] * bg[3]];
+    match p.shape {
+        Shape::Glyph { font, gid, size } => {
+            let exact = size * f.k * f.ppp;
+            if exact < 1.0 {
+                return;
+            }
+            let q = if exact < 24.0 {
+                exact.round()
+            } else if exact < 64.0 {
+                (exact / 2.0).round() * 2.0
+            } else {
+                (exact / 4.0).round() * 4.0
+            };
+            let r_bmp = (LABEL_HALO * q / size.max(1.0)).clamp(1.5, 16.0);
+            let r_half = (r_bmp * 2.0).round().clamp(3.0, 32.0) as u8;
+            let Some(slot) = atlas.halo_slot(out.painter.ctx(), font, gid, q as u16, r_half) else {
+                return;
+            };
+            let s = exact / q;
+            let mut x = (f.ox + p.x * f.k) * f.ppp;
+            let mut y = (f.oy + p.y * f.k) * f.ppp;
+            if snap && (s - 1.0).abs() < 0.02 {
+                x = x.round();
+                y = y.round();
+            }
+            let left = x + slot.left as f32 * s;
+            let top = y - slot.top as f32 * s;
+            let rect = Rect::from_min_size(
+                Pos2::new(left / f.ppp, top / f.ppp),
+                egui::vec2(slot.w as f32 * s / f.ppp, slot.h as f32 * s / f.ppp),
+            );
+            let tex = atlas.tex.as_ref().map(|t| t.id()).unwrap_or_default();
+            let mesh = out
+                .mesh
+                .get_or_insert_with(|| egui::Mesh::with_texture(tex));
+            mesh.add_rect_with_uv(rect, slot.uv, c32(halo));
+        }
+        Shape::Rect { w, h, radius, .. } => {
+            let pad = LABEL_HALO * f.k;
+            let r = Rect::from_min_size(f.pt([p.x, p.y]), egui::vec2(w * f.k, h * f.k)).expand(pad);
+            let corners = rounded(r.min.x, r.min.y, r.width(), r.height(), radius * f.k + pad);
+            let pts: Vec<Pos2> = corners.iter().map(|q| Pos2::new(q[0], q[1])).collect();
+            out.add(EShape::convex_polygon(pts, c32(halo), Stroke::NONE));
+        }
+        Shape::Stroke { dx, dy, width } => {
+            let pad = LABEL_HALO * f.k;
+            let a = f.pt([p.x, p.y]);
+            let b = f.pt([p.x + dx, p.y + dy]);
+            out.add(EShape::line_segment(
+                [a, b],
+                Stroke::new((width * f.k + 2.0 * pad).max(1.0 / f.ppp), c32(halo)),
+            ));
+        }
+        Shape::Image { .. } => {}
+    }
+}
+
 /// Paint one draw item.
-fn draw(out: &mut Out, atlas: &mut Atlas, f: &Frame, d: &Draw, snap: bool) {
+fn draw(out: &mut Out, atlas: &mut Atlas, f: &Frame, d: &Draw, bg: Rgba, snap: bool) {
     match d {
         Draw::Prim(p) => prim(out, atlas, f, p, snap),
+        Draw::Label(prims) => {
+            for p in prims {
+                halo_prim(out, atlas, f, p, bg, snap);
+            }
+            for p in prims {
+                prim(out, atlas, f, p, snap);
+            }
+        }
         Draw::Path {
             pts,
             closed,
@@ -555,11 +741,11 @@ pub fn paint(
     };
     let (spatial_draws, panel_draws) = draws.split_at(stage.spatial.min(draws.len()));
     for d in spatial_draws {
-        draw(&mut left, atlas, scene_side, d, snap);
+        draw(&mut left, atlas, scene_side, d, bg, snap);
     }
     left.flush();
     for d in panel_draws {
-        draw(&mut out, atlas, f, d, snap);
+        draw(&mut out, atlas, f, d, bg, snap);
     }
     // chrome: chapter and slide, the step's sentence, progress
     let ink = stage.palette("ink");

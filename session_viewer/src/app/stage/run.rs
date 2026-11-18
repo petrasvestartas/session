@@ -37,6 +37,7 @@ pub struct DPrim {
 #[derive(Clone, Debug)]
 pub enum Draw {
     Prim(DPrim),
+    Label(Vec<DPrim>),
     Path {
         pts: Vec<[f32; 2]>,
         closed: bool,
@@ -572,6 +573,7 @@ impl Stage {
                 Fx::Vanish { .. } => {}
             }
         }
+        let mut flats = Vec::new();
         let mut texts = Vec::new();
         let mut labels = Vec::new();
         let mut boxes = Vec::new();
@@ -593,7 +595,7 @@ impl Stage {
                     Some((Style::None, ..)) | None => (1.0, 1.0),
                     Some((_, p, ..)) => (smooth(*p) as f32, if *p > 0.0 { 1.0 } else { 0.0 }),
                 };
-                texts.extend(self.flat_draws(i, now, grow, alpha));
+                flats.extend(self.flat_draws(i, now, grow, alpha));
                 continue;
             }
             if o.boxed.is_some() {
@@ -665,14 +667,18 @@ impl Stage {
                     }
                 }
             }
-            let visible = prims
-                .into_iter()
-                .filter(|p| p.color[3] > 0.002)
-                .map(Draw::Prim);
+            let visible: Vec<DPrim> = prims.into_iter().filter(|p| p.color[3] > 0.002).collect();
+            if visible.is_empty() {
+                continue;
+            }
+            let diagram_text =
+                o.at.is_some() && matches!(o.content, Content::Tex(_) | Content::Text(_));
             if o.label() {
-                labels.extend(visible);
+                labels.push(Draw::Label(visible));
+            } else if diagram_text {
+                texts.push(Draw::Label(visible));
             } else {
-                texts.extend(visible);
+                texts.extend(visible.into_iter().map(Draw::Prim));
             }
         }
         // removed 3D objects fade out as ghosts
@@ -688,8 +694,9 @@ impl Stage {
         self.objects3 = objects3;
         out.extend(labels);
         self.spatial = out.len();
-        out.extend(texts);
+        out.extend(flats);
         out.extend(boxes);
+        out.extend(texts);
         // overlays: ghosts of removed objects and morphing pieces
         for a in &self.anims {
             let p = a.p(now);

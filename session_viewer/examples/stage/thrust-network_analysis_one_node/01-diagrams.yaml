@@ -71,9 +71,9 @@ slides:
               - {id: pj_drop, line: [j, jG], color: grey, width: 1.3, dash: true}
               - {id: pk_drop, line: [k, kG], color: grey, width: 1.3, dash: true}
               - {id: pl_drop, line: [l, lG], color: grey, width: 1.3, dash: true}
-              - {id: fhj, arrow: [jG, iG], color: ink, width: 3.2, label: 'F_{\mathrm{H},ji}', dir: [-0.2, -1]}
-              - {id: fhk, arrow: [kG, iG], color: ink, width: 3.2, label: 'F_{\mathrm{H},ki}', dir: [1, -0.3]}
-              - {id: fhl, arrow: [lG, iG], color: ink, width: 3.2, label: 'F_{\mathrm{H},li}', dir: [0.5, 1]}
+              - {id: fhj, arrow: [jG, iG], color: ink, width: 3.2, label: 'F_{\mathrm{H},ji}', dir: [-0.6, -0.8]}
+              - {id: fhk, arrow: [kG, iG], color: ink, width: 3.2, label: 'F_{\mathrm{H},ki}', dir: [1, -0.2]}
+              - {id: fhl, arrow: [lG, iG], color: ink, width: 3.2, label: 'F_{\mathrm{H},li}', dir: [0.6, -0.8]}
               - {id: jGp, point: jG, color: fixed}
               - {id: kGp, point: kG, color: fixed}
               - {id: lGp, point: lG, color: fixed}
@@ -92,8 +92,8 @@ slides:
           - derive: {from: fj, id: fjs, arrow: [V0, V1], color: ink, width: 3.2, label: 'F_{ji}', dir: [0.3, -1]}
           - derive: {from: fl, id: fls, arrow: [V1, V2], color: ink, width: 3.2, label: 'F_{li}', dir: [1, 0.3]}
           - derive: {from: fk, id: fks, arrow: [V2, T0], color: ink, width: 3.2, label: 'F_{ki}', dir: [-0.3, 1]}
-          - derive: {from: fhj, id: tj, arrow: [Q0, Q1], color: ink, width: 3.2, label: 'F_{\mathrm{H},ji}', dir: [0.4, 1]}
-          - derive: {from: fhl, id: tl, arrow: [Q1, Q2], color: ink, width: 3.2, label: 'F_{\mathrm{H},li}', dir: [1, -0.4]}
+          - derive: {from: fhj, id: tj, arrow: [Q0, Q1], color: ink, width: 3.2, label: 'F_{\mathrm{H},ji}', dir: [0.6, 0.8]}
+          - derive: {from: fhl, id: tl, arrow: [Q1, Q2], color: ink, width: 3.2, label: 'F_{\mathrm{H},li}', dir: [0.6, -0.8]}
           - derive: {from: fhk, id: tk, arrow: [Q2, Q0], color: ink, width: 3.2, label: 'F_{\mathrm{H},ki}', dir: [-1, 0]}
           - add:
               - {id: t0p, point: T0, color: ink}

@@ -499,11 +499,16 @@ impl Stage {
                         let set: Vec<usize> =
                             subset.unwrap_or_else(|| (0..self.objs[i].expr.prims.len()).collect());
                         let prims = self.prims_of(i, now);
-                        let draws = set
-                            .iter()
-                            .filter_map(|&j| prims.get(j).copied())
-                            .map(Draw::Prim)
-                            .collect();
+                        let chosen: Vec<_> =
+                            set.iter().filter_map(|&j| prims.get(j).copied()).collect();
+                        let o = &self.objs[i];
+                        let diagram_text = o.at.is_some()
+                            && matches!(o.content, Content::Tex(_) | Content::Text(_));
+                        let draws = if (o.label() || diagram_text) && !chosen.is_empty() {
+                            vec![Draw::Label(chosen)]
+                        } else {
+                            chosen.into_iter().map(Draw::Prim).collect()
+                        };
                         for j in &set {
                             self.objs[i].hidden.insert(*j);
                         }

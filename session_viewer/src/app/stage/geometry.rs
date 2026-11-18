@@ -1,4 +1,4 @@
-use super::deck::{Content, Pos};
+﻿use super::deck::{Content, Pos};
 use super::eval;
 use super::object::Obj;
 use super::run::{H, Stage, TOP, W};
@@ -49,7 +49,7 @@ fn cuboid_edges(a: [f64; 3], b: [f64; 3]) -> Vec<([f64; 3], [f64; 3])> {
 }
 
 /// Length of the part of segment p-q inside box b.
-fn clip_len(p: [f32; 2], q: [f32; 2], b: [f32; 4]) -> f32 {
+pub(super) fn clip_len(p: [f32; 2], q: [f32; 2], b: [f32; 4]) -> f32 {
     let (dx, dy) = (q[0] - p[0], q[1] - p[1]);
     let (mut t0, mut t1) = (0.0f32, 1.0f32);
     let sides = [
@@ -183,7 +183,7 @@ impl Stage {
         let mut segs: Vec<([f32; 2], [f32; 2])> = Vec::new();
         let mut discs: Vec<[f32; 2]> = Vec::new();
         for o in &self.objs {
-            if !o.geo() {
+            if !o.geo() || o.opacity <= 0.01 {
                 continue;
             }
             let world = self.geo_points(o, now);
@@ -206,12 +206,40 @@ impl Stage {
             let anchor3 = self.ctrl(o, now).first().copied().unwrap_or([0.0; 3]);
             let a = view.project(anchor3);
             let (w, h) = (o.expr.w * o.size, (o.expr.h + o.expr.d) * o.size);
+            let line_seg = o
+                .attach
+                .as_deref()
+                .and_then(|id| self.find(id))
+                .and_then(|li| {
+                    let lo = &self.objs[li];
+                    if matches!(lo.content, Content::Line { .. }) {
+                        let pts = self.geo_points(lo, now);
+                        Some((view.project(pts[0]), view.project(pts[1])))
+                    } else {
+                        None
+                    }
+                });
             let place = |ang: f32, gap: f32| -> [f32; 4] {
                 let (dx, dy) = (ang.cos(), -ang.sin());
                 // push the box out until its edge, not its center, is `gap` from the anchor
                 let reach = (w / 2.0 / dx.abs().max(1e-3)).min(h / 2.0 / dy.abs().max(1e-3));
-                let cx = a[0] + dx * (gap + reach);
-                let cy = a[1] + dy * (gap + reach);
+                let mut dist = gap + reach;
+                if gap > 0.0
+                    && let Some((p0, p1)) = line_seg
+                {
+                    let (lx, ly) = (p1[0] - p0[0], p1[1] - p0[1]);
+                    let llen = lx.hypot(ly);
+                    if llen > 1.0 {
+                        let (nx, ny) = (-ly / llen, lx / llen);
+                        let un = (dx * nx + dy * ny).abs();
+                        if un >= 0.45 {
+                            let clear = (nx.abs() * w / 2.0 + ny.abs() * h / 2.0 + gap) / un;
+                            dist = dist.max(clear);
+                        }
+                    }
+                }
+                let cx = a[0] + dx * dist;
+                let cy = a[1] + dy * dist;
                 [cx - w / 2.0, cy - h / 2.0, cx + w / 2.0, cy + h / 2.0]
             };
             let score = |b: [f32; 4]| -> f32 {
@@ -268,8 +296,12 @@ impl Stage {
                 self.objs[i].label_dir = best.1;
                 cand(best.1)
             };
-            boxes.push(chosen);
             let o = &self.objs[i];
+            let visible = o.opacity > 0.01
+                && (o.expr.prims.is_empty() || o.hidden.len() < o.expr.prims.len());
+            if visible {
+                boxes.push(chosen);
+            }
             placed.insert(o.id.clone(), [chosen[0], chosen[1] + o.expr.h * o.size]);
         }
         self.labels = placed;

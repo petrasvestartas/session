@@ -8,6 +8,11 @@ use std::collections::HashMap;
 pub(super) fn fade(mut d: Draw, a: f32) -> Draw {
     match &mut d {
         Draw::Prim(p) => p.color[3] *= a,
+        Draw::Label(ps) => {
+            for p in ps {
+                p.color[3] *= a;
+            }
+        }
         Draw::Path { color, fill, .. } => {
             color[3] *= a;
             if let Some(fill) = fill {
@@ -131,7 +136,18 @@ impl Stage {
         if self.objs[i].drawing() {
             return self.flat_draws(i, now, 1.0, 1.0);
         }
-        self.prims_of(i, now).into_iter().map(Draw::Prim).collect()
+        let prims = self.prims_of(i, now);
+        let o = &self.objs[i];
+        let diagram_text = o.at.is_some()
+            && matches!(
+                o.content,
+                super::deck::Content::Tex(_) | super::deck::Content::Text(_)
+            );
+        if o.label() || diagram_text {
+            vec![Draw::Label(prims)]
+        } else {
+            prims.into_iter().map(Draw::Prim).collect()
+        }
     }
 
     /// The rounded outline of box object `i`, drawn to `grow` of its length.
