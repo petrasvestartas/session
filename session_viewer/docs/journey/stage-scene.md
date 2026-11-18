@@ -76,7 +76,7 @@ The completed [action implementation](../../src/app/stage/actions.rs) already ow
 
 `derive` constructs a new destination while retaining its source. For geometry it stores the source control points for interpolation; for mathematical content it pairs named or matching primitives and copies them toward the new expression. `move` changes a named point's value, so attached geometry and labels follow the same point. `fly` resolves source and destination subsets, reveals the destination subset and animates matched pieces between their current positions. Its `keep` option determines whether source pieces remain visible.
 
-In [the givens chapter](../../examples/stage/force-density-matrices/01-givens.yaml), each fixed node's coordinate label flies into a row of `xF`. The label starts at the camera-projected node, while the destination is a column-layout matrix row. Their common slide coordinates make that movement meaningful across the two regions. Restoring the short node label is a separate authored action.
+A deck's `fill` block flies each fixed node's coordinate label from its camera-projected node into a row of `xF`, with restoring the short node label as a separate action, while [the matrices chapter](../../examples/stage/force-density-matrices/02-matrices.yaml) flies connectivity, force-density and load entries across column matrices as scene cables and nodes highlight in turn. Their common slide coordinates make movements across the scene and mathematical column coherent.
 
 ### Build and solve the cable-net matrices
 
@@ -114,7 +114,7 @@ Touch handling tracks one finger by ID. A short tap is distinguished from motion
 
 Materialize `application` as described in [Maintaining](../maintaining.md). Build its `production.html` with Trunk through the shared cache and resource guards. Trunk emits `dist/index.html`; serve that directory and open `/?stage=decks/force-density-matrices/index.yaml&data=off&chapter=7&step=1`.
 
-The pillow chapter begins with a flat 10-by-10 grid: 36 boundary nodes are fixed and 64 interior nodes are free. Advance to the load, matrix and solve steps. The interior rises into a pillow while the boundary stays fixed. Orbit the scene and check that labels remain attached. At upright dimensions, the scene is above the column.
+The pillow chapter begins on the dark ground with a flat 10-by-10 grid (36 fixed boundary nodes and 64 free interior nodes) beside the sparse pattern row `C -> CN, CF`. Advance to solve the cushion, then advance to the runnable SciPy Cholesky script whose solved peak height is `2.025`. Orbit the scene and press `T` to swap between dark and light grounds at the same step. At upright dimensions, the scene sits above the column.
 
 ![The materialization deck at its whole-net cut-length stage. This is a controlled-clock settled-state capture, not a real-time timing or mathematical-correctness proof.](../screenshots/completion/materialized-net.png)
 
@@ -122,7 +122,7 @@ The materialization deck at its whole-net cut-length stage. This is a controlled
 
 ## Predict and try
 
-At the pillow's linear-system slide, predict the next two shapes before stepping. Doubling the upward load doubles the free-node heights because the matrix stays fixed. Restoring the initial load and doubling every force density doubles the matrix, so heights halve. Fixed boundary coordinates stay unchanged in both cases. Step backward and verify that replay recovers the preceding authored state.
+In `07-pillow.yaml`, predict the solved cushion height before changing `load: [0, 0, 0.35]` to `[0, 0, 0.7]`: doubling the upward load doubles the free-node heights because `C_N^T Q C_N` stays fixed. Restore the load and change `q: 1` to `q: 2`: doubling every force density doubles the matrix, halving the heights while fixed boundary coordinates stay unchanged. Step backward and verify that replay recovers the flat grid.
 
 ## Question and answer
 
@@ -132,9 +132,9 @@ The user can orbit away from the authored pose. Projecting labels with that olde
 
 ## Validation
 
-The standalone mathematics checkpoint passes 24 native tests. The cumulative application's stage suite separately passes 19 tests, including complete decks at rest, nested equation option merging, matrix construction and action behavior. Default and tutorial wasm checks, native linking and optimized Trunk compilation pass for the cumulative source tree.
+The standalone mathematics checkpoint passes 24 native tests. The cumulative application's stage suite separately passes 20 tests, including complete decks at rest, fixed-width row-slot centring, nested equation option merging, matrix construction and dark-default ground swaps. Default and tutorial wasm checks, native linking and optimized Trunk compilation pass for the cumulative source tree.
 
-Initial cumulative browser playback covered 554 forward step checks across all 23 chapters of the five shipped decks at 1280 by 800 and 390 by 844, with 46 chapter/viewport cases and 184 first/last/back/ground screenshots. After upstream shortened `force-density` chapters 1 and 2 and updated slide headings and equation alignment, [the stage reconciliation receipt](release/completion-stage-reconciliation-windows-20261117.json) re-verified 158 forward step checks, backward navigation and dark ground across `equilibrium`, all five `force-density` chapters and `force-density-matrices` chapter 7 at 1280 by 800 and 390 by 844 with 32 reviewed captures. Settled overlap reports and uncaptured GPU errors are empty. These are controlled-clock checks of the cumulative executable, not a forward-versus-replay pixel-equivalence claim.
+Initial cumulative browser playback covered 554 forward step checks across the five shipped decks at 1280 by 800 and 390 by 844. After upstream switched decks to the dark default ground, revised the Jacobian/materialization derivations and streamlined the matrix chapters to 22 total chapters, [the stage reconciliation receipt](release/completion-stage-reconciliation-windows-20261118.json) re-verified all 22 chapters of all five decks at 1280 by 800 and 390 by 844 (44 cases, 176 forward step checks, backward navigation and light/dark theme round-trips) with 68 reviewed captures. Settled overlap reports and uncaptured GPU errors are empty. These are controlled-clock checks of the cumulative executable, not a forward-versus-replay pixel-equivalence claim.
 
 Separate interaction checks exercise mouse orbit, wheel zoom, camera reset, column clicks, keyboard backward navigation, and emulated upright touch swipe/tap navigation. Six deliberate font, chapter and picture loading failures show contextual filenames at both sizes. The actual adapter is Intel Gen-12LP in desktop Chrome; viewport and touch emulation do not establish physical-phone acceptance. Earlier failed local-server runs and the historical replay comparison remain preserved in the evidence record.
 

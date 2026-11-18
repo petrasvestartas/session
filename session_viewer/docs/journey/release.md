@@ -2,7 +2,7 @@
 
 - The active course has [nine cumulative executable subjects](active.md). Eight are accepted, from frame through decoding; application remains pending.
 - All 22 focused tooling tests, retained-source/351-file endpoint checks and the strict site build pass. Geometry's 13 GPU tests pass. The application GPU run has 36 passes and [one reproducible failure](release/completion-application-gpu-diagnostic-windows-20261116.json); its assertion remains unchanged.
-- The [historical route](../archived/cumulative-route-20261115.md) preserves 1,298 checkpoints across 110 subjects, fixtures and original failed audits. [Production reconciliation](release/completion-production-reconciliation-20261117.json) and [stage reconciliation](release/completion-stage-reconciliation-windows-20261117.json) bind the current merged source tree while application GPU parity and physical-device verification remain open.
+- The [historical route](../archived/cumulative-route-20261115.md) preserves 1,298 checkpoints across 110 subjects, fixtures and original failed audits. [Production reconciliation](release/completion-production-reconciliation-20261118.json) and [stage reconciliation](release/completion-stage-reconciliation-windows-20261118.json) bind the current merged source tree while application GPU parity and physical-device verification remain open.
 
 ## Reproduce
 

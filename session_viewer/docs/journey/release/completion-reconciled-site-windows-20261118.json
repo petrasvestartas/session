@@ -1,0 +1,302 @@
+{
+  "status": "verified",
+  "date": "2026-11-18",
+  "reconciledSessionHead": "f1d477f2c48c6fa9154471b0dbad3f6dfda30184",
+  "scope": "Reconciled session/main (f1d477f2c) documentation build (completion-docs35) and browser verification (support-docs-browser11): 22 focused tooling tests, 8 accepted scoped subjects (20261116 frame/painting + 20261118 mathematics..decoding), 359 teaching witnesses, 351-file endpoint audit, strict site build, homepage 9-checkpoint count, subject-owned chapter grouping, geometry-visibility-decoding navigation, 6 kernel motion repository links, updated dark-default/fixed-slot/22-chapter stage prose, bottom-right UTC timestamp, and 41 personally viewed desktop/upright captures; application remains pending and physical-device acceptance is not claimed",
+  "docsBuildJob": {
+    "manifest": "session_viewer/target/completion-docs35/resources.json",
+    "manifestSha256": "97049d426e6109cf7750e1c726e402127a8a07185e61470dd3c0b3a366516144",
+    "planSha256": "3892f2b7636966836c2ad9c0e617d455e97ad53f13be046d43d970c48398099d",
+    "resultSha256": "17466a8cbbd98e653526a2f6ae159fd76b36acaf0f3391c460ee3e5e0cee0a5f",
+    "processId": 19596,
+    "exitCode": 0,
+    "elapsedSeconds": 53.266,
+    "peakJobCommitBytes": 1360539648,
+    "pinnedInputsVerified": 5033,
+    "commands": [
+      {
+        "name": "teaching-tests",
+        "exitCode": 0
+      },
+      {
+        "name": "active-audit",
+        "exitCode": 0
+      },
+      {
+        "name": "teaching",
+        "exitCode": 0
+      },
+      {
+        "name": "strict-site",
+        "exitCode": 0
+      }
+    ],
+    "delivery": {
+      "base": "/docs/",
+      "assetUrls": [
+        "/docs/assets/main-Cb-J9ju9.js",
+        "/docs/assets/main-B4Gnh6tv.css"
+      ],
+      "indexSha256": "48cb1badb60f8d5c4a48eee6efc1ced72cb07cde0d3297af1ae8f7f643c5e816"
+    }
+  },
+  "browserJob": {
+    "manifest": "session_viewer/target/support-docs-browser11-job/resources.json",
+    "manifestSha256": "178413e893ade86b92da3de6f6b98eb60a47f51ffad90735fe29d7cfd8f451fd",
+    "resultSha256": "23f3e5992d98682f376d1492772f40cd6869930517cba96a5c65da46029a5832",
+    "processId": 42536,
+    "exitCode": 0,
+    "elapsedSeconds": 12.382,
+    "peakJobCommitBytes": 563556352,
+    "pinnedInputsVerified": 7849,
+    "cliCourseHome": [
+      {
+        "width": 1280,
+        "checkpoints": 9,
+        "chapterOwner": "geometry",
+        "navigation": "geometry/visibility/decoding"
+      },
+      {
+        "width": 390,
+        "checkpoints": 9,
+        "chapterOwner": "geometry",
+        "navigation": "geometry/visibility/decoding"
+      }
+    ],
+    "kernelSourceChecks": [
+      {
+        "api": "Vector::lerp",
+        "href": "https://github.com/petrasvestartas/session_rust/blob/main/src/vector.rs"
+      },
+      {
+        "api": "Color::lerp",
+        "href": "https://github.com/petrasvestartas/session_rust/blob/main/src/color.rs"
+      },
+      {
+        "api": "Line::lerp",
+        "href": "https://github.com/petrasvestartas/session_rust/blob/main/src/line.rs"
+      },
+      {
+        "api": "Polyline::resampled",
+        "href": "https://github.com/petrasvestartas/session_rust/blob/main/src/polyline.rs"
+      },
+      {
+        "api": "Polyline::morph",
+        "href": "https://github.com/petrasvestartas/session_rust/blob/main/src/polyline.rs"
+      },
+      {
+        "api": "Xform::interpolate",
+        "href": "https://github.com/petrasvestartas/session_rust/blob/main/src/xform.rs"
+      }
+    ],
+    "footerStamp": "Docs built 2026-11-18 05:43:04 UTC",
+    "capturesCount": 41,
+    "captures": [
+      {
+        "file": "active-eight-of-its-nine-executable-subjects-are-accepted-1280.png",
+        "bytes": 117415,
+        "sha256": "4e201107375c4e957955817e562c485e873ec97922b143e9a22a772f2bc07d8e"
+      },
+      {
+        "file": "active-eight-of-its-nine-executable-subjects-are-accepted-390.png",
+        "bytes": 46429,
+        "sha256": "7cd5818098167abd519804fb184a10d9eb42cf0839c62f50967f6c75e96180a8"
+      },
+      {
+        "file": "completion-application-31-pixels-differing-by-three-channel-levels-1280.png",
+        "bytes": 112743,
+        "sha256": "537cfbf1b222dbbd2264e4e0472a47793df48f5440cd270fbc1be6739f9ae444"
+      },
+      {
+        "file": "completion-application-31-pixels-differing-by-three-channel-levels-390.png",
+        "bytes": 38226,
+        "sha256": "88add73284b0bff49dcbf681e1429276731720706cdb91249cef9f06791da8df"
+      },
+      {
+        "file": "completion-camera-cursor-s-offset-1280.png",
+        "bytes": 113953,
+        "sha256": "5d17b90eb736f6dbf75efa1b57f2368a06ffc241d31fdf4c88792db78781db86"
+      },
+      {
+        "file": "completion-camera-cursor-s-offset-390.png",
+        "bytes": 45869,
+        "sha256": "5e1f17dc07b2a3c10a26c479ab11a473933b2e9f425266d7125c81c060d1b86e"
+      },
+      {
+        "file": "completion-camera-fifth-cumulative-subject-is-reviewed-1280.png",
+        "bytes": 128451,
+        "sha256": "c8fdc36f449c7d5b3b1fec3c6dd30a8b1ff96eb2bee65766c62828e500976bfd"
+      },
+      {
+        "file": "completion-camera-fifth-cumulative-subject-is-reviewed-390.png",
+        "bytes": 48173,
+        "sha256": "b72d87b086664453c57e1b1029e31f82cdf74596646fc4f7d350f510f867de36"
+      },
+      {
+        "file": "completion-debugging-instanced-frames-match-the-baked-scene-1280.png",
+        "bytes": 127111,
+        "sha256": "632c0a2d4d71a04fd5cdf4ef9528736726d4c9032803add4860396dc25d0e408"
+      },
+      {
+        "file": "completion-debugging-instanced-frames-match-the-baked-scene-390.png",
+        "bytes": 37892,
+        "sha256": "f39cc22dbf362888684d44fc929eed1619e7fc94be05cfce0135f40b62307b75"
+      },
+      {
+        "file": "completion-decoding-two-million-object-counter-sums-points-1280.png",
+        "bytes": 124631,
+        "sha256": "c8ffdbdb468f4c1a00acf430ba2c1ae4ba7108666f782ad87d566331b5fbc958"
+      },
+      {
+        "file": "completion-decoding-two-million-object-counter-sums-points-390.png",
+        "bytes": 46442,
+        "sha256": "d88d2e4b589abfdd8ae14c8a946f0e03979f79f42e2b93e7796899a7592638b6"
+      },
+      {
+        "file": "completion-dock-recorded-windows-intel-webgpu-1280.png",
+        "bytes": 108886,
+        "sha256": "6f7715072cf88b1b4f16affbc2c2734e22c895db9f16f85f9c7d119d83409d34"
+      },
+      {
+        "file": "completion-dock-recorded-windows-intel-webgpu-390.png",
+        "bytes": 42230,
+        "sha256": "d2445c64fcd31a96deda111b6560cf5144d05be6cf1df0ab31fefbde3887c98a"
+      },
+      {
+        "file": "completion-documents-moving-one-placement-leaves-the-other-where-it-was-1280.png",
+        "bytes": 131249,
+        "sha256": "f4b58e2c65ed0808c9b414e40f8734261c1fb6b575b55c1e81d47b6e5610d26e"
+      },
+      {
+        "file": "completion-documents-moving-one-placement-leaves-the-other-where-it-was-390.png",
+        "bytes": 41550,
+        "sha256": "b77713ed40c78886d29a139febb6f1ebd0439e6646377b90574dfa471cee2867"
+      },
+      {
+        "file": "completion-frame-recorded-windows-intel-webgpu-1280.png",
+        "bytes": 125597,
+        "sha256": "7be4dc47a52f9967d1af669d7c5fc6b1b89fc223dd600cc8252680b688f3098a"
+      },
+      {
+        "file": "completion-frame-recorded-windows-intel-webgpu-390.png",
+        "bytes": 43820,
+        "sha256": "d17c6d8931bd8fac2aa1fa548196d27018d99b68bebfc9e93d1bace736a6020b"
+      },
+      {
+        "file": "completion-geometry-13-original-tests-1280.png",
+        "bytes": 130621,
+        "sha256": "5c0f25d3430ee3c84282e72e10ef356454339729d259504a723632497a6f0131"
+      },
+      {
+        "file": "completion-geometry-13-original-tests-390.png",
+        "bytes": 44088,
+        "sha256": "526ea533b9583767e21375921be2e54ee453bdf25f93fd72df4c4294d4821389"
+      },
+      {
+        "file": "completion-mathematics-at-parameter-1280.png",
+        "bytes": 136806,
+        "sha256": "ad734f8a927a65a53f6aa6710ab77f313f7a94efdd9d548e18c850ce24d3c6dc"
+      },
+      {
+        "file": "completion-mathematics-at-parameter-390.png",
+        "bytes": 41779,
+        "sha256": "fd2c15692205801f7928759b6fff5dfa1b3e2786646e7462e6495f177b4a4c81"
+      },
+      {
+        "file": "completion-mathematics-defaults-to-the-dark-ground-1280.png",
+        "bytes": 139832,
+        "sha256": "620bcf2c3714047e3cbe8480fadce1ca6827225c18c825675f5e78754dd77c80"
+      },
+      {
+        "file": "completion-mathematics-defaults-to-the-dark-ground-390.png",
+        "bytes": 46534,
+        "sha256": "d623d319430e79195ad3c6bda5b515a09b2d703332201e6370fe89242d028926"
+      },
+      {
+        "file": "completion-mathematics-fixed-slot-1280.png",
+        "bytes": 122851,
+        "sha256": "3d3cfcb8f5e8ade9f5f33c5d155e650e91b3a37ec9beaf2036b5cc329b39dcd7"
+      },
+      {
+        "file": "completion-mathematics-fixed-slot-390.png",
+        "bytes": 46513,
+        "sha256": "902e4520b4c7ac68ed1f91f24c3a381356ef7ec5d18b00c132fd7d07603c6434"
+      },
+      {
+        "file": "completion-painting-recorded-windows-intel-webgpu-1280.png",
+        "bytes": 100691,
+        "sha256": "6cf8d796be89450d3e2d5b7bd1dc3ab182dc8abc4709b6ff6902279f9bf05ccd"
+      },
+      {
+        "file": "completion-painting-recorded-windows-intel-webgpu-390.png",
+        "bytes": 42419,
+        "sha256": "b98b933c81f11e198743cde96ecb8c876c4ce9662080ea0f8f8a42ac3868e73e"
+      },
+      {
+        "file": "completion-rows-word-following-spacing-carries-the-packed-edge-colour-1280.png",
+        "bytes": 124960,
+        "sha256": "cf41d2c2857582949f2726ac7d7f8f1ab279dafa04031d1fd3f11457c8b892a3"
+      },
+      {
+        "file": "completion-rows-word-following-spacing-carries-the-packed-edge-colour-390.png",
+        "bytes": 45583,
+        "sha256": "911e348891988104ae5c4f46f480267507ae889a7f09380df54e9f4e3852277b"
+      },
+      {
+        "file": "completion-visibility-13-test-gpu-run-1280.png",
+        "bytes": 115963,
+        "sha256": "7a2bc34e11aa0a7f1445acdf0828c129e9de243e046541db5d73599bed1af795"
+      },
+      {
+        "file": "completion-visibility-13-test-gpu-run-390.png",
+        "bytes": 37732,
+        "sha256": "41edd91e93a4b3edabddc261b884c3beb0d4069099e1a1570f6d91c3a5e07a49"
+      },
+      {
+        "file": "course-drawer-390.png",
+        "bytes": 32437,
+        "sha256": "1b9458e12cedfef002b11581c25f44aceba8b50c64d965901592966b2fab6918"
+      },
+      {
+        "file": "course-home-1280.png",
+        "bytes": 73184,
+        "sha256": "3407de6e62e9456eab29f2b3c9e01b27b493c436d397eed31724bbce9e54c9d9"
+      },
+      {
+        "file": "course-home-390.png",
+        "bytes": 37755,
+        "sha256": "8c1587744d373bf1b7cdd66211c26794fddab986365a61a51fa94ea154a9d00a"
+      },
+      {
+        "file": "course-home-chapters-1280.png",
+        "bytes": 62705,
+        "sha256": "cae11ec2f36b8e6092753442614f45b9ddba85e1f1549c1966d45ed94904198f"
+      },
+      {
+        "file": "course-home-chapters-390.png",
+        "bytes": 32046,
+        "sha256": "5b73b8a3ccf62ec17ebb73a61b7b652ea40a0ae93b931a2f299a48d7802ab75b"
+      },
+      {
+        "file": "release-eight-are-accepted-from-frame-through-decoding-1280.png",
+        "bytes": 83948,
+        "sha256": "d9125eeac40c1a5961d4b19db399ffd3c60a8cf2390f7e238d90ce4a91f4d2bf"
+      },
+      {
+        "file": "release-eight-are-accepted-from-frame-through-decoding-390.png",
+        "bytes": 39986,
+        "sha256": "708946f2449e0d47c8b56e8737c6aba459169b7863173527cdd8c612b7b4c183"
+      },
+      {
+        "file": "stage-scene-all-22-chapters-of-all-five-decks-1280.png",
+        "bytes": 126499,
+        "sha256": "4b1012ca76d1ed1717944c7c7afd721a9c26f4cb7e69c1f0def910271bfabccd"
+      },
+      {
+        "file": "stage-scene-all-22-chapters-of-all-five-decks-390.png",
+        "bytes": 47276,
+        "sha256": "5c5427fe2207fdf4ddc78ceca8d6732cddd9588d0538d03f5b5dd37df46fb0de"
+      }
+    ]
+  }
+}

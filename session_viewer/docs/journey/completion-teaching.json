@@ -1642,11 +1642,11 @@
   {
     "path": "src/app/stage/actions.rs",
     "owner": "mathematics",
-    "sourceSha256": "b5ce046152cd3795108f9a252b80c36ddfe8c7feb1c34bd9144c8d356851464b",
+    "sourceSha256": "86c398aaa783b700da125488b3e0b44adc726711cd207898d77bf1a3400abc95",
     "explanation": {
       "page": "journey/completion-mathematics.md",
       "heading": "### Clock, actions and drawing",
-      "paragraph": "`actions.rs::apply` performs the same state transition during animation and replay. The `animate` flag controls whether effects enter the animation queue; it does not skip adding or removing the object. Adding a group staggers its appearance inside one duration and lays out the column once the objects exist. Removing an object also removes its attached label and dependent boxes. That ownership rule prevents an orphaned annotation after the formula it describes has gone."
+      "paragraph": "`actions.rs::apply` performs the same state transition during animation and replay. The `animate` flag controls whether effects enter the animation queue; it does not skip adding or removing the object. Adding a group staggers its appearance inside one duration and lays out the column once the objects exist, while a box action attaches a flush `-1.2`-unit inset outline to its target. Removing an object also removes its attached label and dependent boxes. That ownership rule prevents an orphaned annotation after the formula it describes has gone."
     }
   },
   {
@@ -1672,21 +1672,21 @@
   {
     "path": "src/app/stage/deck.rs",
     "owner": "mathematics",
-    "sourceSha256": "ae3794844e43ef39d4539058c67ef60206ef7078fb3a6e72f2e2f19b4e81256c",
+    "sourceSha256": "e8bd642d043f6449b5b10903a1bce91138bb75c4c4924b0cf634471abb0d1687",
     "explanation": {
       "page": "journey/completion-mathematics.md",
       "heading": "### Deck data and errors",
-      "paragraph": "An index names chapter files. The chapter parser expands short keys and author blocks into actions, merging step-level appearance and alignment options onto both scalar and nested `eq`, `then` and `tex` formula definitions through `object_with_options` without discarding their TeX text. It carries the chapter name into errors; playback adds the step context. Unknown names and unsupported TeX must be reported rather than silently dropping the requested content. The overlap check uses laid-out ink bounds, not string lengths."
+      "paragraph": "An index names chapter files and defaults to the dark ground when `theme` is omitted. The chapter parser expands short keys and author blocks into actions, parses optional fixed-width row slots in em, and merges step-level appearance and alignment options onto both scalar and nested `eq`, `then` and `tex` formula definitions through `object_with_options` without discarding their TeX text. It carries the chapter name into errors; playback adds the step context. Unknown names and unsupported TeX must be reported rather than silently dropping the requested content. The overlap check uses laid-out ink bounds, not string lengths."
     }
   },
   {
     "path": "src/app/stage/draw.rs",
     "owner": "mathematics",
-    "sourceSha256": "e0c095450c0fee8659a577be4fa41dff8609b81745ac4801a2f49ecb216ec43b",
+    "sourceSha256": "2d3e6ca2d45561493f342fa853642c382e00de23667bcc0a151daa56e3efb91d",
     "explanation": {
       "page": "journey/completion-mathematics.md",
       "heading": "### Clock, actions and drawing",
-      "paragraph": "`draw.rs::prims_of` samples positions and colours, converts expression primitives into slide pixels and makes hidden entries transparent. It neutralizes a matrix cell when all its entry primitives are hidden, preventing the cell colour from revealing an answer prematurely. `fade` scales alpha for both primitive and path drawings. Rounded outlines clamp their radius to half the available width and height, so a small box cannot turn inside out. These operations produce drawing data; the atlas and egui painter still own rasterization."
+      "paragraph": "`draw.rs::prims_of` samples positions and colours, converts expression primitives into slide pixels and makes hidden entries transparent. It neutralizes a matrix cell when all its entry primitives are hidden, preventing the cell colour from revealing an answer prematurely. `fade` scales alpha for both primitive and path drawings. Rounded box outlines use a five-unit corner radius clamped to half the available width and height, so a small box cannot turn inside out. These operations produce drawing data; the atlas and egui painter still own rasterization."
     }
   },
   {
@@ -1722,11 +1722,11 @@
   {
     "path": "src/app/stage/layout.rs",
     "owner": "mathematics",
-    "sourceSha256": "4ebcd476d756971c9a613bc17f998a07b4bbfde1a4d851a6796259e47478c748",
+    "sourceSha256": "a73373c1f2f14ab88c0fb420a468b999c790548b159c10619e880a9b5105bc27",
     "explanation": {
       "page": "journey/completion-mathematics.md",
       "heading": "### Column and equals alignment",
-      "paragraph": "Follow `relayout`: stacking determines vertical positions; fitting determines a common usable scale; equals alignment offsets each expression by its own `Expr::align`. Left-aligning `x=1` and `x+y=2` cannot align their equals signs because their left sides have different widths. Rows lay out formulas and matrices together."
+      "paragraph": "Follow `relayout`: stacking determines vertical positions; fitting determines a common usable scale; equals alignment offsets each expression by its own `Expr::align`. Left-aligning `x=1` and `x+y=2` cannot align their equals signs because their left sides have different widths. Rows lay out formulas, pictures and matrices together, and an item with an explicit `width` in em centres its primitives inside that fixed slot."
     }
   },
   {
@@ -1822,11 +1822,11 @@
   {
     "path": "src/app/stage/presentation_tests.rs",
     "owner": "mathematics",
-    "sourceSha256": "bb48da53f3314e5b173d8e7ff8ac7e4671143d9f5277dee03473f3bf0835a28e",
+    "sourceSha256": "45ac39084fa7073bf86a4c49d77847d0fd415613d6a716d63aa501eb4c40d839",
     "explanation": {
       "page": "journey/completion-mathematics.md",
       "heading": "### Test the model and its host separately",
-      "paragraph": "`presentation_tests.rs` supplies pictures and a minimal chapter to the same `Presentation` constructor. It checks picture order and aspect ratios, reversible frame coordinates at desktop/upright sizes, and a second settled egui frame that still contains shapes without requesting another repaint. The mode test uses an integer host and verifies it stays unchanged through navigation and theme changes. That last assertion demonstrates why mathematical playback can finish before scene integration exists."
+      "paragraph": "`presentation_tests.rs` supplies pictures and a minimal chapter to the same `Presentation` constructor. It checks picture order and aspect ratios, reversible frame coordinates at desktop/upright sizes, and a second settled egui frame that still contains shapes without requesting another repaint. The mode test uses an integer host and verifies it stays unchanged as background state transitions from the default black ground to white on `t` and steps backward. That last assertion demonstrates why mathematical playback can finish before scene integration exists."
     }
   },
   {
@@ -1852,11 +1852,11 @@
   {
     "path": "src/app/stage/tests.rs",
     "owner": "mathematics",
-    "sourceSha256": "a2153f14a19ddbd6f22133ede0c30a65201938d2fdc44a3c2807262efa82ce63",
+    "sourceSha256": "3dbb22d4b9748df166c2b64c072ce31d0d873faa394d201d1158600ae7f8b6f3",
     "explanation": {
       "page": "journey/completion-mathematics.md",
       "heading": "### Test the model and its host separately",
-      "paragraph": "`tests.rs` uses the real fonts and shipped chapter files. Its formula tests distinguish math-axis fraction placement, named parts, spaces, nested and scalar `tex`/`eq`/`then` option merging, and unsupported commands. Deck checks replay actions at rest and during playback, inspect layout errors, and exercise matrix filling and theme changes. These assertions test the interpretation of a deck; they do not initialize a browser GPU or establish physical-phone interaction."
+      "paragraph": "`tests.rs` uses the real fonts and shipped chapter files. Its formula and layout tests distinguish math-axis fraction placement, named parts, spaces, fixed-width row-slot centring, nested and scalar `tex`/`eq`/`then` option merging, and unsupported commands. Deck checks replay actions at rest and during playback, inspect layout errors, and exercise matrix filling and dark-default theme swaps at the same step. These assertions test the interpretation of a deck; they do not initialize a browser GPU or establish physical-phone interaction."
     }
   },
   {

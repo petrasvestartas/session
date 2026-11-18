@@ -196,6 +196,21 @@
       "subject": "Reconciled eight-subject site build and browser10 verification",
       "scope": "docs34 (4035 pins, 22 tooling tests, active-audit 351 files/8 accepted subjects with 20261116 frame/painting and 20261117 mathematics..decoding receipts, teaching 359/359, strict site) and browser10 (39 captures at 1280/390, 6 kernel motion repo links, UTC footer 2026-11-17 06:52:55 UTC); failed cross-origin fetch attempt browser09 preserved.",
       "path": "session_viewer/docs/journey/release/completion-reconciled-site-windows-20261117.json"
+    },
+    {
+      "subject": "Stage upstream reconciliation 2026-11-18 (dark-default ground, fixed-width row slots, 22 deck chapters)",
+      "scope": "Fast-forwarded origin/main (f1d477f2c): 7 stage-containing cumulative wasm checks, freshly compiled mathematics 21/21 native tests (1 GPU ignored), application 20/20 app::stage native tests, Trunk release bundle, and all 22 chapters of all 5 shipped decks in Chrome 157 Intel Gen-12LP at 1280x800 and 390x844 (44 cases, 176 forward steps, 68 personally viewed PNGs, 0 overlaps/errors).",
+      "path": "session_viewer/docs/journey/release/completion-stage-reconciliation-windows-20261118.json"
+    },
+    {
+      "subject": "Production baseline reconciliation ledger 2026-11-18",
+      "scope": "Reconciles all 111 production/support/example file deltas between pinned planning commit 87f844e41d08ef104fc071d5bc18163ffe9a4353 and fast-forwarded session/main (f1d477f2c) while preserving 351-file endpoint parity and 1,298 historical checkpoints.",
+      "path": "session_viewer/docs/journey/release/completion-production-reconciliation-20261118.json"
+    },
+    {
+      "subject": "Reconciled eight-subject site build (docs35) and browser11 verification",
+      "scope": "docs35 (5033 pins, 22 tooling tests, active-audit 351 files/8 accepted subjects with 20261116 frame/painting and 20261118 mathematics..decoding receipts, teaching 359/359, strict site 48cb1bad) and browser11 (41 personally viewed captures at 1280/390, 6 kernel motion repo links, UTC footer 2026-11-18 05:43:04 UTC).",
+      "path": "session_viewer/docs/journey/release/completion-reconciled-site-windows-20261118.json"
     }
   ],
   "open": [

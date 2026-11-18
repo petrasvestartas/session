@@ -1,0 +1,559 @@
+{
+  "status": "verified",
+  "date": "2026-11-18",
+  "mergedSessionHead": "f1d477f2c",
+  "upstreamStageHead": "f1d477f2c4a18e7fae9026418a5005b6c6e46471",
+  "scope": "Stage source and deck reconciliation after fast-forwarding session/main from 8106c9aaf to f1d477f2c (11 upstream stage commits: dark-default ground, fixed-width row slots, flush box highlights, Jacobian/materialization derivations and 22 streamlined deck chapters): locked wasm checks across all seven stage-containing cumulative assemblies, freshly compiled mathematics (21 passed, 1 ignored) and application app::stage (20 passed, 0 failed) native suites, Trunk production build, and Chrome WebGPU playback across all 22 chapters of all 5 shipped decks at 1280x800 and 390x844 (44 cases, 176 forward steps); desktop Intel Gen-12LP emulation only, no physical-device claim",
+  "reconciledStageSources": {
+    "src/app/stage/actions.rs": {
+      "beforeLfSha256": "b5ce046152cd3795108f9a252b80c36ddfe8c7feb1c34bd9144c8d356851464b",
+      "afterLfSha256": "86c398aaa783b700da125488b3e0b44adc726711cd207898d77bf1a3400abc95",
+      "summary": "Flush -1.2-unit inset box highlight padding on target cells and expressions"
+    },
+    "src/app/stage/deck.rs": {
+      "beforeLfSha256": "ae3794844e43ef39d4539058c67ef60206ef7078fb3a6e72f2e2f19b4e81256c",
+      "afterLfSha256": "e8bd642d043f6449b5b10903a1bce91138bb75c4c4924b0cf634471abb0d1687",
+      "summary": "Theme::Dark default when index theme is omitted and optional RowItem::width in em"
+    },
+    "src/app/stage/draw.rs": {
+      "beforeLfSha256": "e0c095450c0fee8659a577be4fa41dff8609b81745ac4801a2f49ecb216ec43b",
+      "afterLfSha256": "2d3e6ca2d45561493f342fa853642c382e00de23667bcc0a151daa56e3efb91d",
+      "summary": "5.0-unit rounded corner radius on boxed stage highlights"
+    },
+    "src/app/stage/layout.rs": {
+      "beforeLfSha256": "4ebcd476d756971c9a613bc17f998a07b4bbfde1a4d851a6796259e47478c748",
+      "afterLfSha256": "a73373c1f2f14ab88c0fb420a468b999c790548b159c10619e880a9b5105bc27",
+      "summary": "Centres RowItem primitives within explicit fixed-width em slots"
+    },
+    "src/app/stage/presentation_tests.rs": {
+      "beforeLfSha256": "bb48da53f3314e5b173d8e7ff8ac7e4671143d9f5277dee03473f3bf0835a28e",
+      "afterLfSha256": "45ac39084fa7073bf86a4c49d77847d0fd415613d6a716d63aa501eb4c40d839",
+      "summary": "Verifies default opaque black background [0, 0, 0, 1] and light swap [1, 1, 1, 1] on t"
+    },
+    "src/app/stage/tests.rs": {
+      "beforeLfSha256": "a2153f14a19ddbd6f22133ede0c30a65201938d2fdc44a3c2807262efa82ce63",
+      "afterLfSha256": "3dbb22d4b9748df166c2b64c072ce31d0d873faa394d201d1158600ae7f8b6f3",
+      "summary": "Adds row_items_center_text_in_fixed_width_slots and updates dark-default ground swap test"
+    }
+  },
+  "rustAndWasmJob": {
+    "manifest": "session_viewer/target/stage-reconcile-20261118-rust/resources.json",
+    "manifestSha256": "6e5eee98264f1530414414b7743cf244e1ad50e19ca1bea8b2c22a31b330d6f4",
+    "planSha256": "910ecac7a8d8d6ea041e9bd9b612ea91637db98c0052fbbb07d227d2fb5ab1e7",
+    "resultSha256": "87c184fd0523452952f0e79069088b49fc1c811c5e57398dcfab932b2fccaf4b",
+    "processId": 39684,
+    "exitCode": 0,
+    "elapsedSeconds": 178.035,
+    "peakJobCommitBytes": 1925939200,
+    "affinityMask": "0x300",
+    "postguards": "passed",
+    "pinnedInputsVerified": 2511,
+    "commands": [
+      {
+        "name": "completion-unit-tests",
+        "exitCode": 0,
+        "elapsedSeconds": 0.796
+      },
+      {
+        "name": "mathematics-assemble",
+        "exitCode": 0,
+        "elapsedSeconds": 0.259
+      },
+      {
+        "name": "mathematics-wasm-tutorial",
+        "exitCode": 0,
+        "elapsedSeconds": 6.006
+      },
+      {
+        "name": "dock-assemble",
+        "exitCode": 0,
+        "elapsedSeconds": 0.256
+      },
+      {
+        "name": "dock-wasm-tutorial",
+        "exitCode": 0,
+        "elapsedSeconds": 0.324
+      },
+      {
+        "name": "camera-assemble",
+        "exitCode": 0,
+        "elapsedSeconds": 0.248
+      },
+      {
+        "name": "camera-wasm-tutorial",
+        "exitCode": 0,
+        "elapsedSeconds": 0.316
+      },
+      {
+        "name": "rows-assemble",
+        "exitCode": 0,
+        "elapsedSeconds": 0.257
+      },
+      {
+        "name": "rows-wasm-tutorial",
+        "exitCode": 0,
+        "elapsedSeconds": 5.209
+      },
+      {
+        "name": "geometry-assemble",
+        "exitCode": 0,
+        "elapsedSeconds": 0.369
+      },
+      {
+        "name": "geometry-wasm-tutorial",
+        "exitCode": 0,
+        "elapsedSeconds": 4.667
+      },
+      {
+        "name": "decoding-assemble",
+        "exitCode": 0,
+        "elapsedSeconds": 0.338
+      },
+      {
+        "name": "decoding-wasm-tutorial",
+        "exitCode": 0,
+        "elapsedSeconds": 4.523
+      },
+      {
+        "name": "application-assemble",
+        "exitCode": 0,
+        "elapsedSeconds": 0.415
+      },
+      {
+        "name": "application-wasm-tutorial",
+        "exitCode": 0,
+        "elapsedSeconds": 9.076
+      },
+      {
+        "name": "application-wasm-production",
+        "exitCode": 0,
+        "elapsedSeconds": 5.063
+      },
+      {
+        "name": "mathematics-native-tests",
+        "exitCode": 0,
+        "elapsedSeconds": 12.558
+      },
+      {
+        "name": "application-native-stage-tests",
+        "exitCode": 0,
+        "elapsedSeconds": 32.121
+      },
+      {
+        "name": "application-wasm-release-build",
+        "exitCode": 0,
+        "elapsedSeconds": 78.422
+      },
+      {
+        "name": "application-trunk-production-build",
+        "exitCode": 0,
+        "elapsedSeconds": 7.334
+      }
+    ]
+  },
+  "freshCratePartialsJob": {
+    "manifest": "session_viewer/target/stage-reconcile-20261118-partials/resources.json",
+    "manifestSha256": "f7ab697765f021cc3152a58544d8621e773c378eae350244a1cc58f32187f384",
+    "planSha256": "644f257c6069301bd255fa1f16e13368e4e8d768e3cc53b03583f6bc37edabf3",
+    "resultSha256": "f658a55bf4c941a9b2505f80ad6143cae574143c07cd8625e44f345e9fdac92c",
+    "processId": 38312,
+    "exitCode": 0,
+    "elapsedSeconds": 24.395,
+    "peakJobCommitBytes": 938733568,
+    "affinityMask": "0x300",
+    "postguards": "passed",
+    "note": "Uses distinct session_tutorial_reconcile18_<subject> crate names so Cargo compiles mathematics, dock and camera without dep-info aliasing to 20261117 assemblies; verifies 21 passed / 1 ignored in mathematics",
+    "commands": [
+      {
+        "name": "mathematics-assemble",
+        "exitCode": 0,
+        "elapsedSeconds": 0.248
+      },
+      {
+        "name": "mathematics-wasm-tutorial",
+        "exitCode": 0,
+        "elapsedSeconds": 1.492
+      },
+      {
+        "name": "dock-assemble",
+        "exitCode": 0,
+        "elapsedSeconds": 0.246
+      },
+      {
+        "name": "dock-wasm-tutorial",
+        "exitCode": 0,
+        "elapsedSeconds": 1.618
+      },
+      {
+        "name": "camera-assemble",
+        "exitCode": 0,
+        "elapsedSeconds": 0.269
+      },
+      {
+        "name": "camera-wasm-tutorial",
+        "exitCode": 0,
+        "elapsedSeconds": 1.688
+      },
+      {
+        "name": "mathematics-native-tests",
+        "exitCode": 0,
+        "elapsedSeconds": 12.618
+      }
+    ]
+  },
+  "browserJob": {
+    "manifest": "session_viewer/target/stage-reconcile-20261118-browser/resources.json",
+    "manifestSha256": "799a729b464cd63473dc7ed3bbe445a89b15bb0a209d29e06a2841f54148ed4e",
+    "resultSha256": "9ee86bca00c8ff4fc832143279987193bdf0ed15e746303f1121ed656285e6bf",
+    "processId": 46764,
+    "exitCode": 0,
+    "elapsedSeconds": 181.35,
+    "peakJobCommitBytes": 909590528,
+    "browser": "157.0.8103.79",
+    "totalCases": 44,
+    "totalForwardStepsChecked": 176,
+    "capturesCount": 68,
+    "captures": [
+      {
+        "file": "eq1-1280-back-dark.png",
+        "bytes": 65668,
+        "sha256": "16b967417d4c7da713228cb2489fc7a968e89947b7ba1afe5ca36fa5f40bc4a5"
+      },
+      {
+        "file": "eq1-1280-first-dark.png",
+        "bytes": 128064,
+        "sha256": "3b3beb08f3f42c0f6012b5bd98a611159520b55723fec24757748c9366b7328b"
+      },
+      {
+        "file": "eq1-1280-last-dark.png",
+        "bytes": 76315,
+        "sha256": "f5221aad3d03787fb3be0b64b1c2681d695e61e4d53cb9d5a557973835d7ecbc"
+      },
+      {
+        "file": "eq1-1280-light.png",
+        "bytes": 57514,
+        "sha256": "4a1808f48683c302afa690a462d5440f98a227af8c5b24c0b60f59b9bec4003d"
+      },
+      {
+        "file": "eq1-390-back-dark.png",
+        "bytes": 31561,
+        "sha256": "2e646d8f3460192ab70a419ac63a7cf39aabd708527b021feb96d67eb85902ee"
+      },
+      {
+        "file": "eq1-390-first-dark.png",
+        "bytes": 44439,
+        "sha256": "1cfa7b9ba94845764e8fb57dc154858eb583914c75463c92bf81f709e9255990"
+      },
+      {
+        "file": "eq1-390-last-dark.png",
+        "bytes": 35683,
+        "sha256": "c5eae059b5c6518777a5999b68f123c563f6f03b03ced76ab4bcf56587e178c9"
+      },
+      {
+        "file": "eq1-390-light.png",
+        "bytes": 28173,
+        "sha256": "a31797b55a16ba49349b44b9131cf6e5c33b114e3ee75ee5dfc1d325e6288f7a"
+      },
+      {
+        "file": "fd1-1280-back-dark.png",
+        "bytes": 220621,
+        "sha256": "dc866535b169012d097e2305c679ce2ab68b9e2b7aafc10c1f9f11760ec859a0"
+      },
+      {
+        "file": "fd1-1280-first-dark.png",
+        "bytes": 194449,
+        "sha256": "0f070a048073dfda56bd2e31ee375a918e0254aa54f5e884c67a9b02647e425c"
+      },
+      {
+        "file": "fd1-1280-last-dark.png",
+        "bytes": 312591,
+        "sha256": "8c46a3a382b264c61a551127e907c0284f16a402f385079ed66c179a04186375"
+      },
+      {
+        "file": "fd1-1280-light.png",
+        "bytes": 212132,
+        "sha256": "a064371c939f893d2f1cd863814b41bc9af888caf0aded1d7975042ae05b0dab"
+      },
+      {
+        "file": "fd1-390-back-dark.png",
+        "bytes": 92459,
+        "sha256": "53cb28d1b5e58d3f9190b3e484c4178624514e7764152097edf9bbcee498a029"
+      },
+      {
+        "file": "fd1-390-first-dark.png",
+        "bytes": 78321,
+        "sha256": "4ecb6c07413b1144361d5b2dd8d50fc426e1138d08297dcd44ed7aba6ff3a636"
+      },
+      {
+        "file": "fd1-390-last-dark.png",
+        "bytes": 121099,
+        "sha256": "275ebcd129776dde2f4812e33612d897a462694f122c6822783076d9aecc54a5"
+      },
+      {
+        "file": "fd1-390-light.png",
+        "bytes": 87826,
+        "sha256": "0f0bec789157fd59db20fb33066ce139c0f1b9be93489889d5bab4067d6c40ff"
+      },
+      {
+        "file": "fdd4-1280-back-dark.png",
+        "bytes": 82656,
+        "sha256": "92da8f7b9dc4d191ec69d6ac3fbcdfcc2208ea0fdb33f36560b6e694a5797a47"
+      },
+      {
+        "file": "fdd4-1280-first-dark.png",
+        "bytes": 74004,
+        "sha256": "a718b6f3e1c88ae970f6726646833c2cdf5068d6c2714ace06ba5b76e7817576"
+      },
+      {
+        "file": "fdd4-1280-last-dark.png",
+        "bytes": 94464,
+        "sha256": "12a252db09ea763698b00e30db49a76e234c12329830a0c9a9abe8235c014837"
+      },
+      {
+        "file": "fdd4-1280-light.png",
+        "bytes": 72363,
+        "sha256": "b9510a3a36c0e0cb00537accb07b0c38204610208ed9b6ca83b97394981bee44"
+      },
+      {
+        "file": "fdd4-390-back-dark.png",
+        "bytes": 34952,
+        "sha256": "325898f50e83f3910a5069d23a9325d8749592d1289c4467f85e228a88c92440"
+      },
+      {
+        "file": "fdd4-390-first-dark.png",
+        "bytes": 31340,
+        "sha256": "e4e19f1f108d33813260833993ce1e03e11f058f54a9b5089476cb100c033385"
+      },
+      {
+        "file": "fdd4-390-last-dark.png",
+        "bytes": 40193,
+        "sha256": "4cb2c5e57ab72939128296c7bf3241b197fd5d4a4138fe651196893675ff9db1"
+      },
+      {
+        "file": "fdd4-390-light.png",
+        "bytes": 32090,
+        "sha256": "621d8d1943e89d1a7374a8ef5b7f98a9a7bc3ee1677188ea47fb0f068648b2c1"
+      },
+      {
+        "file": "fdd6-1280-back-dark.png",
+        "bytes": 83450,
+        "sha256": "e445b6a5e2068767935cd95e3e94aa0a5b6612788dfeab07870d7c2037da2828"
+      },
+      {
+        "file": "fdd6-1280-first-dark.png",
+        "bytes": 78079,
+        "sha256": "86978213b4390bec897a47b06feadac0e48d34b1f95e33340d00e7fcf194b08c"
+      },
+      {
+        "file": "fdd6-1280-last-dark.png",
+        "bytes": 98356,
+        "sha256": "5d4432a479ec24e64d8f8ad0bcd12fefa8fe315820fb8e95f72983ccb6be3ee4"
+      },
+      {
+        "file": "fdd6-1280-light.png",
+        "bytes": 70640,
+        "sha256": "c945caf1e9091f529dfc02d9758890c84430ee96030410c7d34906140a0bbfea"
+      },
+      {
+        "file": "fdd6-390-back-dark.png",
+        "bytes": 35137,
+        "sha256": "223fd01152607d43745aa12d35d12a2d1559a8c20990551cd7c3f305fa7438ec"
+      },
+      {
+        "file": "fdd6-390-first-dark.png",
+        "bytes": 32835,
+        "sha256": "d3c7b50cbb5cbc7d8fbbf1a56d9a6eb34366af15326fcf9e3e8595da54db4079"
+      },
+      {
+        "file": "fdd6-390-last-dark.png",
+        "bytes": 41293,
+        "sha256": "0f1d7fe0b02943bb62e7f9d89f9a9d24cb4928380645a14dd414a34ed2e023ce"
+      },
+      {
+        "file": "fdd6-390-light.png",
+        "bytes": 31167,
+        "sha256": "731f44a79028522009396e568a64fea26fec0b5c38453c3982be82beb13e3429"
+      },
+      {
+        "file": "fdm1-1280-first-dark.png",
+        "bytes": 204679,
+        "sha256": "4905e7d681614ce531d52467d44050fc62a8d0147b2fb504f17e82f96fea65a3"
+      },
+      {
+        "file": "fdm1-1280-light.png",
+        "bytes": 188471,
+        "sha256": "e7320797b6a793dfddaed1f86ab6ee50b18a64ce3aaeeb378ffeba4a022df856"
+      },
+      {
+        "file": "fdm1-390-first-dark.png",
+        "bytes": 78336,
+        "sha256": "2202ed6f9fee12984722ba1e776b4231b84404dc85371a03b01485568439d35f"
+      },
+      {
+        "file": "fdm1-390-light.png",
+        "bytes": 71472,
+        "sha256": "2a7d26177ab6babe1fed12f82161b3725417b3b1ec8bc500676fa074de3046eb"
+      },
+      {
+        "file": "fdm2-1280-back-dark.png",
+        "bytes": 97517,
+        "sha256": "5b9a2140c72be1bd5c8aee68cfac8b0e28a5594d6ee8acc03ab6082b6a543f0a"
+      },
+      {
+        "file": "fdm2-1280-first-dark.png",
+        "bytes": 99947,
+        "sha256": "4f47a579f5e6c89697884b0ebe66f883ca3722049440f5d9591a97ae86192074"
+      },
+      {
+        "file": "fdm2-1280-last-dark.png",
+        "bytes": 108435,
+        "sha256": "8e2025811dc619f1db5ee1c4022bbbdda83d26b9fd014ecc587b2049597150d4"
+      },
+      {
+        "file": "fdm2-1280-light.png",
+        "bytes": 85757,
+        "sha256": "3304eecbdd3ebf20dc546ade03a33b0f1f5e47780530a3015fca67b4041a23df"
+      },
+      {
+        "file": "fdm2-390-back-dark.png",
+        "bytes": 43768,
+        "sha256": "06d15778bb5cd07c3dcec312407ad305523ac414d06ba72ee21dbbf42560dfc9"
+      },
+      {
+        "file": "fdm2-390-first-dark.png",
+        "bytes": 44149,
+        "sha256": "4f62015bebf6f5f43d1838626f8ea02a8967958c9f0f6dc3c6970541632da64c"
+      },
+      {
+        "file": "fdm2-390-last-dark.png",
+        "bytes": 46688,
+        "sha256": "c26780a3d7e41dac9966ba7dd96929dbc37670f4bd993556a7a5ae1383f74a98"
+      },
+      {
+        "file": "fdm2-390-light.png",
+        "bytes": 40025,
+        "sha256": "cd39dd2b75615a8f5735c01300ab6a3fa6d21c2bf4f7d01eea0d88e77f65750f"
+      },
+      {
+        "file": "fdm4-1280-back-dark.png",
+        "bytes": 53941,
+        "sha256": "5f439d5d67bcdd49ca533a3a40c442fd25bf850451e92a6ca9879d9267751f76"
+      },
+      {
+        "file": "fdm4-1280-first-dark.png",
+        "bytes": 53941,
+        "sha256": "5f439d5d67bcdd49ca533a3a40c442fd25bf850451e92a6ca9879d9267751f76"
+      },
+      {
+        "file": "fdm4-1280-last-dark.png",
+        "bytes": 58350,
+        "sha256": "d003a9d9817472460c5266aeffbd8614de4f6730aab29b559689fe2db628ef4d"
+      },
+      {
+        "file": "fdm4-1280-light.png",
+        "bytes": 48212,
+        "sha256": "1f864934df16443bdbcac683e8f3513ee62401fa7a449beac01d5b4fccd69c85"
+      },
+      {
+        "file": "fdm4-390-back-dark.png",
+        "bytes": 25076,
+        "sha256": "b4946aad184a72fd3544fcca278ccbbbb76b68ef56bdc038968a3ff210edc1c2"
+      },
+      {
+        "file": "fdm4-390-first-dark.png",
+        "bytes": 25076,
+        "sha256": "b4946aad184a72fd3544fcca278ccbbbb76b68ef56bdc038968a3ff210edc1c2"
+      },
+      {
+        "file": "fdm4-390-last-dark.png",
+        "bytes": 28081,
+        "sha256": "2ec0fc466868eca3049ec49b7f8dfd25a08667a71e11c3172709311dfd115c79"
+      },
+      {
+        "file": "fdm4-390-light.png",
+        "bytes": 22808,
+        "sha256": "bcc0cc488a32d15308caa33db46ac7ca44ef2f6df676c7d55bc324af9dff079a"
+      },
+      {
+        "file": "fdm7-1280-back-dark.png",
+        "bytes": 120181,
+        "sha256": "705f9353a61cea9dba073025405648deb26adb162fd2ae51b4f1ad84567064e3"
+      },
+      {
+        "file": "fdm7-1280-first-dark.png",
+        "bytes": 108925,
+        "sha256": "f284ba07765ce5cc3d810cb437f40d34170fd053dd324cfd87b49ae5a934c1c7"
+      },
+      {
+        "file": "fdm7-1280-last-dark.png",
+        "bytes": 175326,
+        "sha256": "d45d94ed4ab7cb51a7c89f8e74aae3e8d0f7248ddc398377385f8b83a47aad59"
+      },
+      {
+        "file": "fdm7-1280-light.png",
+        "bytes": 114126,
+        "sha256": "bc9c416471a9fdac3ae29a8ee08a0be6b2664b32169690d4bfa713969762e8a2"
+      },
+      {
+        "file": "fdm7-390-back-dark.png",
+        "bytes": 58806,
+        "sha256": "28ded8c1fd8609003009e18d81dc0c6cc86d014ecedc9f7b3c541b2bd986704a"
+      },
+      {
+        "file": "fdm7-390-first-dark.png",
+        "bytes": 52054,
+        "sha256": "353aa6d8b51d64e957a1ac556e116fd4f0d85050f766fe052b2f2667409862e6"
+      },
+      {
+        "file": "fdm7-390-last-dark.png",
+        "bytes": 76265,
+        "sha256": "ab4cf0d604a1a4b28c715e04b3897efb5d1846178b4ffed96cbab4b5804f2482"
+      },
+      {
+        "file": "fdm7-390-light.png",
+        "bytes": 55484,
+        "sha256": "ad9174177f6571f9427a258ffcdd8224ed973d4030227241ac545072f20acab0"
+      },
+      {
+        "file": "fdmat3-1280-back-dark.png",
+        "bytes": 116771,
+        "sha256": "c415e74f5f601b6be1a00efb8b79bc9061258ec50feaa42754d59552fd815cea"
+      },
+      {
+        "file": "fdmat3-1280-first-dark.png",
+        "bytes": 116771,
+        "sha256": "c415e74f5f601b6be1a00efb8b79bc9061258ec50feaa42754d59552fd815cea"
+      },
+      {
+        "file": "fdmat3-1280-last-dark.png",
+        "bytes": 133125,
+        "sha256": "2398bffe7439afc81ff3abf6c831d22f481d9952d23aacda286a41a43d115986"
+      },
+      {
+        "file": "fdmat3-1280-light.png",
+        "bytes": 105214,
+        "sha256": "ed6c4d53d0d096aa82aa3abe27d51d1315b86471cb2b8481c502e039e2e92e24"
+      },
+      {
+        "file": "fdmat3-390-back-dark.png",
+        "bytes": 54303,
+        "sha256": "e55e2cd7c6bfb2ec26b007d9ce3e5de6c00c6ce64490c6c6ae49ce195fd0e64f"
+      },
+      {
+        "file": "fdmat3-390-first-dark.png",
+        "bytes": 54303,
+        "sha256": "e55e2cd7c6bfb2ec26b007d9ce3e5de6c00c6ce64490c6c6ae49ce195fd0e64f"
+      },
+      {
+        "file": "fdmat3-390-last-dark.png",
+        "bytes": 59792,
+        "sha256": "7b0a799768b4a8f37cdb99235f360d7bbec9acc68baab3b3d13d6328a7321839"
+      },
+      {
+        "file": "fdmat3-390-light.png",
+        "bytes": 51150,
+        "sha256": "651edc6b9d93df1954cd53b9e73b93f797e3cd38955e46f80871a7217dcfe5d9"
+      }
+    ]
+  }
+}

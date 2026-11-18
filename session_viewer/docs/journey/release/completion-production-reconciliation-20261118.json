@@ -1,0 +1,900 @@
+{
+  "status": "reconciled",
+  "date": "2026-11-18",
+  "planningBaselineCommit": "87f844e41d08ef104fc071d5bc18163ffe9a4353",
+  "planningManifest": {
+    "path": "journey/completion-batch.json",
+    "lfSha256": "624566750d608e813a1a10269a966b8e1722b55bc037b7f250dbb3ef2ef8b25f",
+    "note": "Preserved at planning baseline commit 87f844e41d08ef104fc071d5bc18163ffe9a4353 per tutorial-completion.md; live endpoint parity is enforced by auditCompletion against current session_viewer/src (351 production Rust/WGSL files)"
+  },
+  "mergedBranches": {
+    "originMain": "f1d477f2c4a18e7fae9026418a5005b6c6e46471",
+    "source30Figures": "d5fcbe9e0f2d1be44d772ff9860ef68e5042ab01"
+  },
+  "endpointParity": {
+    "productionRustAndWgslFiles": 351,
+    "supportFiles": 8,
+    "deliberateAssetExclusions": 17,
+    "missing": [],
+    "extra": [],
+    "changed": []
+  },
+  "historicalRoutePreservation": {
+    "manifest": "journey/course.json",
+    "checkpointsPreserved": 1298,
+    "historicalAuditsNote": "Historical structure, ownership, and parity checks retain their original known failures without weakening or relabeling"
+  },
+  "unresolvedCourseBlockers": [
+    {
+      "subject": "application",
+      "check": "app::scene::instances::tests::gpu::instanced_frames_match_the_baked_scene",
+      "status": "failed-preserved",
+      "detail": "36/37 selected application GPU assertions passed; 1 failed with 31 turned-scene pixels 3 levels brighter than baked output (>2 threshold). Viewer behavior and assertion threshold kept unchanged per instruction.",
+      "evidence": "journey/release/completion-application-gpu-diagnostic-windows-20261116.json"
+    },
+    {
+      "subject": "application",
+      "check": "physical-device-and-full-ignored-native-witnesses",
+      "status": "not-claimed",
+      "detail": "Desktop Windows Intel Gen-12LP WebGPU and 390x844 emulation do not establish physical-phone hardware/keyboard acceptance or unrun full ignored native lifecycle/oracle/WARP suites."
+    }
+  ],
+  "changedFilesSinceBaselineCount": 123,
+  "changedFilesSinceBaseline": [
+    {
+      "status": "M",
+      "path": "Cargo.toml",
+      "category": "cumulative-feature-declaration",
+      "currentLfSha256": "f17b33bedb793327e7c86551b00dbecb1f02b961f4149e721020459ca04228dc",
+      "provenance": "Declares empty optional feature `tutorial = []` for cumulative example entries; production dependencies, profiles, and default features unchanged"
+    },
+    {
+      "status": "A",
+      "path": "examples/course/camera.rs",
+      "category": "cumulative-course-fixture",
+      "currentLfSha256": "dcd25888699330fcf22e4159d58123c0d326dcb73d7d06fbdee7da7a011bac33",
+      "provenance": "Cumulative subject entry and harness fixture under examples/course/; production index.html startup unchanged"
+    },
+    {
+      "status": "A",
+      "path": "examples/course/canvas.rs",
+      "category": "cumulative-course-fixture",
+      "currentLfSha256": "9c542080ed079fa6734fa0d81a5991fdb6cb7e443f2b5324638ab11456311b63",
+      "provenance": "Cumulative subject entry and harness fixture under examples/course/; production index.html startup unchanged"
+    },
+    {
+      "status": "A",
+      "path": "examples/course/decoding.rs",
+      "category": "cumulative-course-fixture",
+      "currentLfSha256": "f3c4e0261521db399bca7eff0bb42027d548d90c7f8b20778342db067687763c",
+      "provenance": "Cumulative subject entry and harness fixture under examples/course/; production index.html startup unchanged"
+    },
+    {
+      "status": "A",
+      "path": "examples/course/dock.rs",
+      "category": "cumulative-course-fixture",
+      "currentLfSha256": "a727b0b8e691ddcf1b0658f7075afbaaa6d7d94ff7e1adb5ca9f3ef2c2734e03",
+      "provenance": "Cumulative subject entry and harness fixture under examples/course/; production index.html startup unchanged"
+    },
+    {
+      "status": "A",
+      "path": "examples/course/entry.rs",
+      "category": "cumulative-course-fixture",
+      "currentLfSha256": "f57ce9f8b4ded8cee3b213c075e031cce236988de352b7f9d0c87cba9ffb1b6d",
+      "provenance": "Cumulative subject entry and harness fixture under examples/course/; production index.html startup unchanged"
+    },
+    {
+      "status": "A",
+      "path": "examples/course/frame.rs",
+      "category": "cumulative-course-fixture",
+      "currentLfSha256": "916fb538f088d1d28783559a7955f463c7b2650ac2d7d0184eeec12158aae787",
+      "provenance": "Cumulative subject entry and harness fixture under examples/course/; production index.html startup unchanged"
+    },
+    {
+      "status": "A",
+      "path": "examples/course/geometry.rs",
+      "category": "cumulative-course-fixture",
+      "currentLfSha256": "fabf366a08f9cd8e5cd7550f7f2355f8a4146cd09f043d90a1bbd4b6bc381618",
+      "provenance": "Cumulative subject entry and harness fixture under examples/course/; production index.html startup unchanged"
+    },
+    {
+      "status": "A",
+      "path": "examples/course/index.html",
+      "category": "cumulative-course-fixture",
+      "currentLfSha256": "95892b097daa427fc43bd3da6352de1e199b7f526ed55bd41787eb16e734970c",
+      "provenance": "Cumulative subject entry and harness fixture under examples/course/; production index.html startup unchanged"
+    },
+    {
+      "status": "A",
+      "path": "examples/course/index.yaml",
+      "category": "cumulative-course-fixture",
+      "currentLfSha256": "93e66a5f8c5115571bb57d70afcb1a46094652aa88c081bd5f39ae9425297203",
+      "provenance": "Cumulative subject entry and harness fixture under examples/course/; production index.html startup unchanged"
+    },
+    {
+      "status": "A",
+      "path": "examples/course/mathematics.rs",
+      "category": "cumulative-course-fixture",
+      "currentLfSha256": "d81943c4fa1d21b359fe353917ad521d95841b49b8f8319867611045b7517291",
+      "provenance": "Cumulative subject entry and harness fixture under examples/course/; production index.html startup unchanged"
+    },
+    {
+      "status": "A",
+      "path": "examples/course/painting.rs",
+      "category": "cumulative-course-fixture",
+      "currentLfSha256": "d57c027f79370d3acce115da2b43aca2511c72421b4cd7f3cfb21c6a299749eb",
+      "provenance": "Cumulative subject entry and harness fixture under examples/course/; production index.html startup unchanged"
+    },
+    {
+      "status": "A",
+      "path": "examples/course/registration.rs",
+      "category": "cumulative-course-fixture",
+      "currentLfSha256": "f164c49f4555525a5789446e1b0967b94de6b0a78db795b4b5b62198fa84b4ee",
+      "provenance": "Cumulative subject entry and harness fixture under examples/course/; production index.html startup unchanged"
+    },
+    {
+      "status": "A",
+      "path": "examples/course/rows.rs",
+      "category": "cumulative-course-fixture",
+      "currentLfSha256": "6281f54d5e6b36dc8dd3d42cdec99df88916919c796da1cdc8fe527950a101f1",
+      "provenance": "Cumulative subject entry and harness fixture under examples/course/; production index.html startup unchanged"
+    },
+    {
+      "status": "M",
+      "path": "examples/stage/README.md",
+      "category": "upstream-stage-deck",
+      "currentLfSha256": "e3bfdbf97d3b97c21578d1858373f42378751867802a89b39e4275532aed6b9e",
+      "provenance": "Upstream stage presentation deck or documentation update on origin/main through f1d477f2c"
+    },
+    {
+      "status": "M",
+      "path": "examples/stage/equilibrium/01-equilibrium.yaml",
+      "category": "upstream-stage-deck",
+      "currentLfSha256": "39ca6073bfb22aeafd06806ac06854528ace227a88732589e42ba509685aa3ad",
+      "provenance": "Upstream stage presentation deck or documentation update on origin/main through f1d477f2c"
+    },
+    {
+      "status": "M",
+      "path": "examples/stage/equilibrium/index.yaml",
+      "category": "upstream-stage-deck",
+      "currentLfSha256": "5f400a82a736fe06f9f7896c0ecdf8b54d3c784f0d84a5dad632faa5831a9a44",
+      "provenance": "Upstream stage presentation deck or documentation update on origin/main through f1d477f2c"
+    },
+    {
+      "status": "M",
+      "path": "examples/stage/force-density-derivation/01-why.yaml",
+      "category": "upstream-stage-deck",
+      "currentLfSha256": "ee3c3d684b8007e5ad0ce0dbb48e76dd8cfdda53b034108a6dff13f0d27bdf06",
+      "provenance": "Upstream stage presentation deck or documentation update on origin/main through f1d477f2c"
+    },
+    {
+      "status": "M",
+      "path": "examples/stage/force-density-derivation/02-one-cable.yaml",
+      "category": "upstream-stage-deck",
+      "currentLfSha256": "5cb4b6274702274420627e19eeb9501c9d5e2949b05405ea88635f45cf75a865",
+      "provenance": "Upstream stage presentation deck or documentation update on origin/main through f1d477f2c"
+    },
+    {
+      "status": "M",
+      "path": "examples/stage/force-density-derivation/03-tiny-nudge.yaml",
+      "category": "upstream-stage-deck",
+      "currentLfSha256": "60ed57282673fa1cbf92850637bca5886aa07b43a28a2a9d0a4c497b3edf4592",
+      "provenance": "Upstream stage presentation deck or documentation update on origin/main through f1d477f2c"
+    },
+    {
+      "status": "D",
+      "path": "examples/stage/force-density-derivation/04-chain-rule.yaml",
+      "category": "upstream-stage-deck",
+      "provenance": "Upstream stage presentation deck or documentation update on origin/main through f1d477f2c"
+    },
+    {
+      "status": "A",
+      "path": "examples/stage/force-density-derivation/04-jacobian.yaml",
+      "category": "upstream-stage-deck",
+      "currentLfSha256": "b071c00b9b53428d9d05f4802a0f2009c7adb80592183da39f0a5b2d92b2e799",
+      "provenance": "Upstream stage presentation deck or documentation update on origin/main through f1d477f2c"
+    },
+    {
+      "status": "D",
+      "path": "examples/stage/force-density-derivation/05-jacobian.yaml",
+      "category": "upstream-stage-deck",
+      "provenance": "Upstream stage presentation deck or documentation update on origin/main through f1d477f2c"
+    },
+    {
+      "status": "A",
+      "path": "examples/stage/force-density-derivation/05-matrix-form.yaml",
+      "category": "upstream-stage-deck",
+      "currentLfSha256": "29733961857fbb7c1321d864c6cc7acd85c1ab4b40b88997574413f048700ebc",
+      "provenance": "Upstream stage presentation deck or documentation update on origin/main through f1d477f2c"
+    },
+    {
+      "status": "A",
+      "path": "examples/stage/force-density-derivation/06-materialization.yaml",
+      "category": "upstream-stage-deck",
+      "currentLfSha256": "9174673aba513bbf42163ba016eb3243fe3506df2a529cb240a39317c2682928",
+      "provenance": "Upstream stage presentation deck or documentation update on origin/main through f1d477f2c"
+    },
+    {
+      "status": "D",
+      "path": "examples/stage/force-density-derivation/06-matrix-form.yaml",
+      "category": "upstream-stage-deck",
+      "provenance": "Upstream stage presentation deck or documentation update on origin/main through f1d477f2c"
+    },
+    {
+      "status": "M",
+      "path": "examples/stage/force-density-derivation/index.yaml",
+      "category": "upstream-stage-deck",
+      "currentLfSha256": "320ecedc8ed57c725bf608167a12e20ed8d454a21185ee2a0ae0c6f1a75a3ef9",
+      "provenance": "Upstream stage presentation deck or documentation update on origin/main through f1d477f2c"
+    },
+    {
+      "status": "M",
+      "path": "examples/stage/force-density-materialization/01-materialization.yaml",
+      "category": "upstream-stage-deck",
+      "currentLfSha256": "bb093a28f4ff60662d82cda5d8f38f1d28b1032258685d6d39290ca83bcaaa53",
+      "provenance": "Upstream stage presentation deck or documentation update on origin/main through f1d477f2c"
+    },
+    {
+      "status": "M",
+      "path": "examples/stage/force-density-materialization/02-resume.yaml",
+      "category": "upstream-stage-deck",
+      "currentLfSha256": "fe1cec2fec1ddb5d4acf0dbbefb397db651a6606500b5b0abdd042801cf53e82",
+      "provenance": "Upstream stage presentation deck or documentation update on origin/main through f1d477f2c"
+    },
+    {
+      "status": "M",
+      "path": "examples/stage/force-density-materialization/03-net.yaml",
+      "category": "upstream-stage-deck",
+      "currentLfSha256": "db63a3e882be0121af632316328e6d508dbb84299cfc88145d0740abeddb360f",
+      "provenance": "Upstream stage presentation deck or documentation update on origin/main through f1d477f2c"
+    },
+    {
+      "status": "M",
+      "path": "examples/stage/force-density-materialization/index.yaml",
+      "category": "upstream-stage-deck",
+      "currentLfSha256": "895966d261e7adc715882eefdc1fe838d10980ca699b856bc96265b966f5b427",
+      "provenance": "Upstream stage presentation deck or documentation update on origin/main through f1d477f2c"
+    },
+    {
+      "status": "M",
+      "path": "examples/stage/force-density-matrices/01-givens.yaml",
+      "category": "upstream-stage-deck",
+      "currentLfSha256": "fe71331fc0c63803eff0e6fe393ec8e348ab0944061fb4fa6b38b9f10b4cfbf3",
+      "provenance": "Upstream stage presentation deck or documentation update on origin/main through f1d477f2c"
+    },
+    {
+      "status": "M",
+      "path": "examples/stage/force-density-matrices/02-matrices.yaml",
+      "category": "upstream-stage-deck",
+      "currentLfSha256": "6960feaedaaa01e2980c57a437906f2162bdd385e77c0dea97da983d1938e096",
+      "provenance": "Upstream stage presentation deck or documentation update on origin/main through f1d477f2c"
+    },
+    {
+      "status": "M",
+      "path": "examples/stage/force-density-matrices/03-script.yaml",
+      "category": "upstream-stage-deck",
+      "currentLfSha256": "f86d0a79fa45ef28d66e70269c1be6d1a677ba3acf31f6061f4c3cd561fc17ae",
+      "provenance": "Upstream stage presentation deck or documentation update on origin/main through f1d477f2c"
+    },
+    {
+      "status": "A",
+      "path": "examples/stage/force-density-matrices/04-arch.yaml",
+      "category": "upstream-stage-deck",
+      "currentLfSha256": "af5562efb63851692e49e1528dabca22685a73acdd3204fb90396ad597660b7c",
+      "provenance": "Upstream stage presentation deck or documentation update on origin/main through f1d477f2c"
+    },
+    {
+      "status": "D",
+      "path": "examples/stage/force-density-matrices/04-several-nodes.yaml",
+      "category": "upstream-stage-deck",
+      "provenance": "Upstream stage presentation deck or documentation update on origin/main through f1d477f2c"
+    },
+    {
+      "status": "A",
+      "path": "examples/stage/force-density-matrices/05-several-nodes.yaml",
+      "category": "upstream-stage-deck",
+      "currentLfSha256": "ccbd340d180558b5138e6363663883cdd71a01749d9841cb36f61ed247794bd6",
+      "provenance": "Upstream stage presentation deck or documentation update on origin/main through f1d477f2c"
+    },
+    {
+      "status": "D",
+      "path": "examples/stage/force-density-matrices/05-solver.yaml",
+      "category": "upstream-stage-deck",
+      "provenance": "Upstream stage presentation deck or documentation update on origin/main through f1d477f2c"
+    },
+    {
+      "status": "M",
+      "path": "examples/stage/force-density-matrices/06-net.yaml",
+      "category": "upstream-stage-deck",
+      "currentLfSha256": "5556fb904273ddebc57bd357fb75c78a792ac01a1da5c71281da7a0cab46e8f6",
+      "provenance": "Upstream stage presentation deck or documentation update on origin/main through f1d477f2c"
+    },
+    {
+      "status": "M",
+      "path": "examples/stage/force-density-matrices/07-pillow.yaml",
+      "category": "upstream-stage-deck",
+      "currentLfSha256": "db5f441ca30fd2b19328d65e55817dd82e714e24daf894d1357ea664a9c63ed7",
+      "provenance": "Upstream stage presentation deck or documentation update on origin/main through f1d477f2c"
+    },
+    {
+      "status": "D",
+      "path": "examples/stage/force-density-matrices/08-forces.yaml",
+      "category": "upstream-stage-deck",
+      "provenance": "Upstream stage presentation deck or documentation update on origin/main through f1d477f2c"
+    },
+    {
+      "status": "M",
+      "path": "examples/stage/force-density-matrices/index.yaml",
+      "category": "upstream-stage-deck",
+      "currentLfSha256": "c734c64c58a8ccadcd181bde02ea5ecc2366f5a1eeb913a024fe30d3751a284e",
+      "provenance": "Upstream stage presentation deck or documentation update on origin/main through f1d477f2c"
+    },
+    {
+      "status": "M",
+      "path": "examples/stage/force-density/01-method.yaml",
+      "category": "upstream-stage-deck",
+      "currentLfSha256": "70ccaf2cffff8adab8ef2f8c548caafb8e86b0ca40caa3ebbb6f05ef17da7959",
+      "provenance": "Upstream stage presentation deck or documentation update on origin/main through f1d477f2c"
+    },
+    {
+      "status": "M",
+      "path": "examples/stage/force-density/02-question.yaml",
+      "category": "upstream-stage-deck",
+      "currentLfSha256": "a2b6fc7866c4b458d15d876fb38860a63db0fcb0f7bf3941c9e8afa7ef482d76",
+      "provenance": "Upstream stage presentation deck or documentation update on origin/main through f1d477f2c"
+    },
+    {
+      "status": "M",
+      "path": "examples/stage/force-density/03-projections.yaml",
+      "category": "upstream-stage-deck",
+      "currentLfSha256": "cae4bd2737feda8de0c9f6309d4aabb6ff7565c9f3a61b3860704b1b26dc5a6e",
+      "provenance": "Upstream stage presentation deck or documentation update on origin/main through f1d477f2c"
+    },
+    {
+      "status": "M",
+      "path": "examples/stage/force-density/04-one-dimension.yaml",
+      "category": "upstream-stage-deck",
+      "currentLfSha256": "222a5baab0bd0c29253063152a06b98fbd11971106f8e9685c301c5c30fac6e6",
+      "provenance": "Upstream stage presentation deck or documentation update on origin/main through f1d477f2c"
+    },
+    {
+      "status": "M",
+      "path": "examples/stage/force-density/05-force-densities.yaml",
+      "category": "upstream-stage-deck",
+      "currentLfSha256": "17d57dc6342f075c02db0360f4c50c988d6e570584ae079bf44d0fc3c6a5741e",
+      "provenance": "Upstream stage presentation deck or documentation update on origin/main through f1d477f2c"
+    },
+    {
+      "status": "M",
+      "path": "examples/stage/force-density/index.yaml",
+      "category": "upstream-stage-deck",
+      "currentLfSha256": "b7fd8408bed3d2959c3a38e7aed1c9b1a2ae5167dee1d936631a063977b52606",
+      "provenance": "Upstream stage presentation deck or documentation update on origin/main through f1d477f2c"
+    },
+    {
+      "status": "M",
+      "path": "src/app/command/mod.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "cb1827398f1b8fab957dd311c5517be3bf15735ed6bf8450bc6af1972fe24899",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/app/command/verbs/move.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "8ebb78b416f2ded1baa140e0a429f4ec92a5af6ad1a61cdde16c9dc3ae74776d",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/app/coords.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "cf9dfa81ccdd29980dc5f4bbec1fb03f87a932503154ebe23854ba190dea8a27",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/app/decode.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "daba5c300d87168c17c86d4118ff1f2c0f92cec3e49a2adba95d617221956d17",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/app/feedback.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "ef3c9a65cc9c6be9299f998ecd71f3b29782ea0dc8c82307741f8a21f7506e4e",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/app/fetch.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "45c1605db07b92f5e79b110f380a30c89549292111fd574269e3bab9c3b1e08b",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/app/gesture/mod.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "f015688289192d7970e359169a4ddf33ec04ec42038bf5e9c3fafb129d412203",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "A",
+      "path": "src/app/launch.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "f1bdd451838790b61b9a52ea2aaa3097bf7f68b5721fd7d7ca633ca3c915b5c9",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/app/loader.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "3ab28bd0f96144d4fcfa5493769dec9d6ff19cc69f4ba990c11adcd47b9b43d3",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/app/mod.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "8e30bcbc1a4e662b8a0f4e1264b3633ec9b68551ec373284e8db62ce7992a9d2",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "A",
+      "path": "src/app/runtime.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "75ac88ef8360589b09238b005ce9e64b03460f258713b16c20c4520ce74e495c",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/app/scene.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "3f93b8250b971488665b86443fd834d8440f8667fb7657d13e51978963d8b0ce",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/app/scene_rows.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "ef35eb991a7c449f9cda4482e52f11a1ba21d5b9263ea35aff04f9e372f8daf4",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/app/scene_sync/notes.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "adedbfe50553859f2c4987abc8fc2476e61a427781b8f830aa7d344028ddb1fc",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/app/selection.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "67f5e1a5bcf8006d07bc3f090b8fade23dfc163a2de8b41185b46fd969b4268b",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/app/stage/actions.rs",
+      "category": "upstream-stage-runtime-and-tests",
+      "currentLfSha256": "86c398aaa783b700da125488b3e0b44adc726711cd207898d77bf1a3400abc95",
+      "provenance": "Upstream stage runtime/layout/theme/test update on origin/main through f1d477f2c, reconciled in completion-mathematics.md, stage-scene.md, and completion-stage-reconciliation-windows-20261118.json"
+    },
+    {
+      "status": "A",
+      "path": "src/app/stage/application.rs",
+      "category": "upstream-stage-runtime-and-tests",
+      "currentLfSha256": "52b8b21b64ca83ead25f0e33555fd47d59a238e8384e01a39fc275518ee6776b",
+      "provenance": "Upstream stage runtime/layout/theme/test update on origin/main through f1d477f2c, reconciled in completion-mathematics.md, stage-scene.md, and completion-stage-reconciliation-windows-20261118.json"
+    },
+    {
+      "status": "M",
+      "path": "src/app/stage/deck.rs",
+      "category": "upstream-stage-runtime-and-tests",
+      "currentLfSha256": "e8bd642d043f6449b5b10903a1bce91138bb75c4c4924b0cf634471abb0d1687",
+      "provenance": "Upstream stage runtime/layout/theme/test update on origin/main through f1d477f2c, reconciled in completion-mathematics.md, stage-scene.md, and completion-stage-reconciliation-windows-20261118.json"
+    },
+    {
+      "status": "M",
+      "path": "src/app/stage/draw.rs",
+      "category": "upstream-stage-runtime-and-tests",
+      "currentLfSha256": "2d3e6ca2d45561493f342fa853642c382e00de23667bcc0a151daa56e3efb91d",
+      "provenance": "Upstream stage runtime/layout/theme/test update on origin/main through f1d477f2c, reconciled in completion-mathematics.md, stage-scene.md, and completion-stage-reconciliation-windows-20261118.json"
+    },
+    {
+      "status": "M",
+      "path": "src/app/stage/layout.rs",
+      "category": "upstream-stage-runtime-and-tests",
+      "currentLfSha256": "a73373c1f2f14ab88c0fb420a468b999c790548b159c10619e880a9b5105bc27",
+      "provenance": "Upstream stage runtime/layout/theme/test update on origin/main through f1d477f2c, reconciled in completion-mathematics.md, stage-scene.md, and completion-stage-reconciliation-windows-20261118.json"
+    },
+    {
+      "status": "M",
+      "path": "src/app/stage/mod.rs",
+      "category": "upstream-stage-runtime-and-tests",
+      "currentLfSha256": "dc53a36f5cea2e53450dea8a416028a57c68c01500fe1ed16f0146ebb055f2e1",
+      "provenance": "Upstream stage runtime/layout/theme/test update on origin/main through f1d477f2c, reconciled in completion-mathematics.md, stage-scene.md, and completion-stage-reconciliation-windows-20261118.json"
+    },
+    {
+      "status": "M",
+      "path": "src/app/stage/paint.rs",
+      "category": "upstream-stage-runtime-and-tests",
+      "currentLfSha256": "8a06cc62bc4b0b148e70db608835c111e9e6eb39dfdb773ab39cc6a12106adac",
+      "provenance": "Upstream stage runtime/layout/theme/test update on origin/main through f1d477f2c, reconciled in completion-mathematics.md, stage-scene.md, and completion-stage-reconciliation-windows-20261118.json"
+    },
+    {
+      "status": "M",
+      "path": "src/app/stage/presentation_tests.rs",
+      "category": "upstream-stage-runtime-and-tests",
+      "currentLfSha256": "45ac39084fa7073bf86a4c49d77847d0fd415613d6a716d63aa501eb4c40d839",
+      "provenance": "Upstream stage runtime/layout/theme/test update on origin/main through f1d477f2c, reconciled in completion-mathematics.md, stage-scene.md, and completion-stage-reconciliation-windows-20261118.json"
+    },
+    {
+      "status": "M",
+      "path": "src/app/stage/tests.rs",
+      "category": "upstream-stage-runtime-and-tests",
+      "currentLfSha256": "3dbb22d4b9748df166c2b64c072ce31d0d873faa394d201d1158600ae7f8b6f3",
+      "provenance": "Upstream stage runtime/layout/theme/test update on origin/main through f1d477f2c, reconciled in completion-mathematics.md, stage-scene.md, and completion-stage-reconciliation-windows-20261118.json"
+    },
+    {
+      "status": "M",
+      "path": "src/app/touch.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "7c566eb2a676000ba25b90a82512ea976c8252079fa05c3c21db2481669f300f",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/app/ui/mod.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "c5bb203005cfb26e5ee108986c5465d770e37d077b5b2f69bc39f6a88c2a3d72",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "A",
+      "path": "src/app/walk/application_tests.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "ebc773030fe2290de9c7773461c646669632c0966213e3be433a3a692c1df123",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/app/walk/brep.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "3b2a570728e23c8c1e5a2edd86221708bdd18134d3a0f334e3b9827d661ca63a",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "A",
+      "path": "src/app/walk/brep/application_tests.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "d759194a7b1300dd6fe4bc4438778f84f08fe787a75f1edc06e1eb7425d617a8",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/app/walk/cloud.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "84313f8cf50c315742e31ecab2080efe9c0487eb57e6a835241aaa5e3c846ed0",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "A",
+      "path": "src/app/walk/cloud/resident.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "15b06db4cbef9bd3a1cd05af8a43a6861b0685845498d63ae91bde683b695377",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "A",
+      "path": "src/app/walk/cloud/stream.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "9eba837026da0f2b4f0981c77e635587f4d7e9fb31ffe11df89ac1e8da6b7af3",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/app/walk/frames.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "7b0b034a6a704085a86f6cc8bb54614ee519cfd4d5e0d794b86c68ad6c41edaf",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "A",
+      "path": "src/app/walk/frames/application_tests.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "d0ed65130ed5185f3de8ecc8657656bfc54a3053f9c1ec711a3ad3804587a064",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/app/walk/mod.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "4e55c5b51fc19ec17a560254d47aa453a9daf17f0129f1ee34629e1673aa40a2",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "A",
+      "path": "src/app/yielding.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "fa51e17c1f5834307b4b87ba5e483b9c2c21ba2122c88932116260ff90e0ad3e",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/camera.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "76793d7e307fdb36a20148fa0e54e143da9af2fd0245186d37148a3ab26544b9",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "A",
+      "path": "src/engine/diagnostics.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "2f9dfe697b1bf3fa3305dd53a2b2c0ee5f86ee0f22f6379524f1440af1daa9f3",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/engine/gpu/backdrop.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "4b90b3cb92cdcc90c88c06791137f81684830c6d14d6864142863965292055ea",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "A",
+      "path": "src/engine/gpu/backdrop/application_tests.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "b7e7738b097340cde9a1ea7780a0f2672c9bb6f79aa27807e7484807d9247899",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/engine/gpu/clip.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "ee32a1e79f4a4fa8625787b5b6a9e86b46ad9cff45dcd66cd73e47e7d90230a7",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "A",
+      "path": "src/engine/gpu/context.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "e90e75e6513d2571719624df9f7af7fc30500813470a0bd3d3c706ec5fcfebfe",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/engine/gpu/device.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "ced1cff229cd47c5cc3de6d7713b7049ce2181cac444226bd27053b397774a20",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/engine/gpu/frame.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "9d6dddc0b3f1a4c17f4da8adef89114ef2950a00351947a457eacabfa4f19d97",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/engine/gpu/hull.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "6546c2c6e49f166cd132b819585bbd5182c180fb882dbe2456a77a3cf376e751",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "A",
+      "path": "src/engine/gpu/hull/geometry.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "9d2db6b2a1db2974a49f27962838fc2bd1ce2154b4b9108d2b5b40009811a4c7",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "A",
+      "path": "src/engine/gpu/hull/upload.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "70d7356c0fceed1027de05c258644aa84d57e8a431c722366daf460b19eea59d",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/engine/gpu/instance.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "acc28f2185fcf71681fdc4316c431412e7d12dfd31ad2ec414fe8993389a58fd",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "A",
+      "path": "src/engine/gpu/instance/layout.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "a093d3e4a8959ad5411d63a50826346e9db19d5196982fdcb964bb32dc6793e8",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "A",
+      "path": "src/engine/gpu/instance/validation.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "64bca08af9086edbf4177c8f2582f0dac266c26805efbe4374743d50a1490a7e",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/engine/gpu/lane.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "b42d937e91e0ad5bfd33469285cf99309a78e854177fd8bd504cf50d8b352371",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/engine/gpu/mod.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "56a8e0538e0981ccc17f5baf98ed9f60acb42d3db2b1c9cf44ab6188731ecdf1",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/engine/gpu/objects.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "86bf47207c6bac7336c9cb2ffb18051235321c7c48110e705e6fa26eef3b8202",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "A",
+      "path": "src/engine/gpu/objects/gpu_tests.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "bb4c2ecf595208587734c525c95f02066d52cac0d2e4ba743ba1721b584ed924",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "A",
+      "path": "src/engine/gpu/objects/ink.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "bc6acfc40f024100e098d03f8a989559f985eae40bdc7162227e55d470e6d5e5",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "A",
+      "path": "src/engine/gpu/objects/lane.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "82590ecc2d6016b1cbccda7b00e6dd3c2be6f80f15ed563162d7b911c77103f2",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "A",
+      "path": "src/engine/gpu/objects/table.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "b63255c98016c145a613f5af464510afbb3a0e9d9f34792d8dbf8636433c1c2f",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/engine/gpu/present.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "98e20200ffcd612032d034ff8bf6d87ec81dd7e0cb4b6c35f45192f0ece58c16",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/engine/gpu/splat.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "378f8b97c64859e1a0d4c45f58dd01f4f0af844645dd8af31eac69954e35276f",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/engine/gpu/ssao.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "d8204411fdc934639f91c676485aa915f3474ac266d847db9517285a62c1deb4",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/engine/gpu/surface_outline.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "25a9c85dcc0d431e2d88a65cc5de033c7b25a6414b894740d9b06d0371b5210d",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/engine/gpu/triangle_tiles.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "45b5bb3a8427700f764febc1df363841a167e50949781d3ddbac76b1bd6ce3c3",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/engine/gpu/ui.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "bcd2014f8a5c3cefae45889453d46c4d8080fe3885e2d2edaad1b294696907b2",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/engine/mod.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "d3fd163e8b7b946364db2f3ef7b0b8687a2a861b54bf9d9d1899267551ecc140",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/engine/performance.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "1a3d117f8e09ce3cc2dbfa5a446637e3429616f4cb0f03071e5708a009def7d8",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "A",
+      "path": "src/engine/pipelines/core.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "e8772a78252be84671a26723a24e29d5afd5611f0c976464e48be8e72cfc5fc4",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "A",
+      "path": "src/engine/pipelines/geometry.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "7ad7d6f1d08e751f0a3d4707fc6726c4f14139d366a1fe86289997b033ccdb88",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/engine/pipelines/mod.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "b6c6fd7c934d74e2206d8524433aefae7c582a77f747ace5d4a0ccc91655f015",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/engine/text.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "c1744228a1cdddd628fed1c6fdad4bc5acdf07178a351cb68015e767bf92f70e",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "A",
+      "path": "src/engine/text/application_tests.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "1bedc6e27b3e8d90874603475d4040ff8c2ed9afb31785923da0faa9bc1e63ed",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/lib.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "52947baf8d0dec30cf1a18343e6842f48393fb126bb7df844444b0104a6a4d91",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/selftest.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "87131f0c1ddd8bdc620dcd205815f6dd86894aac0df780dce6c393d7fb8cb8fc",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/shaders/scan_triangle_tiles.wgsl",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "5fb767bd32a68fb56546c4d59341c394bce1b4c84b4bc2110f2623b178a6e80a",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/state/edit.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "e9069c10379cad51566f3cf4e8a11e1a57ab4c6b58542e4a62c39dfa0cfa1ea0",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/state/hydrate.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "2a91e85f2d8e2ee2665ff145745a6d97e77e23df029b7a2ef9d5d9b83069a29a",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    }
+  ]
+}
