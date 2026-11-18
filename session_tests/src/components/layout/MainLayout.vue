@@ -95,9 +95,9 @@
         <router-link to="/course" class="nav-button" :class="{ active: currentRoute === 'course' }">Viewer course</router-link>
 
         <div v-if="currentRoute === 'course'" class="suites-section course-section">
-          <router-link to="/course/journey/active" class="suite-button course-link">Book contents</router-link>
-          <router-link to="/course/journey/active#acceptance" class="suite-button course-link" :class="{ active: currentSlug === 'journey/roadmap' }">To-do list and progress</router-link>
-          <details v-for="g in courseGroups" :key="g.title" :open="g.slugs.includes('readme') || g.slugs.includes('journey/01-canvas') || g.slugs.includes(currentSlug)">
+          <router-link to="/course/journey/active" class="suite-button course-link">Course map</router-link>
+          <router-link to="/course/journey/active#acceptance" class="suite-button course-link" :class="{ active: currentSlug === 'journey/roadmap' }">Status &amp; progress</router-link>
+          <details v-for="g in courseGroups" :key="g.title" :open="g.title === 'Cumulative subjects' || g.slugs.includes(currentSlug)">
             <summary class="group-title">{{ g.title }}</summary>
             <template v-if="g.sections">
               <template v-for="section in g.sections" :key="section.title">

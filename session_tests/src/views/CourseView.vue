@@ -1,8 +1,8 @@
 <template>
   <div class="course-page">
     <p class="course-progress">
-      <router-link to="/course/journey/active">Contents</router-link> · <router-link to="/course/journey/active#acceptance">To-do list and progress</router-link>
-      <template v-if="latestLesson"> · <router-link :to="'/course/' + latestLesson">Production checkpoint: {{ pages[latestLesson].title }}</router-link></template>
+      <router-link to="/course/journey/active">Course map</router-link> · <router-link to="/course/journey/active#acceptance">Acceptance status</router-link>
+      <template v-if="latestLesson"> · <router-link :to="'/course/' + latestLesson">Endpoint: {{ pages[latestLesson].title }}</router-link></template>
     </p>
     <p v-if="missing" class="missing">
       There is no course page named "{{ slug }}". <router-link to="/course">All lessons</router-link>
@@ -110,7 +110,18 @@ const onClick = (e: MouseEvent) => {
 
 .course-progress {
   margin: 0 0 1rem;
-  font-size: 14px;
+  font-size: 13.5px;
+  color: var(--muted);
+}
+
+.course-progress a {
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.course-progress a:hover {
+  color: var(--fg);
+  text-decoration: underline;
 }
 
 .missing {
@@ -300,6 +311,26 @@ const onClick = (e: MouseEvent) => {
   height: auto;
   display: block;
   margin: 1rem 0;
+  border-radius: 6px;
+  border: 1px solid var(--rule);
+}
+
+.doc :deep(img[src*=".svg"]) {
+  border: 0;
+}
+
+@media (min-width: 680px) {
+  .doc :deep(p:has(> a:first-child > img):has(> a:nth-child(2) > img)) {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    align-items: start;
+    margin: 1rem 0;
+  }
+
+  .doc :deep(p:has(> a:first-child > img):has(> a:nth-child(2) > img) img) {
+    margin: 0;
+  }
 }
 
 .doc :deep(:not(pre) > code) {
@@ -380,23 +411,36 @@ const onClick = (e: MouseEvent) => {
 }
 
 .doc :deep(table) {
+  width: 100%;
   border-collapse: collapse;
   margin: 1rem 0;
   font-size: 14px;
   display: block;
   overflow-x: auto;
+  overflow-wrap: break-word;
 }
 
 .doc :deep(th),
 .doc :deep(td) {
   text-align: left;
-  padding: 0.3rem 0.8rem 0.3rem 0;
+  padding: 0.35rem 0.85rem 0.35rem 0;
   border-bottom: 1px solid var(--rule);
   vertical-align: top;
 }
 
 .doc :deep(th) {
   font-weight: 600;
+  white-space: nowrap;
+}
+
+@media (min-width: 680px) {
+  .doc :deep(td:first-child) {
+    white-space: nowrap;
+  }
+}
+
+.doc :deep(table :not(pre) > code) {
+  overflow-wrap: normal;
 }
 
 .doc :deep(hr) {

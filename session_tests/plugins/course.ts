@@ -150,10 +150,10 @@ function navGroups(bySlug: Map<string, string>): Group[] {
       slugs: chapter.sections.flatMap(section => section.lessons.map(lesson => pageSlug(path.join(DOCS, lesson.page)))),
           }));
     if (book.comparison) lessonGroups.push({title: 'Reference comparison', slugs: [pageSlug(path.join(DOCS, book.comparison.page))]});
-    groups.splice(1, 0, {title: 'Cumulative subjects', slugs: active().subjects.map(subject => pageSlug(path.join(DOCS, subject.page)))},
+    groups.splice(0, 0, {title: 'Cumulative subjects', slugs: active().subjects.map(subject => pageSlug(path.join(DOCS, subject.page)))},
       {title: 'Subject chapters', slugs: active().subjects.flatMap(subject => subject.chapters.map(page => pageSlug(path.join(DOCS, page)))),
-        sections: active().subjects.filter(subject => subject.chapters.length).map(subject => ({title: subject.title, slugs: subject.chapters.map(page => pageSlug(path.join(DOCS, page)))}))},
-      {title: 'Historical checkpoint subjects', slugs: lessonGroups.flatMap(group => group.slugs), sections: lessonGroups});
+        sections: active().subjects.filter(subject => subject.chapters.length).map(subject => ({title: subject.title, slugs: subject.chapters.map(page => pageSlug(path.join(DOCS, page)))}))});
+    groups.splice(3, 0, {title: 'Historical checkpoint subjects', slugs: lessonGroups.flatMap(group => group.slugs), sections: lessonGroups});
     const reference = groups.find((g) => g.title === 'Course');
     if (reference) reference.title = 'Archived tutorials';
   }

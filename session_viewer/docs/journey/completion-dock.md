@@ -1,75 +1,72 @@
 # Enter commands
 
-Type and complete commands, choose an option, and expand retained command history using the production command dock.
+Drive command entry, prefix completion, clickable option chips and `200`-entry command history with the production `src/command_dock` widget.
 
-This cumulative subject follows [mathematics](completion-mathematics.md). Its implementation and lesson are reviewed against the recorded Windows Intel WebGPU command interactions at desktop and upright sizes. The remaining course has separate acceptance.
+![Command dock showing clickable Blue and Pink option chips](../screenshots/active/dock-options-1280.png)
+![Circle updated to Blue after committing the option command once](../screenshots/active/dock-blue-1280.png)
+
+![Command dock persistent state versus one-frame command output](../illustrations/active/dock-flow.svg)
 
 ## Prerequisites and ownership
 
-Keep the device, event-loop launcher, canvas fixture, egui GPU painter and mathematics implementation. This subject owns the complete `src/command_dock` module: the persistent model and input behavior in `mod.rs`, panel and field rendering in `view.rs`, and fonts and visual settings in `theme.rs`.
+Requires [3. Lay out and animate mathematics](completion-mathematics.md). Checkpoint `dock` (`45` files) retains Tutorials 1–3 and adds `4` files:
 
-The fixture adds a small vocabulary and connects the dock to egui-winit. Its `Hello`, `Color` and `Clear` commands exercise the dock without scene geometry. The later command subject supplies production operations through the same `Commands` interface. Phone keyboard bridging belongs to the later input and phone-layout subject.
+| Added file | Role |
+| --- | --- |
+| [src/command_dock/mod.rs](../../src/command_dock/mod.rs) | `Commands` vocabulary trait, persistent `CommandLine` state, Tab/arrow completion, option chips and `Option<String>` one-frame commit. |
+| [src/command_dock/view.rs](../../src/command_dock/view.rs) | Bottom `egui::Panel` (`30 pt` folded, resizable up to `75%` height expanded) and `2048`-char `TextEdit` field. |
+| [src/command_dock/theme.rs](../../src/command_dock/theme.rs) | `Noto Sans` + `Symbols` font stack and light non-blinking `Visuals` for on-demand rendering. |
+| [examples/course/dock.rs](../../examples/course/dock.rs) | Connects `egui_winit` events and tests `Hello`, `Color` (`Blue`/`Pink`) and `Clear`. |
 
 ## Build
 
-Add the complete dock modules and its registration; retain the earlier implementations.
-
-From `session_tests`, create a fresh comparison project:
+Materialize checkpoint `dock` or add `src/command_dock/` and `examples/course/dock.rs`:
 
 ```sh
-node --import ./scripts/typescript.mjs scripts/course.ts completion-checkpoint dock ../session_viewer/target/learn-dock
+npm --prefix ../session_tests run course -- checkpoint dock ../session_viewer/target/learn-dock
 ```
 
-### Persistent model and one-frame output
+### Focus, completion and cancellation
 
-Read [the command dock](../../src/command_dock/mod.rs). `CommandLine` persists text, focus requests, completion selection, history and the rectangles used for pointer interaction. It is separate from the optional command returned by one draw. Drawing a frame must not execute a command repeatedly; the owner consumes that one-frame result after egui finishes.
+`src/command_dock/mod.rs` separates persistent `CommandLine` state (`command`, `200`-entry `VecDeque` history, character-indexed prefix completion, option buttons and focus flags) from the one-frame `Option<String>` returned when `Enter` or an option chip commits, while `Escape` cancels pending input without executing it.
 
-`Commands` supplies canonical spelling, option detection, acceptance and completion candidates. The dock therefore owns text interaction while the application owns what a command means. The fixture implements that boundary directly:
+```rust
+--8<-- "session_viewer/src/command_dock/mod.rs:6:35"
+```
 
 ```rust
 --8<-- "session_viewer/examples/course/dock.rs:course-dock"
 ```
 
-`take_command` transfers the owned string out of the model using `mem::take`, leaving an empty string in its place. It rejects whitespace-only input. `remember` keeps at most 200 history entries by removing the oldest before appending. `VecDeque` supports those opposite-end operations without shifting every retained line.
-
-### Focus, completion and cancellation
-
-Follow `keys` in `mod.rs`. `focus_command` requests a focus transfer and moves the caret once, then clears that request. While `command_open` remains true, the dock requests focus again on each frame; Escape clears both flags and releases it. This deliberately keeps command typing active until cancellation. The current text response also participates in deciding whether Escape belongs to the field.
-
-Completion retains both a prefix and a highlighted index. Keeping the prefix separate from the displayed inline suffix lets browsing change the proposed completion without treating every proposal as newly typed input. Cursor operations use character indices, not UTF-8 byte offsets. `spelled` counts non-space characters when matching a compact command name to its displayed spelling.
-
-Enter asks the vocabulary whether the line can run. An incomplete command can keep its canonical text and open an option list instead. Option buttons produce the same command output as accepted text. Escape clears the pending line and completion state, releases text focus, and returns focus to the canvas when cancellation is allowed. Another active editor can reserve Escape by passing `escape_allowed = false`.
-
-The fixture forwards each real window event through egui-winit, takes one `RawInput` snapshot for the frame, and returns egui's platform output to the adapter afterwards. Platform output includes cursor and text-input requests; dropping it would make a widget appear drawn while parts of its browser interaction failed. The painter's existing raw-input and UI callback boundary supports this without changing GPU upload or drawing code.
-
 ### Panel, history and fonts
 
-Read [the view functions](../../src/command_dock/view.rs). The folded panel has a fixed height; expanded history uses a resizable bottom panel with bounded height. The history area sticks to its newest entry and leaves room for the input row. Keeping these rectangles in logical points makes the same pointer positions work at different display densities.
+- `src/command_dock/view.rs` builds a `30 pt` folded bottom bar or a resizable `64..0.75 * height` history panel in logical points, drawing an explicit caret on empty focused fields and recording `Control` hit rectangles.
+- `src/command_dock/theme.rs` registers `Noto Sans` plus both `Noto Sans Symbols` fallbacks across proportional and monospace families and disables `text_cursor.blink` so idle focused frames consume zero repaints.
 
-Read [the theme](../../src/command_dock/theme.rs). The font list starts with Noto Sans and adds the two symbol fallbacks for both proportional and monospace text. The white visual theme explicitly sets selection, cursor and widget colours. Cursor blinking is disabled because the production interface renders on demand; a static focused field does not require an endless animation loop.
+```rust
+--8<-- "session_viewer/src/command_dock/view.rs"
+```
 
-The `Control` records emitted during drawing identify the actual widget rectangles. The fixture exposes those records for browser checks, so a test clicks the rendered control rather than guessing a coordinate that only works at one viewport size.
+```rust
+--8<-- "session_viewer/src/command_dock/theme.rs"
+```
 
 ## Run and observe
 
-Serve the assembled project through the workspace storage guard and build slot with `trunk serve --port 8780`. Open `http://127.0.0.1:8780/?tutorial=dock`.
+Serve the checkpoint and open `http://127.0.0.1:8780/?tutorial=dock`:
 
-Expect a pink circle, an instruction in the centre, and a command field along the bottom. Type `Hello` and press Enter: the centre should say `Hello!`. Expand history with `+` to see the accepted line. Type `Color` and press Enter to reveal its options, then choose Blue: the circle should turn blue and the accepted colour command should enter history. `Clear` empties that history. Escape must cancel an unfinished entry without executing it.
-
-Reload the page with `?tutorial=mathematics`, `?tutorial=painting` and `?tutorial=frame` to exercise the retained earlier registrations. Browser emulation can check the narrow layout and pointer targets; it does not establish physical-phone virtual-keyboard behavior.
+- Type `Hello` + `Enter` -> centre text reads `Hello!`; click `+` to inspect history.
+- Type `Color` + `Enter`, then click `Blue` -> the circle turns blue and `Color Blue` logs once; `Clear` empties history; `Escape` aborts partial input.
 
 ## Predict and try
 
-Type a prefix such as `He`, then browse its completion before accepting it. Predict whether the stored command should remain the prefix or become the full accepted word. After accepting, expand history: it should contain the canonical command once, regardless of how many frames were drawn while choosing it.
+Type `He`, cycle completion with `Tab`, and press `Enter`: predict whether history stores `He` or canonical `Hello`, then open `+` to verify `Hello` appears once regardless of intermediate redraws.
 
 ## Question and answer
 
-Why does the dock return an optional command instead of executing it inside the text field?
-
-The application owns command effects, and egui can draw the field again without new input. Returning a one-frame value keeps execution separate from rendering and lets the application apply the accepted command exactly once.
+**Why does `CommandLine::show` return `Option<String>` instead of running the command inside the widget?**
+`egui` may redraw the dock many times without new user input; returning `Some(cmd)` once after `egui` finishes guarantees each committed command mutates application state exactly once.
 
 ## Validation
 
-The 45-file partial project passes its locked wasm Cargo check. Three source-retention tests verify unchanged earlier implementations and the actual three production dock files. The browser check enters Hello, chooses Color/Blue with the actual option control, verifies blue circle pixels and clears history at desktop and upright dimensions. The native candidate suite passes 19 tests with one GPU-dependent test ignored; the separate historical focus regressions retain their original scope.
-
-The [current interaction receipt](release/completion-partials-windows-20261115.json) records Chrome 157 and the Intel Gen-12LP adapter. Upright viewport emulation is not a physical-phone test, and these checks do not accept the remaining cumulative course.
+Verified by `45`-file locked `wasm32` build, `19` passing native tests (`1` GPU test ignored), retention checks, and desktop/upright browser interaction tests in the recorded Windows Intel WebGPU environment ([receipt](release/completion-partials-windows-20261115.json)). Physical-phone virtual-keyboard bridging is covered in [9.3 Input](completion-input.md).

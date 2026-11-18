@@ -1,101 +1,71 @@
 # Keep scene labels readable
 
-Attach a readable title to a document while reusing shaped glyphs and preserving its scene identity during selection and undo.
+Shape and cache `glyphon` scene labels, world-plane signs and selectable document nameplates, upgrade subset fonts to full faces asynchronously on missing glyphs, and verify metrics against browser DOM typography.
+
+![World-plane label in isometric view reusing shaped glyph runs across camera orbit](../screenshots/completion/world-plane-iso.png)
+![Same world-plane label viewed from Top without reshaping](../screenshots/completion/world-plane-top.png)
+
+![WebGPU scene text (left) versus browser DOM text (right) across five font sizes](../screenshots/completion/matched-font-text.png)
+
+![Text shaping, revision keys and GPU preparation pipeline](../illustrations/text-pipeline.svg)
 
 ## Prerequisites and ownership
 
-Complete rendering, documents and loading. This application chapter explains the scene-text renderer introduced with the complete rendering source: `engine/text.rs`, `gpu/text.rs`, `text_plane.rs`, `text_plate.rs` and `text_outline.rs`, together with their shaders. It owns the explanation of application adapters in `app/fonts.rs`, `app/scene_text.rs` and `state/text.rs`. The mathematics subject's TeX parser and glyph atlas remain a separate finished implementation; scene labels use glyphon shaping.
+Chapter `9.6` of [9. Run the application](completion-application.md) (`application` checkpoint). Covers `11` scene-text, GPU-atlas, subset-fallback and verification files across `src/engine/`, `src/app/`, `src/state/`, `src/text_quality.rs` and `assets/text-quality.html`.
 
 ## Build
 
-Connect document text identities to the existing text document and GPU lane, retaining shaped runs across placement and color changes.
+### Placement modes & validated shaping reuse
 
-### Placement determines size and depth behavior
+![Screen, anchored, nameplate, world-plane and billboard text placements](../illustrations/text-placement.svg)
+
+`src/engine/text.rs` defines `5` `TextPlacement` modes (screen, depth-tested anchored, overlay nameplate, world-plane and billboard) and validates `TextDocument::set_labels` atomically so moving or recolouring labels reuses shaped `glyphon` buffers while font upgrades advance `font_revision`.
 
 ```rust
 --8<-- "session_viewer/src/engine/text.rs:scene-text-placement"
 ```
 
-A screen label has CSS-sized coordinates independent of the camera. An anchored label follows a world point but stays screen-sized and can be hidden by geometry. A nameplate follows a world point with an always-on-top background. World-plane text has authored axes and world height; a world billboard keeps world size while facing the camera. These choices affect projection, occlusion and cache invalidation, not just visual style.
-
-`TextLabel` separates stable label ID, optional scene ownership, text, metrics, color and placement. Its clip rectangle can restrict the visible part to the scene region. `TextObject` carries the row and selected state; a title can therefore be selectable even though it is not kernel geometry. Selecting it changes its ink/background presentation without changing its text content.
-
-### Validate a replacement before changing the document
-
 ```rust
 --8<-- "session_viewer/src/engine/text.rs:scene-text-shaping"
 ```
 
-`TextDocument::set_labels` validates the complete incoming set first: unique IDs, bounded total text bytes and valid placement/metrics. An invalid replacement leaves the previous runs intact. If labels are identical it returns without advancing the revision.
-
-For a changed set, a map of prior runs by ID lets unchanged layout reuse its shaped buffer. Moving or recoloring a label does not require reshaping its glyph sequence. Changing text or metrics does. Replacing fonts validates the new sources and reshapes against the new font system, advancing both font and document revisions. Cache reuse follows the inputs that determine layout, not whether a label happened to be drawn last frame.
-
 ### Prepare GPU data only when its inputs change
 
-`TextLane::prepare` keys work by document revision, font revision and relevant camera/canvas facts. If every label is fixed on screen, the key omits camera motion while retaining canvas dimensions. Otherwise projection changes require preparation. A matching key increments the skipped-preparation counter and retains the buffers.
+![Subset glyph coverage check triggering one-shot full-font HTTP delivery](../illustrations/glyph-coverage.svg)
 
-The lane owns the glyph atlas, viewport, raster cache and distinct overlay/anchored renderers. A font revision change rebuilds dependent resources. A large raster-key set also triggers rebuilding rather than growing indefinitely. Diagnostics distinguish shaping, raster images, active glyph instances, preparation time and atlas resets; counting labels alone would miss those different costs.
+| File | Specification |
+| --- | --- |
+| [src/engine/gpu/text.rs](../../src/engine/gpu/text.rs) | Keys `TextLane::prepare` by `(doc_revision, font_revision, camera_or_canvas)` so static frames and pure screen-label views skip redundant GPU uploads. |
+| [src/engine/gpu/text_plane.rs](../../src/engine/gpu/text_plane.rs) | Caches per-label world-plane textures keyed by raster inputs, freeing GPU textures automatically when a plane label drops. |
+| [src/engine/gpu/text_outline.rs](../../src/engine/gpu/text_outline.rs) | Draws pre-triangulated arena sheet lettering with flat colour and object-ID picking without reshaping strings through `glyphon`. |
+| [src/app/fonts.rs](../../src/app/fonts.rs) | Checks bundled `Subset` glyph coverage (`need` / `need_names`) and triggers one async HTTP fetch posting `Msg::Fonts` when a codepoint (e.g. `Ω`) is missing. |
+| [src/app/ui/theme.rs](../../src/app/ui/theme.rs) | Re-exports `command_dock` `Visuals` and orders static `Noto Sans` + `Symbols` subsets so UI and scene labels share one initial font allocation. |
+| [src/app/command/verbs/text.rs](../../src/app/command/verbs/text.rs) | Validates `1..80`-char strings, orients `CPlane` axes toward the eye, and commits an undoable world-plane white-on-black label. |
 
-`text_plane.rs` caches a texture for each world-plane label, keyed by the inputs needed to rasterize it, and draws textured geometry in the world. Dropping a cached plane destroys its texture. `text_plane.wgsl` supplies that color/identity path. `text_plate.rs` builds clipped background rectangles, places depth-tested rectangles before overlays, and retains color and ID pipelines. Its `text_plate.wgsl` shader therefore supports selectable plates as well as their visible backgrounds.
+### Document titles & DOM metric harness
 
-Sheet lettering is different again: `text_outline.rs` draws existing arena geometry as unlit fills with color and identity pipelines, using `text_outline.wgsl`. It does not reshape those outlines as label strings. `glyphs.rs` and `glyph.wgsl` draw the renderer's geometry glyph lane, which also differs from the glyphon atlas used for ordinary labels.
-
-### Load full fonts when a subset is insufficient
-
-The renderer bundles subset font bytes as static data so initial labels can draw without waiting for all full fonts. `fonts::need` checks coverage and starts one asynchronous request when a character is missing. `need_names` checks document, tree and object names. Failed fetching clears the request flag so a later need can try again.
-
-On success, `Msg::Fonts` transfers the full faces to the application and its text consumers. This follows the same message ownership as document loading. It must not mutate a borrowed text lane from inside a fetch future. A font replacement invalidates the caches described above; retaining old glyph IDs against a new font database would be incorrect.
-
-### A document title is an object
-
-`state/text.rs::annotate_document` measures newly added BRep and surface bounds and places a nameplate above them. `scene_text.rs` registers it as a text row with its own identity. Hiding document geometry and deleting all selected rows therefore have different effects: hide can leave the title visible, while Delete removes the separately selected title too. Undo restores the joined transaction.
-
-The `text_quality.rs` diagnostic page compares the actual text lane with browser text at several sizes, including accents, combining characters and fallback symbols. It owns its own test surface and calls the production lane. This is a diagnostic fixture, not a replacement production text implementation or proof that every device renders the same glyph edges.
-
-### Share UI fonts with the finished dock
-
-The application theme reexports the completed command-dock fonts and visuals instead of maintaining another style implementation. Its bundled font list orders the main scene-label subset first, then fallback and symbol subsets. This lets the UI and label consumers start from the same owned static bytes while full-font loading remains an asynchronous responsibility of the font adapter.
-
-### Place authored text in a world plane
-
-The Text verb accepts 1 to 80 characters and opens a placement tool. Its initial height comes from the previous successful placement or a rounded camera-distance scale; Height changes it before the insertion point is accepted. The tool chooses signs and order of the construction-plane axes to read toward the current view, then creates a world-plane white-on-black label. The lower-left insertion point is lifted by the line-box height to locate the text anchor. Accepting creates one undoable text object and remembers its height; subsequent camera motion does not convert it into a screen-sized label.
-
-### Compare against the same built font fixture
-
-The browser text-quality page waits for the exact reference fonts, reads the current built index without caching and discovers its hashed JavaScript and WebAssembly URLs. It initializes the exported `TextQuality` fixture from that same build, then places DOM reference specimens at the GPU labels' logical origins and sizes. Resize and control changes request a new render; report getters return the last completed measurement without rendering again. The reference uses the same font family, weight, kerning and common ligatures, so a width difference tests layout rather than an accidental font substitution. Resource reset and page disposal belong to this harness, not to normal scene navigation.
+| File | Specification |
+| --- | --- |
+| [src/app/scene_text.rs](../../src/app/scene_text.rs) | Registers document nameplates as independent selectable text rows joined to document `Delete`/`Undo` transactions. |
+| [src/state/text.rs](../../src/state/text.rs) | Computes newly added BRep/surface bounds in `annotate_document` and anchors a rounded nameplate above the document. |
+| [src/text_quality.rs](../../src/text_quality.rs) | Exports the `wasm_bindgen` `TextQuality` harness driving the production `TextLane` across DPRs, sizes, accents and selection states. |
+| [assets/text-quality.html](../../assets/text-quality.html) | Loads the current built `.wasm` bundle and aligns same-font DOM reference specimens over GPU labels to measure sub-pixel width agreement. |
 
 ## Run and observe
 
-Run the cumulative application with the comparison fixture. Its black rounded title says `viewer comparison`. Zoom and orbit: the title follows its world anchor while keeping screen-sized text. Open Layers and hide the document geometry; the title remains. Restore visibility, then use Select All, Delete and Undo: the geometry and title return together.
-
-Use `Layers Off` at upright width to inspect the full scene. With the 240-pixel panel open at 390 pixels, clipping can cut the nameplate in the remaining scene region. That behavior is preserved and is distinct from a missing glyph or failed font request.
-
-For fixed-plane lettering, run `node tests/world-text.cjs` against the same cumulative server, using the browser environment variables described in [Maintaining](../maintaining.md). Its supplied manifest authors a label on world-X/world-Y axes. The initial isometric view tilts its baseline; `View Top` makes the world-X baseline horizontal without reshaping or changing those axes. `View Names` leaves the authored text intact. Clicking the label changes its selection ink; H hides it and prevents picking, while S restores it. This experiment distinguishes a world-plane label from a camera-facing nameplate.
-
-![Authored world-plane text in the isometric view. The fixture keeps its XY plane and reuses shaping as the camera changes.](../screenshots/completion/world-plane-iso.png)
-
-Authored world-plane text in the isometric view. The fixture keeps its XY plane and reuses shaping as the camera changes.
-
-![The same authored plane from above. This fixture verifies projection and picking; it does not establish every font or occlusion case.](../screenshots/completion/world-plane-top.png)
-
-The same authored plane from above. This fixture verifies projection and picking; it does not establish every font or occlusion case.
-
-![Bundled Noto Sans at five sizes: production WebGPU text on the left, browser text using the same font on the right. This compares metrics and coverage, not identical rasterization.](../screenshots/completion/matched-font-text.png)
-
-Bundled Noto Sans at five sizes: production WebGPU text on the left, browser text using the same font on the right. This compares metrics and coverage, not identical rasterization.
-
-Run `node tests/font-delivery.cjs` against the same cumulative application with `VIEWER_COMPARISON_FIXTURE` naming its generated `course-comparison.pb`. The check delays the three full-font responses while showing an authored label containing Greek capital omega, then releases them. Expect the missing-glyph box to become the omega glyph without changing the camera or object count. The geometry can occlude the beginning of this world label; this exercise checks fallback delivery rather than an unobstructed label layout.
+- Open `application` with the comparison fixture: `viewer comparison` tracks its world anchor at constant CSS size during orbit/zoom, survives `Layers` geometry hide, and deletes/undoes together with `Select All`.
+- Run `node tests/world-text.cjs` -> verifies isometric vs `View Top` baseline projection, pick highlight and `H`/`S` visibility without reshaping.
+- Run `node tests/font-delivery.cjs` -> delayed full-font HTTP responses replace a missing-glyph tofu box with `Ω` in place without resetting camera or row count.
 
 ## Predict and try
 
-Predict whether orbiting should increase the number of shaped labels or only their projection/preparation work. Observe the text diagnostics while orbiting a fixed title. The glyph sequence and metrics stay the same, so shaping can be reused even though the world anchor projects somewhere else. Changing the title's text or replacing its font has different cache consequences.
+Orbit `360°` around `viewer comparison` with `?inspect=1`: predict whether `shaped_runs` increments on every orbit frame (`0` new shapings — only anchor projection updates).
 
 ## Question and answer
 
-Why keep document revision separate from font revision?
-
-Changing label placement can reuse shaped glyphs, but replacing the font database changes what glyph IDs and raster keys mean. The renderer needs both facts to invalidate the right resources without rebuilding every label for an unrelated camera or color change.
+**Why track `document_revision` and `font_revision` separately in `TextLane`?**
+Moving or tinting a label advances `document_revision` while keeping glyph IDs valid; loading full fonts advances `font_revision` and invalidates cached glyph IDs and atlas rasters across all labels.
 
 ## Validation
 
-The document browser sequence verifies the title's visibility, five-row selection count, deletion and restoration at both sizes. The maintained text-quality check passes at DPR 1, 1.25 and 2: visible glyph pixels, same-font line metrics within 0.2 CSS pixels, scale changes without reshaping, selection color, resource release and resize. The world-text check separately passes at DPR 1 and 2, including authored axes, projected baseline, visible white glyphs on a black backing, unchanged shaping, selection and hide/show pickability. Both use the cumulative bundle. Full-font delivery passes at 1280 and 390 CSS pixels: three sequential HTTP font responses reshape the label, replace its visible missing-glyph box with omega and preserve camera and object count. The fixture includes the comparison document so geometry readiness is meaningful. These desktop checks do not establish physical-phone typography.
+Verified by `tests/text-quality.cjs` at DPR `1`, `1.25` and `2` (line metrics within `0.2 CSS px`), `tests/world-text.cjs` at DPR `1` and `2`, and `tests/font-delivery.cjs` at `1280` and `390` CSS widths. Physical-phone typography remains separate.

@@ -1,171 +1,112 @@
 # Documents, hierarchy and history
 
-Show a loaded document in the layer panel, hide and restore its geometry, and undo an edit without losing object identity.
+Map `(doc_idx, GUID)` identities to multi-lane GPU `Footprint` spans, retain `256 MiB` of deleted geometry tombs for zero-rewalk `Undo`, flatten `128`-row layer trees, and serialize `.session` archives.
+
+![Five selectable rows in the comparison fixture: four kernel objects plus the independent document title](../screenshots/completion/document-selection.png)
+
+![Stable (doc_idx, GUID) row identity and relocatable GPU Footprint spans](../illustrations/active/doc-identity.svg)
 
 ## Prerequisites and ownership
 
-This is a chapter of the [application subject](completion-application.md), using that same executable checkpoint. Complete decoding, object rows, scene rendering and the application lifecycle first. This chapter teaches `app/scene.rs`, `scene_rows.rs`, the synchronization modules under `scene_sync/`, `hierarchy.rs`, `layers.rs`, `state/panel.rs` and the layer-panel adapter. It also explains the document boundary used by instancing, released geometry and display refinement; their detailed algorithms belong to the rendering and loading chapters.
+Chapter `9.1` of [9. Run the application](completion-application.md) (`application` checkpoint). Covers `25` document, sync, tomb, hierarchy, panel and archive modules across `src/app/` and `src/state/`.
 
 ## Build
 
-Connect decoded documents, stable display rows and the registered layer panel through the application host.
+All `25` modules compile inside checkpoint `application` (`trunk build production.html`).
 
 ### A file, a document and a row
 
-The decoder produces a kernel `Session`. `FileDoc` adds application information: a visible name, file placement, point-size override and whether the file is a display-only shell.
+`src/app/scene.rs` wraps `Rc<Session>` inside `FileDoc` (name, file `Xform`, `point_size`, shell flag) so two placements can share one kernel `Session` while `(doc_idx, GUID)` maps each placed object to its own GPU display row.
 
 ```rust
 --8<-- "session_viewer/src/app/scene.rs:document-placement"
 ```
 
-`Rc<Session>` allows two file placements to refer to the same loaded kernel document. Each placement still has its own document index in `Scene::docs`. Consequently the application identity of an object is `(document index, GUID)`, not its GUID alone. Hiding one placement must not accidentally hide another file containing the same identifier.
-
-The scene's `order`, `owners` and `guid_to_row` tables connect that identity to a display row. A row identifies an object for rendering and picking; it does not identify a triangle or polyline segment. The object's geometry may occupy several rendering lanes.
-
-Scene text has a separate owner sentinel and stable text key. `scene_text.rs` registers document titles as text objects, and `state/text.rs` positions a title above the CAD bounds. The comparison fixture has four kernel objects plus this selectable title: Select All reports five, although the hierarchy lists four geometry children. Deleting text retires its active row; `app/edit.rs` joins that text operation to the documents' transaction so one Undo restores both text and geometry. This distinction explains the count without changing selection behavior.
-
 ```rust
 --8<-- "session_viewer/src/app/scene_rows.rs:document-footprint"
 ```
 
-`Footprint::One` records a contiguous span in one lane. `Many` indexes a collection of spans, as needed when a BRep contributes faces and edges. `Cloud` selects the cloud representation. `None` is meaningful for a row with no ordinary lane allocation, including a shell or a free row. These variants keep resource accounting separate from object identity.
+### Resolve only the affected tree paths
 
-`Scene::add_file` walks the document through the completed geometry converters. `upload_to` drains the resulting work into GPU resources. The application updates bounds, labels and hierarchy after appending the document. Merely parsing a file cannot update the visible scene: conversion and upload are distinct steps.
+![Transaction history buffer, cursor invalidation on commit and undo tombstones](../illustrations/history.svg)
 
-### Describe a change before synchronizing it
-
-History belongs to the kernel document. Scene synchronization translates recorded operations into display invalidations. `GEOMETRY` means regenerate geometry; `PLACE` means recalculate placement; `PRESENCE` means reconsider whether it exists on screen; `SUBTREE` extends the change to descendants.
+| File | Specification |
+| --- | --- |
+| [src/app/scene_sync/notes.rs](../../src/app/scene_sync/notes.rs) | Translates forward and reverse kernel transaction ops into `GEOMETRY`, `PLACE`, `PRESENCE` and `SUBTREE` invalidation flags without rebuilding untouched objects. |
+| [src/app/scene_sync/nodes.rs](../../src/app/scene_sync/nodes.rs) | Resolves affected tree nodes via weak caches and batched per-document searches, multiplying file `Xform` by root-to-node transforms. |
 
 ```rust
 --8<-- "session_viewer/src/app/scene_sync/notes.rs:document-history-notes"
 ```
 
-`commit` reads the open transaction's operations before committing it. `stepped` reads the transaction that an undo or redo just moved to the opposite history stack. Undo visits operations in reverse order. An added object being undone requires different geometry work from that same addition being replayed forward.
+### Stage updates without confusing identity and storage
 
-The remaining code in `notes.rs` maps each operation to these flags. A replacement invalidates geometry. A transform invalidates placement and descendants. A tree edit can also invalidate geometry when its inherited colour changes. This is why a universal "rebuild everything" callback is unnecessary, but a universal "upload one matrix" callback would be incorrect.
+![Tombstone retention up to 256 MiB and hidden-sink compaction](../illustrations/tombstone.svg)
 
-`scene_sync/nodes.rs` resolves the affected tree nodes and descendants. Weak references cache known nodes without keeping a removed subtree alive. `allocation.rs` manages the object's lane allocation and available capacity. `preview.rs` applies temporary editing geometry; committing or cancelling must reconcile that preview with the document's real representation. The parent `scene_sync.rs` combines this work into `Staged`, which records ordered GPU updates for the next upload.
+| File | Specification |
+| --- | --- |
+| [src/app/scene_rows.rs](../../src/app/scene_rows.rs) | Separates `(doc_idx, GUID)` row identity (plus text/free/sink/tomb sentinels) from `Footprint` (`One`, `Many`, `Cloud`, `None`) lane spans. |
+| [src/app/scene_sync.rs](../../src/app/scene_sync.rs) | Drains change notes, deduplicates identities, expands `SUBTREE` descendants and emits ordered `Staged` GPU updates (`retire`, `bury`, `patch`, `geometry`, `place`). |
+| [src/app/scene_sync/allocation.rs](../../src/app/scene_sync/allocation.rs) | Reuses an identity's grave when all lane counts match, pads drag previews by ~`50%`, and routes retired tails to the hidden sink row. |
+| [src/app/scene_sync/preview.rs](../../src/app/scene_sync/preview.rs) | Captures single-object vertex/pipe spans during interactive drags so surface/mesh edits patch GPU buffers in place without full rewalks. |
+| [src/app/scene_sync/tombs.rs](../../src/app/scene_sync/tombs.rs) | Retains up to `256 MiB` of deleted lane spans keyed by weak kernel tomb pointers so `Undo` unburies rows without re-tessellating geometry. |
 
 ### Delete, undo and reuse memory
 
-Deleting an object can hide its resident rows while retaining them for undo. `scene_sync/tombs.rs` associates those rows with a weak reference to the kernel history tomb. The display row cannot be reused while that tomb owns it: a later pick or undo must not mistake a different object for the deleted one.
-
-This retention is bounded. The scene's tomb budget is 256 MiB of lane data, and older retained allocations can be released. When history no longer reaches the object, the weak reference also stops justifying retention. A hidden sink row keeps discarded lane data from becoming visible while storage awaits compaction.
-
-`scene_sync/compaction.rs` addresses accumulated dead storage. Editable-lane compaction starts only after dead bytes reach 16 MiB and dead plus retained tomb bytes outweigh live bytes. Cloud compaction has a separate threshold because its buffers and point counts differ. Repacking updates buffer bindings and invalidates dependent splat state. It is not enough to change the CPU count while leaving the GPU bound to the previous buffers.
-
-Idle kernel purging also checks shared ownership. A shared `Rc<Session>` is left alone: making a private copy merely to purge it would change memory and history semantics. These conditions belong to resource ownership, not to the visual appearance of the Delete command.
+`src/app/scene_sync/compaction.rs` triggers GPU lane compaction once dead bytes reach `16 MiB` and dead + tomb bytes exceed live bytes, rebuilding buffer bind groups and skipping shared `Rc<Session>` purges.
 
 ### Flatten a hierarchy for a panel
 
-`Hierarchy` converts the document tree into a flat list with parents before children. Each node stores depth, the index after its last descendant, a range into the hierarchy's row list, and document/path identity. That representation supports indentation, collapsed subtrees and group actions without recursively rebuilding widgets for every frame.
+`src/app/hierarchy.rs` flattens document trees into pre-order node slices (`depth`, `subtree_end`, row range, `128`-node UI pages and `truncated` flag) refreshed on `row_revision` while keeping graph edges separate.
 
-The cache refreshes when `Scene::row_revision` changes. Open nodes and switched-off groups retain document-scoped identities across rebuilds. A path distinguishes groups with the same name under different parents. A graph edge remains separate from the tree: `Hierarchy::edges` connects object rows for the graph table, while the tree defines grouping and inherited placement.
+### Move identities between layers & resolve panel actions
 
-The panel bounds its work: pages contain 128 nodes; node, row and edge limits prevent an unbounded UI allocation. The `truncated` state records when the complete hierarchy cannot be shown. Truncation must not silently redefine which objects exist in the kernel document.
+- `src/app/layers.rs` validates editable targets, deduplicates `(doc_idx, GUID)` pairs, drops descendants already carried by a selected ancestor, and moves tree nodes into the destination layer.
+- `src/state/panel.rs` decodes layer-panel clicks into `(doc_idx, GUID)` face and edge colour override maps (restricting edge overrides to rows with faces) and refreshes GPU rows.
+- `src/app/edit.rs` (`Scene::transform_rows`) converts world-space `Xform` deltas into each writable object's local parent frame, detaching shared `Rc<Session>` copies on write and skipping selected descendants of selected ancestors.
 
-`app/layers.rs` supplies category rows and document-tree operations, including grouping, moving objects between layers and editing layer names. `state/panel.rs` translates panel keys into scene operations and GPU updates. Face and edge colour overrides are separate maps keyed by document/object identity. An edge-colour action checks whether a row has faces before changing that channel.
+### Keep panel drawing separate from actions & UI ownership
 
-### Keep panel drawing separate from actions
-
-The existing panel registry is the integration point; the completed command dock does not need a new implementation.
+| File | Specification |
+| --- | --- |
+| [src/app/ui/mod.rs](../../src/app/ui/mod.rs) | Runs registered `Panel`s (`fill` -> `draw` -> `apply`) in one `egui` pass, ordering `number_box` ahead of `command_line` for `Escape` priority. |
+| [src/app/ui/layers.rs](../../src/app/ui/layers.rs) | Draws the collapsible layer tree, inline rename field and graph toggle, deferring tree mutations until the `egui` pass finishes. |
+| [src/app/ui/graph.rs](../../src/app/ui/graph.rs) | Virtualizes bidirectional relationship-graph rows via `show_rows`, returning clicked endpoint pairs for selection without mutating documents. |
+| [src/app/ui/number_box.rs](../../src/app/ui/number_box.rs) | Paints the floating gizmo numeric entry field, retains focus until `Enter` or `Escape`, and closes automatically if the handle projects behind the eye. |
+| [src/state/number_box.rs](../../src/state/number_box.rs) | Projects the active gizmo handle into CSS coordinates and commits valid typed distances, angles or scale factors as one labelled transaction. |
 
 ```rust
 --8<-- "session_viewer/src/app/ui/mod.rs:application-panels"
 ```
 
-Each panel fills its model from application state, draws widgets and then applies completed actions. `ui/layers.rs` retains expansion, graph-table and rename state. A completed rename is applied before the click that ended it. Deferring the mutation until egui finishes avoids rebuilding the hierarchy halfway through drawing its rows.
+### Large documents, idle refinement and archives
 
-The number box precedes the command line so Escape can belong to its active edit. The `Panel` contract also distinguishes owning keys, owning text history and closing on Escape. Ctrl+Z in an active text field must edit that field rather than undoing scene geometry. The same ownership rules guide the phone keyboard adapter.
-
-### Large documents retain different things
-
-`scene_instances.rs` walks a definition once under a hidden row and gives its instances independent placements. Batch keys remain unique across clearing so a newly created definition cannot be confused with an old GPU batch.
-
-`scene_release.rs` can drop a display-only document's kernel geometry while retaining its tree, names and display rows. The source URL lets loading restore geometry before an edit. Created documents and documents with undo history are not released through that path. A visible object is therefore not proof that its editable kernel data is resident.
-
-`scene_display.rs` retains bounded source and refinement caches and performs camera-dependent display refinement. It separates source bytes, refinement bytes and transient work. Rendering quality can improve during idle frames without changing the document's authoritative geometry or its history.
-
-### Keep command adapters at the document boundary
-
-`Open` requests the browser file picker only in the wasm build; its returned message does not establish that a file was chosen or restored. `Save` first requests any released documents and defers downloading until they return. Otherwise it serializes the scene and asks the wasm download adapter to deliver the bytes, propagating download errors. Native execution can exercise serialization without proving a browser download. The archive owns format and restoration rules; these verbs only expose that lifecycle through the command registry.
-
-`Add Group` requires objects from one document and chooses their deepest shared layer as the parent. It deduplicates identities and avoids moving a selected child twice when a selected ancestor already contains it. Before reparenting, it saves world placements and converts them into the chosen parent frame, so grouping does not move the visible geometry. Names must be unused and contain no slash; an omitted name selects the next free Group number. The history operation then reveals the new hierarchy branch.
-
-`Add Edge` requires exactly two editable objects from one document and refuses an existing connection, preserving its attribute. The graph edit is tracked separately from tree parenting. Because the kernel does not record this graph mutation in its normal change notes, the adapter retains an `EdgeStep` with the edge and newly created vertices, and creates a paired placement change to keep the history step present. Undo can consequently remove vertices introduced solely for this edge. The graph table is opened after row and panel synchronization.
-
-### Keep numeric input attached to its handle
-
-The number-box panel copies the current handle prompt into a UI model, paints the field, and applies a submitted value only after drawing completes. A new handle clears stale text and errors and requests keyboard focus. Escape or another focused field closes the box; a lost focus with no replacement requests it again while the box remains open. Enter stores the text for the apply phase, where validation errors remain visible below the field. If the handle projects behind the eye, fill closes the prompt so an invisible field cannot retain the keys.
-
-The numeric-input state adapter projects the active gizmo handle to CSS coordinates and supplies its title, units and neutral-value hint. Parsing an empty or neutral value can close the box without changing geometry. A valid value becomes the handle transform and uses the common apply operation with a move, rotate or scale history label. Invalid parsing keeps the prompt available for correction; an apply failure reports status after closure. A tap that opens the box requests the phone keyboard through feedback.
-
-### Resolve only the affected tree paths
-
-History notes describe invalidation in application order. An Add records presence and forward geometry, while undoing a Remove restores geometry and revisits descendants. Replace invalidates geometry; a transform invalidates placement and its subtree. The marker transform used to retain an Add Edge transaction is skipped. Tree changes include geometry only when inherited color changes. Weak node and tomb references carry useful context without extending the lifetime of deleted history.
-
-Node resolution tries a supplied hint, the history note, the row cache and a known parent before batching unresolved names into one tree search per document. Cache entries are weak and checked against the current tree identity; a replacement tree refills the cache. Removed objects need no search unless descendant work is required. Subtree expansion merges affected child identities instead of treating each as an unrelated edit. World placement multiplies file placement by transforms from the tree root down to the object; a detached object uses its own transform after file placement.
-
-### Stage updates without confusing identity and storage
-
-`Scene::sync` drains pending notes and hints, merges repeated identities, refreshes stale node caches, expands descendant work and reconciles each identity once. A removed drawable is buried or killed; a newly drawable identity is revived or created. Existing geometry is walked again only for a geometry invalidation; otherwise its placement is staged. Tomb and row-ID pools settle after reconciliation. The hierarchy revision advances when rows appear or disappear, keeping panel refresh separate from ordinary placement updates.
-
-The row bookkeeping separates identity from storage. Owner sentinels distinguish text, free IDs, the hidden sink and retained tombs from document indices. `Footprint` stores a single lane inline or indexes reusable multi-lane spans; preview capacity can exceed the live contents. `Staged` keeps retire, bury, cloud release, lane kill, patch, geometry and placement work in distinct lists for upload ordering. A freed span slot is bookkeeping reuse, not permission to draw its old GPU contents.
-
-Allocation can reuse an identity's grave only when every lane count matches, shifting vertex references to the old location before staging the patch. Otherwise it appends after uploaded and pending rows. Retiring content assigns its lanes to the hidden sink and accounts for dead storage. Preview allocations add roughly half again as much capacity so nearby drag frames can patch in place. Shrinking faces, printed strokes and text clears their tails with the appropriate vertex base; other unused lane rows are killed.
-
-A drag preview is captured by walking the selected editable object alone and requiring its lane counts to match the current span. The cache belongs to that row and span; moving the allocation invalidates reuse. A surface update reevaluates cached parameters, patches vertices and pipes, updates geometry bounds and reports the enlarged bounds to the GPU. Failure to match the row, span, geometry or placement returns false so the caller can take the ordinary redraw path.
-
-Reviving a tomb requires the same underlying kernel object and the same interaction and attribute display settings; sheet geometry also requires matching placement. If these conditions differ, the old allocation becomes a grave and the object is walked again. Dead history references release their tombs first, then the oldest retained tombs are released until the byte cap is met. This separates an undoable object identity from a reusable allocation and prevents obsolete geometry from returning merely because a GUID matches.
-
-### Keep UI ownership explicit
-
-The UI host invokes registered panel hooks to fill models, draw widgets and apply actions after egui finishes. Registration fixes drawing order, with the number box before the command line so it can consume Escape first. Panels report key, history and Escape ownership separately: an empty command field need not capture scene Undo. The host uses one egui layout pass so text events are not replayed, and records control rectangles for inspection without making those records the action implementation.
-
-The graph adapter draws a foldable edge count and two endpoint columns, virtualizing visible rows with `show_rows`. Labels truncate within their own half-width, while a tooltip retains both GUIDs. Clicking an edge returns its action key for the state layer to select both objects; painting the table itself does not change the document. The total edge count can exceed the displayed list, so a short table is not evidence that other graph edges were deleted.
-
-### Save authoritative documents and scene metadata
-
-The session archive begins with a versioned magic header, followed by protobuf document byte arrays and JSON scene metadata. Saving refuses streamed or unretained documents and enforces a 512 MiB limit. It stamps visibility and locking into the document protobufs and stores placements, colors, text and grouping separately. Opening validates the header, inventory, indices, finite placement and decoded kernel data before rebuilding rows; identity overrides are installed first so the initial rows inherit them. Old archives without separate edge colors reuse face colors. Serialization preserves the represented scene, but this design does not promise byte-identical nested JSON or retain GPU allocation addresses.
-
-A saved component can contain compacted JSON with reordered keys. Mesh vertices, faces and attribute tables are protobuf maps, whose entry order is not an identity or geometry order. The eight recorded fixture archives retain the reviewed component values and Element/definition payloads after accounting for those schema-defined encodings; instances and interactions remain byte-exact. The separate byte-exact comparison remains failed. This scoped value check does not prove every archive field or justify changing the production serializer.
-
-### Commit a world move in its document frame
-
-`Scene::transform_rows` resolves a world-space delta into each object's local placement before recording an edit. It excludes a selected descendant when its ancestor is already selected, preventing the same move from applying twice. Display-only documents refuse mutation. Writable documents use private ownership when necessary, and each affected document begins a history transaction; synchronization notes then rebuild placements and scene bookkeeping. This separates immediate display feedback from the authoritative placement that Undo must restore.
-
-### Move identities between layers
-
-The layer adapter first validates editable rows and resolves the destination layer. It sorts and deduplicates document/GUID identities, then omits children already carried by a selected ancestor. Local moves and moves from other documents are collected separately; display-only sources are rejected. An object already under the requested layer requires no local move, and an entirely unchanged request reports that fact. The operation therefore follows the document tree, rather than treating every visible row as an independent item to reparent.
-
-### Resolve panel colour actions by identity
-
-Panel colour actions decode the node key and distinguish face from edge channels. They resolve the document and GUID before changing the corresponding override map; choosing the original colour removes an override. Edge colour is only applicable to a row with faces. The adapter updates GPU presentation and refreshes application state after the scene change. A panel row number alone is insufficient: the stored override must remain attached to the same document object across hierarchy rebuilding.
-
-### Refine only a valid idle revision
-
-Idle display refinement pauses during preview, pending scene work and initial loading. A signature of camera, GPU and row revision restarts the bounded scan when its inputs change. Each pass examines at most 128 rows and skips hidden or unsupported geometry. Source lookup prefers live kernel geometry; a retained source is eligible only while the exact document revision remains released. An edit or Undo must never refine from an obsolete released copy. The source, refinement and transient budgets bound distinct allocations; declining a row leaves its existing display intact.
+| File | Specification |
+| --- | --- |
+| [src/app/scene_instances.rs](../../src/app/scene_instances.rs) | Walks each shared definition once into a hidden row and assigns monotonic batch keys across clears for placed instances. |
+| [src/app/scene_display.rs](../../src/app/scene_display.rs) | Scans up to `128` visible rows per idle frame under bounded source/refinement caches, refining only live or revision-matched geometry. |
+| [src/app/session_io.rs](../../src/app/session_io.rs) | Reads and writes versioned `.session` archives (`<= 512 MiB`) combining stamped document `.pb` payloads with JSON placements, overrides, text and groups. |
+| [src/app/command/verbs/open.rs](../../src/app/command/verbs/open.rs) | Opens the browser file picker on `wasm32` and posts selected `.pb` or `.session` payloads through the async loader. |
+| [src/app/command/verbs/save.rs](../../src/app/command/verbs/save.rs) | Hydrates any released documents first, then serializes the `.session` archive and triggers browser download delivery. |
+| [src/app/command/verbs/add_group.rs](../../src/app/command/verbs/add_group.rs) | Reparents selected single-document objects under their deepest shared layer while rebasing local transforms so world positions stay fixed. |
+| [src/app/command/verbs/add_edge.rs](../../src/app/command/verbs/add_edge.rs) | Connects two editable objects in the relationship graph and pairs an `EdgeStep` with a marker transform so `Undo` removes added graph vertices. |
 
 ## Run and observe
 
-Run the cumulative `application` checkpoint with the recorded comparison fixture. Enter `Layers All`. The panel should list the loaded document and its four objects. Toggle the document's visibility: its geometry disappears while the document remains listed. Toggle it back: the same geometry returns. Enter `Select All`: five rows are selected, including the title. Enter `Delete`, then `Undo`; the four objects and their title return with their identity and placement preserved.
+Open the `application` build with the comparison fixture:
 
-At 390 pixels wide, the open panel takes 240 pixels and leaves a narrow scene region. The document nameplate can be clipped by that region. Enter `Layers Off` to inspect the full-width geometry again. Hiding the document's geometry leaves its independent title visible; deleting all five selected rows removes both.
-
-![The comparison document has four geometric objects and an independent title: five selectable objects. This is the desktop view; the open panel crowds the upright scene.](../screenshots/completion/document-selection.png)
-
-The comparison document has four geometric objects and an independent title: five selectable objects. This is the desktop view; the open panel crowds the upright scene.
+- Run `Layers All` -> toggle visibility on the document (`0` history ops), then restore it.
+- Run `Select All` (`5` rows: `4` BReps/surfaces + `1` nameplate) -> `Delete` -> `Undo` -> all `5` rows and hierarchy keys return intact (at `390 px` width, run `Layers Off` to reclaim the `240 px` panel width).
 
 ## Predict and try
 
-Predict whether hiding a document and deleting an object should have the same undo behavior. Hide and restore the document, then delete and undo one object. Visibility changes which retained rows are drawn; deletion changes the kernel document and its recorded transaction. Their identical-looking empty pixels do not imply identical state changes.
+Hide a document in `Layers` vs running `Delete` on one object, then run `Undo`: predict which action `Undo` reverses (`Delete` records a kernel history transaction; layer visibility only flips `FLAG_HIDDEN`).
 
 ## Question and answer
 
-Why does a display object keep an identity separate from its lane allocation?
-
-One object can occupy multiple lanes, and its geometry can grow, shrink or be compacted. Stable document/object identity lets selection, hierarchy and undo continue referring to that object while the renderer changes where its vertices and segments are stored.
+**Why decouple an object's display row ID from its GPU lane vertex/segment offsets (`Footprint`)?**
+Edits, surface refinement and `16 MiB` dead-space compaction relocate vertex and stroke spans across buffers; stable row IDs keep selection, layer overrides and undo tombs valid without rewriting references.
 
 ## Validation
 
-The cumulative application passes 68 targeted scene tests and seven hierarchy tests. Twelve browser captures verify layer expansion, document hide/show, Select All, Delete and Undo at desktop and upright sizes. The four hierarchy children regain the same keys and labels after Undo; geometry and its separate title return. The initial harness incorrectly expected four selections and is preserved as a failure; the corrected count follows the reviewed text-row implementation. The narrow-panel nameplate clipping remains visible and unchanged. The native `moving_one_placement_leaves_the_other_where_it_was` check exercises copy-on-write ownership: moving one placement separates its session and leaves the other placement unchanged. The [feature interaction check](release/completion-feature-picking-windows-20261115.json) saves, deletes, and opens the archive through the real file chooser, restoring both objects at desktop and upright sizes. That browser check covers archive replacement; it does not exercise every shared-document editing combination. The current application source differs from the tested snapshot only by reviewed source-inclusion comments and an adjacent blank line; executable statements are unchanged.
+Verified by `68` native scene tests (including `moving_one_placement_leaves_the_other_where_it_was`), `7` hierarchy tests, `12` desktop/upright browser captures, and `.session` save/delete/open round-trips in [feature-picking evidence](release/completion-feature-picking-windows-20261115.json). Note: `Save` compacts nested component JSON keys/whitespace, so raw byte-identical archive round-trip remains a recorded non-goal.

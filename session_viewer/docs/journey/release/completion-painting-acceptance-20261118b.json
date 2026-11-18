@@ -1,0 +1,140 @@
+{
+  "status": "accepted",
+  "subject": "painting",
+  "scope": "This executable cumulative subject and recorded desktop/upright Windows Intel WebGPU behavior only; remaining course pending",
+  "destination": "87f844e41d08ef104fc071d5bc18163ffe9a4353",
+  "files": {
+    "src/engine/gpu/device.rs": "ced1cff229cd47c5cc3de6d7713b7049ce2181cac444226bd27053b397774a20",
+    "src/app/launch.rs": "f1bdd451838790b61b9a52ea2aaa3097bf7f68b5721fd7d7ca633ca3c915b5c9",
+    "examples/course/canvas.rs": "9c542080ed079fa6734fa0d81a5991fdb6cb7e443f2b5324638ab11456311b63",
+    "examples/course/frame.rs": "916fb538f088d1d28783559a7955f463c7b2650ac2d7d0184eeec12158aae787",
+    "examples/course/entry.rs": "f57ce9f8b4ded8cee3b213c075e031cce236988de352b7f9d0c87cba9ffb1b6d",
+    "src/lib.rs": "6d0483a7c6e133a0fa82c379b049ae00e232614c1d1c983fdc03f0eff716b550",
+    "src/engine/mod.rs": "d85682a3e4d80e225660f76129d3b93dfa99f6c953f2b4b1470d253c702e99e2",
+    "src/app/mod.rs": "8b2adac19d2cd5324dc3295627f9f251009fb7f7179dd909b6f203af45b2a33a",
+    "src/engine/gpu/mod.rs": "42031767e9491cc27bf7fe65137ecc9d82b7a3a48b158ad36d51c34c6b5796bc",
+    "examples/course/registration.rs": "17e8b7c927e05a406a2caa72c5b1e049056e5b7195fad74af2b4ecc2b3967b72",
+    "src/engine/gpu/ui.rs": "bcd2014f8a5c3cefae45889453d46c4d8080fe3885e2d2edaad1b294696907b2",
+    "examples/course/painting.rs": "d57c027f79370d3acce115da2b43aca2511c72421b4cd7f3cfb21c6a299749eb",
+    "Cargo.toml": "f8527c5e3d3b1323e50dcf25f1f77886975312711ded0549e4b9999b6752f139",
+    "Cargo.lock": "759436e009af2c748678dd0e3c0e5a36848c95c0782e986804bdea72ffb65f93",
+    "index.html": "95892b097daa427fc43bd3da6352de1e199b7f526ed55bd41787eb16e734970c"
+  },
+  "lesson": {
+    "path": "journey/completion-painting.md",
+    "sha256": "1dc2baa387a891c1657047641e2e5cc0c2ffe737f033d3ed89e028a5089c1d31"
+  },
+  "contractReview": {
+    "id": "painting",
+    "goal": "Pink triangle and Command label over white canvas",
+    "prerequisites": "frame; production Ui painter plus retained example painter callback",
+    "designReviewed": [
+      "logical points vs surface pixels",
+      "font subset and explicit egui context",
+      "texture retirement after frame references end",
+      "upload queue order before draw pass",
+      "Load preserves existing attachment",
+      "RawInput callback already supports later dock"
+    ],
+    "checkpoint": "completion-checkpoint painting; independent checked partial08/painting",
+    "experiment": "Predict clipping when moving triangle center to top-left then restore",
+    "answer": "Load retains prior frame contents",
+    "behavior": "centered pink triangle, readable label at lower-left, white retained frame route"
+  },
+  "evidence": [
+    {
+      "path": "journey/release/completion-partials-windows-20261115.json",
+      "sha256": "3666528e02605961c80fbb6254d330a07a330ed3ff944c38b42c46198c9098da"
+    },
+    {
+      "path": "journey/release/completion-support-teaching-windows-20261116.json",
+      "sha256": "ebed14ba3989ecea99d2f2a751d38f1fcaee99256e225d6f9dfa1bc1d3766a12"
+    },
+    {
+      "path": "journey/release/completion-docs-review-windows-20261116.json",
+      "sha256": "67bef28b55a57b002677f674d2c136ebe16061fe05655fa4c1a34e7e9b7ced05"
+    },
+    {
+      "path": "journey/release/completion-frame-painting-root-review-20261116.json",
+      "sha256": "3375a771039d5b1915c924059b63894f112a3b37c829db607c7569f2f4079b0a"
+    }
+  ],
+  "sourceReview": {
+    "ownImplementations": [
+      {
+        "path": "src/engine/gpu/device.rs",
+        "normalizedSha256": "ced1cff229cd47c5cc3de6d7713b7049ce2181cac444226bd27053b397774a20",
+        "rawSha256": "ced1cff229cd47c5cc3de6d7713b7049ce2181cac444226bd27053b397774a20",
+        "checkedSource": "session_viewer\\target\\completion-partials08\\dock\\src\\engine\\gpu\\device.rs",
+        "checkedRawSha256": "ced1cff229cd47c5cc3de6d7713b7049ce2181cac444226bd27053b397774a20",
+        "comparison": "Exact text after LF normalization"
+      },
+      {
+        "path": "src/app/launch.rs",
+        "normalizedSha256": "f1bdd451838790b61b9a52ea2aaa3097bf7f68b5721fd7d7ca633ca3c915b5c9",
+        "rawSha256": "f1bdd451838790b61b9a52ea2aaa3097bf7f68b5721fd7d7ca633ca3c915b5c9",
+        "checkedSource": "session_viewer\\target\\completion-partials08\\dock\\src\\app\\launch.rs",
+        "checkedRawSha256": "f1bdd451838790b61b9a52ea2aaa3097bf7f68b5721fd7d7ca633ca3c915b5c9",
+        "comparison": "Exact text after LF normalization"
+      },
+      {
+        "path": "src/engine/gpu/ui.rs",
+        "normalizedSha256": "bcd2014f8a5c3cefae45889453d46c4d8080fe3885e2d2edaad1b294696907b2",
+        "rawSha256": "bcd2014f8a5c3cefae45889453d46c4d8080fe3885e2d2edaad1b294696907b2",
+        "checkedSource": "session_viewer\\target\\completion-partials08\\dock\\src\\engine\\gpu\\ui.rs",
+        "checkedRawSha256": "bcd2014f8a5c3cefae45889453d46c4d8080fe3885e2d2edaad1b294696907b2",
+        "comparison": "Exact text after LF normalization"
+      },
+      {
+        "path": "examples/course/canvas.rs",
+        "normalizedSha256": "9c542080ed079fa6734fa0d81a5991fdb6cb7e443f2b5324638ab11456311b63",
+        "rawSha256": "19f6ceb5da34fdbfd6c42e67e1f1d37e56baf8f19d5f449a2d1a297440402866",
+        "checkedSource": "session_viewer\\target\\completion-partials08\\dock\\examples\\course\\canvas.rs",
+        "checkedRawSha256": "9c542080ed079fa6734fa0d81a5991fdb6cb7e443f2b5324638ab11456311b63",
+        "comparison": "Exact text after LF normalization"
+      },
+      {
+        "path": "examples/course/frame.rs",
+        "normalizedSha256": "916fb538f088d1d28783559a7955f463c7b2650ac2d7d0184eeec12158aae787",
+        "rawSha256": "0822766f543e741845e5112e8924622c1c4ee055da7add3b99b395c617a02941",
+        "checkedSource": "session_viewer\\target\\completion-partials08\\dock\\examples\\course\\frame.rs",
+        "checkedRawSha256": "916fb538f088d1d28783559a7955f463c7b2650ac2d7d0184eeec12158aae787",
+        "comparison": "Exact text after LF normalization"
+      },
+      {
+        "path": "examples/course/painting.rs",
+        "normalizedSha256": "d57c027f79370d3acce115da2b43aca2511c72421b4cd7f3cfb21c6a299749eb",
+        "rawSha256": "d57c027f79370d3acce115da2b43aca2511c72421b4cd7f3cfb21c6a299749eb",
+        "checkedSource": "session_viewer\\target\\completion-partials08\\dock\\examples\\course\\painting.rs",
+        "checkedRawSha256": "d57c027f79370d3acce115da2b43aca2511c72421b4cd7f3cfb21c6a299749eb",
+        "comparison": "Exact text after LF normalization"
+      },
+      {
+        "path": "examples/course/entry.rs",
+        "normalizedSha256": "f57ce9f8b4ded8cee3b213c075e031cce236988de352b7f9d0c87cba9ffb1b6d",
+        "rawSha256": "d1b0ea53c532d17c4f7c740bf0599a6540dd3e4bc9bcb55b795f0186917a755e",
+        "checkedSource": "session_viewer\\target\\completion-partials08\\dock\\examples\\course\\entry.rs",
+        "checkedRawSha256": "f57ce9f8b4ded8cee3b213c075e031cce236988de352b7f9d0c87cba9ffb1b6d",
+        "comparison": "Exact text after LF normalization"
+      }
+    ],
+    "retention": "Current13/frame and15/painting files retain earlier implementations; only declared module/entry registrations extend them.",
+    "independentReview": "Root scoped contract/source/runtime review passed; exact supporting receipt is pinned in evidence. Active manifest binding awaits the final audit."
+  },
+  "validation": {
+    "wasm": "currentFixtureChecks in partials receipt: frame and painting independent locked wasm checks pass",
+    "native": "nativeCandidateTests:19passed1ignored; device first-error test passes, invalid shader test requires native GPU and remains ignored",
+    "browser": "browserAttempts.interactionResult: Chrome157.0.8103.51, actual Intel Gen12LP,1280x800/390x844, presented white canvas and resize, pink triangle and Command label, no error",
+    "docs": "docs30:22tests, active retention/351-file endpoint audit and strict site passed; final introduction digest must be checked in subsequent strict build"
+  },
+  "limitations": [
+    "No physical-phone claim.",
+    "Ignored fatal-GPU native test remains ignored.",
+    "No remaining-subject or whole-course acceptance.",
+    "Long-running texture lifecycle is not exhaustively exercised by short browser checks."
+  ],
+  "lessonPolish20261118b": {
+    "baseCommit": "ecee5296fb6546a02a779ee63af37cc7bfcab73d",
+    "summary": "Code-first minimal-prose lesson revision with embedded BRG SVG schemes, verified WebGPU checkpoint screenshots, and live --8<-- source includes; checkpoint source files unchanged."
+  }
+}

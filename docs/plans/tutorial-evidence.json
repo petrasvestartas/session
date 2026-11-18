@@ -211,6 +211,11 @@
       "subject": "Reconciled eight-subject site build (docs35) and browser11 verification",
       "scope": "docs35 (5033 pins, 22 tooling tests, active-audit 351 files/8 accepted subjects with 20261116 frame/painting and 20261118 mathematics..decoding receipts, teaching 359/359, strict site 48cb1bad) and browser11 (41 personally viewed captures at 1280/390, 6 kernel motion repo links, UTC footer 2026-11-18 05:43:04 UTC).",
       "path": "session_viewer/docs/journey/release/completion-reconciled-site-windows-20261118.json"
+    },
+    {
+      "subject": "Direct-to-code visual and minimal-prose tutorial overhaul (docs39 + browser14)",
+      "scope": "Cumulative subjects first with Start Tutorial 1 CTA, 11 dark-plate BRG SVGs + 19 WebGPU captures (85 decoded embedded figures, 72 live --8<-- includes), 8 accepted subjects on *-20261118b receipts, 359/359 witnesses, docs39 (5074 pins, strict site bd69dab4) and browser14 (89 personally viewed 1280/390 captures, Docs built 2026-11-18 11:36:23 UTC); viewer src/ unchanged and application pending.",
+      "path": "session_viewer/docs/journey/release/completion-visual-overhaul-site-windows-20261118.json"
     }
   ],
   "open": [

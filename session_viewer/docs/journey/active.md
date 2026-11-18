@@ -1,43 +1,40 @@
 # Cumulative viewer course
 
-Build the production viewer through nine executable subjects. Each subject adds its final implementation; the retained-source check permits only declared registration extensions in earlier module indices.
+Build the Session Viewer across nine cumulative Rust and `wgpu` checkpoints. Every checkpoint compiles and runs, keeps earlier implementations in place, and adds only its own modules and declared registrations.
+
+![Nine cumulative checkpoints from empty canvas to the production viewer](../illustrations/active/course-map.svg)
 
 ## Subjects
 
-Follow this order; each subject requires the preceding one.
+| # | Tutorial | ID | Files | Visible output |
+| --- | --- | --- | --- | --- |
+| 1 | [Open a GPU frame](completion-frame.md) | `frame` | `13` | Cleared white WebGPU canvas |
+| 2 | [Paint shapes and text](completion-painting.md) | `painting` | `15` | `egui` pink triangle and bottom-left label |
+| 3 | [Lay out and animate mathematics](completion-mathematics.md) | `mathematics` | `41` | `1600×900` TeX equations, matrices and tweens |
+| 4 | [Enter commands](completion-dock.md) | `dock` | `45` | Persistent command bar, history and option chips |
+| 5 | [Project and fit a scene](completion-camera.md) | `camera` | `47` | Perspective orbit, ray unprojection and bounds fit |
+| 6 | [Place and update object rows](completion-rows.md) | `rows` | `68` | `112 B` GPU `Instance` table and inspector |
+| 7 | [Render kernel geometry](completion-geometry.md) + [Visibility](completion-visibility.md) | `geometry` | `166` | Shaded meshes, BRep ink, curves, matrices and SSAO |
+| 8 | [Decode a document](completion-decoding.md) | `decoding` | `170` | Bounded `512 MiB` protobuf validation and decode |
+| 9 | [Run the application](completion-application.md) (+ 9 chapters) | `application` | `369` | Full `351/351` production viewer (`production.html`) |
 
-| Subject | Checkpoint |
-| --- | --- |
-| 1. [Open a GPU frame](completion-frame.md) | `frame` |
-| 2. [Paint shapes and text](completion-painting.md) | `painting` |
-| 3. [Lay out and animate mathematics](completion-mathematics.md) | `mathematics` |
-| 4. [Enter commands](completion-dock.md) | `dock` |
-| 5. [Project and fit a scene](completion-camera.md) | `camera` |
-| 6. [Place and update object rows](completion-rows.md) | `rows` |
-| 7. [Render kernel geometry](completion-geometry.md) | `geometry` |
-| 8. [Decode a document](completion-decoding.md) | `decoding` |
-| 9. [Run the application](completion-application.md) | `application` |
+## Materialize any checkpoint
 
-The application subject includes document/UI behavior, commands, input, loading, text, streaming, real-scene stages and debugging. These chapters share the application checkpoint; they are not extra rewrite checkpoints. The rendering subject includes visibility and resource ownership.
+From `session_tests`, list or materialize any checkpoint into a new directory without overwriting existing files:
 
-## Run a checkpoint
+```sh
+npm run course -- list
+npm run course -- checkpoint frame ../session_viewer/target/learn-frame
+```
 
-From `session_tests`, run `npm run course -- list` to see the active executable subjects. Assemble a fresh source project with `npm run course -- checkpoint mathematics ../session_viewer/target/learn-mathematics`. Use another subject ID to choose that cumulative endpoint. Existing output directories are refused; your work is not overwritten.
-
-Build and serve that project using the shared cache and workspace guards described in [Maintaining](../maintaining.md). Follow its lesson for the exact URL, visible result, experiment and checks. For the final application, build its `production.html` entry. Earlier implementations and example entries remain present.
+Build and serve using the shared cache and guards in [Maintaining](../maintaining.md). Checkpoint `application` builds `production.html`.
 
 ## Acceptance
 
-The route is **incomplete**. Eight of its nine executable subjects are accepted: frame, painting, mathematics, dock, camera, rows, geometry and decoding. Application remains pending. [Evidence](release.md) and each lesson distinguish native tests, wasm checks, browser behavior and physical-device acceptance. A successful source comparison or site build does not establish teaching or rendering quality.
+The route is **incomplete**. Eight of its nine executable subjects are accepted: frame, painting, mathematics, dock, camera, rows, geometry and decoding. Application remains pending. [Evidence](release.md) and each lesson record native, wasm and browser scope separately from physical-device verification.
 
-The source teaching ledger currently has 359 paragraph witnesses across 351 Rust/WGSL source files and eight browser/build support files, with none missing. A witness binds an actual explanation to reviewed source; it is not automatic teaching acceptance. `course -- teaching` passes its source and paragraph bindings; executable and human teaching acceptance remain separate. No production source has been deliberately excluded.
-
-Remaining work for whole-course completion is the unresolved [application GPU instancing comparison](release/completion-application-gpu-diagnostic-windows-20261116.json) and physical-device verification; [production reconciliation](release/completion-production-reconciliation-20261118.json) and [stage reconciliation](release/completion-stage-reconciliation-windows-20261118.json) record the reviewed deltas against the planning baseline. Metadata round-trip byte preservation has a recorded failure: current Save normalizes component JSON spacing/key order. No production behavior change or passing byte-parity claim is implied.
+`course -- teaching` verifies all `359` source-bound prose witnesses across all `351` Rust/WGSL files and `8` support files (`Cargo.toml`, `Cargo.lock`, `build.rs`, `Trunk.toml`, `index.html`, `assets/diagnostics.js`, `assets/text-quality.html`, `assets/view_local.yaml`), with `17` binary/font/licence exclusions in [completion-asset-exclusions.json](completion-asset-exclusions.json). Open items for whole-course completion are the [application GPU instancing comparison](release/completion-application-gpu-diagnostic-windows-20261116.json) (`31` pixels differing by `3` levels vs `<= 2`), physical-device runs, and `Save` JSON whitespace/key normalization; see [production reconciliation](release/completion-production-reconciliation-20261118.json) and [stage reconciliation](release/completion-stage-reconciliation-windows-20261118.json).
 
 ## Historical reconstruction
 
-[Historical contents](contents.md), [checkpoint progress](roadmap.md) and the [former route](../archived/cumulative-route-20261115.md) preserve the older sequence. `npm run course -- historical-list` lists its identifiers. Its `course.json`, source fixtures, stored hashes and reconstruction checks remain intact.
-
-The active manifest is `active-course.json`; its IDs select actual cumulative assemblies, not grouped historical edits. Historical `structure`, `ownership` and `parity` checks keep their original meaning and may still fail. They are not relabeled as passes when the new assembly passes retention or endpoint checks.
-
-The support-file scan includes the production Cargo manifest and lock, shader build script, Trunk configuration, browser entry, diagnostics script, text-quality page and local scene manifest. The application checkpoint calls the production entry `production.html`; it retains the original entry bytes. [Non-code bundled assets](completion-asset-exclusions.json) list 17 deliberate exclusions: binary fonts and fixture images/data, their provenance/licences and the asset-directory placeholder. They remain available to the runnable checkpoints.
+[Historical contents](contents.md), [checkpoint progress](roadmap.md) and the [former route](../archived/cumulative-route-20261115.md) preserve `course.json` (`npm run course -- historical-list`) and its `1,298` historical checkpoints unchanged.

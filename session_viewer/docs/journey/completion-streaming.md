@@ -1,99 +1,62 @@
 # Bound large scenes and live updates
 
-Display a bounded prefix of a large scene while keeping later reads, selection queries and scene replacement tied to the correct source.
+Stream multi-million-point clouds and `50+ MB` `2D` drawing sheets over HTTP `Range`, pick exact out-of-core source IDs and `.meta` side-table records on demand, and adopt live ETag/`EventSource` scene updates atomically.
+
+![Out-of-core point cloud pick resolving exact source ID 0xfedcba98 beyond the 250k resident prefix](../screenshots/active/streaming-cloud-selected.png)
+![2D drawing sheet streamed as a single segment batch with on-demand side-table metadata](../screenshots/19-sheets-overview.png)
+
+![Resident octree LOD walk versus splat disc pass folded back into reverse-Z scene depth](../illustrations/splat-resolve.svg)
 
 ## Prerequisites and ownership
 
-Complete decoding, loading, document ownership and input. This application chapter teaches `app/stream.rs`, `range_gate.rs`, `cloud_query.rs`, `sheet_query.rs`, `live.rs`, `live_revision.rs` and their `state/cloud_query.rs` and `state/sheet_query.rs` adapters. The rendering subject owns resident cloud/sheet rows and their GPU lanes; this chapter connects remote ranges and source identities to those completed representations.
+Chapter `9.7` of [9. Run the application](completion-application.md) (`application` checkpoint). Covers `6` streaming, out-of-core query and live-reload modules under `src/app/` (pairing with `RangeGate`, `state/cloud_query.rs` and `state/sheet_query.rs`).
 
 ## Build
 
-Connect bounded range readers and query messages to the existing loader, retaining source revision and cancellation state across awaits.
+### Streamed field boundaries & resident cloud slices
 
-### A displayed prefix is not a complete editable document
+![Octree LOD spacing threshold and resident chunk boundaries](../illustrations/lod.svg)
 
-`CloudFields` records byte positions and lengths of positions, colors, normals and original IDs in a protobuf file. `SheetFields` records segment endpoints, colors, widths, entity IDs and side-table metadata. Their `revision` field binds subsequent reads to the source ETag.
+![Batch segment streaming versus per-object heap overhead and .meta side table](../illustrations/sheet-cost.svg)
 
-`stream::field_at` parses a bounded field header, checks field number and wire type, and computes the next position within the containing message. The array descriptors validate element sizes and counts before range reads address them. A field offset is not trusted simply because a varint parsed successfully; length and end arithmetic must also stay inside the message.
-
-The loader first chooses a bounded prefix, then sends additional chunks while the scene's point/segment budget permits. It reserves budget before a fetch and rolls back the reservation when positions fail in the same generation. A stopped loop reports that it reached a ceiling or failed a range; it does not claim the prefix contains every source point.
-
-The resident and stream adapters under `app/walk/cloud/` distinguish a complete kernel cloud from fetched point arrays. Sheet rows use the sheet adapter and source entity IDs. Neither display prefix automatically becomes a complete kernel document that arbitrary editing commands can safely rewrite.
-
-### Bound concurrency with a future and a permit
-
-`RangeGate` limits outstanding reads and queues later ones in FIFO order. `Enter` implements `Future`: polling either returns a permit, registers a waker and returns Pending, or returns None after the gate closes. A waker asks the executor to poll again; it is not a thread blocked inside the request.
-
-`Permit::drop` hands the slot to the next queued turn. Dropping a waiting `Enter` removes that turn, or passes on a slot already assigned to it. Those two cancellation paths prevent a cancelled request from consuming capacity forever. Closing a scene's gate wakes waiting reads so they can observe closure instead of waiting indefinitely.
-
-### A new scene invalidates old work
+- `src/app/stream.rs` parses bounded `CloudFields` and `SheetFields` byte ranges (`field_at`), validating element strides, segment counts, packed-`f64` LOD alignment and source `ETag` revisions before issuing HTTP `Range` reads.
+- `src/app/walk/cloud/stream.rs` appends streamed position, colour (black-padded when absent) and complete normal slices into GPU chunks, installing the octree table once on the first slice while preserving `(source_offset, gpu_offset)`.
 
 ```rust
 --8<-- "session_viewer/src/app/loader.rs:loading-generations"
 ```
 
-The stream loop checks its saved generation before fetching and again before posting a chunk. The second check matters: clearing the scene while a request is in flight cannot cancel the elapsed network work, but it must prevent its result from entering the replacement scene. Resetting budgets and the range gate belongs to this same transition.
+### Out-of-core point & sheet side-table queries
 
-File ETags and scene generations answer different questions. An ETag helps prevent combining ranges from different file revisions. A generation prevents adopting work for an obsolete application scene. Both can be correct individually while the other has changed.
+![Windowed metadata and side-table range lookup on selection](../illustrations/side-table.svg)
 
-### Query source points beyond the resident prefix
+![Out-of-core GPU point-cloud pick paging beyond the resident display budget](../illustrations/cloud-pick.svg)
 
-`cloud_query.rs::QueryView` records the click, view, placement and clipping facts used by a point query. The query narrows candidate ranges using the source LOD bounds. Invalid or incomplete LOD coverage falls back conservatively to all source rows; an invalid index must not silently make points unselectable.
+- `src/app/cloud_query.rs` narrows out-of-core click candidates via octree LOD bounds (falling back to full scan if incomplete), streams `<= 65,536`-point pages through GPU pick ranking, and reads exact stored `u32` source IDs.
+- `src/app/sheet_query.rs` validates the `SHM1` side-table header, fixed-width `(offset, len)` directory and bounded UTF-8 JSON payloads pinned to the table's `ETag` revision.
 
-`Query::next_page` reads at most 65,536 points at a time. Candidate points near the click are sent for GPU ranking, with an `awaiting_gpu` state separating a posted batch from its answer. Original point IDs are read from their exact stored bytes rather than inferred from the current display-prefix index.
+### Live notifications & atomic scene replacement
 
-`state/cloud_query.rs` starts this work only in the appropriate cloud control-selection mode. A changed view or selection drops the query and cancels the GPU pick. `Query::drop` sets a shared cancellation flag so a future retaining its request data can see that it is obsolete. The final result must match the active query and parent before becoming a control selection.
-
-### Resolve sheet identity without loading every record
-
-Sheet geometry can carry an entity ID while its human-readable metadata remains in a side table. `sheet_query.rs` validates an `SHM1` header, the record count, fixed-size offset/length records and bounded JSON blobs. The table revision applies to later record reads too.
-
-The state adapter selects the visible entity immediately, then fetches its name and kind when a metadata URL exists. Clicking the same entity again clears it. A newer selection advances the query generation, preventing a late metadata response from relabeling the current selection with the previous entity's name.
-
-### Live notification is a reason to check, not replacement data
-
-`live.rs` owns a notification connection and a polling fallback. The event callback marks that a check is needed; the loader still fetches and validates the actual source. The retained closure keeps the callback alive, and `Notify::drop` removes it and closes the event stream when its owner goes away.
-
-`live_revision.rs::Revisions` retains HTTP validators separately from hashes of received bytes. A changed or missing ETag does not by itself require replacing an identical scene. Conversely, changed bytes must be noticed even when a server reuses a validator. The hash is an in-process change detector, not a cryptographic proof attached to published assets.
-
-Replacement loading stages results and uses the load generation described in the loading chapter. Camera and UI state must not be reset merely because a poll returned unchanged content. A notification, successful GET and adopted new scene are three distinct events to observe.
-
-### Adopt only a complete live replacement
-
-A live-source tick runs after the polling interval or a change notification. It revalidates the manifest and mutable files, retaining decoded immutable revision URLs. A changed manifest or file marks a replacement pending; a failed read or an incomplete set of decoded documents keeps the last valid scene visible. A complete replacement reuses cached sessions where possible and drops files no longer listed. The notification relay connects after the first scene is ready. Notifications request an earlier check; they do not supply trusted geometry or bypass decoding.
-
-### Convert a resident source slice into GPU rows
-
-A streamed cloud slice appends positions and a bounded matching color column, padding missing colors with black. Normals are accepted only when the slice has one per point; otherwise the draw carries the no-normals sentinel. Only the first slice installs the full LOD node table. Each draw retains both its original source offset and its GPU offset, while spacing comes from the finest fully resident node or a fallback. This preserves the distinction between source IDs and compact resident storage.
-
-### Validate streamed field boundaries
-
-The stream parser separates a protobuf field's header, body and next offset using checked bounds. Length-delimited fields cannot advance past their containing message. Sheet coordinates use six doubles per segment; optional colours, widths and IDs must each contain four bytes per segment. The advertised segment count must agree, metadata must be bounded UTF-8, and known fields with the wrong wire type are rejected. Cloud LOD arrays validate packed-double alignment and complete varints before decoding. This metadata validation protects later range reads; a successfully parsed header does not prove that the remaining payload has arrived.
+- `src/app/live.rs` manages an `EventSource` change relay plus polling fallback, marking a recheck flag without trusting relay bytes and detaching DOM listeners cleanly on `Drop`.
+- `src/app/live_revision.rs` (`Revisions`) tracks HTTP `ETag` validators separately from received content hashes and stages complete replacements so unchanged polls or failed mid-reload fetches never reset the active camera or scene.
 
 ## Run and observe
 
-Serve the cumulative application's `production.html` build. From `session_viewer`, run `node tests/streamed-controls.cjs` through the resource guard, with `VIEWER_URL` pointing to that server and `VIEWER_TEST_OUTPUT` naming a new capture directory. Set `CHROME_BIN`, `VIEWER_HEADLESS` and `VIEWER_CHROME_ARGS` for the recorded local WebGPU configuration; `NODE_PATH` locates Playwright.
+Against `production.html`, run the four streaming/live browser suites:
 
-The check supplies its own range-capable virtual source of 6,065,539 points without writing a full large file. Only 250,000 points become resident. It types `View Top`, selects the cloud and types `Controls`, then queries beyond the displayed prefix. The expected visible result is one yellow source point at `[-1,0,10]`, with original ID `0xfedcba98`; the inspector must still report 250,000 resident points. The held final page proves that an earlier candidate is not committed before all eligible source points have been checked.
-
-Select a source point or sheet entity, then change the view or selection before its query finishes. The earlier answer must not replace the new selection. Record range responses, source revision and visible result together. A server returning the entire file for every range is not a successful streaming test.
-
-Run `node tests/live-revision.cjs` with the same browser environment. Four polls alternate strong, weak and absent ETags while serving identical manifest bytes. The geometry downloads once and the scene is adopted once. The server then adds an authored text item: the next poll adopts that changed manifest, retains the camera and reuses the immutable geometry. Inspect the recorded text-label state to distinguish adoption from an unchanged poll; the small label's presence in inspection is not a pixel-legibility assertion for the floor view.
-
-Run `node tests/live-notification.cjs` with the same browser environment. It intercepts an HTTPS manifest, mutable geometry file and EventSource relay locally, with the normal poll interval set to one hour. Release the notification after the first point appears. Expect a second point, exactly one additional manifest and geometry read, and the same camera. The relay carries only a change announcement; the geometry still arrives through ordinary validated loading.
-
-Run `node tests/sheet-metadata.cjs` against the cumulative application with the same browser environment. Click the two drawn sheet segments: their statuses identify Wall A and Door B. The check reads only the selected side-table record and JSON range, reuses the table header, delays a second lookup, cancels it with Escape and retries. Cancellation must leave metadata unresolved until the new lookup succeeds. The retained edge highlight and manipulation widget are separate state; this check does not promise that Escape clears the visible highlight or that the widget never overlaps the nameplate.
+- `node tests/streamed-controls.cjs` -> keeps `250,000 / 6,065,539` points resident while `Controls` click resolves nonresident point `[-1, 0, 10]` (`0xfedcba98`).
+- `node tests/sheet-metadata.cjs` -> resolves `Wall A` and `Door B` via two HTTP `Range` reads, reusing one `SHM1` header and honouring `Escape` cancellation.
+- `node tests/live-revision.cjs` & `node tests/live-notification.cjs` -> `4` ETag-varied identical polls download geometry once; `EventSource` notification updates `1` point -> `2` points in `< 1 s` without moving the camera.
 
 ## Predict and try
 
-Predict what happens to a queued range read when its scene is cleared. Pause responses in developer tools, request another scene, then release the old responses. Closing the gate wakes waiting requests and the generation checks reject old chunks. The visible replacement scene should remain authoritative even when the old network request completes later.
+Pause Network responses in DevTools while a cloud range read is queued in `RangeGate`, load a new scene, then unpause the old responses: predict whether old chunks enter the new scene (`0` chunks adopted — closing the gate + generation mismatch drops them).
 
 ## Question and answer
 
-Why retain both original point IDs and the displayed prefix index?
-
-The prefix is a bounded representation that can grow or differ from source order. Its temporary row position is useful for rendering, while the original ID identifies the point in the complete source. Confusing them would select a different point when residency or LOD changes.
+**Why keep each point's original `u32` source ID separate from its GPU buffer index?**
+Display residency stops at the point budget and octree order differs from file order; storing and querying the source ID ensures clicking a point names the same source record regardless of budget or LOD.
 
 ## Validation
 
-The actual streamed-controls browser check passes at DPR 1 and 2: bounded residency and range reads, exact nonresident source ID, exhaustive eligible-page completion, a visible yellow point and cancellation of an asynchronous query. Before cancellation it creates a fresh control selection; clicking an already selected handle would exercise dragging. Live revision checking separately verifies four unchanged polls and one changed-manifest adoption, with one geometry download and an unchanged camera. A separate notification check passes at desktop and upright widths: an intercepted HTTP EventSource announcement causes the mutable geometry to be fetched again and changes one point to two, retaining the camera. Both cases finish the announced update in under one second with hourly polling configured. This establishes the browser notification path with mocked responses; external relay availability and physical-device behavior are not established by mocked responses. Sheet metadata passes at both widths: actual clicks resolve the correct IDs and names, reuse one header and reject a cancelled delayed reply before an explicit retry. Six original captures retain the resulting edge highlights and status text.
+Verified at DPR `1` and `2` by `tests/streamed-controls.cjs`, at `1280` and `390` widths by `tests/sheet-metadata.cjs` (`6` captures), `tests/live-revision.cjs` and `tests/live-notification.cjs`. External relay uptime and physical-phone cellular behavior remain separate.

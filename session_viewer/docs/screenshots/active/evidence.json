@@ -1,0 +1,138 @@
+{
+  "scope": "Verified WebGPU checkpoint captures copied for active tutorial lessons",
+  "assets": [
+    {
+      "asset": "frame-white-1280.png",
+      "sourceCapture": "session_viewer/target/completion-browser16/captures/1280-frame.png",
+      "sha256": "f9106d41500e37b39b7634d26646b3d9c092daa2125d0c95bfcdccf13bf938c1",
+      "bytes": 5396,
+      "caption": "Tutorial 1 (frame): WebGPU white surface cleared and presented at 1280x800."
+    },
+    {
+      "asset": "painting-triangle-1280.png",
+      "sourceCapture": "session_viewer/target/completion-browser16/captures/1280-painting.png",
+      "sha256": "e85d806a883b34c029a387dffadbf8ae0686cf1f4c74049aecace23008ce9aae",
+      "bytes": 10113,
+      "caption": "Tutorial 2 (painting): egui pink triangle and bottom-left Command label composited over the cleared frame."
+    },
+    {
+      "asset": "math-align-1280.png",
+      "sourceCapture": "session_viewer/target/completion-browser16/captures/1280-math-1.png",
+      "sha256": "1ce5c5cda5be183322e935ed410d947b3d57ae08d52d3368158b531290414007",
+      "bytes": 37058,
+      "caption": "Tutorial 3 (mathematics): equals-aligned TeX fractions and radicals on the 1600x900 slide."
+    },
+    {
+      "asset": "math-matrix-dark-1280.png",
+      "sourceCapture": "session_viewer/target/completion-browser16/captures/1280-math-dark.png",
+      "sha256": "757d91e62e6291de37ee9dbe6eb4c8b8fdcfddd0f3c2ffe6b1e46027388c0b41",
+      "bytes": 32842,
+      "caption": "Tutorial 3 (mathematics): 2x2 addressed matrix cells on the dark ground."
+    },
+    {
+      "asset": "dock-options-1280.png",
+      "sourceCapture": "session_viewer/target/completion-browser16/captures/1280-dock-options.png",
+      "sha256": "32d38fefd9774120c7b4fb2f615cbf9063aeec2eb4ed68032895e925380ba97a",
+      "bytes": 14274,
+      "caption": "Tutorial 4 (dock): persistent CommandLine bar offering clickable Blue and Pink option chips."
+    },
+    {
+      "asset": "dock-blue-1280.png",
+      "sourceCapture": "session_viewer/target/completion-browser16/captures/1280-dock-blue.png",
+      "sha256": "7fda5ae169cd4b3330d1dc0c8cbe3ade977db2449ffbe12a5dcb88d3d6a18d1d",
+      "bytes": 10684,
+      "caption": "Tutorial 4 (dock): circle switched to Blue after executing the option command once."
+    },
+    {
+      "asset": "camera-cube-1280.png",
+      "sourceCapture": "session_viewer/target/completion-browser16/captures/1280-camera.png",
+      "sha256": "4d383d406d0c4446735b1dce6fab7a3d0f43ad5a60d5247b847b977ff6420187",
+      "bytes": 62945,
+      "caption": "Tutorial 5 (camera): eight kernel points projected through Camera into perspective screen lines."
+    },
+    {
+      "asset": "rows-inspector-1280.png",
+      "sourceCapture": "session_viewer/target/completion-browser16/captures/1280-rows.png",
+      "sha256": "f3df7f435ca5b1cde55f1d4c692723054dbfcf99e20469bdd89848164827135b",
+      "bytes": 21665,
+      "caption": "Tutorial 6 (rows): two 112-byte GPU Instance rows with independent placement, tint, reveal and pickability."
+    },
+    {
+      "asset": "geometry-four-objects-1280.png",
+      "sourceCapture": "session_viewer/target/completion-browser16/captures/1280-geometry.png",
+      "sha256": "2ee546863e221ac8af1000275c2a594cb4e10c8d5e5190074e66212c4a0ca738",
+      "bytes": 33902,
+      "caption": "Tutorial 7 (geometry): mesh cube, BRep cube, 2x3 Matrix and arrowed NURBS curve rendered by the production GPU lanes."
+    },
+    {
+      "asset": "geometry-reveal-1280.png",
+      "sourceCapture": "session_viewer/target/completion-browser16/captures/1280-geometry-reveal.png",
+      "sha256": "8eda5054b4bef41ad6d58f0f27577a0d68eebf41fe3ea741577f7a4b662995d0",
+      "bytes": 34435,
+      "caption": "Tutorial 7 (geometry): row reveal = 0.5 shortening each sampled curve segment while preserving arrowheads."
+    },
+    {
+      "asset": "decoding-summary-1280.png",
+      "sourceCapture": "session_viewer/target/completion-browser16/captures/1280-decoding.png",
+      "sha256": "6f9a3370892623e85293e951da3eed5aab3f630679f14d18271ca9f9d56c1370",
+      "bytes": 34971,
+      "caption": "Tutorial 8 (decoding): bounded protobuf decoder reporting 4 validated BReps in course-comparison.pb."
+    },
+    {
+      "asset": "decoding-error-1280.png",
+      "sourceCapture": "session_viewer/target/completion-browser16/captures/1280-decoding-error.png",
+      "sha256": "d2ffce75b3f60a0122ad1ee4439bba76173ab0304ab57c002f17006d7b4e532e",
+      "bytes": 29376,
+      "caption": "Tutorial 8 (decoding): truncated varint field rejected with contextual filename error."
+    },
+    {
+      "asset": "application-loaded-1280.png",
+      "sourceCapture": "session_viewer/target/viewer-production-browser04/captures/1280-loaded.png",
+      "sha256": "2b8642518448e34fd13ece034023a9510d597ed880d58a4b5185e73787b07da0",
+      "bytes": 83106,
+      "caption": "Tutorial 9 (application): production viewer entry with loaded BRep/surface comparison scene, nameplate and command dock."
+    },
+    {
+      "asset": "commands-created-1280.png",
+      "sourceCapture": "session_viewer/target/application-commands03/captures/1280-created.png",
+      "sha256": "0ce26c36c09d4abadb74a12cb1ac90870a45583c160435d0ae87f04de93cf32f",
+      "bytes": 74168,
+      "caption": "Application commands: newly created line selected with active 3-axis gumball and Created layer entry."
+    },
+    {
+      "asset": "loading-malformed-retains.png",
+      "sourceCapture": "session_viewer/target/application-loading01/captures/malformed-retains-scene.png",
+      "sha256": "52908cf6b74fc733252715a442c14441e2396ecae7cd04553e5f0b76865c6d3f",
+      "bytes": 17427,
+      "caption": "Application loading: malformed request rejected without discarding the active grid and viewer state."
+    },
+    {
+      "asset": "streaming-cloud-selected.png",
+      "sourceCapture": "session_viewer/target/application-stream04/captures/selected-original.png",
+      "sha256": "7d65c21373da6f6309408a222be21ef32cb0746243bf65cac0c7cc70abb83bba",
+      "bytes": 34193,
+      "caption": "Application streaming: out-of-core point cloud point picked and resolved back to its exact source index."
+    },
+    {
+      "asset": "stage-pillow-grid-1280.png",
+      "sourceCapture": "session_viewer/target/stage-reconcile-20261118-browser/captures/fdm7-1280-first-dark.png",
+      "sha256": "f284ba07765ce5cc3d810cb437f40d34170fd053dd324cfd87b49ae5a934c1c7",
+      "bytes": 108925,
+      "caption": "Real-scene stage (07-pillow): 100-node cable grid beside sparse C -> C_N, C_F pattern matrices on dark ground."
+    },
+    {
+      "asset": "stage-pillow-solved-1280.png",
+      "sourceCapture": "session_viewer/target/stage-reconcile-20261118-browser/captures/fdm7-1280-last-dark.png",
+      "sha256": "d45d94ed4ab7cb51a7c89f8e74aae3e8d0f7248ddc398377385f8b83a47aad59",
+      "bytes": 175326,
+      "caption": "Real-scene stage (07-pillow): solved upward-loaded cushion (peak z = 2.025) beside runnable SciPy Cholesky script."
+    },
+    {
+      "asset": "gpu-diagnostic-instanced.png",
+      "sourceCapture": "session_viewer/target/application-gpu03/shots/placed_true_true_instanced.png",
+      "sha256": "a9cefbcf692f61131c4411831c609559c0c8d1aa4d72645fb9b909e8065f6075",
+      "bytes": 6634,
+      "caption": "Debugging GPU self-test: offscreen instanced scene render from instanced_frames_match_the_baked_scene."
+    }
+  ]
+}

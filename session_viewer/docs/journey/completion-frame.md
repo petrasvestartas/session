@@ -1,82 +1,83 @@
 # Open a GPU frame
 
-Draw a white browser canvas with the production device setup and a small executable frame experiment.
+Open a WebGPU surface on `#canvas`, clear every pixel to white on the GPU queue, and resize cleanly across desktop and upright viewports.
 
-This runnable subject has passed source-retention, wasm and desktop/upright browser checks. Its acceptance is scoped to the recorded Windows Intel WebGPU environment; the remaining course is still being completed.
+![Four wgpu objects before any drawing: Instance, Surface, Adapter and Device + Queue](../illustrations/gpu-objects.svg)
+
+![Tutorial 1 startup and white-frame submission loop](../illustrations/active/frame-clear.svg)
 
 ## Prerequisites and ownership
 
-Start with Rust installed, the `wasm32-unknown-unknown` target, Trunk and a browser supporting WebGPU. Use the repository's recorded Cargo lock and shared build cache. No earlier viewer lesson is required.
+Install Rust `1.97.1`, `wasm32-unknown-unknown`, Trunk `0.21.14` and a WebGPU browser ([setup](../README.md)). Checkpoint `frame` starts from scratch with `13` files:
 
-This subject owns `src/engine/gpu/device.rs`, `src/app/launch.rs`, and the frame experiment under `examples/course`. The example canvas adapter remains a test fixture throughout the course. The production application's scene messages belong to the later application subject; the fixture does not stand in for that implementation.
+| File | Role |
+| --- | --- |
+| [Cargo.toml](../../Cargo.toml), [Cargo.lock](../../Cargo.lock) | Crate manifest (`cdylib` + `rlib`) and pinned dependency graph. |
+| [src/lib.rs](../../src/lib.rs) | Crate root, `shader!` macro and `#[cfg(all(target_arch = "wasm32", feature = "tutorial"))]` entry gate. |
+| [src/app/mod.rs](../../src/app/mod.rs), [src/engine/mod.rs](../../src/engine/mod.rs), [src/engine/gpu/mod.rs](../../src/engine/gpu/mod.rs) | Module index files extended strictly by additive `mod` declarations in later checkpoints. |
+| [src/app/launch.rs](../../src/app/launch.rs) | Generic `winit` event-loop launcher passing `EventLoopProxy<Message>` into the app factory. |
+| [src/engine/gpu/device.rs](../../src/engine/gpu/device.rs) | Production WebGPU/native adapter request, `256 MiB` storage limit cap, error capture and surface configuration. |
+| [examples/course/index.html](../../examples/course/index.html) | Full-viewport `#canvas` entry compiled by Trunk with `--features tutorial`. |
+| [examples/course/canvas.rs](../../examples/course/canvas.rs), [frame.rs](../../examples/course/frame.rs), [registration.rs](../../examples/course/registration.rs), [entry.rs](../../examples/course/entry.rs) | Browser window adapter, white render-pass clear, and `?tutorial=frame` URL dispatcher. |
 
-Rust groups source into modules. A `mod` declaration includes another module; `use` brings a name into scope. `pub` exposes an item to callers. The module indices declare dependencies without storing their implementations. Later subjects add declarations and entries to `registration.rs`; they retain the launcher, device setup and frame experiment.
-
-The crate root `lib.rs` declares the top-level modules. Its `shader!` macro expands to a compile-time include from the build output directory when a later shader uses it; declaring a macro does not compile a render pipeline. The tutorial entry is enabled only for wasm with the tutorial feature. The eventual native self-test and production web entry have different target gates, so a browser-only item is not accidentally required by a native build.
-
-`app/mod.rs` exposes application modules, beginning with the event-loop launcher. `engine/mod.rs` groups GPU, pipeline, timing and diagnostic ownership. `engine/gpu/mod.rs` exposes GPU resource and rendering modules, beginning with device setup. These files are namespace boundaries, not alternate event loops. The partial assembly retains the declarations it can satisfy; later subjects add module declarations and re-exports under the checked registration rule. Their implementations stay in the corresponding files throughout the sequence.
+- `src/lib.rs` declares the top-level modules, defines the compile-time `shader!` `OUT_DIR` include macro, and gates the course `entry.rs` behind `wasm32` plus the `tutorial` feature so native and production builds stay separate.
+- `src/app/mod.rs` opens the application namespace with `pub mod launch;` and grows strictly by additive module declarations as stage, walk, decoding and scene modules join later checkpoints.
+- `src/engine/mod.rs` anchors the rendering engine namespace with `pub mod gpu;`, keeping GPU setup isolated until pipeline caches, frame timing and diagnostics join in checkpoint `rows`.
+- `src/engine/gpu/mod.rs` exposes `pub mod device;` first and adds `ui`, `buffers`, `hull`, `instance` and `objects` without rewriting existing GPU modules.
 
 ## Build
 
-Assemble the candidate, then read and type the named source sections below.
-
-From `session_tests`, choose an output directory that does not exist:
+Materialize checkpoint `frame` into a fresh directory, or create the files below directly:
 
 ```sh
-node --import ./scripts/typescript.mjs scripts/course.ts completion-checkpoint frame ../session_viewer/target/learn-frame
+npm --prefix ../session_tests run course -- checkpoint frame ../session_viewer/target/learn-frame
 ```
 
-The command supplies the recorded dependency lock and links the shared fonts and licences. It refuses to overwrite an existing project. The complete dependency manifest is supplied once; subsequent subjects use the same dependency versions.
+### 1. Crate manifest and lock
 
-### Read the Rust project before drawing
+`Cargo.toml` emits both `cdylib` for the browser `.wasm` bundle and `rlib` for native tests, linking `wgpu 29`, `winit 0.30`, `egui 0.34.3`, and `session_rust` with `default-features = false` and `viewer-display`.
 
-Read [Cargo.toml](../../Cargo.toml). A package names the project; a crate is one compilation unit. The library emits both `cdylib`, which the browser packaging step turns into a WebAssembly module with JavaScript bindings, and `rlib`, which Rust examples and native tests can link. The 2024 edition selects Rust language rules; it is not the compiler version. Cargo resolves dependencies and features before compiling. `wgpu` owns GPU operations, `winit` delivers window events, and the three egui crates separate UI layout, GPU painting and window-input translation. Later geometry comes from the sibling `session_rust` path dependency with its display feature. Disabling default features avoids bundling unrelated kernel examples.
+`Cargo.lock` pins the exact dependency graph, including single-version `skrifa`/`swash` font crates, `wasm-bindgen` bindings, `web-sys` DOM features, JS `getrandom` on wasm, and native-only `pollster`.
 
-Cargo.toml declares compatible version ranges and explicit exact versions; Cargo.lock records the resolved dependency graph used by these checkpoints. Keep the recorded lock and use locked checks so a learner does not silently obtain a different font or graphics stack. Changing a feature can change the graph even when the source file is unchanged. The optional TOML parser is enabled by its feature; JSON sessions have their own feature. `web-sys` enables named browser APIs, while `wasm-bindgen` and its futures adapter cross the Rust/JavaScript boundary. `getrandom` needs its JavaScript feature because a transitive kernel dependency needs randomness on the browser target. Native-only `pollster` lets headless programs wait for async setup; it is not a browser dependency.
+```toml
+--8<-- "session_viewer/Cargo.toml:1:26"
+```
 
-A `let` binding owns its value and is immutable unless marked `mut`. A `struct` groups named fields; an `impl` defines operations on that type. A function's parameters state the values or references it accepts, and its return type follows the arrow. The last expression without a semicolon is the returned value. A shared reference permits reading without transferring ownership; a mutable reference permits exclusive mutation for the duration of the borrow. These restrictions are checked before running the program. In this lesson, the render pass borrows the encoder while commands are recorded, and ending that pass makes the encoder available to finish.
+### 2. HTML canvas and event-loop launcher
 
-`Option` represents a value that may be absent; `Result` represents success or an error. Pattern matching selects the applicable case instead of assuming an asynchronous result already exists. A trait describes operations a type must provide: the frame implements the drawing contract so the canvas can invoke it without knowing the frame's concrete type. An `async` function returns work that must be polled; `await` suspends that work while allowing the browser event loop to continue. No thread should block waiting for WebGPU setup. Follow compiler errors back to the first named source location; later errors may be consequences of that missing type, feature or borrow boundary.
-
-### Browser and event ownership
-
-The HTML canvas is the destination for the GPU surface. CSS sets its displayed size; the configured surface determines the texture's pixel dimensions. Initialize those dimensions from the canvas's CSS size multiplied by the browser's pixel ratio. The first winit resize notification can arrive after device creation, so it cannot supply the initial dimensions reliably.
+Size the initial surface from `canvas.clientWidth * devicePixelRatio` before `winit`'s first resize callback arrives, and build the `EventLoopProxy` ahead of `spawn_app` so `async` GPU initialization can send `Ready` back without borrowing the loop across `.await`.
 
 ```html
 --8<-- "session_viewer/examples/course/index.html:course-page"
 ```
 
-Read [the launcher](../../src/app/launch.rs). Its type parameter `Message` names events sent back to the loop, and `App: ApplicationHandler<Message>` requires the application to implement winit's event callbacks. `FnOnce` allows the factory to consume captured initialization data. The event proxy is created before the application, so asynchronous device setup can deliver its result without borrowing the event loop across an `await`.
+`src/app/launch.rs` builds a typed `EventLoop<Message>`, hands a cloneable `EventLoopProxy<Message>` to the `FnOnce` constructor before `spawn_app`, and avoids blocking the browser main thread.
 
-In the fixture, `Arc<Window>` keeps the window alive while both the application and surface need it. `Box<dyn Drawing>` owns a drawing implementation whose concrete type is selected at startup. A shared reference `&DeviceSetup` lets drawing use the handles without taking their ownership. `Result<T, String>` represents either a usable value or a contextual startup error.
+```rust
+--8<-- "session_viewer/src/app/launch.rs"
+```
 
 ```rust
 --8<-- "session_viewer/examples/course/canvas.rs:course-canvas"
 ```
 
-`resumed` takes the proxy once, creates the browser window and starts the asynchronous adapter request. `user_event` installs the completed window, GPU and drawing together. Until then, window events have no active drawing to access. A resize clamps texture dimensions to the device limit and skips surface configuration when that pixel size is unchanged. A redraw acquires a surface texture, records drawing, submits it and presents it. Animation requests another redraw; a static frame settles until input or resizing invalidates it.
+### 3. WebGPU device and surface
 
-### Device, queue and failure
+`src/engine/gpu/device.rs` selects `BROWSER_WEBGPU` on wasm or `PRIMARY` natively, caps `max_storage_buffer_binding_size` at `256 MiB`, prefers an sRGB surface format, and records the first uncaptured GPU error or device loss in `Arc<Mutex<Option<String>>>`.
 
-Read [device setup](../../src/engine/gpu/device.rs). An instance exposes backends; a surface connects a window to one of them; an adapter describes available hardware and limits. The device creates resources, and its queue accepts commands. These are separate responsibilities: creating an encoder does not execute its commands.
+```rust
+--8<-- "session_viewer/src/engine/gpu/device.rs:20:154"
+```
 
-`Options` supplies power preference, optional timing and a diagnostic callback. This keeps device selection independent of application settings and scene types. A function pointer can report diagnostics without requiring the device module to know about the command dock. `Default` supplies an inert reporter for callers that do not need one.
+### 4. Clear pass and URL dispatcher
 
-`open` checks adapter capabilities, bounds requested storage-buffer limits, requests the device, and configures a nonzero surface size. Its `Option<Surface>` also permits native headless use. `?` returns a failed request to the caller instead of constructing a partially initialized GPU. Fatal callbacks retain the first error in shared synchronized state; the application can stop submitting work and report that original failure.
-
-### Record, submit, present
-
-A render pass borrows the encoder while it is active. Binding the pass to `_pass` keeps that borrow until the helper returns. Dropping the pass ends recording; `encoder.finish()` produces a command buffer. `queue.submit` schedules it, and the canvas adapter presents the acquired texture afterwards.
+Drop `_pass` before calling `encoder.finish()`, submit the command buffer to `gpu.queue`, and return `false` so static frames sleep until resize or input.
 
 ```rust
 --8<-- "session_viewer/examples/course/frame.rs:course-frame"
 ```
 
-`LoadOp::Clear` initializes every pixel. `StoreOp::Store` retains the result for presentation. There is no vertex buffer or shader pipeline yet: clearing an attachment is enough to produce this subject's frame.
-
-### Startup registration
-
-The unchanged entry function reads `?tutorial=`, chooses exactly one registered function and calls it. Without a name it uses the last entry. An unknown name returns an error rather than choosing another application. In this first partial project, the supplied registration list contains only `frame`; later checkpoints add entries to that list.
+Read `?tutorial=` in `entry.rs` so every later checkpoint keeps `?tutorial=frame` runnable side-by-side:
 
 ```rust
 --8<-- "session_viewer/examples/course/entry.rs:course-entry"
@@ -84,22 +85,23 @@ The unchanged entry function reads `?tutorial=`, chooses exactly one registered 
 
 ## Run and observe
 
-From the assembled directory, run `trunk serve --port 8780` through the workspace storage guard and build slot. Keep `CARGO_TARGET_DIR` pointed to the shared course cache. Open `http://127.0.0.1:8780/?tutorial=frame`.
+Serve the checkpoint with Trunk (`CARGO_TARGET_DIR` shared across checkpoints) and open `http://127.0.0.1:8780/?tutorial=frame`:
 
-Expect a completely white canvas with no triangle or text. Resize to a narrow upright window: the canvas must continue filling the viewport, with no stale strip from the old surface size. A white screenshot alone is insufficient evidence; the browser check must also establish successful GPU startup and absence of the fixture's `data-course-error` attribute.
+```sh
+trunk serve --port 8780
+```
+
+Every pixel clears to `#ffffff` with no `data-course-error` attribute on `#canvas`, and resizing to `390×844` reconfigures the surface cleanly without stale borders.
 
 ## Predict and try
 
-Predict the result of changing the clear colour to black before rebuilding. Every pixel should become black, including after a resize. Restore white. This is a learner experiment, not a later subject's required rewrite.
+Change `wgpu::Color::WHITE` in `frame.rs` to `wgpu::Color::BLACK` before rebuilding: predict that both initial load and upright resize stay solid `#000000`, verify in the browser, then restore `WHITE`.
 
 ## Question and answer
 
-Why does creating an encoder not change the canvas?
-
-An encoder records commands on the CPU. The queue must receive its finished command buffer, and the acquired surface texture must be presented, before the browser can display that work.
+**Why does `device.create_command_encoder(...)` alone leave the canvas unchanged?**
+`CommandEncoder` only records commands into CPU-side driver memory; nothing executes until `encoder.finish()` is passed to `queue.submit(...)` and the acquired `SurfaceTexture` calls `present()`.
 
 ## Validation
 
-The partial frame project passes its locked wasm Cargo check. Three focused tooling tests check unchanged earlier implementations, exact retained production source and omission of later application entries. The linked candidate passes GPU startup, physical canvas-size, white-frame and resize checks at desktop and upright dimensions.
-
-The [current interaction receipt](release/completion-partials-windows-20261115.json) records Chrome 157 and the Intel Gen-12LP adapter. Upright viewport emulation is not a physical-phone test, and these checks do not accept the remaining cumulative course.
+Verified by locked `wasm32-unknown-unknown` compilation, cumulative source-retention tests, and desktop (`1280×800`) + upright (`390×844`) checks in the recorded Windows Intel WebGPU environment ([receipt](release/completion-partials-windows-20261115.json)). Upright browser emulation does not substitute for physical-phone testing.

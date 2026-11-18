@@ -1,58 +1,46 @@
 # Decode a document
 
-Read a real session file, inspect its decoded contents, and recover from malformed bytes with a filename-specific error.
+Validate and decode `.pb` `Session` payloads under explicit byte, object-count and tree-depth limits while yielding cooperatively to the browser event loop.
 
-This eighth cumulative subject is reviewed against its independent wasm build, native suite and recorded Windows Intel WebGPU valid/error/recovery interactions at desktop and upright sizes. HTTP loading and document UI have separate acceptance.
+![Tutorial 8 output: bounded protobuf decoder reporting 4 BReps in course-comparison.pb](../screenshots/active/decoding-summary-1280.png)
+![Contextual filename error when a truncated 0x80 varint is appended](../screenshots/active/decoding-error-1280.png)
+
+![Four explicit bounds and cooperative browser yielding before scene upload](../illustrations/active/decode-bounds.svg)
 
 ## Prerequisites and ownership
 
-Keep the seven earlier subjects. This subject owns `app/decode.rs`, `app/validate.rs` and the browser scheduler in `app/yielding.rs`. It uses the retained painter and canvas to inspect parser results. The protobuf fixture stays in the shared assets directory; it is not copied into each build cache.
+Requires [7. Render kernel geometry](completion-geometry.md). Checkpoint `decoding` (`170` files) retains Tutorials 1–7 and adds `4` files:
 
-The decoder needs to yield to the browser, but does not need HTTP or command panels. The scheduler therefore has its own module. The fetch module reexports the same public functions for existing callers. Loading later registers HTTP and UI integration without changing the decoder or its scheduler.
+| Added file | Role |
+| --- | --- |
+| [src/app/decode.rs](../../src/app/decode.rs) | `512 MiB` body cap, `1 MiB` JS window reader, `2,000,000`-object counter, `64`-deep iterative tree stack, graph/instance reconstruction and `Rc` GUID sharing. |
+| [src/app/validate.rs](../../src/app/validate.rs) | Wire-level varint/field bounds plus post-`prost` mesh-index, point-column and NURBS knot/weight invariants. |
+| [src/app/yielding.rs](../../src/app/yielding.rs) | Zero-delay `setTimeout` `Future` yielding to the browser on wasm so large decodes never freeze UI frames. |
+| [examples/course/decoding.rs](../../examples/course/decoding.rs) | Decodes `course-comparison.pb`, injects a malformed `0x80` varint on `E`, and recovers cleanly on `R`. |
 
 ## Build
 
-Add the decoder, validator, scheduler and inspector registration while retaining every earlier implementation.
+Materialize checkpoint `decoding` to compile the validator, decoder and recovery fixture:
+
+```sh
+npm --prefix ../session_tests run course -- checkpoint decoding ../session_viewer/target/learn-decoding
+```
 
 ### Bytes, ownership and limits
 
-`Body::Bytes` owns a Rust byte vector. `Body::Js` retains a JavaScript typed array and copies requested ranges into WebAssembly memory. The latter avoids keeping an entire fetched body in both JavaScript and Rust while converting it.
-
-`Reader` borrows that body. Its byte-range operation uses checked addition before slicing: an overflowing length must become an error, not an out-of-bounds read. A JavaScript body normally uses a one-MiB window. One larger object can require a larger window; after decoding that object, the oversized allocation is released. This is a bounded normal working set, not a claim that every individual object fits one MiB.
-
-The whole-file decoder rejects bodies over 512 MiB and directs larger cloud data to streaming. Its two-million-object counter sums points, lines, polylines, point clouds, meshes, NURBS curves and surfaces, BReps, elements and instances. Planes, boxes and components are outside this counter. Hierarchy depth is limited separately to 64. These bounds protect different parts of decoding; the object counter is not a cap on every protobuf record.
+`src/app/decode.rs` reads `Body::Bytes` or windowed `1 MiB` `Body::Js` slices with checked offsets, enforces a `512 MiB` whole-file cap, counts at most `2,000,000` geometry records (`Rc`-shared between typed tables and GUID maps), and rebuilds the hierarchy on an explicit `Vec` stack capped at depth `64` plus bidirectional graph edges and local instance transforms.
 
 ### Protobuf fields and validation
 
-A protobuf field header contains a field number and wire type encoded as a varint. `validate::varint` returns a decoded value and consumed length only for a complete, representable encoding. `Reader::field` then calculates where the value begins and the next field starts. Fixed-width values, varints and length-delimited messages need different advances. Unsupported wire types, invalid field numbers and lengths beyond the enclosing message are errors.
-
-Unknown valid fields are skipped using that next offset. This allows a reader to tolerate newer fields without understanding their contents. It does not allow arbitrary trailing bytes: the E experiment appends an unfinished varint header, which has no valid next field boundary.
-
-For each geometry record, the decoder first uses prost to decode that record, validates its structure, and only then constructs the kernel object. Mesh indices, point/cloud column lengths and NURBS data require checks appropriate to their representation. A successfully parsed wire message can still contain invalid geometry. The fallible conversion branch also preserves a kernel conversion error rather than publishing a partial success.
-
-The decoder counts records and reserves their collections before conversion. Reserving the required capacity avoids repeated doubling while old and new allocations coexist. `Rc` then shares a constructed object between the typed collection and GUID lookup; those are two references to one object, not two geometry copies.
-
-### Trees, graphs and placements
-
-The document tree is reconstructed in file order with an explicit stack containing node, next field and end offset. That makes the depth bound visible and avoids unbounded recursive calls. A node's transparent stored colour is treated as no colour, matching the kernel's loading semantics.
-
-The relationship graph is separate from this tree. Graph edges are stored in both directions; the decoder preserves the stored GUID on both copies because interaction records refer to that identity. Numeric edge attributes and vertex attributes are restored alongside connectivity.
-
-The `vertices` argument controls whether independent graph vertices and their attributes are retained. The public `session_from_bytes` path uses true, preserving them. A display-only caller may request false and retain connectivity through the edges; such a reduced document is not suitable for saving as an equivalent original.
-
-Instance definitions and instance references have their own lookup. Stored placements are folded into the central transform table using the same convention as kernel loaders. Those transforms remain local to the parent. Scene composition and hierarchy panels consume this document in their later subject; this inspector does not claim to implement those interfaces.
+`src/app/validate.rs` checks complete varints (`validate::varint`) and enclosing message bounds (`Reader::field`) so unknown valid fields skip cleanly while truncated tags fail, then validates decoded `prost` mesh vertex indices, cloud column lengths and NURBS control/knot invariants before constructing `session_rust` objects.
 
 ### Yielding without threads
 
-Converting 25,000 objects triggers a yield. An async function can pause without moving the parser to another thread. A promise resolved by a zero-delay browser timer lets the browser process other work before conversion continues. Awaiting that promise resumes the same logical operation.
+`src/app/yielding.rs` pauses async decoding every `25,000` converted objects by awaiting a zero-millisecond browser timer Promise (`yield_now`), keeping `wasm32` single-threaded without holding any `RefCell` borrow across `.await`.
 
 ```rust
 --8<-- "session_viewer/src/app/yielding.rs:browser-yield"
 ```
-
-`spawn_local` runs the inspector's future on the browser thread. Its result is shared with the drawing object through `Rc<RefCell<_>>`: `Rc` shares ownership, and `RefCell` checks mutable access at runtime. No borrow is held across the await. A pending operation refuses another request, and completion explicitly requests a redraw. The window is retained through its existing `Arc` handle.
-
-The parser returns `Result<Session, String>`. The inspector matches both outcomes and adds the source filename to an error. It replaces its pending state only after the complete operation returns. The R key starts a new decode of the original bytes, so recovery does not depend on repairing a partially constructed document.
 
 ```rust
 --8<-- "session_viewer/examples/course/decoding.rs:course-decoding"
@@ -60,20 +48,20 @@ The parser returns `Result<Session, String>`. The inspector matches both outcome
 
 ## Run and observe
 
-Materialize `decoding` with the completion-checkpoint command in [Maintaining](../maintaining.md), build it, and open `?tutorial=decoding`.
+Serve checkpoint `decoding` and open `http://127.0.0.1:8780/?tutorial=decoding`:
 
-The page shows `viewer comparison`, four BReps, and zero meshes, curves, components and stored placements. Press E: the counts are replaced by a red error naming `course-comparison.pb`. Press R: the original document summary returns. Text wraps inside an upright viewport. This experiment uses bundled real bytes; network fetching, loading progress and file-picker controls belong to application integration.
+- Displays `viewer comparison`: `4` BReps and `0` meshes, curves, components and placements.
+- Press `E` -> appends an unfinished `0x80` varint byte and shows a red error naming `course-comparison.pb`; press `R` -> re-decodes the untouched original bytes and restores all counts.
 
 ## Predict and try
 
-Predict whether adding one byte can invalidate an otherwise complete file. Press E. The appended `0x80` says that a varint continues, but no following byte exists, so the decoder rejects its header. Press R and predict whether the counts change: they return unchanged because the original fixture bytes were never modified.
+Predict why appending a single `0x80` byte breaks a valid protobuf file even though unknown fields are skipped: `0x80` sets the MSB continuation bit with no following byte, so `validate::varint` rejects the header before a field boundary exists. Press `E`, then `R` to verify.
 
 ## Question and answer
 
-Why validate each object after decoding its protobuf message?
-
-Wire decoding establishes how fields are represented, not whether they form valid geometry. For example, a list of mesh indices can be valid protobuf while referring past the vertex array. Validation protects the kernel conversion and reports the malformed document instead of letting invalid geometry reach rendering.
+**Why run `validate.rs` geometry checks after `prost` has already parsed a protobuf message without wire errors?**
+Valid protobuf wire syntax can still encode out-of-bounds mesh face indices, mismatched point-cloud attribute lengths or invalid NURBS degree/knot counts that would panic or corrupt downstream kernel/GPU code.
 
 ## Validation
 
-The eight-subject source-retention and shader-include checks pass four tests. The independent wasm checkpoint and full production native test modules compile. The cumulative native suite passes 195 tests with 14 ignored. Browser checks pass 98 captures across eight modes at desktop and upright sizes, including the red malformed-header error and exact recovery. All 92 earlier captures are byte-identical. These results do not establish HTTP loading, hierarchy UI or physical-device acceptance.
+Verified by `8`-subject retention and shader-closure tests, `170`-file locked `wasm32` build, `195` passing native tests (`14` ignored), and `98` desktop/upright WebGPU captures including malformed-varint error reporting and recovery ([decoding receipt](release/completion-decoding-windows-20261115.json), [eight-subject receipt](release/completion-eight-subjects-windows-20261117.json)).

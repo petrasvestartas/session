@@ -1,14 +1,19 @@
 # Project and fit a scene
 
-Orbit a blue wireframe cube, switch projection, and fit its bounds using the production camera.
+Orbit, pan, zoom toward the cursor, toggle perspective/orthographic projection, and fit 3D bounds using the production `src/camera.rs` math.
 
-This fifth cumulative subject is reviewed against its native tests, independent wasm build and recorded Windows Intel WebGPU interactions at desktop and upright sizes. The later renderer and application have separate acceptance.
+![Perspective wireframe cube projected through src/camera.rs at 1280x800](../screenshots/active/camera-cube-1280.png)
+
+![Camera basis: target, distance, quaternion orientation and derived eye/right/up axes](../illustrations/camera-basis.svg)
 
 ## Prerequisites and ownership
 
-Keep the frame, painting, mathematics and command-dock implementations. This subject owns `src/camera.rs` and its projection experiment. The kernel supplies points, bounding boxes, quaternions and transforms; scene rows and GPU geometry arrive later.
+Requires [4. Enter commands](completion-dock.md). This fifth cumulative subject is reviewed against native tests, locked `wasm32` builds and desktop/upright WebGPU interactions. Checkpoint `camera` (`47` files) adds `2` files:
 
-The camera stores an orientation, target and distance. The eye and up vector are derived values; changing an orientation without updating them would leave the view matrix stale. Scene units and metres are deliberately distinct. Millimetre coordinates must be converted once when constructing the camera matrix.
+| Added file | Role |
+| --- | --- |
+| [src/camera.rs](../../src/camera.rs) | Anchor-relative view/projection matrices, reversed-Z `[1..0]` depth, cursor-preserving `zoom_at`, world rays and panel-aware `fit_in`. |
+| [examples/course/camera.rs](../../examples/course/camera.rs) | Projects `8` `session_rust::Point` cube corners and `12` edges onto the canvas with orbit/zoom/fit controls. |
 
 ```rust
 --8<-- "session_viewer/src/camera.rs:camera-pose"
@@ -16,58 +21,52 @@ The camera stores an orientation, target and distance. The eye and up vector are
 
 ## Build
 
-Add the camera module and registration, retaining the earlier source unchanged.
-
-From `session_tests`, create a fresh checkpoint:
+Materialize checkpoint `camera` or add `src/camera.rs` and `examples/course/camera.rs`:
 
 ```sh
-node --import ./scripts/typescript.mjs scripts/course.ts completion-checkpoint camera ../session_viewer/target/learn-camera
+npm --prefix ../session_tests run course -- checkpoint camera ../session_viewer/target/learn-camera
 ```
 
-### From world coordinates to pixels
+### Anchor-relative view and reversed-Z projection
 
-A view matrix places the eye at the origin and expresses points in its coordinate axes. Projection maps that space to normalized device coordinates. Perspective divides by the homogeneous coordinate, making distant objects smaller; orthographic projection keeps parallel edges parallel.
+![Perspective versus orthographic frustums and reversed-Z depth](../illustrations/frustum.svg)
 
-The production matrix composes scene-unit conversion, view, projection and a lens shift. The anchor keeps coordinates near the camera instead of sending large absolute values to the GPU. This experiment uses an anchor at the origin; the maintained viewer can use the camera target. Coordinates supplied to either matrix must be relative to its chosen anchor.
+![Coordinate spaces from scene units to physical screen pixels](../illustrations/spaces.svg)
+
+Compose scene-unit scaling (`mm` -> `m`), anchor-relative view, reversed-Z projection (`near` mapped to `z = 1.0`, `far` to `z = 0.0`) and panel `frame` lens shift:
 
 ```rust
 --8<-- "session_viewer/src/camera.rs:camera-projection"
 ```
 
-The near and far arguments are reversed deliberately: nearby depth is one. A later depth-buffer subject must keep this convention. `depth_reach` includes the scene extent and construction grid so a fit does not cut off distant geometry. `frame` describes the unobscured viewport fraction; its lens shift centres geometry in the space left by panels.
-
 ### Motion and fitting
 
-Read `orbit`, `pan`, `zoom_at` and `fit_in` in [the retained camera source](../../src/camera.rs). Orbit composes yaw about world up with pitch about the camera's right axis, then normalizes the quaternion. Pan moves the target in the camera plane; its distance-dependent scale keeps movement useful across zoom levels. Zoom changes distance multiplicatively and clamps it away from zero.
+`src/camera.rs` implements quaternion `orbit` (world-up yaw + right-axis pitch), distance-scaled `pan`, world `ray` unprojection, cursor-locked `zoom_at` (shifting `target` by the cursor's offset on the target plane), and `fit_in` across all `8` box corners inside the unobstructed panel `frame`.
 
-`ray` maps a screen position to a world-space origin and direction. Perspective rays begin at the eye; orthographic rays are parallel and begin behind the scene. Empty viewports or nonfinite cursor coordinates are rejected. `zoom_at` computes the cursor's offset on the target plane and shifts the target by the fraction removed by zooming, keeping that point under the cursor. Picking later consumes the same ray implementation.
+### Wireframe cube checkpoint
 
-Fitting visits the box corners in camera coordinates and chooses a distance that satisfies both horizontal and vertical limits. `fit_in` also accounts for panels through the usable frame; fitting only a box radius would miss that constraint. Changing units preserves the conversion between scene coordinates and metres. Named views select orthographic projection and set the orientation explicitly, while `grow_extent` extends the depth range without moving the camera.
-
-### The projection experiment
-
-The fixture projects eight kernel points with `Xform::transform_point`, which performs the homogeneous divide. The final mapping scales normalized coordinates by half the viewport and reverses vertical direction for screen coordinates. Each cube edge differs in exactly one coordinate; the three bit masks enumerate twelve edges without duplicates.
+Project the `8` cube corners with `Xform::transform_point` and flip NDC `+Y` (up) into screen `+Y` (down):
 
 ```rust
 --8<-- "session_viewer/examples/course/camera.rs:course-camera"
 ```
 
-The wireframe deliberately has no hidden-surface removal. Its lines are egui painting, while its camera mathematics is the retained production implementation. Scene geometry and depth rendering belong to later subjects.
-
 ## Run and observe
 
-Serve the assembled checkpoint through the shared build cache and resource guard. Open `?tutorial=camera`. Expect a blue cube, white background and a projection label. Drag or press arrows to orbit; use the wheel to zoom. P switches projection, F fits the bounds, and Home selects the orthographic isometric view and fits it. Resize upright, then press F: the cube should remain inside the narrower viewport.
+Serve the checkpoint and open `http://127.0.0.1:8780/?tutorial=camera`:
+
+- Drag or press arrow keys to orbit; scroll wheel to zoom around the cursor.
+- `P` switches perspective and orthographic projection; `F` fits the cube inside the viewport (including `390×844`); `Home` restores orthographic isometric fit.
 
 ## Predict and try
 
-Predict which edges converge when you press P. Compare the same orientation in both projections: orthographic parallel edges stay parallel, while perspective makes the distant face smaller. Orbit before comparing so front and back faces do not overlap exactly.
+Orbit slightly off-axis and press `P`: predict which cube edges converge in perspective versus staying parallel in orthographic projection, then verify both modes in the browser.
 
 ## Question and answer
 
-Why must pixel mapping reverse the projected vertical coordinate?
-
-The camera's normalized coordinates increase upward, while screen coordinates increase downward. Omitting the reversal reflects the image vertically even when the camera matrix is correct.
+**Why does screen mapping negate the normalized `y` coordinate (`(1.0 - ndc.y) * 0.5 * height`)?**
+Clip/NDC `+Y` points up, whereas canvas/egui pixel `+Y` points down from the top-left corner; omitting the sign flip mirrors the scene vertically.
 
 ## Validation
 
-The [camera candidate receipt](release/completion-camera-windows-20261115.json) records its independent wasm check, three five-subject source-retention tests, 33 passing native tests and one ignored GPU-dependent test. Chrome on Intel Gen-12LP passes orbit by keyboard and dragging, projection round trips, wheel zoom, fitting and named-view restoration at desktop and upright dimensions. The suite also reruns the preceding four subjects. Upright emulation is not a physical-phone test; complete course and production-endpoint acceptance remain pending.
+Verified by `47`-file locked `wasm32` build, `33` passing native tests (`1` GPU test ignored), `5`-subject retention tests, and desktop/upright orbit, zoom, projection and fit checks on Intel Gen-12LP ([camera receipt](release/completion-camera-windows-20261115.json)). Physical-phone touch testing remains separate.

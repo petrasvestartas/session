@@ -1,62 +1,47 @@
 # Build and understand the Session Viewer
 
-Build the Session Viewer from scratch with Rust and wgpu. Work through one cumulative project until its code, production layout and behavior match the maintained viewer.
+Jump straight to **[Tutorial 1: Open a GPU frame](journey/completion-frame.md)** to start coding, or review the [nine-checkpoint course map](journey/active.md).
 
-Begin with [chapter 1: four consolidated lessons](journey/consolidation/01-canvas.md). The [production source and coverage map](journey/production-course-map.md) distinguishes reused code, staged integration, divergent algorithms and missing coverage. All original checkpoint links and recovery IDs remain available.
-
-**Start with [the course route](journey.md).** The course is being consolidated by subject: fewer complete lessons, lean code, and no late collection of features that belong earlier. The [lesson checklist](journey/roadmap.md) tracks acceptance separately. The [archived tutorials](archived/README.md) preserve the earlier reference course; they do not represent today's finished viewer.
-
-Each subject has one visible goal, a prediction experiment, a question and a runnable checkpoint. Teach each concept once, in its final home. Small instructions stay inside a lesson instead of becoming separate checkpoints. [Save and recovery commands](journey/recovery.md) protect your own work. Vue hosts these documents; Rust and wgpu implement the viewer.
-
-The first new [mathematics checkpoint](journey/03a-mathematics.md) belongs immediately after the early egui painting. It covers font metrics, TeX, glyph pixels and equals alignment; cumulative course integration is still in progress.
+![Nine cumulative checkpoints from empty canvas to the production viewer](illustrations/active/course-map.svg)
 
 ## Prepare your computer
 
-These commands describe the Linux setup used for the course. Install Rust, compiler tools, Git, Node.js 20.6 or newer with npm, and Chrome with WebGPU support. A native GPU driver is needed for rendered-image exercises.
-
-```sh
-sudo apt install build-essential curl git
-curl https://sh.rustup.rs -sSf | sh
-```
-
-Open a new terminal so Rust is on your path, then:
+Install Rust `1.97.1`, the `wasm32-unknown-unknown` target, Trunk `0.21.14`, Node.js `>= 20.6` and a WebGPU browser (Chrome or Edge):
 
 ```sh
 rustup toolchain install 1.97.1
 rustup default 1.97.1
 rustup target add wasm32-unknown-unknown
 cargo install trunk --version 0.21.14 --locked
-git clone --recurse-submodules https://github.com/petrasvestartas/session.git
-cd session/session_viewer
-rustc --version
-trunk --version
 ```
 
-Build the Vue documentation once so your handwritten viewer can open its documentation link. From `session_viewer`:
+Clone with submodules and build the local documentation assets once from `session_tests`:
 
 ```sh
-cd ../session_tests
+git clone --recurse-submodules https://github.com/petrasvestartas/session.git
+cd session/session_tests
 npm ci
 DOCS_STRICT_LINKS=1 DOCS_BASE=/docs/ npm exec vite build -- --outDir ../session_viewer/dist/docs --emptyOutDir
 cd ../session_viewer
 ```
 
-Keep Cargo.lock: it records the dependency versions used by the viewer. Allow extra time for installation and the first dependency build.
+Keep `Cargo.lock` intact so every checkpoint resolves the same `wgpu`, `egui`, `ttf-parser`, `swash` and `glyphon` crates.
 
-## Understand the production build
+## How Cargo, wasm-bindgen and Trunk package the viewer
 
-Read the maintained [Cargo manifest](../Cargo.toml), [shader build script](../build.rs), [Trunk configuration](../Trunk.toml) and [browser page source](../index.html). Cargo builds Rust dependencies; Trunk connects the wasm module, browser entry page and copied assets. The `cdylib` library produces the browser module, while `rlib` lets native verification examples link the same crate.
+![Four tools, four artefacts](illustrations/toolchain.svg)
 
-The kernel dependency disables its default features and enables `viewer-display`. The UI uses matching egui, egui-wgpu and egui-winit releases. Mathematics needs `ttf-parser` for OpenType layout, `swash` for glyph rasters, `png` for pictures and `serde_yaml_ng` for decks. Glyphon supplies the scene text renderer. These are different jobs: the mathematics painter cannot substitute scene text for font glyph IDs and MATH-table positioning. Preserve the lock so the shared font stack stays consistent.
+| File | Role |
+| --- | --- |
+| [Cargo.toml](../Cargo.toml) | Emits `cdylib` (browser `.wasm`) and `rlib` (native tests/examples); links `session_rust` with `viewer-display`. |
+| [build.rs](../build.rs) | Expands `#include "scene.wgsl"` once per shader into `OUT_DIR/shaders/` and strips `//` comments. |
+| [Trunk.toml](../Trunk.toml) | Runs `build` in release mode and copies `stage/`, `decks/`, `text/` and `docs/` into `dist/`. |
+| [index.html](../index.html) | Mounts `#viewer`, `diagnostics.js` and the Trunk `rust` pipeline (`wasm-opt="0"`). |
 
-`build.rs` expands shader includes into `OUT_DIR/shaders`, includes each file once per output shader, and strips line comments and excess whitespace. The crate's `shader!` macro reads those generated files. Edit the source shaders, not the generated cache. Block comments are rejected by this minifier instead of being silently left in its output.
+## Start coding
 
-Trunk uses an optimized build, and its pre-build hook prepares the Vue site. The page copies stage fonts to `stage/`, the five example decks to `decks/`, ordinary text fonts to `text/`, and the compiled documentation to `docs/`. Copying the wasm alone cannot produce a working mathematics viewer. The development server serves a mutable index without caching it, so that index names the current hashed bundle.
+1. **[1. Open a GPU frame](journey/completion-frame.md)** — initialize WebGPU and clear a surface (`13` files).
+2. **[2. Paint shapes and text](journey/completion-painting.md)** — composite an `egui` triangle and label (`15` files).
+3. **[3. Lay out and animate mathematics](journey/completion-mathematics.md)** — typeset TeX, matrices and tweens (`41` files).
 
-After the first-frame subject, predict which request fails if the `stage/` asset directory is absent: wasm can initialize, but the named font fetch cannot complete the deck. Restore the directory and reload; the expected result is a painted slide, not an empty substitute. The [startup owner](journey/completion-loading.md) explains early requests and application adoption. This production-build explanation does not replace the cumulative checkpoint checks.
-
-## Begin
-
-Follow [Open a GPU frame](journey/completion-frame.md). Rust concepts are explained where you use them; the [foundations](foundations.md) provide additional practice when useful.
-
-Keep the [destination contract](journey/destination.md) nearby. It records the required features, rendering quality and acceptance checks.
+Optional Rust warm-up exercises live in [Foundations](foundations.md); learner checkpoint commands live in [Save and recovery](journey/recovery.md); target rendering requirements live in [Destination](journey/destination.md). Earlier drafts stay in [Archived tutorials](archived/README.md).

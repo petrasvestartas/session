@@ -1,123 +1,88 @@
 # Route input and select geometry
 
-Orbit, select and edit the scene while keeping dock typing and panel gestures separate from scene interaction.
+Route pointer, keyboard, multi-touch and mobile IME events to one owner at a time, preview drags at `60 Hz` on the GPU, and resolve asynchronous `19×19` GPU pick readbacks by generation.
+
+![Picking an element feature pixel resolves its parent Element first](../screenshots/completion/feature-pixel-selected.png)
+![Deleting the picked Element removes its visible feature and pickability while keeping tomb storage for Undo](../screenshots/completion/feature-pixel-deleted.png)
+
+![One gesture: 60 Hz GPU placement preview during drag, 1 undo transaction on release](../illustrations/active/one-gesture-112.svg)
 
 ## Prerequisites and ownership
 
-Complete the camera, renderer, dock, application, document and command chapters. This application chapter teaches `app/input.rs`, `touch.rs`, `keys.rs`, `gesture/`, `selection.rs`, `ui/pointer.rs` and the selection adapters in `state.rs` and `state/features.rs`. The renderer retains its completed GPU picking implementation; the application interprets those asynchronous answers.
+Chapter `9.3` of [9. Run the application](completion-application.md) (`application` checkpoint). Covers `17` pointer, gesture, shortcut, touch, IME and selection modules under `src/app/` and `src/state/`.
 
 ## Build
 
-Register the application gestures and route panel, keyboard, pointer and pick events through the existing host.
+### A pointer belongs to one interaction & dock binding
 
-### A pointer belongs to one interaction
-
-The panel adapter receives an event before normal scene input. `ui/pointer.rs` uses the current pointer position and actual popup layers, not the previous frame's hover state. A press in a panel captures its drag. Releasing a scene drag over a panel drops that edit rather than applying it through the UI. Wheel and touch events also respect the scene rectangle.
-
-The command dock's completed focus policy determines when text entry owns keyboard input. A keyboard shortcut intended for text must not also select scene objects. Scene shortcuts run through `keys.rs`, which maps keys and modifiers to the same command behavior used by the dock. Runtime focus and repeat checks happen before this dispatch.
-
-Normal mouse navigation uses right drag to orbit, middle drag to pan and the wheel to zoom. A right press that remains a click can finish a draft or repeat a command; a right drag must not repeat that command on release. `Input` therefore retains both press position and whether it became a drag.
+- `src/app/ui/pointer.rs` checks live `egui` panel and popup rectangles on press so panel drags stay inside UI, scene drags released over panels cancel cleanly, and wheel/touch events respect the canvas rect.
+- `src/app/ui/command_line.rs` binds `CommandLine` to `REGISTRY` completions, active `Tool` prompts/chips and `Escape` priority, returning keyboard focus to the canvas after command execution.
 
 ### Choose a gesture before changing geometry
+
+`src/app/gesture/mod.rs` tests registered handlers in priority order (`control` -> `gizmo` -> `object` -> `box_select`), converting CSS thresholds into physical pixels with wider touch hit radii so clicks never accidentally drag geometry.
 
 ```rust
 --8<-- "session_viewer/src/app/gesture/mod.rs:input-gestures"
 ```
 
-The registry tries control handles, gizmo handles, object drags and box selection in that order. A handle may take the initial press. An ordinary object drag or selection rectangle starts only after the pointer moves beyond the click threshold. This lets a small hand movement remain a click while deliberate movement starts editing.
-
-Each gesture supplies press/start, drag and release callbacks. Once chosen, it remains responsible for the interaction. Adding a gesture means adding its module and registry entry, not reopening every event branch. The `control`, `gizmo`, `object` and `box_select` adapters delegate to their corresponding state operations, which own saved placements, preview and commit/cancel behavior.
-
-Input thresholds are in CSS pixels, while window events and GPU picking can use different pixel spaces. The adapter converts window coordinates to surface pixels and accounts for device scale when comparing movement or handle reach. A finger gets a wider handle reach than a mouse; multiplying an already converted position by the device ratio again would move the pick away from the visible pointer.
-
 ### Give each adapter a precise release policy
 
-The control and gizmo adapters can claim the initial press, but a click has different meanings. Control release cancels the gesture when movement stayed a click, restoring the point. Gizmo release instead opens its numeric input on a click. A true drag commits through each corresponding state operation. Keeping these release callbacks in their adapters prevents a shared mouse handler from confusing click-to-edit with drag-to-transform.
+| File | Specification |
+| --- | --- |
+| [gesture/control.rs](../../src/app/gesture/control.rs) | Claims control-point presses, cancelling sub-threshold clicks cleanly while committing true vertex/CV drags on release. |
+| [gesture/gizmo.rs](../../src/app/gesture/gizmo.rs) | Claims gumball handle presses: a click without motion opens the floating `number_box`, whereas a drag previews on GPU rows and commits once on release. |
+| [gesture/object.rs](../../src/app/gesture/object.rs) | Activates only after mouse motion exceeds the drag threshold, pairing delayed GPU pick results with ground/vertical-plane translation or falling back to box select on miss. |
+| [gesture/box_select.rs](../../src/app/gesture/box_select.rs) | Tracks mouse-drag rectangles without touching geometry, delegating window (left-to-right) and crossing (right-to-left) resolution on release. |
+| [src/app/keys.rs](../../src/app/keys.rs) | Maps unfocused canvas keys (`Escape`, `Enter`, `Delete`, `F`, `H`, `S`, `Ctrl/Cmd+Z/Y/A`) through the shared command dispatcher after text-focus checks. |
 
-The object and box-selection adapters have no initial-press callback. They become eligible only after the host recognizes a plain mouse drag. Object dragging delegates its delayed pick and movement to state; a miss can leave the selection rectangle path responsible. Box selection delegates start, update and completion without implementing geometry edits. A finger touching an ordinary object therefore does not acquire this mouse-drag adapter merely because it lands on geometry.
+### Touch has its own state & IME keyboard bridge
 
-`keys.rs` routes Escape and Enter to the active state continuation and maps canvas Delete, F, H and S to commands. Ctrl or Cmd selects history shortcuts: Z undoes, Y or Shift-Z redoes, and A selects all. The host must first decide whether text owns the keys; the shortcut mapper itself does not know which field is focused. Reusing command dispatch gives keyboard and dock actions the same validation and history behavior.
-
-### Touch has its own state
+- `src/app/touch.rs` tracks active touch IDs (`1` finger orbits, `2` fingers pan by midpoint and clamped pinch-zoom, double-tap fits bounds) while resetting span baselines whenever finger count changes.
+- `src/app/agent.rs` (`CommandAgent`) manages the hidden mobile `<input>`, forwarding full-string replacements, tracking IME `compositionstart`/`compositionend` so active compositions are never clobbered, and detaching all DOM closures on `Drop`.
 
 ```rust
 --8<-- "session_viewer/src/app/touch.rs:input-touch-camera"
 ```
 
-The ordinary viewer tracks touches by browser ID. One finger orbits. Two fingers pan by their midpoint and zoom by the change in separation. When finger count changes, the next event records a fresh span instead of applying a jump from the previous gesture. Each pinch ratio is clamped to bound an unusually large event.
+### Retain input state & tie selection to its gesture
 
-A tap must satisfy both distance and duration limits. A nearby second tap can fit the view. The input host separately tracks a finger engaged with an editing tool; camera gestures must not simultaneously move that tool. Cancellation clears the gesture and pending tap. Browser pointer cancellation also invalidates the host's gesture state and wheel interaction.
+![19x19 GPU pick window (13x13 readback + 3 px visibility halo) vs full canvas](../illustrations/picking.svg)
 
-Stage input is a different mode: quick horizontal swipes step through the deck and a column tap advances it. Its scene camera uses the stage's own held-touch policy. These policies belong to the stage adapter described in [the scene chapter](stage-scene.md), not an additional rewrite of normal viewer touch handling.
+![Object, edge, face and control-point selection modes](../illustrations/pick-modes.svg)
 
-### A pick answer is not immediate
+![Geometric ControlId addresses versus tessellated display vertices](../illustrations/controls.svg)
 
-The GPU pick pass identifies geometry near a cursor and copies its result to a readback buffer. Mapping that buffer completes asynchronously. `Pick::poll` distinguishes no answer yet from a completed background hit: its return type is an option containing another option.
-
-Each request or cancellation advances a generation. The submitted copy remembers its generation; an answer from before a newer request, camera change or cancellation is discarded. The host can continue rendering while waiting, without letting a delayed answer select an object under an obsolete cursor.
-
-`state/features.rs::TAKE_PICK` offers a completed result to the active drag, tool, split and cloud-query adapters before ordinary selection. The first consumer handles it. `State::apply_pick` then interprets unconsumed results using object identity and the current selection mode. A non-pickable decoration may be visible without participating in this path.
-
-### Selection identifies what an edit means
+| File | Specification |
+| --- | --- |
+| [src/app/input.rs](../../src/app/input.rs) | Enforces `> 10 CSS px` (or `> 4 px` held `200 ms`) drag hysteresis, distinguishes right-click repeat from right-drag orbit, and cancels touch edits when a second finger lands. |
+| [src/app/selection.rs](../../src/app/selection.rs) | Separates parent row ID from `SelectionMode` (`Object`, `Edge`, `Face`, `ControlId`), building finite control cages while keeping cloud points GPU-resident. |
+| [src/app/ui/phone.rs](../../src/app/ui/phone.rs) | Routes `CommandAgent` text/keys to the topmost open panel field ahead of the dock, skipping inline completion suffixes and active IME compositions. |
+| [src/app/ui/overlay.rs](../../src/app/ui/overlay.rs) | Converts physical preview pixels once into `egui` points to draw rubber-band lines, dashed crossing boxes, snap squares and padded measurement chips. |
+| [src/state/box_select.rs](../../src/state/box_select.rs) | Applies `Ctrl`-remove before `Shift`-add on release (solid window left-to-right, dashed crossing right-to-left) and refuses start during active drawing/splitting. |
+| [src/state/cloud_query.rs](../../src/state/cloud_query.rs) | Assigns a monotonic generation to streamed-cloud control picks, ranking `65,536`-point pages on the GPU and discarding results if camera or selection changes. |
+| [src/state/sheet_query.rs](../../src/state/sheet_query.rs) | Highlights picked sheet entities immediately on the parent row and resolves optional `.meta` side-table names under a generation token. |
 
 ```rust
 --8<-- "session_viewer/src/app/selection.rs:input-selection"
 ```
 
-`SelectionMode` distinguishes a whole object from an edge, face or control on a parent row. `ControlId` preserves the geometric address: a vertex, curve control, surface control pair or cloud point. These are not interchangeable with GPU buffer offsets.
-
-`Controls` derives finite control positions and connection lines from the kernel geometry. Cloud controls remain GPU-resident instead of expanding every point into a CPU vector. Escape can return from a sub-selection to its parent. Editing uses the mode to choose a whole-object transform or a deformation of geometry inside that object.
-
-### Bridge the phone keyboard without losing composition
-
-`CommandAgent` owns the hidden browser input and its event-listener closures. Input events send the complete text through the event-loop proxy; editing keys send explicit key messages. Composition start/end tracks whether an IME is building a word, so the host can avoid replacing that in-progress input. Touch or pen taps focus the hidden field within the browser gesture when a text target needs the keyboard, while taps outside fields and popups blur it. A raised-keyboard flag prevents the same tap from immediately undoing that focus. Drop removes all installed listeners; retaining the closures only for the agent lifetime prevents callbacks from outliving their Rust owner.
-
-### Retain input state until the interaction ends
-
-`Input` distinguishes a quick pointer wobble from deliberate dragging: a plain mouse press starts a drag after more than ten CSS pixels, or more than four pixels held for at least 200 milliseconds. A chosen gesture keeps ownership through release. Running pointer tools take priority over ordinary selection; right-button clicks can finish or repeat commands only when they did not become navigation drags. Touch editing tracks the owning finger ID. A second finger cancels that edit and suppresses further actions until every finger lifts, then resets camera-touch state. Lost focus and browser pointer cancellation clear the held state instead of committing an abandoned edit.
-
-Selection separates a parent object row from the stable address of its selected edge, face or control. `Controls` filters nonfinite positions and creates links only between available neighboring controls, so a missing control does not shift the original geometric indices. BRep controls include vertex, curve and surface addresses; surface links connect both grid directions. Cloud points stay on the GPU instead of expanding into CPU controls. Escape returns to object mode while retaining the parent identity for the caller.
-
-The phone adapter routes whole-text messages to the last registered open panel field before the command dock. Whole replacement avoids duplicating composed input; key messages become one press and release. When the dock is closed, newly typed characters return to viewport dispatch. Following a field synchronizes externally changed text, but skips inline completion suffixes and active IME composition. Closing the last field lowers the keyboard unless the command line owns it. This adapter decides text ownership without modifying geometry or the browser listener lifetime.
-
-`ui/overlay.rs` converts device-pixel preview coordinates to egui points before painting drawing lines, filled regions, dashed strokes and square point marks. The label chip measures its text galley, adds padding and draws centered white text on black. These temporary overlays visualize the active tool or measurement; they are not persistent document objects or GPU-pickable geometry. Keeping the conversion at this boundary avoids applying the display scale twice.
-
-### Keep selection requests tied to their initiating gesture
-
-A box-selection gesture stores both corners in device pixels. Left-to-right means a window that contains whole objects; right-to-left means a crossing that touches them, drawn with a dashed outline. Starting is refused while drawing or splitting owns input. Release applies Ctrl removal before Shift addition and reports both matched and resulting selected counts. The overlay visualizes the pending region; selection changes only when the gesture finishes.
-
-The cloud-query state adapter starts only in streamed-cloud control mode and assigns each request a generation. It combines camera projection with cloud placement and converts the CSS selection aperture into device pixels. Source pages produce temporary GPU-pick candidates while displayed LOD remains bounded; after eligible pages are checked, the winner is resolved to its original source ID. View or selection changes cancel the query. Batches with another generation or a cancelled token cannot replace the current selection.
-
-Picking a sheet entity highlights its edge within the parent row rather than selecting the whole sheet; picking the same entity again clears selection. A new generation identifies its optional metadata request. Matching responses cache the side table and expose the entity name and kind; stale or cancelled responses are ignored. A missing metadata URL still permits selection by entity ID, while a metadata error is reported without inventing a name.
-
-### Adapt application state to the finished dock
-
-The command-line panel fills the finished dock's draft, prompt and tool options, then delegates command choice, acceptance and completion to the application registry. It retains its UI state between frames. A press can request text focus before key processing; an outside click closes a popup. History opens only when there are entries. Escape handling respects other active panels and menus, and the adapter can return focus to the canvas after a command. These are application bindings around the dock contract, so integrating another tool does not require rewriting the dock's editor.
-
 ## Run and observe
 
-Run the cumulative application with the comparison fixture. Drag with the right button to orbit, use the wheel to zoom, and enter `Fit` to restore the framing. Open `Layers All` and click an object's row: its selection highlight and gizmo should appear. Type a command in the dock and verify that its letters do not trigger scene shortcuts.
+Open the `application` build with the comparison fixture:
 
-At an upright 390-pixel viewport, use `Layers Off` to recover the scene width. The open panel has a 240-pixel minimum and can crop document nameplates in the remaining region. This is current production behavior, not proof of a fully adapted phone layout. Test ordinary touch navigation separately from the stage's swipe/tap navigation.
-
-![An actual feature-pixel click resolves the original Element, pick-first. This is the controlled front-view fixture, not a general picking-mode or physical-device qualification.](../screenshots/completion/feature-pixel-selected.png)
-
-An actual feature-pixel click resolves the original Element, pick-first. This is the controlled front-view fixture, not a general picking-mode or physical-device qualification.
-
-![Deleting that original removes its visible feature and makes the same pixel unpickable. The second original remains; allocated ribbon storage is retained for Undo.](../screenshots/completion/feature-pixel-deleted.png)
-
-Deleting that original removes its visible feature and makes the same pixel unpickable. The second original remains; allocated ribbon storage is retained for Undo.
+- Right-drag orbits, wheel zooms, `Layers All` + row click highlights the object and spawns its 3-axis gumball.
+- Typing `Fit` or `Select All` in the dock never triggers single-key `F` or `S` viewport shortcuts while the text field holds focus.
 
 ## Predict and try
 
-Predict what happens when you press a handle, drag it, then cancel before releasing. Its preview should return to the saved placement, without an undo transaction. Compare that with accepting the drag and undoing once. Then type into the dock while the object remains selected: input ownership should prevent the same key from acting on both the text and the scene.
+Grab a gumball arrow, drag an object across `30` frames, then press `Escape` before releasing the mouse button: predict the undo history count (`0` — `base_place` restores immediately) versus releasing the button (`1` undo transaction).
 
 ## Question and answer
 
-Why must a completed GPU pick carry a generation?
-
-Readback finishes later than the event that requested it. The camera, pointer or scene may have changed in between. Comparing the submitted generation with the current generation prevents an old result from selecting geometry according to a view the user no longer sees.
+**Why tag every asynchronous `19×19` GPU pick readback with a generation counter?**
+`Buffer::map_async` resolves on a later turn of the browser event loop; if the user orbited, clicked again or pressed `Escape` meanwhile, generation mismatch discards the stale hit before it can select the wrong object.
 
 ## Validation
 
-Current cumulative browser evidence covers normal zoom and command focus, hierarchy-row selection, and stage mouse/reset/zoom/click/key navigation with emulated upright swipe/tap input. Hierarchy selection does not test GPU screen-pick readback. Normal-viewer multitouch, cancelled editing gestures and physical-device interaction remain separate checks; stage touch success must not be reported as normal-viewer touch acceptance.
+Verified by native input/selection tests, [feature-pixel picking and deletion captures](release/completion-feature-picking-windows-20261115.json), hierarchy-row selection, dock focus isolation, and stage touch swipe/tap checks. Physical multi-touch hardware verification remains separate.
