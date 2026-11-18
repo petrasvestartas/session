@@ -6,7 +6,7 @@
 title: MATERIALIZATION DERIVATION
 grid: {center: [3.5, 3.5], size: 9, step: 1}
 camera: {yaw: -58, pitch: 26}
-palette: {free: pink}
+palette: {free: ink}
 net:
   fixed: {n1: [0, 0, 0], n2: [5, 0, 3], n3: [0, 7, 3], n4: [7, 5, 0]}
   free: {n0: [3, 3, 0.25]}
@@ -27,5 +27,5 @@ slides:
       - say: 'Hooke''s law links stretch to $\mathbf{q}$ and isolates every cut length $l_{0,k}$.'
         do:
           - {tex: '\mathbf{l} = \mathbf{l}_0 + \mathbf{L}_0\,(\mathbf{EA})^{-1}\,\mathbf{f} = \big(\mathbf{I} + (\mathbf{EA})^{-1}\,\mathbf{F}\big)\,\mathbf{l}_0', align: left, size: 18, gap: 10}
-          - {tex: '\mathbf{l}_0 = \big(\mathbf{I} + (\mathbf{EA})^{-1}\,\mathbf{Q}\,\mathbf{L}\big)^{-1}\,\mathbf{l}, \quad l_{0,k} = \frac{l_k}{1 + \dfrac{f_k}{EA_k}} = \frac{l_k}{1 + \dfrac{q_k\,l_k}{EA_k}}', align: left, size: 17, gap: 10, color: yellow}
+          - {tex: '\mathbf{l}_0 = \big(\mathbf{I} + (\mathbf{EA})^{-1}\,\mathbf{Q}\,\mathbf{L}\big)^{-1}\,\mathbf{l}, \quad l_{0,k} = \frac{l_k}{1 + \dfrac{f_k}{EA_k}} = \frac{l_k}{1 + \dfrac{q_k\,l_k}{EA_k}}', align: left, size: 17, gap: 10, color: accent}
           - {tex: '\Delta\mathbf{l}\text{: stretch},\quad \mathbf{l}\text{: stretched},\quad \mathbf{l}_0\text{: cut length},\quad E\text{: modulus},\quad A\text{: area}', align: left, size: 16, gap: 10, color: dim}

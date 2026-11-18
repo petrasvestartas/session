@@ -1,0 +1,91 @@
+title: 2 · Two auxiliary planes
+split: 0.55
+grid: {center: [0, 0], size: 6, step: 1, z: 0}
+camera: {fit: [O, A, B, C, P0, T, D0, D1], yaw: 20, pitch: 25}
+points:
+  O: [0, 0, 2]
+  A: [2, 1, 0]
+  B: [-1, -2, 0]
+  C: [-2, 1, 0]
+  P0: [2.5, -0.5, 0]
+  T: [1, 0, 0]
+  D0: [-0.5, 0, 3]
+  D1: [1.4, 0, -0.8]
+  AB0: [2.5, 1.5, 0]
+  AB1: [-1.5, -2.5, 0]
+  CP0: [-2.3, 1.15, 0]
+  CP1: [2.9, -0.7, 0]
+  RCP: [0.75, 0, 0.5]
+  RAB: [-0.75, 0, 3.5]
+blocks:
+  base:
+    - add:
+        - {id: O, point: O, color: ink, label: 'O'}
+        - {id: A, point: A, color: ink, label: 'A'}
+        - {id: B, point: B, color: ink, label: 'B'}
+        - {id: C, point: C, color: ink, label: 'C'}
+        - {id: a, line: [O, A], color: ink, label: 'a'}
+        - {id: b, line: [O, B], color: ink, label: 'b'}
+        - {id: c, line: [O, C], color: ink, label: 'c'}
+slides:
+  - title: Plane through a and b
+    steps:
+      - say: 'The plane $\Pi_{ab}$ contains bars $a,b$. The anchors $A,B$ define its trace on the datum.'
+        base: true
+        add:
+          - {id: ab0, line: [O, 'lerp(A,B,0.14)'], color: blue, width: 1.2, opacity: 0.36}
+          - {id: ab1, line: [O, 'lerp(A,B,0.28)'], color: blue, width: 1.2, opacity: 0.36}
+          - {id: ab2, line: [O, 'lerp(A,B,0.42)'], color: blue, width: 1.2, opacity: 0.36}
+          - {id: ab3, line: [O, 'lerp(A,B,0.56)'], color: blue, width: 1.2, opacity: 0.36}
+          - {id: ab4, line: [O, 'lerp(A,B,0.70)'], color: blue, width: 1.2, opacity: 0.36}
+          - {id: ab5, line: [O, 'lerp(A,B,0.84)'], color: blue, width: 1.2, opacity: 0.36}
+          - {id: trace_ab, line: [AB0, AB1], color: blue, width: 1.8, dash: true, label: 'ab'}
+          - {id: pi_ab, label: [0.6, -0.5, 1.3], tex: '\Pi_{ab}', color: blue, dir: [1, 1]}
+        eq: '\Pi_{ab}=\operatorname{span}(\mathbf{a},\mathbf{b})\ \text{through }O'
+  - title: Plane through c and P
+    steps:
+      - say: 'A second plane contains bar $c$ and the load line. Its datum trace passes through $C$ and $P_0$.'
+        base: true
+        add:
+          - {id: ab0, line: [O, 'lerp(A,B,0.20)'], color: blue, width: 1.1, opacity: 0.22}
+          - {id: ab1, line: [O, 'lerp(A,B,0.40)'], color: blue, width: 1.1, opacity: 0.22}
+          - {id: ab2, line: [O, 'lerp(A,B,0.60)'], color: blue, width: 1.1, opacity: 0.22}
+          - {id: ab3, line: [O, 'lerp(A,B,0.80)'], color: blue, width: 1.1, opacity: 0.22}
+          - {id: trace_ab, line: [AB0, AB1], color: blue, width: 1.8, dash: true, label: 'ab'}
+          - {id: cp0, line: [O, 'lerp(C,P0,0.125)'], color: pink, width: 1.2, opacity: 0.45}
+          - {id: cp1, line: [O, 'lerp(C,P0,0.25)'], color: pink, width: 1.2, opacity: 0.45}
+          - {id: cp2, line: [O, 'lerp(C,P0,0.375)'], color: pink, width: 1.2, opacity: 0.45}
+          - {id: cp3, line: [O, 'lerp(C,P0,0.5)'], color: pink, width: 1.2, opacity: 0.45}
+          - {id: cp4, line: [O, 'lerp(C,P0,0.625)'], color: pink, width: 1.2, opacity: 0.45}
+          - {id: cp5, line: [O, 'lerp(C,P0,0.75)'], color: pink, width: 1.2, opacity: 0.45}
+          - {id: cp6, line: [O, 'lerp(C,P0,0.875)'], color: pink, width: 1.2, opacity: 0.45}
+          - {id: P, arrow: [O, P0], color: load, label: '\mathbf{P}'}
+          - {id: P0, point: P0, color: ink, label: 'P_0'}
+          - {id: trace_cp, line: [CP0, CP1], color: pink, width: 1.8, dash: true, label: 'cP'}
+          - {id: pi_cp, label: 'mid(O,C,P0)', tex: '\Pi_{cP}', color: pink, dir: [-1, -1]}
+        eq: '\Pi_{cP}=\operatorname{span}(\mathbf{c},\mathbf{P})\ \text{through }O'
+  - title: Their intersection
+    steps:
+      - say: 'The two datum traces meet at $T$. Joining $O$ to $T$ gives the intersection $d$ of both planes.'
+        base: true
+        add:
+          - {id: ab0, line: [O, 'lerp(A,B,0.20)'], color: blue, width: 1.1, opacity: 0.24}
+          - {id: ab1, line: [O, 'lerp(A,B,0.40)'], color: blue, width: 1.1, opacity: 0.24}
+          - {id: ab2, line: [O, 'lerp(A,B,0.60)'], color: blue, width: 1.1, opacity: 0.24}
+          - {id: ab3, line: [O, 'lerp(A,B,0.80)'], color: blue, width: 1.1, opacity: 0.24}
+          - {id: trace_ab, line: [AB0, AB1], color: blue, width: 1.8, dash: true, label: 'ab'}
+          - {id: cp0, line: [O, 'lerp(C,P0,0.20)'], color: pink, width: 1.1, opacity: 0.28}
+          - {id: cp1, line: [O, 'lerp(C,P0,0.40)'], color: pink, width: 1.1, opacity: 0.28}
+          - {id: cp2, line: [O, 'lerp(C,P0,0.60)'], color: pink, width: 1.1, opacity: 0.28}
+          - {id: cp3, line: [O, 'lerp(C,P0,0.80)'], color: pink, width: 1.1, opacity: 0.28}
+          - {id: trace_cp, line: [CP0, CP1], color: pink, width: 1.8, dash: true, label: 'cP'}
+          - {id: T, point: T, color: ink, label: 'T'}
+          - {id: d, line: [D0, D1], color: orange, width: 2.6, dash: true, label: 'd'}
+          - {id: P, arrow: [O, P0], color: load, label: '\mathbf{P}'}
+        eq: 'T=(1,0,0), \qquad \mathbf{d}=\mathbf{x}_T-\mathbf{x}_O=(1,0,-2)'
+      - say: 'The resultants of $(A,B)$ and $(C,P)$ must be opposite and collinear on $d$.'
+        add:
+          - {id: Rcp, arrow: [O, RCP], color: orange, label: '\mathbf{R}_{cP}'}
+          - {id: Rab, arrow: [O, RAB], color: orange, label: '\mathbf{R}_{ab}'}
+        eq: '\mathbf{R}_{ab}=A\mathbf{a}+B\mathbf{b}, \qquad \mathbf{R}_{cP}=C\mathbf{c}+\mathbf{P}'
+        text: '$\mathbf{R}_{ab}+\mathbf{R}_{cP}=\mathbf{0}$. The geometry is known before either force is solved.'

@@ -12,10 +12,10 @@ use std::rc::Rc;
 
 /// The scene row of one stage object.
 struct Entry {
-    row: u32,            // Scene row holding the object.
-    base: Vec<[f64; 3]>, // Points the row was baked with.
-    last: Spatial,       // State last applied.
-    hidden: bool,        // Whether the row is hidden now.
+    rows: Vec<u32>, // Scene rows holding the object and, for open nodes, its paper centre.
+    base: Vec<[f64; 3]>, // Points the rows were baked with.
+    last: Spatial,  // State last applied.
+    hidden: bool,   // Whether the rows are hidden now.
 }
 
 /// Scene rows of the stage objects and the camera state last applied.
@@ -163,6 +163,7 @@ impl Scene3 {
             self.epoch = epoch;
             self.scale = scale;
         }
+        state.scene.arrowhead_pens = 24.0;
         state.gpu.view.thickness_px = scale as f32;
         let mut seen: Vec<&str> = Vec::with_capacity(list.len());
         for s in list {
@@ -178,7 +179,9 @@ impl Scene3 {
                 let reshaped = s.kind == SpatialKind::Polyline && e.last.pts != s.pts;
                 let repen = e.last.width != s.width || e.last.dash != s.dash;
                 if reshaped || repen || e.last.kind != s.kind {
-                    state.gpu.set_hidden(e.row, true);
+                    for &row in &e.rows {
+                        state.gpu.set_hidden(row, true);
+                    }
                     self.rows.remove(&s.id);
                 }
             }
@@ -187,25 +190,38 @@ impl Scene3 {
                     if e.last.pts != s.pts
                         && let Some(m) = placement(&e.base, &s.pts)
                     {
-                        // motion is a placement of the row: nothing is re-walked
-                        state.gpu.set_placement(e.row, &m);
-                        state.gpu.grew_bounds(e.row);
+                        for &row in &e.rows {
+                            state.gpu.set_placement(row, &m);
+                            state.gpu.grew_bounds(row);
+                        }
                     }
                     if e.last.color != s.color {
-                        let c = over(s.color, bg);
-                        let rgb = Some([
-                            (c.r * 255.0) as u8,
-                            (c.g * 255.0) as u8,
-                            (c.b * 255.0) as u8,
-                        ]);
-                        state.gpu.set_object_color(e.row, true, rgb);
-                        state.gpu.set_object_color(e.row, false, rgb);
+                        let color = over(s.color, bg);
+                        let ground = Color::new(bg[0], bg[1], bg[2], 1.0);
+                        for (i, &row) in e.rows.iter().enumerate() {
+                            let c = if i > 0 && s.kind == SpatialKind::Point {
+                                ground.clone()
+                            } else {
+                                color.clone()
+                            };
+                            let rgb = Some([
+                                (c.r * 255.0) as u8,
+                                (c.g * 255.0) as u8,
+                                (c.b * 255.0) as u8,
+                            ]);
+                            state.gpu.set_object_color(row, true, rgb);
+                            state.gpu.set_object_color(row, false, rgb);
+                        }
                     }
                     if e.last.reveal != s.reveal {
-                        state.gpu.set_reveal(e.row, s.reveal, dot_reveal);
+                        for &row in &e.rows {
+                            state.gpu.set_reveal(row, s.reveal, dot_reveal);
+                        }
                     }
                     if e.hidden == visible {
-                        state.gpu.set_hidden(e.row, !visible);
+                        for &row in &e.rows {
+                            state.gpu.set_hidden(row, !visible);
+                        }
                         e.hidden = !visible;
                     }
                     e.last = s.clone();
@@ -224,6 +240,10 @@ impl Scene3 {
                     match &g {
                         Geometry::Point(p) => {
                             session.add_point((**p).clone(), None);
+                            let mut centre = (**p).clone();
+                            centre.width *= 0.58;
+                            centre.pointcolor = Color::new(bg[0], bg[1], bg[2], 1.0);
+                            session.add_point(centre, None);
                         }
                         Geometry::Line(l) => {
                             session.add_line((**l).clone(), None);
@@ -245,21 +265,22 @@ impl Scene3 {
                         },
                         None,
                     );
-                    // one object per document: its row is the first one the append made
-                    if state.scene.row_count() <= first {
+                    let rows: Vec<u32> = (first as u32..state.scene.row_count() as u32).collect();
+                    if rows.is_empty() {
                         continue;
                     }
-                    let row = first as u32;
-                    state.gpu.set_non_pickable(row, true);
-                    state.gpu.set_reveal(row, s.reveal, dot_reveal);
-                    state.gpu.set_hidden(row, !visible);
-                    if baked.pts != s.pts
-                        && let Some(m) = placement(&baked.pts, &s.pts)
-                    {
-                        state.gpu.set_placement(row, &m);
+                    for &row in &rows {
+                        state.gpu.set_non_pickable(row, true);
+                        state.gpu.set_reveal(row, s.reveal, dot_reveal);
+                        state.gpu.set_hidden(row, !visible);
+                        if baked.pts != s.pts
+                            && let Some(m) = placement(&baked.pts, &s.pts)
+                        {
+                            state.gpu.set_placement(row, &m);
+                        }
                     }
                     let entry = Entry {
-                        row,
+                        rows,
                         base: baked.pts,
                         last: s.clone(),
                         hidden: !visible,
@@ -270,7 +291,9 @@ impl Scene3 {
         }
         for (id, e) in self.rows.iter_mut() {
             if !e.hidden && !seen.contains(&id.as_str()) {
-                state.gpu.set_hidden(e.row, true);
+                for &row in &e.rows {
+                    state.gpu.set_hidden(row, true);
+                }
                 e.hidden = true;
             }
         }

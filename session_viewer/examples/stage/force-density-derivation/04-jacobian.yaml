@@ -6,7 +6,7 @@
 title: JACOBIAN MATRIX
 grid: {center: [3.5, 3.5], size: 9, step: 1}
 camera: {yaw: -58, pitch: 26}
-palette: {free: pink}
+palette: {free: ink}
 net:
   fixed: {n1: [0, 0, 0], n2: [5, 0, 3], n3: [0, 7, 3], n4: [7, 5, 0]}
   free: {n0: [3, 3, 0.25]}
@@ -60,4 +60,4 @@ slides:
           - fly: {from: 'ULj[3,3]', to: 'JT[0,3]'}
           - color: {target: 'CNTj[0,:]', color: reset}
           - color: {target: 'ULj[3,3]', color: reset, with: true}
-          - {tex: '\mathbf{J}^{T} = \mathbf{C}_N^{T}\,\mathbf{U}\,\mathbf{L}^{-1} \;\Longrightarrow\; \mathbf{C}_N^{T}\,\mathbf{U}\,\mathbf{L}^{-1}\,\mathbf{f} = \mathbf{p}_x', size: 18, gap: 8, color: yellow}
+          - {tex: '\mathbf{J}^{T} = \mathbf{C}_N^{T}\,\mathbf{U}\,\mathbf{L}^{-1} \;\Longrightarrow\; \mathbf{C}_N^{T}\,\mathbf{U}\,\mathbf{L}^{-1}\,\mathbf{f} = \mathbf{p}_x', size: 18, gap: 8, color: accent}

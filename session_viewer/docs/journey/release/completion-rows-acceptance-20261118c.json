@@ -1,0 +1,187 @@
+{
+  "status": "accepted",
+  "subject": "rows",
+  "scope": "Cumulative row storage and inspector subject with reviewed supporting dependencies; recorded native/wasm and Windows Intel desktop/upright behavior",
+  "destination": "87f844e41d08ef104fc071d5bc18163ffe9a4353",
+  "files": {
+    "src/engine/gpu/device.rs": "ced1cff229cd47c5cc3de6d7713b7049ce2181cac444226bd27053b397774a20",
+    "src/app/launch.rs": "f1bdd451838790b61b9a52ea2aaa3097bf7f68b5721fd7d7ca633ca3c915b5c9",
+    "examples/course/canvas.rs": "9c542080ed079fa6734fa0d81a5991fdb6cb7e443f2b5324638ab11456311b63",
+    "examples/course/frame.rs": "916fb538f088d1d28783559a7955f463c7b2650ac2d7d0184eeec12158aae787",
+    "examples/course/entry.rs": "f57ce9f8b4ded8cee3b213c075e031cce236988de352b7f9d0c87cba9ffb1b6d",
+    "src/lib.rs": "496f1afd22d38c8521855e5116e0f8a98eb7c5b881cf374c596b65aefa24f0d4",
+    "src/engine/mod.rs": "e1b4c28d7bba3b04bd26d121c191673af443ffb87d8f98bd83c2e6a0ef33b722",
+    "src/app/mod.rs": "6fdb9083e31fb78cddaa8cbca0b23a8521efe9441f1891a7878999be70224d09",
+    "src/engine/gpu/mod.rs": "db8f34e24744c3bd8e624ae32f6b0086730cec558d7caa749490267a4f1fed33",
+    "examples/course/registration.rs": "2fa12e0dfb20968c5f78609f25e27804dc164ebf57320c4ba1ce5fa86bae834d",
+    "src/engine/gpu/ui.rs": "bcd2014f8a5c3cefae45889453d46c4d8080fe3885e2d2edaad1b294696907b2",
+    "examples/course/painting.rs": "d57c027f79370d3acce115da2b43aca2511c72421b4cd7f3cfb21c6a299749eb",
+    "src/app/mode.rs": "f17428ca405925e878ae6a19e6cd20955b51c46161a743abaa0ea4ccb20ad776",
+    "src/app/stage/actions.rs": "bfa174c8721621b2cd2876fd233cb2a23a9cb63e86bca0ae98dbee5dd29a3311",
+    "src/app/stage/check.rs": "af16790646943f02d4a57f6c7104578455adf480eed6932836336b9a3f9ff93d",
+    "src/app/stage/deck.rs": "3bdbe7dc2f7aa1f7b0be06e9369d473e7a549c1320da119c4c78acb5a773bb75",
+    "src/app/stage/draw.rs": "627fc2235cb1519e3025f0febd48884b784fd8bbdcef544ea9f57e5ea075bf0f",
+    "src/app/stage/eval.rs": "32d9122344a1b35e78050095f402d7651f2c88cdf3e78d2d75e5312bd19b1f21",
+    "src/app/stage/flat.rs": "6d58c5e99f0220e6ffdaa5af4005e56f60ec56fd2fc0da933dee74b5c49b4f7c",
+    "src/app/stage/font.rs": "6645dbf2bedf6d3d372da3f8acf2b018bea725d89fa0291b7d62ffd8c17c500c",
+    "src/app/stage/geometry.rs": "8cf47a513ba7e62566d483960658b77c6af9ecd0b4c0c1eec00a9471ba71bc3f",
+    "src/app/stage/layout.rs": "a73373c1f2f14ab88c0fb420a468b999c790548b159c10619e880a9b5105bc27",
+    "src/app/stage/matrix.rs": "d6bba4e397495cc53206bd97d17f7eb5dfabf17e7f8c5ec435489fdb52a50e9f",
+    "src/app/stage/math_mode.rs": "c2f4202757d8be7f9496b3e3e992c19851a0b342c8d9dee74604ce23d812e33e",
+    "src/app/stage/morph.rs": "630f4c05c1becb397e9ca42a5f7a51a2db8329a56e648088c1d7ce613cab090d",
+    "src/app/stage/net.rs": "ed05913412f3f89692c644cebefccb4267415e45fb883c03ad0e1097edb788a8",
+    "src/app/stage/object.rs": "daf2e1b0362a9f8e22be03a1591ddff6f657ee5922832ce21d8dd6e77eb65e19",
+    "src/app/stage/paint.rs": "6711d59d1ed306cf1944f71a6072c4c288fa59ddd89e50efb0e336beb5140d25",
+    "src/app/stage/presentation.rs": "a8ecbd44d4090efa0e5de8bd0fd131dd6e1ea4b8410f5e182a125b7228906158",
+    "src/app/stage/presentation_tests.rs": "c45cac90f734453dcf0149035ef60e9d38fa6819e6250357d956c3543996a665",
+    "src/app/stage/run.rs": "718417ad7762e4a3becaba90d1487bc5f9e2cedfa29913d174637e856c1a431f",
+    "src/app/stage/tests.rs": "e2230a99ca136c63fe772f3fcf37822dcf77659df507b3dd07b3e0fd51dca49a",
+    "src/app/stage/tex.rs": "de2b9d5716171c01ec91111e140b0e20928d981bdf14654f2c3cc3f3542424d3",
+    "src/app/stage/tween.rs": "31f13764cc04bb045a1c6247f3cdceedfcb64734a69bc8531b116ec82b69c3c1",
+    "src/app/stage/view.rs": "25ed3b8aad6f6251f3a7c02fe6f8506bae72eb1eb4c75b299dc7b1642ecda63c",
+    "src/app/stage/mod.rs": "d73ee2dbb09703ab79c92b85a8b24246c8b7e61e4f313d185a9fb3ce17367c1e",
+    "examples/course/mathematics.rs": "d81943c4fa1d21b359fe353917ad521d95841b49b8f8319867611045b7517291",
+    "examples/course/index.yaml": "93e66a5f8c5115571bb57d70afcb1a46094652aa88c081bd5f39ae9425297203",
+    "docs/lessons/03a-math/example.yaml": "fd18d11aea2738037cdf0850f21e2b465e178bbd19a976ca6c2d29f5af77e4bc",
+    "src/command_dock/mod.rs": "a54df69dcadec39f2d03f8f6e99025bd8737184d9ba9a6431f27f300ffe9ca25",
+    "src/command_dock/view.rs": "2b6c7b55d1257a7be5736edd22e69194655b6e14d4dfbffe5c1c01e86456f204",
+    "src/command_dock/theme.rs": "2064473cf413d0be10ca1f71440db34e11912c30893a360f11e446a5ffa2099d",
+    "examples/course/dock.rs": "a727b0b8e691ddcf1b0658f7075afbaaa6d7d94ff7e1adb5ca9f3ef2c2734e03",
+    "src/camera.rs": "76793d7e307fdb36a20148fa0e54e143da9af2fd0245186d37148a3ab26544b9",
+    "examples/course/camera.rs": "dcd25888699330fcf22e4159d58123c0d326dcb73d7d06fbdee7da7a011bac33",
+    "src/engine/gpu/buffers.rs": "8c14a571bdf888857fa499e6531f9091743ec6c09fe37ab12e373c3635eb94a7",
+    "src/engine/gpu/hull/geometry.rs": "9d2db6b2a1db2974a49f27962838fc2bd1ce2154b4b9108d2b5b40009811a4c7",
+    "src/engine/gpu/instance/layout.rs": "a093d3e4a8959ad5411d63a50826346e9db19d5196982fdcb964bb32dc6793e8",
+    "src/engine/gpu/objects/table.rs": "b63255c98016c145a613f5af464510afbb3a0e9d9f34792d8dbf8636433c1c2f",
+    "src/engine/pipelines/core.rs": "e8772a78252be84671a26723a24e29d5afd5611f0c976464e48be8e72cfc5fc4",
+    "src/engine/pipelines/bindings.rs": "7799e0467c095eea09730a0fc7c34847dfd8409dc1280ddda0bf171d35a77509",
+    "src/engine/pipelines/layouts.rs": "def1eace1cc86a381eaf2f3cb018e7bce20c3e5367e9beab52c99c4202606836",
+    "src/engine/performance.rs": "1a3d117f8e09ce3cc2dbfa5a446637e3429616f4cb0f03071e5708a009def7d8",
+    "src/engine/diagnostics.rs": "2f9dfe697b1bf3fa3305dd53a2b2c0ee5f86ee0f22f6379524f1440af1daa9f3",
+    "src/engine/gpu/hull.rs": "63df81472cf40ac9262776eb76c7f0ff5950ab79c0cc30e06d3a951632dde02c",
+    "src/engine/gpu/instance.rs": "fa48952c86f6e11113693a2e36a4fa103267fe8367b64d42e52c1209aa7866a4",
+    "src/engine/gpu/objects.rs": "cff60538beceec05df18287c43988a711cc181d1aee2d060239c935166875975",
+    "src/engine/pipelines/mod.rs": "ea58f7c2fa46642bcd9dc9d671fb988a287307ae0d28b72c99a92a12a5a451a8",
+    "src/shaders/scene.wgsl": "cd77cd9c125e2fd9cf80e33589d445f684e04cf11f80b9b7f763bad85a898505",
+    "src/shaders/clip.wgsl": "975782a36e64719e00eba623a42f28a39919c03035a71525e384d97ad3837544",
+    "src/shaders/ink_visibility.wgsl": "17111b9fc09de6d3f344f39f83f31d4dfbb8c57f92fe1763f635f73cb0a3a475",
+    "src/shaders/normals.wgsl": "1776ddecbef8a7ca5454216697fb4d4aff07e631ea3452a885b6a47df8056733",
+    "src/shaders/physical.wgsl": "197265d033815c44654368907825505fd55b03ee29cbb3ffa7bf04d3a4dd6c35",
+    "src/shaders/projected_triangle.wgsl": "3e569eabf25978668964bec693e0e250d8e634900fdd4d14808db6338a815b73",
+    "examples/course/rows.rs": "6281f54d5e6b36dc8dd3d42cdec99df88916919c796da1cdc8fe527950a101f1",
+    "build.rs": "868449c0976bf081f2a3bdf270c1ca0842f923b33a9b9e34dfcb0804c7f5363f",
+    "Cargo.toml": "f8527c5e3d3b1323e50dcf25f1f77886975312711ded0549e4b9999b6752f139",
+    "Cargo.lock": "759436e009af2c748678dd0e3c0e5a36848c95c0782e986804bdea72ffb65f93",
+    "index.html": "95892b097daa427fc43bd3da6352de1e199b7f526ed55bd41787eb16e734970c"
+  },
+  "lesson": {
+    "path": "journey/completion-rows.md",
+    "sha256": "f940b9c844c9649e165a985face902353891452e0eac1ef6af95a570ccf4d4b7"
+  },
+  "chapters": {},
+  "contractReview": {
+    "goal": "Move/tint/hide/reveal row0 while nonpickable row1 stays fixed",
+    "prerequisites": "Retained first5; shared shader layout/cache and bounds introduced once",
+    "design": "112byteInstance, separate anchored translations, flags independent of geometry; buffer growth invalidates bindings; extremes tighten placed bounds; lazy pipeline keys preserve format/sample configuration",
+    "experiment": "Reveal half, move twice, hide/show; placement/reveal survive visibility",
+    "answer": "A bind group references a concrete allocation, so growing buffers requires replacement",
+    "checkpoint": "68file independent shader build closure,54nativePASS1ignored,70browsercaptures across6modes",
+    "scope": "CPU inspector writes GPU rows but does not establish later shader reveal/picking behavior"
+  },
+  "sourceReview": {
+    "subject": "rows",
+    "folder": "rows-build01/rows",
+    "files": 68,
+    "exact": 68,
+    "changes": [],
+    "stageReconciliation20261117": {
+      "updatedSharedStageFiles": [
+        "src/app/stage/deck.rs",
+        "src/app/stage/paint.rs",
+        "src/app/stage/tests.rs"
+      ],
+      "receipt": "journey/release/completion-stage-reconciliation-windows-20261117.json"
+    },
+    "stageReconciliation20261118": {
+      "updatedSharedStageFiles": [
+        "src/app/stage/actions.rs",
+        "src/app/stage/deck.rs",
+        "src/app/stage/draw.rs",
+        "src/app/stage/layout.rs",
+        "src/app/stage/presentation_tests.rs",
+        "src/app/stage/tests.rs"
+      ],
+      "receipt": "journey/release/completion-stage-reconciliation-windows-20261118.json"
+    },
+    "stageReconciliation20261118c": {
+      "updatedSharedStageFiles": [
+        "src/app/stage/actions.rs",
+        "src/app/stage/application.rs",
+        "src/app/stage/deck.rs",
+        "src/app/stage/draw.rs",
+        "src/app/stage/flat.rs",
+        "src/app/stage/matrix.rs",
+        "src/app/stage/mod.rs",
+        "src/app/stage/object.rs",
+        "src/app/stage/paint.rs",
+        "src/app/stage/presentation_tests.rs",
+        "src/app/stage/run.rs",
+        "src/app/stage/spatial.rs",
+        "src/app/stage/tests.rs"
+      ],
+      "receipt": "journey/release/completion-stage-reconciliation-windows-20261118c.json"
+    }
+  },
+  "evidence": [
+    {
+      "path": "journey/release/completion-rows-windows-20261115.json",
+      "sha256": "7f137dff8c7f6433af119b7947de9611feb6fdcfb32a5d30446e9f29fb1bc54e"
+    },
+    {
+      "path": "journey/release/completion-rows-root-review-20261116.json",
+      "sha256": "8c154120abca706f0afc8a4abee4f9dd77f7759326a47157156ef1faf0f74533"
+    },
+    {
+      "path": "journey/release/completion-stage-reconciliation-windows-20261117.json",
+      "sha256": "4e94fc59ea124772b6cec3aadf262329d99d7b2f43050dea210aeeb0594c0c2b"
+    },
+    {
+      "path": "journey/release/completion-production-reconciliation-20261117.json",
+      "sha256": "d286c2807abcc98c7d1fbff548f10003d067102d2a38a20f487a51b87afd6a93"
+    },
+    {
+      "path": "journey/release/completion-stage-reconciliation-windows-20261118.json",
+      "sha256": "288a15c74c32bcb7af096ebb8798f793c24ede4cf7707891f94711125f56e540"
+    },
+    {
+      "path": "journey/release/completion-production-reconciliation-20261118.json",
+      "sha256": "abe3c48f192e587b5314d1d3ba750e3c5598e27019a40b6c67667049e038546c"
+    },
+    {
+      "path": "journey/release/completion-stage-reconciliation-windows-20261118c.json",
+      "sha256": "4f99e3719dd22e23aa9c61b0b12cee592aff161d7c141efdb2b36ac0dc772755"
+    },
+    {
+      "path": "journey/release/completion-production-reconciliation-20261118c.json",
+      "sha256": "af49c83a58de4463b5332b51320009c5ac79166b0f5e4fda236fb03e0a81543c"
+    }
+  ],
+  "validation": [
+    "68file source closure exactly matches rows-build01/rows including own shader build script",
+    "54 native tests passed; one GPU-dependent test ignored in recorded suite",
+    "Desktop/upright move/reveal/hide/tint round trips with neighboring row unchanged",
+    "Complete lesson/source independent review; padding wording corrected to actual following word",
+    "Re-verified on merged session/main (2026-11-17) after upstream stage deck/paint/tests updates: locked wasm check passed, stage native suites passed (20/20 mathematics, 19/19 application stage), and stage browser playback passed",
+    "Re-verified on fast-forwarded session/main (f1d477f2c, 2026-11-18) after upstream dark-default ground, fixed-width row-slot, flush box-highlight and 22-chapter stage deck updates: locked wasm checks passed, stage native suites passed (21/21 mathematics with 1 GPU ignored, 20/20 application app::stage), and all 22 chapters across all 5 decks passed WebGPU playback at 1280x800 and 390x844",
+    "Re-verified on 2026-11-18c after graphic-statics white-default palette, flat.rs 2D orthographic construction, foppl-spatial-joint deck and 24x0.30 arrowhead_pens updates: locked wasm checks passed across all 7 assemblies, native suites passed (25/25 mathematics with 1 GPU ignored, 24/24 application app::stage, 5/5 app::walk::curves), and all 27 chapters across all 6 decks passed WebGPU playback at 1280x800 and 390x844 (54 cases, 220 steps, 85 captures)"
+  ],
+  "limitations": [
+    "CPU inspector does not establish shader reveal or picking behavior",
+    "No physical-phone or application instancing-parity acceptance",
+    "Manifest acceptance requires independent final binding"
+  ],
+  "lessonPolish20261118b": {
+    "baseCommit": "ecee5296fb6546a02a779ee63af37cc7bfcab73d",
+    "summary": "Code-first minimal-prose lesson revision with embedded BRG SVG schemes, verified WebGPU checkpoint screenshots, and live --8<-- source includes; checkpoint source files unchanged."
+  }
+}

@@ -9,6 +9,7 @@ https://petrasvestartas.github.io/session/?stage=force-density                  
 https://petrasvestartas.github.io/session/?stage=force-density-matrices         2 · the method with matrices: C, D_N, D_F, any net and its forces, as a tool
 https://petrasvestartas.github.io/session/?stage=force-density-derivation       3 · where the formula comes from: the Jacobian, the matrix form (6.4.2, 6.4.3)
 https://petrasvestartas.github.io/session/?stage=force-density-materialization  4 · elongations and unstretched lengths (6.5), résumé
+https://petrasvestartas.github.io/session/?stage=foppl-spatial-joint           5 · Föppl’s spatial joint and a simple space truss
 &chapter=7&step=3                                                           open at chapter 7, after its third step
 ```
 
@@ -17,32 +18,46 @@ Keys: **→ / Space** next step, **←** back, **↓ / ↑** next and previous s
 
 ## White and black
 
-A deck plays on black by default, with the ETH Zurich | BRG marks at the bottom right in the ink
+A deck plays on white by default, with the ETH Zurich | BRG marks at the bottom right in the ink
 colour. The slide shows no key hints and no documentation corner; the title and the step's
 sentence are drawn in the ink colour. `theme: light` or `theme: dark` in `index.yaml` chooses the
 initial ground, `&theme=dark` or `&theme=light` in the address overrides the deck, and **T** swaps
 the ground at the same step.
 
-Both grounds know the same colour names, so a deck never names a hex colour for one ground only:
+The figures keep black member vectors, open circles and dotted construction, while display colours
+are vivid enough to make every highlighted role clear.
 
 | name | white ground | black ground | use |
 |---|---|---|---|
-| `blue` | `#0a7cff` | `#2f8bff` | fixed nodes, accent, negative entries |
-| `lightblue` | `#4fb3ff` | `#7cc4ff` | free nodes |
-| `pink` | `#ff2d7a` | `#ff4fa3` | components, positive entries, large forces |
-| `yellow` | `#ffc400` | `#ffd60a` | a highlight that is neither |
-| `orange` | `#ff7a1a` | `#ff8a1f` | a third series |
-| `green` | `#00c46a` | `#00f5b0` | loads, thrust |
-| `grey` | `#8a9099` | `#8d97a8` | what stays behind |
-| `black`, `white` | `#111111`, `#ffffff` | `#000000`, `#f4f6fa` | |
+| `blue`, `accent`, `load` | `#007bc4` | `#2f8bff` | external loads, captions, highlighted text, negative entries |
+| `pink`, `pos` | `#ff2d7a`, `#ff5c9a` | `#ff4fa3`, `#ff5c9a` | positive entries and emphasized components |
+| `yellow` | `#ffc400` | `#ffd60a` | filled highlight cells and the upper force ramp |
+| `orange` | `#ff7a1a` | `#ff8a1f` | the high force ramp |
+| `green` | `#00c46a` | `#00f5b0` | the middle force ramp |
+| `navy` | `#182c5b` | `#bdbfe8` | the low force ramp |
+| `blue_band`, `lightblue` | `#a9c9ff` | `#46616e` | selected blue fills |
+| `pink_band` | `#ff8fbd` | `#765260` | selected pink fills |
+| `yellow_light` | `#ffe38a` | `#766b38` | selected warm fills |
+| `grey` | `#888888` | `#b9b9bd` | construction that stays behind |
+| `cell`, `faint` | `#e4e7e8` | `#3f4548` | neutral fills and rules |
+| `black`, `white` | `#111111`, `#ffffff` | `#000000`, `#f4f4f6` | |
 
-The roles (`ink dim faint free fixed load x y z accent bar pos neg cell bg`) map onto these. A
-chapter can change a colour for both grounds or for each:
+`zero` is `#b9b9bd` and `ghost` is `#c8d8df` on white; `neg` is `#4c9bff` on both grounds. The roles
+(`ink dim faint free fixed load x y z accent bar pos neg cell bg`) map onto these. Lines default to
+a 3.2 px pen and cuboids to a 1.2 px dashed pen. Nodes are open circles with a paper-coloured centre.
+Stage arrowheads are large, elongated solid triangles in the shaft colour, with the tip exactly on the endpoint.
+Positive matrix cells are pink, negative cells blue, and active highlight cells yellow. Highlighted
+formula text, matrix titles and their row or column labels use the same accent blue, while numeric
+matrix entries stay black. Repeated occurrences of the same symbol are highlighted together. Text
+contrast is chosen to remain readable on each fill.
+Equations default to 36 px and spatial labels to 24 px.
+
+A chapter can change a colour for both grounds or for each:
 
 ```yaml
 palette:
-  accent: pink                         # both grounds
-  mark: {light: '#0a7cff', dark: yellow}
+  accent: blue                         # both grounds
+  mark: {light: navy, dark: yellow}
 ```
 
 On a phone: swipe left for the next step and right for the one before, tap to advance, hold and
@@ -127,7 +142,7 @@ Each key is one thing that happens with the sentence. Keys play top to bottom.
 | `matrix: DN` | a matrix of the net by name (table below), or `{rows: [[1, -1], [0, 1]]}` typed by hand |
 | `row: ['\mathbf{u} =', {id: C, matrix: C}, ...]` | formulas and matrices on one line; an item such as `{text: name, width: 7.75}` is centred in a fixed-width slot (em) |
 | `show: [cables, fixed]` | draws parts of the net: `fixed`, `free`, `cables`, `loads` or `net` (all of it) |
-| `show: forces` | one line per cable of the solved net, blue and thin for a small force, pink and thick for a large one |
+| `show: forces` | one line per cable of the solved net, using the vivid blue–green–yellow–pink ramp; thickness follows force |
 | `solve: true` | moves the free nodes to equilibrium; `solve: {load: [0, 0, 1], q: 2, rim: 6}` solves a changed net |
 | `project: {of: F1, parts: 'F_{1,%}'}` | the dashed box an arrow spans; its first part drops out of the arrow onto its axis and the others are drawn on in order, in x, y, z colours, with a label on each (`%` becomes the axis); `axes: [x, z]` for a flat case |
 | `walk: [F1, F2, F3]` | puts each arrow at the tip of the one before (the arrows run between named points); `walk: back` returns them |
@@ -140,8 +155,9 @@ Each key is one thing that happens with the sentence. Keys play top to bottom.
 | `add: {...}` | any object (next section) |
 | `do: [...]` | several of the above in a list, when one key is needed twice |
 
-A matrix cell is a rounded fill: pink for positive, blue for negative, dark for zero. A matrix
-with more than 14 rows or columns is drawn as its pattern: one small square per non-zero entry.
+A matrix cell is pink for a positive entry, blue for a negative entry and neutral for zero; an active
+highlight is yellow. A matrix with more than 14 rows or columns is drawn as its pattern: one small
+square per non-zero entry.
 
 ## Your own blocks
 
@@ -204,6 +220,7 @@ Node and cable names are also object names: `color: {target: a, color: accent}`,
 | `line: [P0, P1]`, `arrow: [P0, P1]` | `width`, `dash: true`, `label` at the midpoint |
 | `polyline: [A, B, C]`, `polygon: [...]` | open or closed |
 | `cuboid: [P0, P1]` | the dashed box between two corners |
+| `drawing: [...]` + `at: [x, y]` | orthographic construction shapes in slide pixels: `point`, `line`, `arrow`, `polyline`, `polygon`; `fill` colours a polygon, `size` sets a node radius, and `opacity` controls one shape |
 | `label: P1` + `tex: '(0,\,0,\,0)'` | a formula at a 3D position |
 | `label: P1` + `image: img/a.png` | a picture pinned to a 3D position, `height` in em; it faces the screen and keeps its size |
 
@@ -212,7 +229,12 @@ A position is a name from `points:` or the net, `[x, y, z]`, or an expression:
 `move: {point: P0, to: [3, 3, 0.25]}` animates it.
 
 Every object takes `id` (to refer to it later), `color` (`ink dim faint free fixed load x y z
-accent pos neg cell`, `blue pink yellow orange green grey` or `#rrggbb`) and `size`.
+accent pos neg cell`, `blue navy pink yellow orange green grey lightblue ghost zero pink_band blue_band yellow_light` or `#rrggbb`) and `size`.
+
+The Föppl deck demonstrates the full construction sequence: a datum grid and projection rays,
+blue- and pink-ruled auxiliary planes, two true-length force triangles unfolded along their shared resultant, aligned elevation and
+plan, and a checked six-bar truss. The 2D construction layer uses the same elongated arrowheads
+and open nodes as the 3D scene; `at` positions fixed construction drawings and their captions.
 
 ## Other actions
 

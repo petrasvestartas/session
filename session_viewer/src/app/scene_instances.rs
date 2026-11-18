@@ -201,6 +201,7 @@ impl Scene {
             row,
             interactions: self.interactions,
             attributes: self.attributes,
+            arrowhead_pens: self.arrowhead_pens,
         };
         let mut walked = match batch {
             Some(index) => {
@@ -346,6 +347,7 @@ impl Scene {
             row,
             interactions: self.interactions,
             attributes: self.attributes,
+            arrowhead_pens: self.arrowhead_pens,
         };
         let walk = walk_geometry(&mut Walk::of(&mut up), &cx, definition);
         (up, walk)

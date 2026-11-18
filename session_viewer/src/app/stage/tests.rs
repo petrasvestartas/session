@@ -2,12 +2,13 @@ use super::{deck, font, run, tex};
 use std::collections::HashMap;
 use std::rc::Rc;
 
-const DECKS: [&str; 5] = [
+const DECKS: [&str; 6] = [
     "equilibrium",
     "force-density",
     "force-density-matrices",
     "force-density-derivation",
     "force-density-materialization",
+    "foppl-spatial-joint",
 ];
 
 /// The stage fonts read from the crate's assets.
@@ -357,6 +358,15 @@ fn both_grounds_name_the_same_colours() {
     assert_eq!(a, b);
     assert_eq!(light["bg"], [1.0, 1.0, 1.0, 1.0]);
     assert_eq!(dark["bg"], [0.0, 0.0, 0.0, 1.0]);
+    assert_eq!(light["navy"], super::tex::hex("#182c5b").unwrap());
+    assert_eq!(light["load"], super::tex::hex("#007bc4").unwrap());
+    assert_eq!(light["accent"], light["load"]);
+    assert_eq!(light["pos"], super::tex::hex("#ff5c9a").unwrap());
+    assert_eq!(light["neg"], super::tex::hex("#4c9bff").unwrap());
+    assert_eq!(light["yellow"], super::tex::hex("#ffc400").unwrap());
+    assert_eq!(light["free"], light["ink"]);
+    assert_eq!(light["fixed"], light["ink"]);
+    assert_eq!(light["blue_band"], super::tex::hex("#a9c9ff").unwrap());
 }
 
 #[test]
@@ -380,16 +390,86 @@ fn a_chapter_colour_can_differ_per_ground() {
 }
 
 #[test]
+fn yellow_matrix_highlights_use_black_numbers_and_accent_labels() {
+    let chapter = deck::chapter(
+        "slides:\n  - title: m\n    steps:\n      - matrix: {id: M, rows: [[1]], rowlabels: [n_0], collabels: [x]}\n      - color: {target: M, color: yellow}\n",
+        "c.yaml",
+    )
+    .unwrap();
+    let index = deck::index("name: Fills\nchapters: [c.yaml]").unwrap();
+    let mut stage = run::Stage::new(Rc::new(fonts()), index, vec![chapter]);
+    stage.rebuild(0, Some(2));
+    stage.tick(10_000.0);
+    let matrix = stage.objs.iter().find(|o| o.id == "M").unwrap();
+    let entry = matrix.groups["0,0"][1];
+    assert_eq!(matrix.colors[&entry].at(10_000.0), stage.palette("ink"));
+    for label in &matrix.groups["labels"] {
+        assert_eq!(matrix.colors[label].at(10_000.0), stage.palette("accent"));
+    }
+}
+
+#[test]
+fn matching_matrix_symbols_are_colored_together() {
+    let (index, chapters) = deck("force-density-matrices");
+    let mut stage = run::Stage::new(Rc::new(fonts()), index, chapters);
+    stage.rebuild(1, Some(0));
+    stage.tick(10_000.0);
+    for key in ["CNs/name", "CFs/name"] {
+        let matrix = stage
+            .objs
+            .iter()
+            .find(|o| o.groups.contains_key(key))
+            .unwrap();
+        assert_eq!(
+            super::actions::matrix_name_key(&matrix.content, "\\mathbf{C}_N").as_deref(),
+            Some("CNs/name")
+        );
+        let prim = matrix.groups[key][0];
+        assert_eq!(
+            matrix.colors[&prim].at(10_000.0),
+            stage.palette("accent"),
+            "{key}"
+        );
+    }
+}
+
+#[test]
+fn matrix_cells_use_vivid_sign_fills() {
+    let chapter = deck::chapter(
+        "slides: [{title: m, steps: [{matrix: {id: M, rows: [[1, -1, 0]]}}]}]",
+        "c.yaml",
+    )
+    .unwrap();
+    let index = deck::index("name: Fills\nchapters: [c.yaml]").unwrap();
+    let mut stage = run::Stage::new(Rc::new(fonts()), index, vec![chapter]);
+    stage.rebuild(0, Some(1));
+    let (positive, negative, neutral) = (
+        stage.palette("pos"),
+        stage.palette("neg"),
+        stage.palette("cell"),
+    );
+    let matrix = stage.objs.iter().find(|o| o.id == "M").unwrap();
+    let fills: Vec<_> = matrix
+        .expr
+        .prims
+        .iter()
+        .filter(|p| matches!(p.shape, tex::Shape::Rect { .. }))
+        .map(|p| p.color)
+        .collect();
+    assert_eq!(fills, vec![Some(positive), Some(negative), Some(neutral)]);
+}
+
+#[test]
 fn the_ground_swaps_at_the_same_step() {
     let (index, chapters) = deck("force-density");
     let mut stage = run::Stage::new(Rc::new(fonts()), index, chapters);
     pictures(&mut stage, "force-density");
-    assert_eq!(stage.theme, deck::Theme::Dark);
+    assert_eq!(stage.theme, deck::Theme::Light);
     stage.rebuild(0, Some(2));
     let before = (stage.chapter, stage.step, stage.objs.len());
-    stage.set_theme(deck::Theme::Light, 0.0);
-    assert_eq!(stage.palette("bg"), [1.0, 1.0, 1.0, 1.0]);
-    assert_eq!((stage.chapter, stage.step, stage.objs.len()), before);
     stage.set_theme(deck::Theme::Dark, 0.0);
     assert_eq!(stage.palette("bg"), [0.0, 0.0, 0.0, 1.0]);
+    assert_eq!((stage.chapter, stage.step, stage.objs.len()), before);
+    stage.set_theme(deck::Theme::Light, 0.0);
+    assert_eq!(stage.palette("bg"), [1.0, 1.0, 1.0, 1.0]);
 }

@@ -1,0 +1,78 @@
+title: 4 · Elevation and plan
+split: 0.45
+grid: {center: [2, 0], size: 7, step: 1, z: -7}
+camera: {fit: [V0, V1, V2, V3, F1, F3], yaw: 20, pitch: 25}
+points:
+  V0: [0, 0, 0]
+  V1: [5, -1, -4]
+  V2: [3, 0, -6]
+  V3: [4, 2, -4]
+  F0: [0, 0, -7]
+  F1: [5, -1, -7]
+  F2: [3, 0, -7]
+  F3: [4, 2, -7]
+blocks:
+  solid:
+    - add:
+        - {id: P, arrow: [V0, V1], color: load, label: '\mathbf{P}'}
+        - {id: C, arrow: [V1, V2], color: pink, label: '\mathbf{F}_c'}
+        - {id: B, arrow: [V2, V3], color: blue, label: '\mathbf{F}_b'}
+        - {id: A, arrow: [V3, V0], color: blue, label: '\mathbf{F}_a'}
+        - {id: R, line: [V0, V2], color: orange, width: 2.0, dash: true}
+        - {id: v0, point: V0, color: ink}
+        - {id: v1, point: V1, color: ink}
+        - {id: v2, point: V2, color: ink}
+        - {id: v3, point: V3, color: ink}
+  projected:
+    - add:
+        - {id: FP, arrow: [F0, F1], color: load, width: 2.2}
+        - {id: FC, arrow: [F1, F2], color: pink, width: 2.2}
+        - {id: FB, arrow: [F2, F3], color: blue, width: 2.2}
+        - {id: FA, arrow: [F3, F0], color: blue, width: 2.2}
+        - {id: drop0, line: [V0, F0], color: grey, width: 1.3, dash: true}
+        - {id: drop1, line: [V1, F1], color: grey, width: 1.3, dash: true}
+        - {id: drop2, line: [V2, F2], color: grey, width: 1.3, dash: true}
+        - {id: drop3, line: [V3, F3], color: grey, width: 1.3, dash: true}
+slides:
+  - title: Two orthographic views
+    steps:
+      - say: 'The same four vectors are projected onto the datum. Thin projectors connect corresponding corners.'
+        solid: true
+        projected: true
+        add:
+          - {id: views, drawing: [
+              {line: [[960, 260], [960, 610]], color: grey, width: 1.1, dash: true},
+              {line: [[1290, 356], [1290, 644]], color: grey, width: 1.1, dash: true},
+              {line: [[1158, 404], [1158, 610]], color: grey, width: 1.1, dash: true},
+              {line: [[1224, 356], [1224, 542]], color: grey, width: 1.1, dash: true},
+              {line: [[960, 260], [1158, 404]], color: orange, width: 1.8, dash: true},
+              {line: [[960, 610], [1158, 610]], color: orange, width: 1.8, dash: true},
+              {arrow: [[960, 260], [1290, 356]], color: load},
+              {arrow: [[1290, 356], [1158, 404]], color: pink},
+              {arrow: [[1158, 404], [1224, 356]], color: blue},
+              {arrow: [[1224, 356], [960, 260]], color: blue},
+              {arrow: [[960, 610], [1290, 644]], color: load},
+              {arrow: [[1290, 644], [1158, 610]], color: pink},
+              {arrow: [[1158, 610], [1224, 542]], color: blue},
+              {arrow: [[1224, 542], [960, 610]], color: blue},
+              {point: [960, 260], color: ink, size: 4.5}, {point: [1290, 356], color: ink, size: 4.5},
+              {point: [1158, 404], color: ink, size: 4.5}, {point: [1224, 356], color: ink, size: 4.5},
+              {point: [960, 610], color: ink, size: 4.5}, {point: [1290, 644], color: ink, size: 4.5},
+              {point: [1158, 610], color: ink, size: 4.5}, {point: [1224, 542], color: ink, size: 4.5}
+            ], at: [0, 0]}
+          - {id: elevation, tex: '\text{Elevation · }x\text{–}z', at: [950, 170], size: 25, color: accent}
+          - {id: plan, tex: '\text{Plan · }x\text{–}y', at: [950, 470], size: 25, color: accent}
+          - {id: v0e, tex: 'v_0', at: [920, 243], size: 22}
+          - {id: v1e, tex: 'v_1', at: [1300, 350], size: 22}
+          - {id: v2e, tex: 'v_2', at: [1115, 397], size: 22}
+          - {id: v3e, tex: 'v_3', at: [1233, 333], size: 22}
+          - {id: v0p, tex: 'v_0', at: [920, 594], size: 22}
+          - {id: v1p, tex: 'v_1', at: [1300, 638], size: 22}
+          - {id: v2p, tex: 'v_2', at: [1115, 603], size: 22}
+          - {id: v3p, tex: 'v_3', at: [1233, 519], size: 22}
+        do:
+          - add: {id: projector_note, tex: 'x_i\ \text{is constant along each vertical projector.}', at: [900, 725], size: 25}
+      - say: 'A projection explains alignment, but only the true spatial length gives the force magnitude.'
+        remove: [projector_note]
+        eq: {tex: '|\mathbf{F}_a|=\sqrt{(-4)^2+(-2)^2+4^2}=6', at: [880, 700], size: 29}
+        add: {id: projected_lengths, tex: '|\mathbf{F}_b|=3,\quad |\mathbf{F}_c|=3,\qquad A=-6,\ B=-3,\ C=+3', at: [920, 760], size: 24}

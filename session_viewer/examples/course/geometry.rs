@@ -49,6 +49,7 @@ pub fn start() -> Result<(), wasm_bindgen::JsValue> {
                 row: i as u32,
                 interactions: true,
                 attributes: true,
+                arrowhead_pens: 0.0,
             };
             let drawn = walk::walk_geometry(&mut Walk::of(&mut upload), &cx, geometry);
             let mut row = ObjectRow::new(

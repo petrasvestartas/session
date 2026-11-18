@@ -6,7 +6,7 @@
 title: WORKFLOW
 grid: {center: [3.5, 3.5], size: 9, step: 1}
 camera: {yaw: -58, pitch: 26}
-palette: {free: pink}
+palette: {free: ink}
 net:
   fixed: {n1: [0, 0, 0], n2: [5, 0, 3], n3: [0, 7, 3], n4: [7, 5, 0]}
   free: {n0: [3.6, 3.4, 1.9]}
@@ -22,4 +22,4 @@ slides:
           - eq: {tex: '\text{1. Shape:} &\quad \mathbf{x}_N = (\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N)^{-1}(\mathbf{p} - \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{x}_F)', size: 22, gap: 18}
           - solve: true
           - eq: {tex: '\text{2. Forces:} &\quad l_k = \|\mathbf{x}_{\text{end}} - \mathbf{x}_{\text{start}}\|, \qquad f_k = q_k\,l_k', size: 22, gap: 18}
-          - eq: {tex: '\text{3. Cut list:} &\quad l_{0,k} = \frac{l_k}{1 + \dfrac{f_k}{EA}}', size: 22, gap: 18, color: yellow}
+          - eq: {tex: '\text{3. Cut list:} &\quad l_{0,k} = \frac{l_k}{1 + \dfrac{f_k}{EA}}', size: 22, gap: 18, color: accent}

@@ -30,6 +30,7 @@ fn walk_element(interactions: bool) -> (Upload, Row) {
         row: 4,
         interactions,
         attributes: interactions,
+        arrowhead_pens: 0.0,
     };
     let row = walk_geometry(
         &mut Walk::of(&mut up),
@@ -74,6 +75,7 @@ fn contact_polygons_fill_red() {
         row: 7,
         interactions: true,
         attributes: false,
+        arrowhead_pens: 0.0,
     };
     let before = {
         let mut bare = Upload::default();

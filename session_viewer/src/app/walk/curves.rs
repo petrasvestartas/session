@@ -67,14 +67,14 @@ pub(super) fn push_polyline(
 // --8<-- [end:curve-dash-chain]
 // --8<-- [start:curve-heads]
 /// A head-only vector row at the end of `segment`, aimed along it.
-fn head_row(segment: &CylinderSegment) -> VectorRow {
+fn head_row(segment: &CylinderSegment, head_pens: f32) -> VectorRow {
     VectorRow {
         start: segment.p0,
         radius: segment.radius,
         end: segment.p1,
         instance_id: segment.instance_id,
         color: segment.color,
-        head: 0.0,
+        head: head_pens,
         heads: VectorRow::HEAD_END | VectorRow::HEAD_ONLY,
         pad: 0,
         start_trim: 0.0,
@@ -89,6 +89,7 @@ pub(super) fn push_heads(
     lanes: &mut LaneRows,
     first: usize,
     arrowhead: Arrowhead,
+    head_pens: f32,
 ) -> u32 {
     let (start, end) = match arrowhead {
         Arrowhead::NONE => return 0,
@@ -113,12 +114,12 @@ pub(super) fn push_heads(
             p1: head.p0,
             ..head
         };
-        rows.push(head_row(&flipped));
+        rows.push(head_row(&flipped, head_pens));
         seg.ribbon_heads.push((first as u32, VectorRow::HEAD_START));
     }
 
     if end {
-        rows.push(head_row(&tail));
+        rows.push(head_row(&tail, head_pens));
         seg.ribbon_heads
             .push((seg.ribbons.len() as u32 - 1, VectorRow::HEAD_END));
     }
@@ -128,7 +129,13 @@ pub(super) fn push_heads(
 
 // --8<-- [end:curve-heads]
 /// A line as one segment.
-pub fn walk_line(seg: &mut SegRows, lanes: &mut LaneRows, l: &Line, row: u32) -> Row {
+pub fn walk_line(
+    seg: &mut SegRows,
+    lanes: &mut LaneRows,
+    l: &Line,
+    row: u32,
+    head_pens: f32,
+) -> Row {
     let p0 = [l[0] as f32, l[1] as f32, l[2] as f32];
     let p1 = [l[3] as f32, l[4] as f32, l[5] as f32];
     let mut bounds = AABB::empty();
@@ -146,7 +153,7 @@ pub fn walk_line(seg: &mut SegRows, lanes: &mut LaneRows, l: &Line, row: u32) ->
     let dash = dash_pair(&l.dash);
     seg.ribbon_dashes.push([dash[0], dash[1], 0.0]);
     Row {
-        flags: push_heads(seg, lanes, first, l.arrowhead),
+        flags: push_heads(seg, lanes, first, l.arrowhead, head_pens),
         ..Row::thin(bounds)
     }
 }
@@ -168,7 +175,7 @@ pub fn walk_polyline(seg: &mut SegRows, lanes: &mut LaneRows, pl: &Polyline, row
     let first = seg.ribbons.len();
     push_polyline(seg, &pts, &pen, &mut bounds, &pl.dash);
     Row {
-        flags: push_heads(seg, lanes, first, pl.arrowhead),
+        flags: push_heads(seg, lanes, first, pl.arrowhead, 0.0),
         ..Row::thin(bounds)
     }
 }
@@ -281,7 +288,7 @@ pub fn walk_nurbscurve_quality(
     let first = seg.ribbons.len();
     push_polyline(seg, &pts, &pen, &mut bounds, &[]);
     Row {
-        flags: push_heads(seg, lanes, first, c.arrowhead),
+        flags: push_heads(seg, lanes, first, c.arrowhead, 0.0),
         ..Row::thin(bounds)
     }
 }
@@ -398,7 +405,11 @@ mod tests {
         let mut line = Line::new(0.0, 0.0, 0.0, 5.0, 0.0, 0.0);
         line.arrowhead = Arrowhead::START;
         let (seg, rows) = walked(|seg, lanes| {
-            assert_eq!(walk_line(seg, lanes, &line, 2).flags, Instance::FLAG_HEADS);
+            assert_eq!(
+                walk_line(seg, lanes, &line, 2, 24.0).flags,
+                Instance::FLAG_HEADS
+            );
+            assert_eq!(lanes.get::<VectorRows>().unwrap().rows[0].head, 24.0);
         });
         assert_eq!(rows.len(), 1);
         assert_eq!(
@@ -411,7 +422,7 @@ mod tests {
         let mut dot = Line::new(1.0, 1.0, 0.0, 1.0, 1.0, 0.0);
         dot.arrowhead = Arrowhead::BOTH;
         let (seg, rows) = walked(|seg, lanes| {
-            assert_eq!(walk_line(seg, lanes, &dot, 3).flags, 0);
+            assert_eq!(walk_line(seg, lanes, &dot, 3, 0.0).flags, 0);
         });
         assert!(rows.is_empty() && seg.ribbon_heads.is_empty());
     }
@@ -458,7 +469,7 @@ mod tests {
         let mut line = Line::new(0.0, 0.0, 0.0, 1.0, 0.0, 0.0);
         line.dash = vec![2.0];
         let (seg, _) = walked(|seg, lanes| {
-            walk_line(seg, lanes, &line, 0);
+            walk_line(seg, lanes, &line, 0, 0.0);
         });
         assert_eq!(seg.ribbon_dashes, vec![[2.0, 2.0, 0.0]]);
     }

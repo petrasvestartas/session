@@ -8,7 +8,7 @@ Orbit, pan, zoom toward the cursor, toggle perspective/orthographic projection, 
 
 ## Prerequisites and ownership
 
-Requires [4. Enter commands](completion-dock.md). This fifth cumulative subject is reviewed against native tests, locked `wasm32` builds and desktop/upright WebGPU interactions. Checkpoint `camera` (`47` files) adds `2` files:
+Requires [4. Enter commands](completion-dock.md). This fifth cumulative subject is reviewed against native tests, locked `wasm32` builds and desktop/upright WebGPU interactions. Checkpoint `camera` (`48` files) adds `2` files:
 
 | Added file | Role |
 | --- | --- |
@@ -69,4 +69,4 @@ Clip/NDC `+Y` points up, whereas canvas/egui pixel `+Y` points down from the top
 
 ## Validation
 
-Verified by `47`-file locked `wasm32` build, `33` passing native tests (`1` GPU test ignored), `5`-subject retention tests, and desktop/upright orbit, zoom, projection and fit checks on Intel Gen-12LP ([camera receipt](release/completion-camera-windows-20261115.json)). Physical-phone touch testing remains separate.
+Verified by `48`-file locked `wasm32` build ([stage reconciliation](release/completion-stage-reconciliation-windows-20261118c.json)), `33` passing baseline native tests (`1` GPU test ignored), `5`-subject retention tests, and desktop/upright orbit, zoom, projection and fit checks on Intel Gen-12LP ([camera receipt](release/completion-camera-windows-20261115.json)). Physical-phone touch testing remains separate.

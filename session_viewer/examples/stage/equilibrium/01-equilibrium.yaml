@@ -41,13 +41,13 @@ slides:
           - {id: B, point: B, color: fixed, label: 'B'}
           - {id: c1, line: [n, A]}
           - {id: c2, line: [n, B]}
-          - {id: W, arrow: [n, W1], color: load, width: 3.6, label: 'p'}
+          - {id: W, arrow: [n, W1], color: load, width: 3.2, label: 'p'}
           - {id: n, point: n, color: free, label: 'n'}
       - say: 'What is the force in the cables?'
         do:
           - add:
-              - {id: f1, arrow: [n, F1], color: accent, width: 3.6, label: 'f_1'}
-              - {id: f2, arrow: [n, F2], color: accent, width: 3.6, label: 'f_2'}
+              - {id: f1, arrow: [n, F1], color: ink, width: 3.2, label: 'f_1'}
+              - {id: f2, arrow: [n, F2], color: ink, width: 3.2, label: 'f_2'}
           - tex: {tex: 'f_1 = \ ?\qquad f_2 = \ ?', align: left}
       - say: 'The node equilibrium.'
         eq: {tex: '\mathbf{f}_1 + \mathbf{f}_2 + \mathbf{p} = \mathbf{0}', align: left}
@@ -58,16 +58,16 @@ slides:
     steps:
       - say: 'Draw the load.'
         do:
-          - derive: {from: W, id: Wa, arrow: [Q0, Q1], color: load, width: 3.6}
+          - derive: {from: W, id: Wa, arrow: [Q0, Q1], color: load, width: 3.2}
           - add: {id: Wa.l, label: 'mid(Q0, Q1)', tex: 'p', color: load}
       - say: 'From its tip, draw $f_2$.'
         do:
-          - derive: {from: f2, id: t2, arrow: [Q1, Q2], color: accent, width: 3.6}
-          - add: {id: t2.l, label: 'mid(Q1, Q2)', tex: 'f_2', color: accent}
+          - derive: {from: f2, id: t2, arrow: [Q1, Q2], color: ink, width: 3.2}
+          - add: {id: t2.l, label: 'mid(Q1, Q2)', tex: 'f_2', color: ink}
       - say: 'Then $f_1$ to **close** the polygon.'
         do:
-          - derive: {from: f1, id: t1, arrow: [Q2, Q0], color: accent, width: 3.6}
-          - add: {id: t1.l, label: 'mid(Q2, Q0)', tex: 'f_1', color: accent}
+          - derive: {from: f1, id: t1, arrow: [Q2, Q0], color: ink, width: 3.2}
+          - add: {id: t1.l, label: 'mid(Q2, Q0)', tex: 'f_1', color: ink}
       - say: 'Measure the vectors to get the force values.'
         do:
           - eq: {tex: 'f_2 = 8\ \text{kN}', align: left}

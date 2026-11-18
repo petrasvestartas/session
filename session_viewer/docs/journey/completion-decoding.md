@@ -9,7 +9,7 @@ Validate and decode `.pb` `Session` payloads under explicit byte, object-count a
 
 ## Prerequisites and ownership
 
-Requires [7. Render kernel geometry](completion-geometry.md). Checkpoint `decoding` (`170` files) retains Tutorials 1–7 and adds `4` files:
+Requires [7. Render kernel geometry](completion-geometry.md). Checkpoint `decoding` (`171` files) retains Tutorials 1–7 and adds `4` files:
 
 | Added file | Role |
 | --- | --- |
@@ -64,4 +64,4 @@ Valid protobuf wire syntax can still encode out-of-bounds mesh face indices, mis
 
 ## Validation
 
-Verified by `8`-subject retention and shader-closure tests, `170`-file locked `wasm32` build, `195` passing native tests (`14` ignored), and `98` desktop/upright WebGPU captures including malformed-varint error reporting and recovery ([decoding receipt](release/completion-decoding-windows-20261115.json), [eight-subject receipt](release/completion-eight-subjects-windows-20261117.json)).
+Verified by `8`-subject retention and shader-closure tests, `171`-file locked `wasm32` build ([stage reconciliation](release/completion-stage-reconciliation-windows-20261118c.json)), `195` passing baseline native tests (`14` ignored), and `98` desktop/upright WebGPU captures including malformed-varint error reporting and recovery ([decoding receipt](release/completion-decoding-windows-20261115.json), [eight-subject receipt](release/completion-eight-subjects-windows-20261117.json)).

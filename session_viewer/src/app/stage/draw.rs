@@ -8,7 +8,12 @@ use std::collections::HashMap;
 pub(super) fn fade(mut d: Draw, a: f32) -> Draw {
     match &mut d {
         Draw::Prim(p) => p.color[3] *= a,
-        Draw::Path { color, .. } => color[3] *= a,
+        Draw::Path { color, fill, .. } => {
+            color[3] *= a;
+            if let Some(fill) = fill {
+                fill[3] *= a;
+            }
+        }
     }
     d
 }
@@ -123,6 +128,9 @@ impl Stage {
         if self.objs[i].boxed.is_some() {
             return self.box_draws(i, now, 1.0);
         }
+        if self.objs[i].drawing() {
+            return self.flat_draws(i, now, 1.0, 1.0);
+        }
         self.prims_of(i, now).into_iter().map(Draw::Prim).collect()
     }
 
@@ -155,6 +163,8 @@ impl Stage {
             closed: false,
             width: o.width,
             color,
+            dash: false,
+            fill: None,
         }]
     }
 }

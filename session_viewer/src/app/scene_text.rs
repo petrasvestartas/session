@@ -47,7 +47,9 @@ impl Scene {
                     text: text.text,
                     font_size: 18.0,
                     line_height: 26.0,
-                    color: text.color.unwrap_or(if text.plate { [255; 4] } else { [0, 0, 0, 255] }),
+                    color: text
+                        .color
+                        .unwrap_or(if text.plate { [255; 4] } else { [0, 0, 0, 255] }),
                     placement,
                     clip: None,
                 },

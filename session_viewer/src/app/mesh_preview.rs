@@ -308,6 +308,7 @@ mod tests {
                 row: 0,
                 interactions: false,
                 attributes: false,
+                arrowhead_pens: 0.0,
             },
             &geometry,
         );

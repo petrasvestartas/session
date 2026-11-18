@@ -6,7 +6,7 @@
 title: LENGTH DERIVATIVE
 grid: {center: [3.5, 3.5], size: 9, step: 1}
 camera: {yaw: -52, pitch: 22, fit: [n0, n1, '[5.4, 3.6, 0.25]']}
-palette: {free: pink}
+palette: {free: ink}
 points:
   n0: [3, 3, 0.25]
   X: [3, 3, 0.25]
@@ -26,7 +26,7 @@ slides:
               - {id: e1, line: [X, n2], opacity: 0.2}
               - {id: e2, line: [X, n3], opacity: 0.2}
               - {id: e3, line: [X, n4], opacity: 0.2}
-              - {id: k, line: [X, n1], label: 'l_k', width: 3.6}
+              - {id: k, line: [X, n1], label: 'l_k', width: 3.2}
               - {id: nk, point: n1, color: fixed, label: 'n_k'}
               - {id: n0, point: X, color: free, label: 'n_0'}
             dur: 0.6
@@ -44,7 +44,7 @@ slides:
           - {tex: '\frac{\Delta l_k}{\Delta x_0} = \frac{-\cancel{2}\,(x_k - x_0)\,\cancel{\Delta x_0}}{\cancel{2}\,l_k\,\cancel{\Delta x_0}} = \frac{-(x_k - x_0)}{l_k}', align: left, size: 18, gap: 8}
       - say: 'Square $l_k$, shift $x_0$, expand, cancel, and divide by $2\,l_k\,\Delta x_0$.'
         do:
-          - add: {id: unit, arrow: [n0, 'n0 + (n0 - n1)/len(n0, n1)*1.6'], color: yellow, width: 3.6}
-          - derive: {from: unit, id: unitx, arrow: [n0, 'n0 + [(x(n0) - x(n1))/len(n0, n1)*1.6, 0, 0]'], color: x, width: 3.6}
-          - {tex: '\frac{\partial l_k}{\partial x_0} = \frac{-(x_k - x_0)}{l_k} = -\cos\alpha_k = \frac{u_k}{l_k} \qquad \Big(e_0:\;\frac{3 - 0}{4.250} = \textcolor{pos}{+0.706}\Big)', align: left, size: 17, gap: 8, color: yellow}
+          - add: {id: unit, arrow: [n0, 'n0 + (n0 - n1)/len(n0, n1)*1.6'], color: accent, width: 3.2}
+          - derive: {from: unit, id: unitx, arrow: [n0, 'n0 + [(x(n0) - x(n1))/len(n0, n1)*1.6, 0, 0]'], color: x, width: 3.2}
+          - {tex: '\frac{\partial l_k}{\partial x_0} = \frac{-(x_k - x_0)}{l_k} = -\cos\alpha_k = \frac{u_k}{l_k} \qquad \Big(e_0:\;\frac{3 - 0}{4.250} = \textcolor{pos}{+0.706}\Big)', align: left, size: 17, gap: 8, color: accent}
           - highlight: [unitx]

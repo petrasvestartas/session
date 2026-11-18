@@ -9,7 +9,7 @@ Convert `session_rust` meshes, BReps, arrowed NURBS curves, planes, point clouds
 
 ## Prerequisites and ownership
 
-Requires [6. Place and update object rows](completion-rows.md). Checkpoint `geometry` (`166` files) retains Tutorials 1–6 and adds `98` files across `src/app/walk/`, `src/engine/gpu/`, `src/shaders/` and [examples/course/geometry.rs](../../examples/course/geometry.rs). Continue with its companion chapter [7.1 Decide which ink is visible](completion-visibility.md) (`20` visibility, clipping and SSAO files in this same checkpoint).
+Requires [6. Place and update object rows](completion-rows.md). Checkpoint `geometry` (`167` files) retains Tutorials 1–6 and adds `98` files across `src/app/walk/`, `src/engine/gpu/`, `src/shaders/` and [examples/course/geometry.rs](../../examples/course/geometry.rs). Continue with its companion chapter [7.1 Decide which ink is visible](completion-visibility.md) (`20` visibility, clipping and SSAO files in this same checkpoint).
 
 ## Build
 
@@ -27,7 +27,7 @@ npm --prefix ../session_tests run course -- checkpoint geometry ../session_viewe
 
 | File | Specification |
 | --- | --- |
-| [src/app/walk/mod.rs](../../src/app/walk/mod.rs) | Splits mutable `Upload` borrows via `Walk::solid` so converters append faces, edges and dots under one `WalkCx` object row without cloning tables. |
+| [src/app/walk/mod.rs](../../src/app/walk/mod.rs) | Splits mutable `Upload` borrows via `Walk::solid` and threads `WalkCx` (`row`, `cloud_px`, `arrowhead_pens` override) so converters append faces, edges and dots without cloning tables. |
 | [src/app/walk/encode.rs](../../src/app/walk/encode.rs) | Packs RGBA bytes, maps explicit pixel widths to negative half-widths, and quantizes octahedral normals while reserving `0xffffffff` for unknown facing. |
 | [src/app/walk/points.rs](../../src/app/walk/points.rs) | Appends one signed-distance dot per `Point` (`-3 px` default radius) while keeping scene bounds restricted to the world point centre. |
 | [src/app/walk/bounds.rs](../../src/app/walk/bounds.rs) | Records pre-append `Baselines`, unions live placed bounds in `file_extent`, and flags `z < 0.001` planar batches as `0.5`-unit drawing sheets. |
@@ -66,9 +66,9 @@ npm --prefix ../session_tests run course -- checkpoint geometry ../session_viewe
 | File | Specification |
 | --- | --- |
 | [src/engine/gpu/segments.rs](../../src/engine/gpu/segments.rs) | Expands `40 B` CPU segments into `72 B` `StrokeSegment` records across pipe, ribbon and sheet tables while keeping source entity intervals separate from GPU offsets. |
-| [src/shaders/ribbon.wgsl](../../src/shaders/ribbon.wgsl) | Extrudes `6`-vertex screen-space quads with neighbour miter planes, arrowhead trims, cumulative dash phase, per-segment `reveal` and sag-bit silhouette tests. |
+| [src/shaders/ribbon.wgsl](../../src/shaders/ribbon.wgsl) | Extrudes `6`-vertex screen-space quads with neighbour miter planes, `HEAD_ASPECT = 0.30` arrowhead trims, cumulative dash phase, per-segment `reveal` and sag-bit silhouette tests. |
 | [src/app/walk/sheet.rs](../../src/app/walk/sheet.rs) | Walks flat `6`-float segment slices into the dedicated sheet lane with scene-unit half-widths and preserved `(source_offset, gpu_row)` spans. |
-| [src/app/walk/curves.rs](../../src/app/walk/curves.rs) | Emits chained polyline/NURBS segments with cumulative arc-length dash offsets, terminal arrowhead `VectorRow`s, and marker-aware endpoint trims. |
+| [src/app/walk/curves.rs](../../src/app/walk/curves.rs) | Emits chained polyline/NURBS segments with cumulative arc-length dash offsets, `arrowhead_pens`-scaled terminal `VectorRow`s landing on exact endpoints, and marker-aware trims. |
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/segments.rs:stroke-row-layout"
@@ -88,7 +88,7 @@ npm --prefix ../session_tests run course -- checkpoint geometry ../session_viewe
 
 ### The arrow function boundary
 
-`src/shaders/arrow.wgsl` generates `18` shaft and start/end head vertices per vector by accepting scalar/vector arguments individually rather than a packed `VectorRow` struct, avoiding an observed Android WebGPU driver struct-argument corruption bug.
+`src/shaders/arrow.wgsl` generates `18` shaft and narrow `HEAD_ASPECT = 0.30` start/end head vertices per vector (landing on the exact endpoint) by accepting scalar/vector arguments individually rather than a packed `VectorRow` struct, avoiding an observed Android WebGPU driver struct-argument corruption bug.
 
 ### Generate planes and arrows from compact rows
 
@@ -216,4 +216,4 @@ Every primitive stores the same `u32` `Instance` row index; each lane's vertex s
 
 ## Validation
 
-Verified by clean `OUT_DIR` shader build, `166`-file locked `wasm32` build, `185` passing default native tests, all `13` original tests in the [geometry GPU receipt](release/completion-geometry-gpu-windows-20261116.json), and `92` desktop/upright WebGPU captures across `frame..geometry`. The separate [application GPU run](release/completion-application-gpu-windows-20261116.json) passes `36/37` assertions while `instanced_frames_match_the_baked_scene` remains open in Tutorial 9.
+Verified by clean `OUT_DIR` shader build, `167`-file locked `wasm32` build and `5/5` curve/arrowhead native tests ([stage reconciliation](release/completion-stage-reconciliation-windows-20261118c.json)), `185` passing baseline native tests, all `13` original tests in the [geometry GPU receipt](release/completion-geometry-gpu-windows-20261116.json), and `92` desktop/upright WebGPU captures across `frame..geometry`. The separate [application GPU run](release/completion-application-gpu-windows-20261116.json) passes `36/37` assertions while `instanced_frames_match_the_baked_scene` remains open in Tutorial 9.

@@ -6,7 +6,7 @@
 title: FORCE DENSITY IN 1D
 grid: {center: [5, 0], size: 12, step: 1, z: -1}
 camera: {yaw: -80, pitch: 18}
-palette: {free: pink}
+palette: {free: ink}
 net:
   fixed: {A: [0, 0, 0], B: [10, 0, 0]}
   free: {N: [5, 0, 0]}

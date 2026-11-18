@@ -1,0 +1,583 @@
+{
+  "status": "verified",
+  "date": "2026-11-18",
+  "scope": "Graphic-statics presentation style, flat.rs 2D orthographic construction, foppl-spatial-joint deck and ?stage=...&data=off tutorial documentation build (completion-docs41) and browser verification (support-docs-browser17; earlier browser16 CHECKS string mismatch preserved): 22 focused tooling tests, 8 accepted scoped subjects (20261118b frame/painting + 20261118c mathematics..decoding), 360/360 teaching witnesses across 352 src/ files and 8 support files, strict Vite site build, 93 verified embedded SVG/PNG figures, 78 live --8<-- includes, 6 kernel motion repository links, bottom-right UTC timestamp, and 95 reviewed 1280x800 and 390x844 captures; application remains pending and physical-device acceptance is not claimed",
+  "docsBuildJob": {
+    "manifest": "session_viewer/target/completion-docs41/resources.json",
+    "manifestSha256": "a85faee1233d3d246d34786791a41b6ae52efe91435e1cdd407ec85018e616b0",
+    "planSha256": "c4e242d4c69e98d6de142e25ca531bcac43cd67680a6701d340f3d497beeabff",
+    "resultSha256": "39fa680e2252b01fb72597cd40a1bf2e34c420118bce99624cde6b39b4927657",
+    "processId": 46552,
+    "exitCode": 0,
+    "elapsedSeconds": 59.026,
+    "peakJobCommitBytes": 1360203776,
+    "pinnedInputsVerified": 5132,
+    "commands": [
+      {
+        "name": "teaching-tests",
+        "exitCode": 0
+      },
+      {
+        "name": "active-audit",
+        "exitCode": 0
+      },
+      {
+        "name": "teaching",
+        "exitCode": 0
+      },
+      {
+        "name": "strict-site",
+        "exitCode": 0
+      }
+    ],
+    "delivery": {
+      "base": "/docs/",
+      "assetUrls": [
+        "/docs/assets/main-WQxcumIp.js",
+        "/docs/assets/main-hSYWTe_G.css"
+      ],
+      "indexSha256": "58b4e446dab411b19bff63fff5af40bf56674bd21b91f6f2ee67c8b86408cf9b"
+    }
+  },
+  "preservedPriorBrowserAttempt": {
+    "manifest": "session_viewer/target/support-docs-browser16-job/resources.json",
+    "manifestSha256": "24b95d11efc8a982a8c296a0813969124ba15091a7294924a6fc3f10ff1dc718",
+    "processId": 41224,
+    "exitCode": 1,
+    "reason": "capture.cjs retained two pre-20261118c CHECKS strings ('defaults to the dark ground' and 'all 22 chapters of all five decks'); updated in browser17 to match white-default ground and 6 decks / 27 chapters while preserving browser16 intact"
+  },
+  "browserJob": {
+    "manifest": "session_viewer/target/support-docs-browser17-job/resources.json",
+    "manifestSha256": "f962c5b8ef07b76c9588954f61032fb751490027c9669b802d52d3d4bd296f0b",
+    "resultSha256": "04aae1631e696e0560513645944e70582beb63e2b5a01a78ac403f9aabd4855b",
+    "processId": 16100,
+    "exitCode": 0,
+    "elapsedSeconds": 16.688,
+    "peakJobCommitBytes": 1135599616,
+    "pinnedInputsVerified": 8484,
+    "cliCourseHome": [
+      {
+        "width": 1280,
+        "checkpoints": 9,
+        "chapterOwner": "geometry",
+        "navigation": "geometry/visibility/decoding"
+      },
+      {
+        "width": 390,
+        "checkpoints": 9,
+        "chapterOwner": "geometry",
+        "navigation": "geometry/visibility/decoding"
+      }
+    ],
+    "kernelSourceChecks": [
+      {
+        "api": "Vector::lerp",
+        "href": "https://github.com/petrasvestartas/session_rust/blob/main/src/vector.rs"
+      },
+      {
+        "api": "Color::lerp",
+        "href": "https://github.com/petrasvestartas/session_rust/blob/main/src/color.rs"
+      },
+      {
+        "api": "Line::lerp",
+        "href": "https://github.com/petrasvestartas/session_rust/blob/main/src/line.rs"
+      },
+      {
+        "api": "Polyline::resampled",
+        "href": "https://github.com/petrasvestartas/session_rust/blob/main/src/polyline.rs"
+      },
+      {
+        "api": "Polyline::morph",
+        "href": "https://github.com/petrasvestartas/session_rust/blob/main/src/polyline.rs"
+      },
+      {
+        "api": "Xform::interpolate",
+        "href": "https://github.com/petrasvestartas/session_rust/blob/main/src/xform.rs"
+      }
+    ],
+    "imagesChecked": 23,
+    "footerStamp": "Docs built 2026-11-18 16:12:32 UTC",
+    "capturesCount": 95,
+    "captures": [
+      {
+        "file": "course-drawer-390.png",
+        "bytes": 31714,
+        "sha256": "a019b55df65e3f89162f3ffc785042571c9728786efa7973c5aaba99d1539117"
+      },
+      {
+        "file": "course-home-1280.png",
+        "bytes": 65983,
+        "sha256": "5aacd41b3dafbb7a3c1a8a044d2ac9b957cd140941f07b36b431d4990aa52771"
+      },
+      {
+        "file": "course-home-390.png",
+        "bytes": 35521,
+        "sha256": "a48c8e6533ff6518aecc0bac2b5248ccbe98c20006afd9b7f3580e1d122a389f"
+      },
+      {
+        "file": "course-home-chapters-1280.png",
+        "bytes": 63053,
+        "sha256": "68be4adef21b4f978892058a344276e3b3746c6ccdde054d1a67fccbeb5c01e7"
+      },
+      {
+        "file": "course-home-chapters-390.png",
+        "bytes": 33651,
+        "sha256": "2093f31553ddc43f3f5eb35e475037e432d2b1ffd1de7245a126750bcdcbc903"
+      },
+      {
+        "file": "journey-active-top-1280.png",
+        "bytes": 103547,
+        "sha256": "475464320cc6c388c426cd6138964354db08df7d3b5c9e93798b58c0f1f46ece"
+      },
+      {
+        "file": "journey-active-top-390.png",
+        "bytes": 48924,
+        "sha256": "0b844b5865ca246fdf8b77906a29bb023926f606914762b96ea8d2e3715a0d19"
+      },
+      {
+        "file": "journey-completion-application-build-1280.png",
+        "bytes": 109015,
+        "sha256": "39369d1013bd51febceb36f4d5de15cba1c36621fda24e08eafc57d5387a685c"
+      },
+      {
+        "file": "journey-completion-application-build-390.png",
+        "bytes": 44716,
+        "sha256": "6e5272f305e017b00ebdd811c0c56f76f5255f23b9f91b2dffb01316b0d2621a"
+      },
+      {
+        "file": "journey-completion-application-top-1280.png",
+        "bytes": 150500,
+        "sha256": "b35d3153e2d5c4a5a5750f906431a16d6f7e5954465e408ccf212be3f71b66c7"
+      },
+      {
+        "file": "journey-completion-application-top-390.png",
+        "bytes": 67365,
+        "sha256": "1e51c6851067edf9b442c64cdcaf9ddf39555584fea222e7aa12979a6797a9cb"
+      },
+      {
+        "file": "journey-completion-camera-build-1280.png",
+        "bytes": 116214,
+        "sha256": "f7cd913e58fddf7a67a1daa5595b18f952c3ad4ccbc565f315ab6bf196903af4"
+      },
+      {
+        "file": "journey-completion-camera-build-390.png",
+        "bytes": 55073,
+        "sha256": "666cf503ccb6a27d7c0d97b320f02872ea16bf6b57f2ca9469be6868e463bdb2"
+      },
+      {
+        "file": "journey-completion-camera-top-1280.png",
+        "bytes": 94865,
+        "sha256": "48cad5d3034682501005dc90e93c6ba2fe42902cde522640b56252043bce8acf"
+      },
+      {
+        "file": "journey-completion-camera-top-390.png",
+        "bytes": 44984,
+        "sha256": "e84000c875ebb7a4c469443b7e8409b950b5d51f506055f340cee8da3409ea89"
+      },
+      {
+        "file": "journey-completion-commands-build-1280.png",
+        "bytes": 116294,
+        "sha256": "dabc1700898c1e070c6fe3dd36874fcd7385ee02c015c8e98502ef5125c34a67"
+      },
+      {
+        "file": "journey-completion-commands-build-390.png",
+        "bytes": 47295,
+        "sha256": "a7dd575125b2e5afb423f772c579a741b2d2d9636fe42ced0c85bba0f373e759"
+      },
+      {
+        "file": "journey-completion-commands-top-1280.png",
+        "bytes": 135183,
+        "sha256": "4ff43f45ba413c170ec2d2f65b72c5dbd0db5e58ace4397b6c8191c95de04cc6"
+      },
+      {
+        "file": "journey-completion-commands-top-390.png",
+        "bytes": 68692,
+        "sha256": "add046bd4b49d541cbae4cbee8b38792a438f553dfede6e87ff42d958912fcd4"
+      },
+      {
+        "file": "journey-completion-contract-top-1280.png",
+        "bytes": 102527,
+        "sha256": "008587558b276ab74a8f8549651a20c8568c43afc049acd82cabfd6d0a84cc11"
+      },
+      {
+        "file": "journey-completion-contract-top-390.png",
+        "bytes": 41414,
+        "sha256": "0c9bb84b80af4c554f95395c8fbd9212d7c9af00990914fcc5bf795df0b2b683"
+      },
+      {
+        "file": "journey-completion-debugging-build-1280.png",
+        "bytes": 113289,
+        "sha256": "824abde4c5015148f8a7e73d4fce544a72dc810575541108ceac6ea2e97a931b"
+      },
+      {
+        "file": "journey-completion-debugging-build-390.png",
+        "bytes": 32326,
+        "sha256": "0d20d3ebc94ec01e7adeab3ba44ae190a5920a938201de84187741daa48f19c1"
+      },
+      {
+        "file": "journey-completion-debugging-top-1280.png",
+        "bytes": 104626,
+        "sha256": "8214ee4853ce9faff46da072e968e9e9a56a819527053b1d440f03efc5331fd9"
+      },
+      {
+        "file": "journey-completion-debugging-top-390.png",
+        "bytes": 42145,
+        "sha256": "431c54cdc4902d6d2e7804b569bf607767b0722bb33dbc8e1590dcd0dbbeebc1"
+      },
+      {
+        "file": "journey-completion-decoding-build-1280.png",
+        "bytes": 110174,
+        "sha256": "861678c596c48b2547098a0460c91f1bed8af8d6f0b2eb0c252f36990fbb08c0"
+      },
+      {
+        "file": "journey-completion-decoding-build-390.png",
+        "bytes": 45829,
+        "sha256": "74e090f1811816b143b5c9e906474b4a9421e999bf7d445893f15729c42833a9"
+      },
+      {
+        "file": "journey-completion-decoding-top-1280.png",
+        "bytes": 99726,
+        "sha256": "205e5e51d3f83f31f4bf5e1e365d0c4a3352b8b37ebbe31e19aaf13227516557"
+      },
+      {
+        "file": "journey-completion-decoding-top-390.png",
+        "bytes": 29039,
+        "sha256": "aa5bf9f8aabb2510ab9bec7ead654fd060c145a3f4859b3d3039f500addb2ab2"
+      },
+      {
+        "file": "journey-completion-dock-build-1280.png",
+        "bytes": 124816,
+        "sha256": "8e1809b58113b2f57301a5aae048833ba9cfff40b72abc61770a14fe3d3c15e8"
+      },
+      {
+        "file": "journey-completion-dock-build-390.png",
+        "bytes": 50342,
+        "sha256": "b77f9fa61f82b1d3c97a0af1194753cb71597b91b1bc42d3bb83754fe86fec13"
+      },
+      {
+        "file": "journey-completion-dock-top-1280.png",
+        "bytes": 87123,
+        "sha256": "5b9787a0472b7e01dfc4d4eaf32a0c44c55206c0f7a03d0aa0148725b36e3301"
+      },
+      {
+        "file": "journey-completion-dock-top-390.png",
+        "bytes": 23258,
+        "sha256": "36e88acb8a34e533bb55f08fcf98f1860328c5af2ff31df15aa1ee31dca6e275"
+      },
+      {
+        "file": "journey-completion-documents-build-1280.png",
+        "bytes": 122464,
+        "sha256": "0714c7aa004cf9904b96f3f406617f99a2611fa7c7a7dc436ad8bcdd917aa308"
+      },
+      {
+        "file": "journey-completion-documents-build-390.png",
+        "bytes": 49391,
+        "sha256": "e05a6e2fcca14cdacace458bfe3a1fe07f6ffb72ff73dc35480f364828132c41"
+      },
+      {
+        "file": "journey-completion-documents-top-1280.png",
+        "bytes": 155256,
+        "sha256": "abacd62190c4a21c26017f342739daccee3cbeff98e5e9be98599e2d3f7539b3"
+      },
+      {
+        "file": "journey-completion-documents-top-390.png",
+        "bytes": 65384,
+        "sha256": "0e67234a3c7751845c0dc3cf718412a4eb9e445af35becb8595f3130c5f35a5f"
+      },
+      {
+        "file": "journey-completion-frame-build-1280.png",
+        "bytes": 107534,
+        "sha256": "2b15bc402f3edfa31ae77de4aba627a9b2878f61124a85426e438ad3b7c1824d"
+      },
+      {
+        "file": "journey-completion-frame-build-390.png",
+        "bytes": 44430,
+        "sha256": "a374b76379e1e36c47decb808077e5be1e6251f443ea76cd6a81bb37d6b915a7"
+      },
+      {
+        "file": "journey-completion-frame-top-1280.png",
+        "bytes": 111276,
+        "sha256": "62f391ead29871fe21152226a017720c56a7313f52fab0bb76920934327081d5"
+      },
+      {
+        "file": "journey-completion-frame-top-390.png",
+        "bytes": 51998,
+        "sha256": "dc64a0012cdf5f4aa9aec018c4d4e4c51b68112cb7ccb08693f7ae959b64dc7e"
+      },
+      {
+        "file": "journey-completion-geometry-build-1280.png",
+        "bytes": 118309,
+        "sha256": "47dd8464561a12f2ca2eb6650587732eee6a3c99eee0634931facdab1785f767"
+      },
+      {
+        "file": "journey-completion-geometry-build-390.png",
+        "bytes": 44646,
+        "sha256": "1fd6c6e404e69dfd250ca9a46584c9c1cdfacdb8741fc0c74f5ce2d3b6b804e1"
+      },
+      {
+        "file": "journey-completion-geometry-top-1280.png",
+        "bytes": 132561,
+        "sha256": "23e03a39ff4125fd7537ca18727d26d0b2799501ca127e68011b86bb438d35d5"
+      },
+      {
+        "file": "journey-completion-geometry-top-390.png",
+        "bytes": 33083,
+        "sha256": "438901fbde5af251baeebc790eb39a04c16e5c129908f971401bc2e9be5cb9ac"
+      },
+      {
+        "file": "journey-completion-input-build-1280.png",
+        "bytes": 132137,
+        "sha256": "a0eefee407d37641da65d84f3bee985d87de33b0a503cfe0f1697c167eddd07d"
+      },
+      {
+        "file": "journey-completion-input-build-390.png",
+        "bytes": 49435,
+        "sha256": "48308d59cfd0110ff48d031ad9b0b92513ab12bb076b706d93b24145b32aab01"
+      },
+      {
+        "file": "journey-completion-input-top-1280.png",
+        "bytes": 110213,
+        "sha256": "7af53f0c86e4b5bbb61a70d048da25223c933e5bacec4f5d6407da3a6c69eeb6"
+      },
+      {
+        "file": "journey-completion-input-top-390.png",
+        "bytes": 25091,
+        "sha256": "3be464f2046b10dcccd271c3e2ff0cc6ea810d2426afb285c3bfad3bbb1b3052"
+      },
+      {
+        "file": "journey-completion-loading-build-1280.png",
+        "bytes": 122350,
+        "sha256": "8656e961445f1e2b15070d1ec2b91749d0d4a22683d6ddb83e4462b667a27f83"
+      },
+      {
+        "file": "journey-completion-loading-build-390.png",
+        "bytes": 52397,
+        "sha256": "3abe4b8cc2bc38df35e04677b61f651703ed9398ebb56b45843cff3b7e859e0d"
+      },
+      {
+        "file": "journey-completion-loading-top-1280.png",
+        "bytes": 123021,
+        "sha256": "cb323b503fea6f7421520c4a7e8e58d42a3d929ab3dbcb0709c6bcd88d1c39ba"
+      },
+      {
+        "file": "journey-completion-loading-top-390.png",
+        "bytes": 50600,
+        "sha256": "7d446defd2168bdbf610ac642833ef3d22b7d82b8922de1f4a46e885153e6257"
+      },
+      {
+        "file": "journey-completion-mathematics-build-1280.png",
+        "bytes": 115008,
+        "sha256": "c623f8d489728095035e33bcd8c751ebb4c3e67d3af11d712558d2600a992e8d"
+      },
+      {
+        "file": "journey-completion-mathematics-build-390.png",
+        "bytes": 44215,
+        "sha256": "fe5120392a6d4ce1a624133a2e01c621bff2f5439d8764a67cad127df8517491"
+      },
+      {
+        "file": "journey-completion-mathematics-palette-1280.png",
+        "bytes": 135434,
+        "sha256": "c3a62ba4190eb5a2b97cdf25ead40ac0443caf9c93e0df4912d708f2908db324"
+      },
+      {
+        "file": "journey-completion-mathematics-palette-390.png",
+        "bytes": 47982,
+        "sha256": "6fa981634e3bc8260030f265bbc0652fa17760297024af7ea965429958bc3567"
+      },
+      {
+        "file": "journey-completion-mathematics-top-1280.png",
+        "bytes": 118117,
+        "sha256": "85d2d77d1f2721f4e02d2daa1cc21e03e082bdd216f123887271ae49fc4f0cd9"
+      },
+      {
+        "file": "journey-completion-mathematics-top-390.png",
+        "bytes": 30427,
+        "sha256": "2561f65519932e481f16cc224b7fedacebf7d7d14334aa412608e4e6e22b41dc"
+      },
+      {
+        "file": "journey-completion-modeling-build-1280.png",
+        "bytes": 129493,
+        "sha256": "bc9def6a251fc09fb25bd4bea176b10134e7c80ad11054c3a83d7702ce0bd08e"
+      },
+      {
+        "file": "journey-completion-modeling-build-390.png",
+        "bytes": 48608,
+        "sha256": "28173be777a05b8dae92f234505b2a51174496e3649b61b261578cb98fa367ef"
+      },
+      {
+        "file": "journey-completion-modeling-top-1280.png",
+        "bytes": 110965,
+        "sha256": "db4356c8c9de22533cc8c2b7bb37c8a9f3fedf0bca7043e1fd687d12c15f8821"
+      },
+      {
+        "file": "journey-completion-modeling-top-390.png",
+        "bytes": 41170,
+        "sha256": "d22e9790ef33813ecacba0151b09435a58b1750bf3650d11526bf368eaac31e1"
+      },
+      {
+        "file": "journey-completion-painting-build-1280.png",
+        "bytes": 91195,
+        "sha256": "f38004e14263328f7b0eee24cc0ec0c06a73c15dd47889c11c09b5273fee82b8"
+      },
+      {
+        "file": "journey-completion-painting-build-390.png",
+        "bytes": 45022,
+        "sha256": "1ced155b0785141a850eb5f1652b2f72243e9a76b60bc38a570e8fb25bb1c002"
+      },
+      {
+        "file": "journey-completion-painting-top-1280.png",
+        "bytes": 69445,
+        "sha256": "34853be13ca01938423157fac2704d73983d8f1b91b66ebd510163813878161b"
+      },
+      {
+        "file": "journey-completion-painting-top-390.png",
+        "bytes": 32583,
+        "sha256": "a1323781b11442edc559deb07f8d33323fbe7e1f2f03f7223f8ee373a4b66eda"
+      },
+      {
+        "file": "journey-completion-rows-build-1280.png",
+        "bytes": 116092,
+        "sha256": "3a51cc7ac405cf589346b344ae66917b06b5adcf5ac69590144ef209c45d3b20"
+      },
+      {
+        "file": "journey-completion-rows-build-390.png",
+        "bytes": 43035,
+        "sha256": "2eb2dda410351140a92947d2cbd4ddb943f92c8eba918ab1e95da9adaa28a698"
+      },
+      {
+        "file": "journey-completion-rows-top-1280.png",
+        "bytes": 93863,
+        "sha256": "20d9b179a9bf397d7f0af9325017c6dc44b25b4a209d65533300171538c0a3d7"
+      },
+      {
+        "file": "journey-completion-rows-top-390.png",
+        "bytes": 43822,
+        "sha256": "aaa0440b4de5ca9c83a8f55a06e159275196194e854afa40a785a21cd9444925"
+      },
+      {
+        "file": "journey-completion-streaming-build-1280.png",
+        "bytes": 111749,
+        "sha256": "2da03324db194d5852193a41dcd58237fdfbf35c9b8cfd445434a6ed744045cd"
+      },
+      {
+        "file": "journey-completion-streaming-build-390.png",
+        "bytes": 46431,
+        "sha256": "7a7f488a2db0649db21a6b46da040afb37997f12980b745af65ac922bc6089e4"
+      },
+      {
+        "file": "journey-completion-streaming-top-1280.png",
+        "bytes": 141836,
+        "sha256": "eb073bf1742e202d38ad408cefe5a37e78fa7d4ebd4ad691c67964fd1898abab"
+      },
+      {
+        "file": "journey-completion-streaming-top-390.png",
+        "bytes": 51813,
+        "sha256": "c26bbc540c922a84306599fd8a988dbdecaf752f084a61940fe5a7cc85f86b3a"
+      },
+      {
+        "file": "journey-completion-text-build-1280.png",
+        "bytes": 111382,
+        "sha256": "b77694e2aa2718c9738cdb996455c045278c0eab1348a77ac33a639c9c66be52"
+      },
+      {
+        "file": "journey-completion-text-build-390.png",
+        "bytes": 51466,
+        "sha256": "daf42d1bc7bcde9b66bc6661a1841476fbf2cc3b93a5f6fdb1caa3179d1b2f4c"
+      },
+      {
+        "file": "journey-completion-text-top-1280.png",
+        "bytes": 204846,
+        "sha256": "32e1555305f6845c68a9bd5871e40d2dde19ec5f8d768140d46964561dc8c6c9"
+      },
+      {
+        "file": "journey-completion-text-top-390.png",
+        "bytes": 39729,
+        "sha256": "da38823614361c68e75a5a0bceff143012a01bd5b70d0fefcc8d0fac46c4dbc0"
+      },
+      {
+        "file": "journey-completion-visibility-build-1280.png",
+        "bytes": 119386,
+        "sha256": "94a75fd4fc1489801887b351e98aa8f66f7006fe31f40d0fb426c64de0fe742b"
+      },
+      {
+        "file": "journey-completion-visibility-build-390.png",
+        "bytes": 51892,
+        "sha256": "d82c40eb0b7eb0b6fd193386bd93276995e44eead7007ad8fa4d3fb67a8c9e22"
+      },
+      {
+        "file": "journey-completion-visibility-top-1280.png",
+        "bytes": 134949,
+        "sha256": "a606d68e19d28057d34230a38a6db150076b7a9ec5a76c0edcf756ddcc860c79"
+      },
+      {
+        "file": "journey-completion-visibility-top-390.png",
+        "bytes": 55810,
+        "sha256": "04aec3c7e871311b34055d8601048d336f7b6b1317c9f1179d9de9fced963cfc"
+      },
+      {
+        "file": "journey-release-top-1280.png",
+        "bytes": 85573,
+        "sha256": "706522c4f059810c21bfbcf581bc1a66fc2b379471826867cfcc1f9afe5d1c5c"
+      },
+      {
+        "file": "journey-release-top-390.png",
+        "bytes": 37551,
+        "sha256": "bdc03ee880c768445062530560a9595335979ea0a483d812b531d84a7bcc2481"
+      },
+      {
+        "file": "journey-stage-scene-build-1280.png",
+        "bytes": 129055,
+        "sha256": "d929f5bd094c8328b7d0dd359a5cfa8d63dbeac9c148d069b0ba7435bcebf287"
+      },
+      {
+        "file": "journey-stage-scene-build-390.png",
+        "bytes": 55504,
+        "sha256": "2c3b2732b77596f15a962918f993e1fe304b4d2b150e50b5f73107ec7dd26479"
+      },
+      {
+        "file": "journey-stage-scene-deck-1280.png",
+        "bytes": 134641,
+        "sha256": "003eacd783f0a9e7a7c22cfb9715644b686002e2cb710f7251a74291de7d8eaa"
+      },
+      {
+        "file": "journey-stage-scene-deck-390.png",
+        "bytes": 49679,
+        "sha256": "05a009aa359c106e7bbb36da58bb9afe8ba606b0057a353c187e32100001c471"
+      },
+      {
+        "file": "journey-stage-scene-foppl-1280.png",
+        "bytes": 155569,
+        "sha256": "3ad69b624ea98d6bf627746fe9deccb9faab3f9ee15444a30cb25b2d3d8ea352"
+      },
+      {
+        "file": "journey-stage-scene-foppl-390.png",
+        "bytes": 63219,
+        "sha256": "d34c6c139612bc6ea2424533f9d6104db7a3d66f98724141b815413fa2a23917"
+      },
+      {
+        "file": "journey-stage-scene-top-1280.png",
+        "bytes": 189844,
+        "sha256": "62b3abdf4eae1f42be66073e1cc915742399c607d3f0a4323514c588566094b3"
+      },
+      {
+        "file": "journey-stage-scene-top-390.png",
+        "bytes": 78945,
+        "sha256": "0bcae722a3a255c44d4df42df074102468ecd65e529b93c535aa1d12d897f1ee"
+      },
+      {
+        "file": "readme-top-1280.png",
+        "bytes": 110344,
+        "sha256": "6fe30a1c5e4a6e5caa37956d23047267135397df102875dc6ff404fb87259d51"
+      },
+      {
+        "file": "readme-top-390.png",
+        "bytes": 51906,
+        "sha256": "a6eca89ab6954b87cdee6c8e3e2d11cc82e767f259548ecb0acef07cfff45434"
+      }
+    ]
+  },
+  "limitations": [
+    "Documentation layout and link verification do not establish viewer runtime or physical-device acceptance",
+    "Application acceptance remains pending on app::scene::instances::tests::gpu::instanced_frames_match_the_baked_scene (36 passed, 1 failed)"
+  ]
+}

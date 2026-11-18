@@ -6,7 +6,7 @@
 title: SADDLE GRID
 grid: {center: [4, 4], size: 11, step: 1}
 camera: {yaw: -52, pitch: 30}
-palette: {free: pink}
+palette: {free: ink}
 net:
   grid: [9, 9]
   fixed: corners

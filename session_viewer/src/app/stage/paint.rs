@@ -436,16 +436,41 @@ fn draw(out: &mut Out, atlas: &mut Atlas, f: &Frame, d: &Draw, snap: bool) {
             closed,
             width,
             color,
+            dash,
+            fill,
         } => {
-            if pts.len() < 2 || color[3] <= 0.002 {
+            if pts.len() < 2 || color[3] <= 0.002 && fill.is_none() {
                 return;
             }
             let p: Vec<Pos2> = pts.iter().map(|q| f.pt(*q)).collect();
-            let stroke = Stroke::new((width * f.k).max(0.8), c32(*color));
-            if *closed {
-                out.add(EShape::closed_line(p, stroke));
+            let stroke = if *width > 0.0 {
+                Stroke::new((width * f.k).max(0.8), c32(*color))
             } else {
-                out.add(EShape::line(p, stroke));
+                Stroke::NONE
+            };
+            if *dash {
+                if let Some(fill) = fill {
+                    out.add(EShape::convex_polygon(p.clone(), c32(*fill), Stroke::NONE));
+                }
+                let mut p = p;
+                if *closed && let Some(first) = p.first().copied() {
+                    p.push(first);
+                }
+                for segment in p.windows(2) {
+                    out.add(EShape::Vec(EShape::dashed_line(
+                        segment,
+                        stroke,
+                        7.0 * f.k,
+                        5.0 * f.k,
+                    )));
+                }
+            } else {
+                out.add(EShape::Path(egui::epaint::PathShape {
+                    points: p,
+                    closed: *closed,
+                    fill: fill.map_or(Color32::TRANSPARENT, |c| c32(c)),
+                    stroke: stroke.into(),
+                }));
             }
         }
     }
@@ -552,11 +577,11 @@ pub fn paint(
         atlas,
         scene_side,
         &head,
-        false,
+        true,
         [40.0, SAY],
         TEXT,
         stage.split * W - 80.0,
-        ink,
+        stage.palette("accent"),
     );
     let x0 = stage.split * W + 33.6;
     let pw = W - 56.0 - x0;
@@ -598,7 +623,7 @@ pub fn paint(
     );
     // one bar for the whole presentation: chapters follow each other without a break
     let (done, steps) = stage.progress();
-    let strip = 7.0 * f.k;
+    let strip = 4.0 * f.k;
     let bottom = screen.bottom();
     let reached = screen.left() + screen.width() * done as f32 / steps as f32;
     let track = Rect::from_min_max(Pos2::new(screen.left(), bottom - strip), screen.max);
@@ -608,7 +633,11 @@ pub fn paint(
         c32([faint[0], faint[1], faint[2], 0.6]),
     ));
     let filled = Rect::from_min_max(track.min, Pos2::new(reached, bottom));
-    out.add(EShape::rect_filled(filled, 0.0, c32(ink)));
+    out.add(EShape::rect_filled(
+        filled,
+        0.0,
+        c32(stage.palette("accent")),
+    ));
     logos(&mut out, atlas, f, ink);
     if !stage.errors.is_empty() {
         let msg = stage

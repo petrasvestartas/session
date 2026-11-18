@@ -216,6 +216,21 @@
       "subject": "Direct-to-code visual and minimal-prose tutorial overhaul (docs39 + browser14)",
       "scope": "Cumulative subjects first with Start Tutorial 1 CTA, 11 dark-plate BRG SVGs + 19 WebGPU captures (85 decoded embedded figures, 72 live --8<-- includes), 8 accepted subjects on *-20261118b receipts, 359/359 witnesses, docs39 (5074 pins, strict site bd69dab4) and browser14 (89 personally viewed 1280/390 captures, Docs built 2026-11-18 11:36:23 UTC); viewer src/ unchanged and application pending.",
       "path": "session_viewer/docs/journey/release/completion-visual-overhaul-site-windows-20261118.json"
+    },
+    {
+      "subject": "Graphic-statics stage, flat.rs 2D orthographic construction, foppl-spatial-joint and 24x0.30 arrowhead reconciliation (2026-11-18c)",
+      "scope": "Synced 34 updated/added src/ files (352 total src/ files including flat.rs) and 6 decks / 27 chapters: all 7 cumulative tutorial wasm checks + production wasm + Trunk bundle PASS, mathematics 25/25 native PASS (1 GPU ignored), application app::stage 24/24 PASS, app::walk::curves 5/5 PASS, and 54 Chrome 157 Intel WebGPU cases across all 27 chapters at 1280x800 and 390x844 (220 forward steps, white-default ground + dark round-trips, 85 personally viewed PNGs, 0 overlaps/errors).",
+      "path": "session_viewer/docs/journey/release/completion-stage-reconciliation-windows-20261118c.json"
+    },
+    {
+      "subject": "Production baseline reconciliation ledger (2026-11-18c, 352 src/ files)",
+      "scope": "Reconciles all production/support/example deltas against baseline 87f844e41d08ef104fc071d5bc18163ffe9a4353 across cumulative boundaries, graphic-statics stage/flat.rs/foppl-spatial-joint updates, and 24x0.30 arrowhead_pens while preserving 352/352 endpoint parity and 1,298 historical checkpoints.",
+      "path": "session_viewer/docs/journey/release/completion-production-reconciliation-20261118c.json"
+    },
+    {
+      "subject": "Presentation colors, graphic-statics style, 1600x900 layout and ?stage=...&data=off tutorial verification (docs41 + browser17)",
+      "scope": "docs41 (5132 pins, 22 tooling tests, active-audit 352 files / 8 accepted subjects on 20261118b/c receipts, teaching 360/360, strict site) and browser17 (95 personally viewed captures at 1280x800 and 390x844 across 23 routes, 93 embedded SVG/PNG figures including stage-layout-1600.svg, stage-palette-style.svg and foppl/fdm WebGPU captures, 78 live --8<-- includes); prior browser16 CHECKS mismatch preserved.",
+      "path": "session_viewer/docs/journey/release/completion-presentation-style-site-windows-20261118.json"
     }
   ],
   "open": [

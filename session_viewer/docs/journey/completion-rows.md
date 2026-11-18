@@ -8,7 +8,7 @@ Store per-object transforms, RGBA tints, visibility/pickability flags and reveal
 
 ## Prerequisites and ownership
 
-Requires [5. Project and fit a scene](completion-camera.md). Checkpoint `rows` (`68` files) retains Tutorials 1–5 and adds `21` files across `build.rs`, `src/engine/gpu/`, `src/engine/pipelines/`, `src/shaders/` and `examples/course/rows.rs`:
+Requires [5. Project and fit a scene](completion-camera.md). Checkpoint `rows` (`69` files) retains Tutorials 1–5 and adds `21` files across `build.rs`, `src/engine/gpu/`, `src/engine/pipelines/`, `src/shaders/` and `examples/course/rows.rs`:
 
 | Group | Owned files |
 | --- | --- |
@@ -107,4 +107,4 @@ Growing allocates a new `wgpu::Buffer` and copies old bytes across; an existing 
 
 ## Validation
 
-Verified by clean `OUT_DIR` shader expansion, `68`-file locked `wasm32` build, `54` passing native tests (`1` GPU test ignored), and `70` desktop/upright WebGPU captures across `frame..rows` ([partials receipt](release/completion-partials-windows-20261115.json)). GPU lane rendering follows in [7. Render kernel geometry](completion-geometry.md).
+Verified by clean `OUT_DIR` shader expansion, `69`-file locked `wasm32` build ([stage reconciliation](release/completion-stage-reconciliation-windows-20261118c.json)), `54` passing baseline native tests (`1` GPU test ignored), and `70` desktop/upright WebGPU captures across `frame..rows` ([partials receipt](release/completion-partials-windows-20261115.json)). GPU lane rendering follows in [7. Render kernel geometry](completion-geometry.md).

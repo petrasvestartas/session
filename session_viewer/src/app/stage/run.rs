@@ -42,6 +42,8 @@ pub enum Draw {
         closed: bool,
         width: f32,
         color: Rgba,
+        dash: bool,
+        fill: Option<Rgba>,
     },
 }
 
@@ -583,6 +585,15 @@ impl Stage {
                     Some((_, p, ..)) => (smooth(*p) as f32, if *p > 0.0 { 1.0 } else { 0.0 }),
                 };
                 objects3.extend(self.geo_spatial(o, now, grow, alpha));
+                continue;
+            }
+            if o.drawing() {
+                let (grow, alpha) = match ap {
+                    Some((Style::Fade, p, ..)) => (1.0, smooth(*p) as f32),
+                    Some((Style::None, ..)) | None => (1.0, 1.0),
+                    Some((_, p, ..)) => (smooth(*p) as f32, if *p > 0.0 { 1.0 } else { 0.0 }),
+                };
+                texts.extend(self.flat_draws(i, now, grow, alpha));
                 continue;
             }
             if o.boxed.is_some() {

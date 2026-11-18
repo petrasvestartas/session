@@ -26,7 +26,7 @@ def save(c: Canvas, name: str) -> None:
 def course_map() -> None:
     c = Canvas(
         "Nine cumulative checkpoints from empty canvas to the production viewer",
-        "Each checkpoint keeps completed files in place and adds modules and registrations: 13 -> 15 -> 41 -> 45 -> 47 -> 68 -> 166 -> 170 -> 369 files.",
+        "Each checkpoint keeps completed files in place and adds modules and registrations: 13 -> 15 -> 42 -> 46 -> 48 -> 69 -> 167 -> 171 -> 370 files.",
         1200,
         360,
     )
@@ -39,9 +39,9 @@ def course_map() -> None:
         [
             (["1 · frame (13)", "`device.rs · launch.rs`", "WebGPU white canvas"], "cpu"),
             (["2 · painting (15)", "`gpu/ui.rs`", "egui triangle + text"], "gpu"),
-            (["3 · mathematics (41)", "`app/stage/*`", "TeX, matrices, tweens"], "cpu"),
-            (["4 · dock (45)", "`command_dock/*`", "input, chips, history"], "cpu"),
-            (["5 · camera (47)", "`camera.rs`", "orbit, fit, ray, NDC"], "cpu"),
+            (["3 · mathematics (42)", "`app/stage/*`", "TeX, matrices, 2D flat"], "cpu"),
+            (["4 · dock (46)", "`command_dock/*`", "input, chips, history"], "cpu"),
+            (["5 · camera (48)", "`camera.rs`", "orbit, fit, ray, NDC"], "cpu"),
         ],
         gap=28,
     )
@@ -51,10 +51,10 @@ def course_map() -> None:
         c,
         y2,
         [
-            (["6 · rows (68)", "`build.rs · Instance`", "112 B GPU object table"], "gpu"),
-            (["7 · geometry (166)", "`engine/* · shaders/*`", "mesh, BRep, ink, tiles"], "gpu"),
-            (["8 · decoding (170)", "`decode · validate`", "512 MiB protobuf caps"], "cpu"),
-            (["9 · application (369)", "`state.rs · app/*`", "351/351 viewer sources"], "sel"),
+            (["6 · rows (69)", "`build.rs · Instance`", "112 B GPU object table"], "gpu"),
+            (["7 · geometry (167)", "`engine/* · shaders/*`", "mesh, BRep, ink, tiles"], "gpu"),
+            (["8 · decoding (171)", "`decode · validate`", "512 MiB protobuf caps"], "cpu"),
+            (["9 · application (370)", "`state.rs · app/*`", "352/352 viewer sources"], "sel"),
         ],
         gap=36,
     )
@@ -118,7 +118,7 @@ def stage_slide() -> None:
         c,
         68,
         [
-            (["deck.rs · YAML", "dark default ground", "`eq · matrix · row(w)`"], "cpu"),
+            (["deck.rs · YAML", "white default ground", "`eq · matrix · drawing`"], "cpu"),
             (["tex.rs + font.rs", "OpenType MATH metrics", "`Rc<Expr>` primitives"], "cpu"),
             (["actions.rs + morph.rs", "forward & replay steps", "`Tween<T>` + `-1.2` slot"], "cpu"),
         ],
@@ -130,7 +130,7 @@ def stage_slide() -> None:
         c,
         py2,
         [
-            (["draw.rs · prims_of(t)", "sample pos, RGB, alpha", "hide empty matrix cells"], "gpu"),
+            (["draw.rs + flat.rs", "prims, 24×0.30 arrows", "hide empty matrix cells"], "gpu"),
             (["paint.rs · Atlas", "`swash` glyph coverage", "egui textured quads"], "gpu"),
         ],
         x0=rx,
@@ -589,6 +589,211 @@ def frame_clear() -> None:
     save(c, "frame-clear.svg")
 
 
+def stage_layout_1600() -> None:
+    c = Canvas(
+        "1600x900 presentation slide layout, white-paper graphic-statics style and upright portrait stacking",
+        "Each stage chapter shares a 1600x900 logical slide on white paper (#ffffff default, toggled to #000000 with T), split at split=0.46 (x=736) between the clipped 3D WebGPU scene half and the opaque bg derivation column, with accent blue titles and 4 px whole-deck progress bar, non-overlapping 650 ms say narration, ETH Zurich | BRG marks, and Frame::stacked portrait reflow when height >= 1.1 * width.",
+        1220,
+        420,
+    )
+    c.text(28, 38, "1600 × 900 presentation layout · split = 0.46 (x = 736) · white-paper default", "h")
+
+    # Left: 1600x900 desktop slide blueprint on white paper (append rects directly to c.parts to preserve exact #ffffff/#111111)
+    sx, sy, sw, sh = 28, 62, 640, 304
+    split_x = sx + int(sw * 0.46)  # sx + 294 = 322
+    c.parts.append(f'<rect x="{sx}" y="{sy}" width="{sw}" height="{sh}" rx="6" fill="#ffffff" stroke="#8a9099" stroke-width="1.5"/>')
+    # Faint vertical divider (y = 96..844 in 900 space)
+    c.parts.append(f'<line x1="{split_x}" y1="{sy + 34}" x2="{split_x}" y2="{sy + sh - 22}" stroke="#d0d6dc" stroke-width="1.4"/>')
+
+    # Top chrome: title at [40, 40] in accent blue, say at [769.6, 40] in ink
+    c.text(sx + 16, sy + 24, "FORCE DENSITY MATRICES", "s", fill="#0066a6", keep=True)
+    c.text(sx + 16, sy + 42, "[40, 40] · 23 px bold · accent", "s", fill="#4c535d", keep=True)
+    c.text(split_x + 16, sy + 24, "say: step sentence ($math$, **bold**)", "s", fill="#111111", keep=True)
+    c.text(split_x + 16, sy + 42, "[769.6, 40] · 650 ms out → +6 px rise", "s", fill="#0066a6", keep=True)
+
+    # 3D scene half diagram (0..736): black 3.2 px cables, open-circle paper-centre nodes, elongated #007bc4 load arrow
+    gx, gy = sx + 148, sy + 182
+    pts3 = [
+        (gx - 90, gy + 44, "n₁", -7, -7, "end"),
+        (gx - 28, gy - 68, "n₃", 8, -3, "start"),
+        (gx + 92, gy + 36, "n₄", 8, -4, "start"),
+        (gx - 34, gy + 20, "n₂", 4, 16, "start"),
+    ]
+    for px, py, _, _, _, _ in pts3:
+        c.parts.append(f'<line x1="{gx}" y1="{gy}" x2="{px}" y2="{py}" stroke="#111111" stroke-width="2.1"/>')
+    # Elongated blue load arrow p from n0 (24 x 0.30 proportion, tip on endpoint)
+    c.parts.append(f'<line x1="{gx}" y1="{gy}" x2="{gx}" y2="{gy + 36}" stroke="#007bc4" stroke-width="2.2"/>')
+    c.parts.append(f'<polygon points="{gx - 3.6},{gy + 34} {gx + 3.6},{gy + 34} {gx},{gy + 52}" fill="#007bc4"/>')
+    # Open-circle nodes with white paper centre
+    for px, py, lbl, dx, dy, anc in pts3:
+        c.parts.append(f'<circle cx="{px}" cy="{py}" r="4.2" fill="#ffffff" stroke="#111111" stroke-width="1.8"/>')
+        c.text(px + dx, py + dy, lbl, "s", anchor=anc, fill="#111111", keep=True)
+    c.parts.append(f'<circle cx="{gx}" cy="{gy}" r="4.5" fill="#ffffff" stroke="#111111" stroke-width="1.9"/>')
+    c.text(gx + 9, gy - 7, "n₀ (open ring)", "s", fill="#111111", keep=True)
+    c.text(gx + 9, gy + 38, "p (load)", "s", fill="#0066a6", keep=True)
+    c.text(sx + 16, sy + sh - 20, "WebGPU 3D (0..736 px, clipped)", "s", fill="#0066a6", keep=True)
+
+    # Right column inner layout box: TOP=150, BOTTOM=70, x0=769.6..1544 (MARGIN=56)
+    cx0, cy0, cw0, ch0 = split_x + 16, sy + 56, sw - (split_x - sx) - 32, sh - 96
+    c.parts.append(f'<rect x="{cx0}" y="{cy0}" width="{cw0}" height="{ch0}" rx="4" fill="none" stroke="#b8c0c8" stroke-width="1.1" stroke-dasharray="4 3"/>')
+    c.text(cx0 + 10, cy0 + 18, "TOP = 150 · x = 769.6..1544 (MARGIN = 56)", "s", fill="#4c535d", keep=True)
+    c.text(cx0 + 10, cy0 + 43, "eq / tex (36 px): '=' axis + {{part}}", "m", fill="#111111", keep=True)
+    c.text(cx0 + 10, cy0 + 69, "matrix / row (30 px): C → C_N, C_F", "m", fill="#0066a6", keep=True)
+    c.text(cx0 + 10, cy0 + 95, "drawing: (flat.rs) 2D polygons & arrows", "m", fill="#b81858", keep=True)
+    c.text(cx0 + 10, cy0 + 121, "text 25 · label 24 · say 23 · code 19 px", "m", fill="#111111", keep=True)
+    c.text(cx0 + 10, cy0 + 147, "overflow > 680 px → 650 ms upward shift", "s", fill="#4c535d", keep=True)
+
+    # Bottom-right ETH | BRG marks & continuous 4 px accent progress bar
+    c.text(sx + sw - 16, sy + sh - 20, "ETH zürich | BRG  (21 px · ink)", "s", anchor="end", fill="#111111", keep=True)
+    c.parts.append(f'<rect x="{sx + 1}" y="{sy + sh - 6}" width="{sw - 2}" height="5" fill="#e4e7e8"/>')
+    c.parts.append(f'<rect x="{sx + 1}" y="{sy + sh - 6}" width="{int(sw * 0.44)}" height="5" fill="#007bc4"/>')
+
+    # Middle: Upright 390x844 Frame::stacked diagram (x = 692..864)
+    px0, py0, pw0, ph0 = 692, 62, 172, 304
+    c.parts.append(f'<rect x="{px0}" y="{py0}" width="{pw0}" height="{ph0}" rx="8" fill="#181b24" stroke="#5b6278" stroke-width="1.5"/>')
+    mid_y = py0 + 144
+    c.parts.append(f'<line x1="{px0 + 1}" y1="{mid_y}" x2="{px0 + pw0 - 1}" y2="{mid_y}" stroke="#4a4e68" stroke-width="1.2"/>')
+    c.text(px0 + 86, py0 + 24, "Frame::stacked", "m", anchor="middle", fill=PAL["yellow"])
+    c.text(px0 + 86, py0 + 44, "h >= 1.1 w (390×844)", "s", anchor="middle", fill=PAL["grey"])
+    c.text(px0 + 86, py0 + 86, "Top: 3D WebGPU", "s", anchor="middle", fill=PAL["blue_band"])
+    c.text(px0 + 86, py0 + 108, "hold-drag = orbit", "s", anchor="middle", fill=PAL["text2"])
+    c.text(px0 + 86, mid_y + 28, "Bottom: column", "s", anchor="middle", fill="#f4f6fa")
+    c.text(px0 + 86, mid_y + 52, "say + eq + matrix", "s", anchor="middle", fill=PAL["pink"])
+    c.text(px0 + 86, mid_y + 76, "swipe ←/→ = step", "s", anchor="middle", fill=PAL["text2"])
+    c.text(px0 + pw0 - 10, py0 + ph0 - 16, "ETH | BRG", "s", anchor="end", fill="#f4f6fa")
+    c.parts.append(f'<rect x="{px0 + 1}" y="{py0 + ph0 - 6}" width="{pw0 - 2}" height="5" fill="#3f4548"/>')
+    c.parts.append(f'<rect x="{px0 + 1}" y="{py0 + ph0 - 6}" width="76" height="5" fill="#2f8bff"/>')
+
+    # Right: Routing & Controls cards (x = 888..1192)
+    b1 = c.box(
+        888,
+        62,
+        [
+            "Local vs live URL routing",
+            "`?stage=decks/<name>/index.yaml`",
+            "`&data=off` → local Trunk (`decks/`)",
+            "`6` decks · `27` chapters shipped",
+            "`&chapter=1..7&step=N&theme=dark`",
+        ],
+        "cpu",
+        w=304,
+    )
+    b2 = c.box(
+        888,
+        b1[1] + b1[3] + 16,
+        [
+            "Zero-chrome stage controls",
+            "`#viewer-docs` removed on `?stage=`",
+            "Left half: drag orbit, wheel, 2× click",
+            "Right half: click / `Space` / `←` `→`",
+            "`1..9` chapter · `↑`/`↓` slide · `T` ground",
+        ],
+        "sel",
+        w=304,
+    )
+    yb = max(sy + sh, b2[1] + b2[3]) + 24
+    c.text(
+        28,
+        yb,
+        "index.html preloads NewCMMath-Book, NewCM10-Book, NewCM10-Bold and NewCMMono10-Book plus index.yaml and all chapter YAMLs while WASM downloads.",
+        "s",
+        fill=PAL["text2"],
+    )
+    c.w = 1220
+    c.h = int(yb + 22)
+    save(c, "stage-layout-1600.svg")
+
+
+def stage_palette_style() -> None:
+    c = Canvas(
+        "Dual-ground graphic-statics palette, co-highlighted matrix cells, open-ring nodes and 6-stop force ramp",
+        "theme_palette defaults to Theme::Light (#ffffff) and swaps to Theme::Dark (#000000) on T; numbers stay dark inside sign/yellow cells while titles and labels highlight in accent blue, vectors use 24x0.30 arrowheads, and show: forces maps 6 rank stops.",
+        1220,
+        396,
+    )
+    c.text(28, 38, "Graphic-statics dual-ground palette (white default, T swaps to black)", "h")
+    c.text(
+        28,
+        62,
+        "Decks name semantic roles (ink, load, accent, pos, neg, yellow, blue_band, pink_band) so T flips paper ↔ black at the same step.",
+        "s",
+        fill=PAL["text2"],
+    )
+
+    swatches = [
+        ("bg / ink / bar", "#111111", "#ffffff", "#f4f4f6", "#000000", "cables, rings, TeX, logos"),
+        ("blue · accent · load", "#007bc4", "#ffffff", "#2f8bff", "#000000", "loads, titles, bar, focus"),
+        ("pink · x,y,z · pos", "#ff2d7a", "#ffffff", "#ff4fa3", "#000000", "coords, +1 (#ff5c9a)"),
+        ("neg · cell / faint", "#4c9bff", "#ffffff", "#4c9bff", "#000000", "−1 cells, #e4e7e8 / #3f4548"),
+        ("yellow · active", "#ffc400", "#ffffff", "#ffd60a", "#000000", "active cells & washes"),
+        ("blue / pink_band", "#a9c9ff", "#ffffff", "#46616e", "#000000", "planes & #ff8fbd fills"),
+    ]
+    sw_w = 186
+    gap = 10
+    for idx, (title, light_fg, light_bg, dark_fg, dark_bg, role) in enumerate(swatches):
+        x = 28 + idx * (sw_w + gap)
+        y = 80
+        c.parts.append(f'<rect x="{x}" y="{y}" width="{sw_w}" height="122" rx="6" fill="#181b24" stroke="#4a4e68" stroke-width="1.2"/>')
+        c.text(x + 10, y + 20, title, "m", fill="#f4f6fa")
+        # Light default chip on top (real #ffffff ground with dark #111111 label)
+        c.parts.append(f'<rect x="{x + 10}" y="{y + 30}" width="{sw_w - 20}" height="28" rx="4" fill="{light_bg}" stroke="#8a9099" stroke-width="1"/>')
+        c.parts.append(f'<circle cx="{x + 24}" cy="{y + 44}" r="7" fill="{light_fg}" stroke="#111111" stroke-width="0.7"/>')
+        c.text(x + 38, y + 49, f"light {light_fg}", "s", fill="#111111", keep=True)
+        # Dark toggled chip below
+        c.parts.append(f'<rect x="{x + 10}" y="{y + 64}" width="{sw_w - 20}" height="28" rx="4" fill="{dark_bg}" stroke="#3b4354" stroke-width="1"/>')
+        c.parts.append(f'<circle cx="{x + 24}" cy="{y + 78}" r="7" fill="{dark_fg}"/>')
+        c.text(x + 38, y + 83, f"dark {dark_fg}", "s", fill="#f4f6fa", keep=True)
+        c.text(x + 10, y + 112, role, "s", fill=PAL["grey"])
+
+    # Bottom row: 3 visual style mechanics
+    by = 220
+    # Card 1: Sign cells & co-highlighted symbols
+    c.parts.append(f'<rect x="28" y="{by}" width="410" height="132" rx="6" fill="#181b24" stroke="#4a4e68" stroke-width="1.2"/>')
+    c.text(42, by + 24, "1 · Sign cells & co-highlighted symbols", "l", fill="#f4f6fa")
+    pills = [
+        ("+1", "#ff5c9a", "#111111", "pos"),
+        ("−1", "#4c9bff", "#111111", "neg"),
+        ("0", "#e4e7e8", "#111111", "cell"),
+        ("1", "#ffc400", "#111111", "yellow"),
+    ]
+    for pi, (val, pfill, pfg, pname) in enumerate(pills):
+        px = 42 + pi * 92
+        py = by + 38
+        c.parts.append(f'<rect x="{px}" y="{py}" width="76" height="38" rx="6" fill="{pfill}" stroke="#3b4354" stroke-width="1"/>')
+        c.text(px + 38, py + 25, val, "m", anchor="middle", fill=pfg, keep=True)
+        c.text(px + 38, py + 56, pname, "s", anchor="middle", fill=PAL["grey"])
+    c.text(42, by + 118, "numbers stay ink; matrix_name_key & r,: / :,c use accent", "s", fill=PAL["yellow"])
+
+    # Card 2: Open-circle nodes & elongated 24x0.30 arrowheads
+    c.parts.append(f'<rect x="454" y="{by}" width="362" height="132" rx="6" fill="#181b24" stroke="#4a4e68" stroke-width="1.2"/>')
+    c.text(468, by + 24, "2 · Open rings & 24 × 0.30 arrowheads", "l", fill="#f4f6fa")
+    # Small white paper preview strip inside Card 2
+    c.parts.append(f'<rect x="468" y="{by + 38}" width="334" height="40" rx="4" fill="#ffffff" stroke="#8a9099" stroke-width="1"/>')
+    c.parts.append(f'<line x1="490" y1="{by + 58}" x2="642" y2="{by + 58}" stroke="#007bc4" stroke-width="2.6"/>')
+    c.parts.append(f'<polygon points="640,{by + 53.8} 640,{by + 62.2} 668,{by + 58}" fill="#007bc4"/>')
+    c.parts.append(f'<circle cx="490" cy="{by + 58}" r="5.5" fill="#ffffff" stroke="#111111" stroke-width="2.2"/>')
+    c.parts.append(f'<line x1="668" y1="{by + 48}" x2="668" y2="{by + 68}" stroke="#111111" stroke-width="1.6" stroke-dasharray="3 2"/>')
+    c.text(684, by + 63, "tip = end", "s", fill="#111111", keep=True)
+    c.text(468, by + 98, "0.58 bg centre in 3D Point · r = 5.5 px in flat.rs", "s", fill="#7cc4ff")
+    c.text(468, by + 118, "24 pen lengths × 0.30 aspect (arrow.wgsl & flat.rs)", "s", fill=PAL["text2"])
+
+    # Card 3: 6-stop force-rank cable ramp (show: forces)
+    c.parts.append(f'<rect x="832" y="{by}" width="360" height="132" rx="6" fill="#181b24" stroke="#4a4e68" stroke-width="1.2"/>')
+    c.text(846, by + 24, "3 · 6-stop force ramp (show: forces)", "l", fill="#f4f6fa")
+    ramp_cols = ["#182c5b", "#007bc4", "#00c46a", "#ffc400", "#ff7a1a", "#ff2d7a"]
+    for ri, rc in enumerate(ramp_cols):
+        rx = 846 + ri * 54
+        rh = 4 + ri * 3
+        ry = by + 54 - rh // 2
+        c.parts.append(f'<rect x="{rx}" y="{ry}" width="48" height="{rh}" rx="2" fill="{rc}" stroke="#4a4e68" stroke-width="0.6"/>')
+    c.text(846, by + 82, "navy → blue → green → yellow → orange → pink", "s", fill=PAL["pink"])
+    c.text(846, by + 108, "width = 1.2 + 2.8 √(f_k / f_max)  (1.2..4.0 px)", "m", fill="#f4f6fa")
+
+    c.w = 1220
+    c.h = int(by + 132 + 24)
+    save(c, "stage-palette-style.svg")
+
+
 if __name__ == "__main__":
     course_map()
     stage_slide()
@@ -601,4 +806,6 @@ if __name__ == "__main__":
     doc_identity()
     debug_oracles()
     frame_clear()
+    stage_layout_1600()
+    stage_palette_style()
     print(f"Generated {len(list(HERE.glob('*.svg')))} SVGs in {HERE}")

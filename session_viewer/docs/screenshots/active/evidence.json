@@ -114,25 +114,74 @@
       "caption": "Application streaming: out-of-core point cloud point picked and resolved back to its exact source index."
     },
     {
-      "asset": "stage-pillow-grid-1280.png",
-      "sourceCapture": "session_viewer/target/stage-reconcile-20261118-browser/captures/fdm7-1280-first-dark.png",
-      "sha256": "f284ba07765ce5cc3d810cb437f40d34170fd053dd324cfd87b49ae5a934c1c7",
-      "bytes": 108925,
-      "caption": "Real-scene stage (07-pillow): 100-node cable grid beside sparse C -> C_N, C_F pattern matrices on dark ground."
-    },
-    {
-      "asset": "stage-pillow-solved-1280.png",
-      "sourceCapture": "session_viewer/target/stage-reconcile-20261118-browser/captures/fdm7-1280-last-dark.png",
-      "sha256": "d45d94ed4ab7cb51a7c89f8e74aae3e8d0f7248ddc398377385f8b83a47aad59",
-      "bytes": 175326,
-      "caption": "Real-scene stage (07-pillow): solved upward-loaded cushion (peak z = 2.025) beside runnable SciPy Cholesky script."
-    },
-    {
       "asset": "gpu-diagnostic-instanced.png",
       "sourceCapture": "session_viewer/target/application-gpu03/shots/placed_true_true_instanced.png",
       "sha256": "a9cefbcf692f61131c4411831c609559c0c8d1aa4d72645fb9b909e8065f6075",
       "bytes": 6634,
       "caption": "Debugging GPU self-test: offscreen instanced scene render from instanced_frames_match_the_baked_scene."
+    },
+    {
+      "asset": "stage-pillow-grid-1280.png",
+      "sourceCapture": "session_viewer/target/stage-reconcile-20261118d-browser/captures/fdm7-1280-first-light.png",
+      "sha256": "5fbe8e32e01930bad68b8da1539c02342f3cef5aca263916480c2f0399e7eef5",
+      "bytes": 103841,
+      "caption": "Real-scene stage (07-pillow, default white ground): 100-node open-circle cable grid with elongated blue load arrows beside sparse C -> C_N, C_F pattern matrices."
+    },
+    {
+      "asset": "stage-pillow-solved-1280.png",
+      "sourceCapture": "session_viewer/target/stage-reconcile-20261118d-browser/captures/fdm7-1280-last-light.png",
+      "sha256": "4f64aef0e671434fd9cb74b9358e43072f2889eb15970337ad8e62d80c8e2718",
+      "bytes": 148421,
+      "caption": "Real-scene stage (07-pillow, final step): solved upward-loaded cushion (peak z = 2.025) beside runnable SciPy Cholesky script in NewCMMono10."
+    },
+    {
+      "asset": "stage-fdm-givens-light-1280.png",
+      "sourceCapture": "session_viewer/target/stage-reconcile-20261118d-browser/captures/fdm1-1280-first-light.png",
+      "sha256": "9defaa0ef6b410b059df8b76b7adebe96bd3dae86b7a1d9bab354043693dc89a",
+      "bytes": 189420,
+      "caption": "Force-density matrices Ch. 1 (default white ground #ffffff): 5-node star with open-circle paper-centre nodes, black 3.2 px cables, elongated #007bc4 load arrow p, fixed-width portrait slots, pink xN/yN/zN, and ETH | BRG chrome."
+    },
+    {
+      "asset": "stage-fdm-givens-dark-1280.png",
+      "sourceCapture": "session_viewer/target/stage-reconcile-20261118d-browser/captures/fdm1-1280-first-dark.png",
+      "sha256": "0249ee7e29753f78ea9c90dc7ff58325ff877624747ce53520d78b789c75223c",
+      "bytes": 209739,
+      "caption": "Force-density matrices Ch. 1 (toggled to dark ground #000000 via T / &theme=dark): identical YAML step adapted through theme_palette(Theme::Dark)."
+    },
+    {
+      "asset": "stage-fdm-matrices-light-1280.png",
+      "sourceCapture": "session_viewer/target/stage-reconcile-20261118d-browser/captures/fdm2-1280-first-light.png",
+      "sha256": "64c720e302c2e86129a5b894aa34732343926b091c68e232c972471b2e7c0dd9",
+      "bytes": 84420,
+      "caption": "Force-density matrices Ch. 2: reusable balance block with accent blue C_N/C_F co-highlighting, vivid pink (+1) and blue (-1) cells in C, and yellow C_N/C_F highlights keeping numeric entries dark (#111111) with accent blue titles/labels."
+    },
+    {
+      "asset": "stage-forces-ramp-light-1280.png",
+      "sourceCapture": "session_viewer/target/stage-reconcile-20261118d-browser/captures/fdmat3-1280-last-light.png",
+      "sha256": "65f580392edd439c3736b17b425ebbafce2f9684dc6cf368dd7fadab6a600216",
+      "bytes": 114106,
+      "caption": "Real-scene stage show: forces (03-net): saddle net coloured across the 6-stop rank ramp (navy -> blue -> green -> yellow -> orange -> pink) and thickened by 1.2 + 2.8 * sqrt(f_k / f_max)."
+    },
+    {
+      "asset": "stage-foppl-polygon-1280.png",
+      "sourceCapture": "session_viewer/target/stage-reconcile-20261118d-browser/captures/foppl3-1280-last-light.png",
+      "sha256": "dfbe47f59bff09c901608a36a4a8afc25c84b548a7007809133d225c21851ab2",
+      "bytes": 90241,
+      "caption": "Foppl spatial joint Ch. 3 (split = 0.54): 3D spatial force quadrilateral beside unfolded true-length 2D flat.rs drawing triangles with pink_band and blue_band fills and 24x0.30 elongated arrowheads."
+    },
+    {
+      "asset": "stage-foppl-projections-1280.png",
+      "sourceCapture": "session_viewer/target/stage-reconcile-20261118d-browser/captures/foppl4-1280-last-light.png",
+      "sha256": "b2f639b505c29864980307baeb6c6aac14f2d3daa817c76332881cb7fbb1d90e",
+      "bytes": 93065,
+      "caption": "Foppl spatial joint Ch. 4 (split = 0.45): 3D force polygon projected onto the datum beside Monge Elevation (x-z) and Plan (x-y) orthographic flat.rs drawings linked by vertical dashed projectors."
+    },
+    {
+      "asset": "stage-fdm-pillow-390-light.png",
+      "sourceCapture": "session_viewer/target/stage-reconcile-20261118d-browser/captures/fdm7-390-first-light.png",
+      "sha256": "016072938b4f448e0c1de25184d23c7979e2c7bb4bf8a970fca77d00634cf64a",
+      "bytes": 48512,
+      "caption": "Force-density matrices Ch. 7 at 390x844 upright (Frame::stacked): 3D 100-node cable grid filling the top half with narration and sparse pattern C -> C_N, C_F stacked below."
     }
   ]
 }

@@ -56,7 +56,7 @@ const FILTER_REACH: f32 = 0.70711;
 // Default arrowhead length, in pen widths; as in vector.wgsl.
 const HEAD_PENS: f32 = 12.0;
 // Half the arrowhead's base width over its length; as in vector.wgsl.
-const HEAD_ASPECT: f32 = 0.55;
+const HEAD_ASPECT: f32 = 0.30;
 
 // Arrowhead length in px: `pens` pen widths, seven shaft half widths at least, `most` at most.
 fn head_px(pens: f32, hw: f32, most: f32) -> f32 {

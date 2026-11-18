@@ -1,0 +1,1112 @@
+{
+  "status": "reconciled",
+  "date": "2026-11-18",
+  "planningBaselineCommit": "87f844e41d08ef104fc071d5bc18163ffe9a4353",
+  "planningManifest": {
+    "path": "journey/completion-batch.json",
+    "lfSha256": "624566750d608e813a1a10269a966b8e1722b55bc037b7f250dbb3ef2ef8b25f",
+    "note": "Preserved at planning baseline commit 87f844e41d08ef104fc071d5bc18163ffe9a4353 per tutorial-completion.md; live endpoint parity is enforced by auditCompletion against current session_viewer/src (351 production Rust/WGSL files)"
+  },
+  "mergedBranches": {
+    "originMain": "f1d477f2c4a18e7fae9026418a5005b6c6e46471",
+    "source30Figures": "d5fcbe9e0f2d1be44d772ff9860ef68e5042ab01"
+  },
+  "endpointParity": {
+    "productionRustAndWgslFiles": 351,
+    "supportFiles": 8,
+    "deliberateAssetExclusions": 17,
+    "missing": [],
+    "extra": [],
+    "changed": []
+  },
+  "historicalRoutePreservation": {
+    "manifest": "journey/course.json",
+    "checkpointsPreserved": 1298,
+    "historicalAuditsNote": "Historical structure, ownership, and parity checks retain their original known failures without weakening or relabeling"
+  },
+  "unresolvedCourseBlockers": [
+    {
+      "subject": "application",
+      "check": "app::scene::instances::tests::gpu::instanced_frames_match_the_baked_scene",
+      "status": "failed-preserved",
+      "detail": "36/37 selected application GPU assertions passed; 1 failed with 31 turned-scene pixels 3 levels brighter than baked output (>2 threshold). Viewer behavior and assertion threshold kept unchanged per instruction.",
+      "evidence": "journey/release/completion-application-gpu-diagnostic-windows-20261116.json"
+    },
+    {
+      "subject": "application",
+      "check": "physical-device-and-full-ignored-native-witnesses",
+      "status": "not-claimed",
+      "detail": "Desktop Windows Intel Gen-12LP WebGPU and 390x844 emulation do not establish physical-phone hardware/keyboard acceptance or unrun full ignored native lifecycle/oracle/WARP suites."
+    }
+  ],
+  "changedFilesSinceBaselineCount": 153,
+  "changedFilesSinceBaseline": [
+    {
+      "status": "M",
+      "path": "Cargo.toml",
+      "category": "cumulative-feature-declaration",
+      "currentLfSha256": "f17b33bedb793327e7c86551b00dbecb1f02b961f4149e721020459ca04228dc",
+      "provenance": "Declares empty optional feature `tutorial = []` for cumulative example entries; production dependencies, profiles, and default features unchanged"
+    },
+    {
+      "status": "A",
+      "path": "examples/course/camera.rs",
+      "category": "cumulative-course-fixture",
+      "currentLfSha256": "dcd25888699330fcf22e4159d58123c0d326dcb73d7d06fbdee7da7a011bac33",
+      "provenance": "Cumulative subject entry and harness fixture under examples/course/; production index.html startup unchanged"
+    },
+    {
+      "status": "A",
+      "path": "examples/course/canvas.rs",
+      "category": "cumulative-course-fixture",
+      "currentLfSha256": "9c542080ed079fa6734fa0d81a5991fdb6cb7e443f2b5324638ab11456311b63",
+      "provenance": "Cumulative subject entry and harness fixture under examples/course/; production index.html startup unchanged"
+    },
+    {
+      "status": "A",
+      "path": "examples/course/decoding.rs",
+      "category": "cumulative-course-fixture",
+      "currentLfSha256": "f3c4e0261521db399bca7eff0bb42027d548d90c7f8b20778342db067687763c",
+      "provenance": "Cumulative subject entry and harness fixture under examples/course/; production index.html startup unchanged"
+    },
+    {
+      "status": "A",
+      "path": "examples/course/dock.rs",
+      "category": "cumulative-course-fixture",
+      "currentLfSha256": "a727b0b8e691ddcf1b0658f7075afbaaa6d7d94ff7e1adb5ca9f3ef2c2734e03",
+      "provenance": "Cumulative subject entry and harness fixture under examples/course/; production index.html startup unchanged"
+    },
+    {
+      "status": "A",
+      "path": "examples/course/entry.rs",
+      "category": "cumulative-course-fixture",
+      "currentLfSha256": "f57ce9f8b4ded8cee3b213c075e031cce236988de352b7f9d0c87cba9ffb1b6d",
+      "provenance": "Cumulative subject entry and harness fixture under examples/course/; production index.html startup unchanged"
+    },
+    {
+      "status": "A",
+      "path": "examples/course/frame.rs",
+      "category": "cumulative-course-fixture",
+      "currentLfSha256": "916fb538f088d1d28783559a7955f463c7b2650ac2d7d0184eeec12158aae787",
+      "provenance": "Cumulative subject entry and harness fixture under examples/course/; production index.html startup unchanged"
+    },
+    {
+      "status": "A",
+      "path": "examples/course/geometry.rs",
+      "category": "arrowhead-aspect-and-pens-override",
+      "currentLfSha256": "92c723656ebdcaff13bb25d4a21a0cc80c2e19ac18b88c8f86c63fcd10c303be",
+      "provenance": "Narrow HEAD_ASPECT = 0.30 solid arrowheads landing on exact vector/curve endpoints and Scene::arrowhead_pens override, verified in completion-stage-reconciliation-windows-20261118c.json"
+    },
+    {
+      "status": "A",
+      "path": "examples/course/index.html",
+      "category": "cumulative-course-fixture",
+      "currentLfSha256": "95892b097daa427fc43bd3da6352de1e199b7f526ed55bd41787eb16e734970c",
+      "provenance": "Cumulative subject entry and harness fixture under examples/course/; production index.html startup unchanged"
+    },
+    {
+      "status": "A",
+      "path": "examples/course/index.yaml",
+      "category": "cumulative-course-fixture",
+      "currentLfSha256": "93e66a5f8c5115571bb57d70afcb1a46094652aa88c081bd5f39ae9425297203",
+      "provenance": "Cumulative subject entry and harness fixture under examples/course/; production index.html startup unchanged"
+    },
+    {
+      "status": "A",
+      "path": "examples/course/mathematics.rs",
+      "category": "cumulative-course-fixture",
+      "currentLfSha256": "d81943c4fa1d21b359fe353917ad521d95841b49b8f8319867611045b7517291",
+      "provenance": "Cumulative subject entry and harness fixture under examples/course/; production index.html startup unchanged"
+    },
+    {
+      "status": "A",
+      "path": "examples/course/painting.rs",
+      "category": "cumulative-course-fixture",
+      "currentLfSha256": "d57c027f79370d3acce115da2b43aca2511c72421b4cd7f3cfb21c6a299749eb",
+      "provenance": "Cumulative subject entry and harness fixture under examples/course/; production index.html startup unchanged"
+    },
+    {
+      "status": "A",
+      "path": "examples/course/registration.rs",
+      "category": "cumulative-course-fixture",
+      "currentLfSha256": "f164c49f4555525a5789446e1b0967b94de6b0a78db795b4b5b62198fa84b4ee",
+      "provenance": "Cumulative subject entry and harness fixture under examples/course/; production index.html startup unchanged"
+    },
+    {
+      "status": "A",
+      "path": "examples/course/rows.rs",
+      "category": "cumulative-course-fixture",
+      "currentLfSha256": "6281f54d5e6b36dc8dd3d42cdec99df88916919c796da1cdc8fe527950a101f1",
+      "provenance": "Cumulative subject entry and harness fixture under examples/course/; production index.html startup unchanged"
+    },
+    {
+      "status": "M",
+      "path": "examples/stage/README.md",
+      "category": "stage-presentation-deck",
+      "currentLfSha256": "8b1a3934c84bc1cb84bc8aa071b9e889b9bdde2b2ce49aac4b665025ad90f471",
+      "provenance": "Shipped stage presentation deck (6 decks, 27 chapters including foppl-spatial-joint), verified in completion-stage-reconciliation-windows-20261118c.json"
+    },
+    {
+      "status": "M",
+      "path": "examples/stage/equilibrium/01-equilibrium.yaml",
+      "category": "stage-presentation-deck",
+      "currentLfSha256": "a02f8d3f12003f3b6d59bbba8049f4dd9e976d5b41baa535b010fc2689c66dc9",
+      "provenance": "Shipped stage presentation deck (6 decks, 27 chapters including foppl-spatial-joint), verified in completion-stage-reconciliation-windows-20261118c.json"
+    },
+    {
+      "status": "M",
+      "path": "examples/stage/equilibrium/index.yaml",
+      "category": "stage-presentation-deck",
+      "currentLfSha256": "5f400a82a736fe06f9f7896c0ecdf8b54d3c784f0d84a5dad632faa5831a9a44",
+      "provenance": "Shipped stage presentation deck (6 decks, 27 chapters including foppl-spatial-joint), verified in completion-stage-reconciliation-windows-20261118c.json"
+    },
+    {
+      "status": "A",
+      "path": "examples/stage/foppl-spatial-joint/01-spatial-joint.yaml",
+      "category": "stage-presentation-deck",
+      "currentLfSha256": "a690b102d2ec8206e2aaa69a24f8b695b6dbfa75e1b3125f56be4c62428f8b09",
+      "provenance": "Shipped stage presentation deck (6 decks, 27 chapters including foppl-spatial-joint), verified in completion-stage-reconciliation-windows-20261118c.json"
+    },
+    {
+      "status": "A",
+      "path": "examples/stage/foppl-spatial-joint/02-auxiliary-planes.yaml",
+      "category": "stage-presentation-deck",
+      "currentLfSha256": "445044c40954080c2e95e52f9002c5e6de2958b5831e07c788f9471a0318906c",
+      "provenance": "Shipped stage presentation deck (6 decks, 27 chapters including foppl-spatial-joint), verified in completion-stage-reconciliation-windows-20261118c.json"
+    },
+    {
+      "status": "A",
+      "path": "examples/stage/foppl-spatial-joint/02-simple-truss.yaml",
+      "category": "stage-presentation-deck",
+      "currentLfSha256": "5534551014c84dfb75e2992f367f2f1862fb7024570e2da8789ec32e7dbfcb5c",
+      "provenance": "Shipped stage presentation deck (6 decks, 27 chapters including foppl-spatial-joint), verified in completion-stage-reconciliation-windows-20261118c.json"
+    },
+    {
+      "status": "A",
+      "path": "examples/stage/foppl-spatial-joint/03-force-polygon.yaml",
+      "category": "stage-presentation-deck",
+      "currentLfSha256": "be13d4f76610bff69added94742cae7b1c07c33cc8122a066e31b305e3531bef",
+      "provenance": "Shipped stage presentation deck (6 decks, 27 chapters including foppl-spatial-joint), verified in completion-stage-reconciliation-windows-20261118c.json"
+    },
+    {
+      "status": "A",
+      "path": "examples/stage/foppl-spatial-joint/04-projections.yaml",
+      "category": "stage-presentation-deck",
+      "currentLfSha256": "643d5ead06eaa7b6174afdb3b2a5a61b7e1adbbe3b01cb78bf785f41a2c4e0b3",
+      "provenance": "Shipped stage presentation deck (6 decks, 27 chapters including foppl-spatial-joint), verified in completion-stage-reconciliation-windows-20261118c.json"
+    },
+    {
+      "status": "A",
+      "path": "examples/stage/foppl-spatial-joint/img/original-fig002.png",
+      "category": "stage-presentation-deck",
+      "currentLfSha256": "940844926005f4dbb278ef977f3751e228fe8b3aa688d132d54023923ab3185a",
+      "provenance": "Shipped stage presentation deck (6 decks, 27 chapters including foppl-spatial-joint), verified in completion-stage-reconciliation-windows-20261118c.json"
+    },
+    {
+      "status": "A",
+      "path": "examples/stage/foppl-spatial-joint/img/original-fig002a.png",
+      "category": "stage-presentation-deck",
+      "currentLfSha256": "cd31eb4be9b40ec77525cbe8ef71ccba0e491de18ca21b29122ecd9384810d2a",
+      "provenance": "Shipped stage presentation deck (6 decks, 27 chapters including foppl-spatial-joint), verified in completion-stage-reconciliation-windows-20261118c.json"
+    },
+    {
+      "status": "A",
+      "path": "examples/stage/foppl-spatial-joint/img/projections.png",
+      "category": "stage-presentation-deck",
+      "currentLfSha256": "5db5065af64fa5594ec2da96dbf3229ca5f88c686c7723453d28c64125b30d4b",
+      "provenance": "Shipped stage presentation deck (6 decks, 27 chapters including foppl-spatial-joint), verified in completion-stage-reconciliation-windows-20261118c.json"
+    },
+    {
+      "status": "A",
+      "path": "examples/stage/foppl-spatial-joint/index.yaml",
+      "category": "stage-presentation-deck",
+      "currentLfSha256": "c985acf65be8be1b6c391e00dee3d8d60a2d93dc493f87c0225186421a398ef3",
+      "provenance": "Shipped stage presentation deck (6 decks, 27 chapters including foppl-spatial-joint), verified in completion-stage-reconciliation-windows-20261118c.json"
+    },
+    {
+      "status": "M",
+      "path": "examples/stage/force-density-derivation/01-why.yaml",
+      "category": "stage-presentation-deck",
+      "currentLfSha256": "4c61e56a3b4b47936532e50d879d049ad17d7935c264e8a78145e07ba94013ee",
+      "provenance": "Shipped stage presentation deck (6 decks, 27 chapters including foppl-spatial-joint), verified in completion-stage-reconciliation-windows-20261118c.json"
+    },
+    {
+      "status": "M",
+      "path": "examples/stage/force-density-derivation/02-one-cable.yaml",
+      "category": "stage-presentation-deck",
+      "currentLfSha256": "38302fd9c18b09c8634f5c2f04f01f3c83a19ea2606352bfddd864f37bb4496b",
+      "provenance": "Shipped stage presentation deck (6 decks, 27 chapters including foppl-spatial-joint), verified in completion-stage-reconciliation-windows-20261118c.json"
+    },
+    {
+      "status": "M",
+      "path": "examples/stage/force-density-derivation/03-tiny-nudge.yaml",
+      "category": "stage-presentation-deck",
+      "currentLfSha256": "ccc02760eea987fbfa12a4d9e563724db23c96f287e28d20d461db7139f78208",
+      "provenance": "Shipped stage presentation deck (6 decks, 27 chapters including foppl-spatial-joint), verified in completion-stage-reconciliation-windows-20261118c.json"
+    },
+    {
+      "status": "D",
+      "path": "examples/stage/force-density-derivation/04-chain-rule.yaml",
+      "category": "stage-presentation-deck",
+      "provenance": "Shipped stage presentation deck (6 decks, 27 chapters including foppl-spatial-joint), verified in completion-stage-reconciliation-windows-20261118c.json"
+    },
+    {
+      "status": "A",
+      "path": "examples/stage/force-density-derivation/04-jacobian.yaml",
+      "category": "stage-presentation-deck",
+      "currentLfSha256": "f36dcf31e7de868ff2514912876e9743a4d33a11bb885565703d9dd6a8cb46ab",
+      "provenance": "Shipped stage presentation deck (6 decks, 27 chapters including foppl-spatial-joint), verified in completion-stage-reconciliation-windows-20261118c.json"
+    },
+    {
+      "status": "D",
+      "path": "examples/stage/force-density-derivation/05-jacobian.yaml",
+      "category": "stage-presentation-deck",
+      "provenance": "Shipped stage presentation deck (6 decks, 27 chapters including foppl-spatial-joint), verified in completion-stage-reconciliation-windows-20261118c.json"
+    },
+    {
+      "status": "A",
+      "path": "examples/stage/force-density-derivation/05-matrix-form.yaml",
+      "category": "stage-presentation-deck",
+      "currentLfSha256": "7f6f4ccf14f9aadaffbd81f0d2ec7bf32403752dafb539ea167b98d15e664307",
+      "provenance": "Shipped stage presentation deck (6 decks, 27 chapters including foppl-spatial-joint), verified in completion-stage-reconciliation-windows-20261118c.json"
+    },
+    {
+      "status": "A",
+      "path": "examples/stage/force-density-derivation/06-materialization.yaml",
+      "category": "stage-presentation-deck",
+      "currentLfSha256": "714373283a9f5340470c938cc865fa28cc48cf055322bb956c34c1d82d293906",
+      "provenance": "Shipped stage presentation deck (6 decks, 27 chapters including foppl-spatial-joint), verified in completion-stage-reconciliation-windows-20261118c.json"
+    },
+    {
+      "status": "D",
+      "path": "examples/stage/force-density-derivation/06-matrix-form.yaml",
+      "category": "stage-presentation-deck",
+      "provenance": "Shipped stage presentation deck (6 decks, 27 chapters including foppl-spatial-joint), verified in completion-stage-reconciliation-windows-20261118c.json"
+    },
+    {
+      "status": "M",
+      "path": "examples/stage/force-density-derivation/index.yaml",
+      "category": "stage-presentation-deck",
+      "currentLfSha256": "320ecedc8ed57c725bf608167a12e20ed8d454a21185ee2a0ae0c6f1a75a3ef9",
+      "provenance": "Shipped stage presentation deck (6 decks, 27 chapters including foppl-spatial-joint), verified in completion-stage-reconciliation-windows-20261118c.json"
+    },
+    {
+      "status": "M",
+      "path": "examples/stage/force-density-materialization/01-materialization.yaml",
+      "category": "stage-presentation-deck",
+      "currentLfSha256": "36379b57d6d2ad863e4c3907ee2bce963d60537f951723be1e5989236203c15f",
+      "provenance": "Shipped stage presentation deck (6 decks, 27 chapters including foppl-spatial-joint), verified in completion-stage-reconciliation-windows-20261118c.json"
+    },
+    {
+      "status": "M",
+      "path": "examples/stage/force-density-materialization/02-resume.yaml",
+      "category": "stage-presentation-deck",
+      "currentLfSha256": "32f5f0b84493e70e07592821e08f244da6d6f483d822fbf933501f7f237cf2f4",
+      "provenance": "Shipped stage presentation deck (6 decks, 27 chapters including foppl-spatial-joint), verified in completion-stage-reconciliation-windows-20261118c.json"
+    },
+    {
+      "status": "M",
+      "path": "examples/stage/force-density-materialization/03-net.yaml",
+      "category": "stage-presentation-deck",
+      "currentLfSha256": "f84e1cd7e48e2f9b25a507b259f456df4d3c914301e4e5f3e6869938457cf01d",
+      "provenance": "Shipped stage presentation deck (6 decks, 27 chapters including foppl-spatial-joint), verified in completion-stage-reconciliation-windows-20261118c.json"
+    },
+    {
+      "status": "M",
+      "path": "examples/stage/force-density-materialization/index.yaml",
+      "category": "stage-presentation-deck",
+      "currentLfSha256": "895966d261e7adc715882eefdc1fe838d10980ca699b856bc96265b966f5b427",
+      "provenance": "Shipped stage presentation deck (6 decks, 27 chapters including foppl-spatial-joint), verified in completion-stage-reconciliation-windows-20261118c.json"
+    },
+    {
+      "status": "M",
+      "path": "examples/stage/force-density-matrices/01-givens.yaml",
+      "category": "stage-presentation-deck",
+      "currentLfSha256": "009d489e8627d43464245ff884f370c482140699a2d862081d695f14b9183366",
+      "provenance": "Shipped stage presentation deck (6 decks, 27 chapters including foppl-spatial-joint), verified in completion-stage-reconciliation-windows-20261118c.json"
+    },
+    {
+      "status": "M",
+      "path": "examples/stage/force-density-matrices/02-matrices.yaml",
+      "category": "stage-presentation-deck",
+      "currentLfSha256": "9b9a0a4972ccc0f992547e2fdc8563afaf9fdc63aa9e6d60f8785d241f33a2ab",
+      "provenance": "Shipped stage presentation deck (6 decks, 27 chapters including foppl-spatial-joint), verified in completion-stage-reconciliation-windows-20261118c.json"
+    },
+    {
+      "status": "M",
+      "path": "examples/stage/force-density-matrices/03-script.yaml",
+      "category": "stage-presentation-deck",
+      "currentLfSha256": "39b839ae0b5ce4d7318740e49db8873ce33505db217b97cf663fcd4edbd755bd",
+      "provenance": "Shipped stage presentation deck (6 decks, 27 chapters including foppl-spatial-joint), verified in completion-stage-reconciliation-windows-20261118c.json"
+    },
+    {
+      "status": "A",
+      "path": "examples/stage/force-density-matrices/04-arch.yaml",
+      "category": "stage-presentation-deck",
+      "currentLfSha256": "6836add3a457b133a4f085e7db72722fe0a761db71286ede3416691502f85913",
+      "provenance": "Shipped stage presentation deck (6 decks, 27 chapters including foppl-spatial-joint), verified in completion-stage-reconciliation-windows-20261118c.json"
+    },
+    {
+      "status": "D",
+      "path": "examples/stage/force-density-matrices/04-several-nodes.yaml",
+      "category": "stage-presentation-deck",
+      "provenance": "Shipped stage presentation deck (6 decks, 27 chapters including foppl-spatial-joint), verified in completion-stage-reconciliation-windows-20261118c.json"
+    },
+    {
+      "status": "A",
+      "path": "examples/stage/force-density-matrices/05-several-nodes.yaml",
+      "category": "stage-presentation-deck",
+      "currentLfSha256": "54dd1b47d7370ec640dc882a0b3492e14bf2e8221c472450c0d31e07653fbe14",
+      "provenance": "Shipped stage presentation deck (6 decks, 27 chapters including foppl-spatial-joint), verified in completion-stage-reconciliation-windows-20261118c.json"
+    },
+    {
+      "status": "D",
+      "path": "examples/stage/force-density-matrices/05-solver.yaml",
+      "category": "stage-presentation-deck",
+      "provenance": "Shipped stage presentation deck (6 decks, 27 chapters including foppl-spatial-joint), verified in completion-stage-reconciliation-windows-20261118c.json"
+    },
+    {
+      "status": "M",
+      "path": "examples/stage/force-density-matrices/06-net.yaml",
+      "category": "stage-presentation-deck",
+      "currentLfSha256": "5d8b89958ac0855cbe962128ccbaa51bbc1ca69d4dd56f859e1b89974446f602",
+      "provenance": "Shipped stage presentation deck (6 decks, 27 chapters including foppl-spatial-joint), verified in completion-stage-reconciliation-windows-20261118c.json"
+    },
+    {
+      "status": "M",
+      "path": "examples/stage/force-density-matrices/07-pillow.yaml",
+      "category": "stage-presentation-deck",
+      "currentLfSha256": "1a525934925f7e94e58ebf5894d8d07836369ea5807fa85b7f33eef904ce67c2",
+      "provenance": "Shipped stage presentation deck (6 decks, 27 chapters including foppl-spatial-joint), verified in completion-stage-reconciliation-windows-20261118c.json"
+    },
+    {
+      "status": "D",
+      "path": "examples/stage/force-density-matrices/08-forces.yaml",
+      "category": "stage-presentation-deck",
+      "provenance": "Shipped stage presentation deck (6 decks, 27 chapters including foppl-spatial-joint), verified in completion-stage-reconciliation-windows-20261118c.json"
+    },
+    {
+      "status": "M",
+      "path": "examples/stage/force-density-matrices/index.yaml",
+      "category": "stage-presentation-deck",
+      "currentLfSha256": "c734c64c58a8ccadcd181bde02ea5ecc2366f5a1eeb913a024fe30d3751a284e",
+      "provenance": "Shipped stage presentation deck (6 decks, 27 chapters including foppl-spatial-joint), verified in completion-stage-reconciliation-windows-20261118c.json"
+    },
+    {
+      "status": "M",
+      "path": "examples/stage/force-density/01-method.yaml",
+      "category": "stage-presentation-deck",
+      "currentLfSha256": "b0215276c777a968c5c51af0d7de7b8183a10ac2558ac5d92e4b5d9e55c49339",
+      "provenance": "Shipped stage presentation deck (6 decks, 27 chapters including foppl-spatial-joint), verified in completion-stage-reconciliation-windows-20261118c.json"
+    },
+    {
+      "status": "M",
+      "path": "examples/stage/force-density/02-question.yaml",
+      "category": "stage-presentation-deck",
+      "currentLfSha256": "96656088a941135a327a5e299b2ed98b821646ba45b7da703676d4196d498266",
+      "provenance": "Shipped stage presentation deck (6 decks, 27 chapters including foppl-spatial-joint), verified in completion-stage-reconciliation-windows-20261118c.json"
+    },
+    {
+      "status": "M",
+      "path": "examples/stage/force-density/03-projections.yaml",
+      "category": "stage-presentation-deck",
+      "currentLfSha256": "a694321a5a9fdc03c0991b71b4b0e66e03381313c58f0ce83891e1d71cda4f7b",
+      "provenance": "Shipped stage presentation deck (6 decks, 27 chapters including foppl-spatial-joint), verified in completion-stage-reconciliation-windows-20261118c.json"
+    },
+    {
+      "status": "M",
+      "path": "examples/stage/force-density/04-one-dimension.yaml",
+      "category": "stage-presentation-deck",
+      "currentLfSha256": "09ce6461a8045d9b87afc5b41d8932291a36895e277ce859e789d6aa72d7de88",
+      "provenance": "Shipped stage presentation deck (6 decks, 27 chapters including foppl-spatial-joint), verified in completion-stage-reconciliation-windows-20261118c.json"
+    },
+    {
+      "status": "M",
+      "path": "examples/stage/force-density/05-force-densities.yaml",
+      "category": "stage-presentation-deck",
+      "currentLfSha256": "fddb8c8c30c01bbcd5d6b499d03bef8e46eed215e5a907fb7e575d6a7a9ab6a1",
+      "provenance": "Shipped stage presentation deck (6 decks, 27 chapters including foppl-spatial-joint), verified in completion-stage-reconciliation-windows-20261118c.json"
+    },
+    {
+      "status": "M",
+      "path": "examples/stage/force-density/index.yaml",
+      "category": "stage-presentation-deck",
+      "currentLfSha256": "b7fd8408bed3d2959c3a38e7aed1c9b1a2ae5167dee1d936631a063977b52606",
+      "provenance": "Shipped stage presentation deck (6 decks, 27 chapters including foppl-spatial-joint), verified in completion-stage-reconciliation-windows-20261118c.json"
+    },
+    {
+      "status": "M",
+      "path": "src/app/command/mod.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "cb1827398f1b8fab957dd311c5517be3bf15735ed6bf8450bc6af1972fe24899",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/app/command/verbs/move.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "8ebb78b416f2ded1baa140e0a429f4ec92a5af6ad1a61cdde16c9dc3ae74776d",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/app/coords.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "cf9dfa81ccdd29980dc5f4bbec1fb03f87a932503154ebe23854ba190dea8a27",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/app/decode.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "daba5c300d87168c17c86d4118ff1f2c0f92cec3e49a2adba95d617221956d17",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/app/feedback.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "ef3c9a65cc9c6be9299f998ecd71f3b29782ea0dc8c82307741f8a21f7506e4e",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/app/fetch.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "45c1605db07b92f5e79b110f380a30c89549292111fd574269e3bab9c3b1e08b",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/app/gesture/mod.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "f015688289192d7970e359169a4ddf33ec04ec42038bf5e9c3fafb129d412203",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "A",
+      "path": "src/app/launch.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "f1bdd451838790b61b9a52ea2aaa3097bf7f68b5721fd7d7ca633ca3c915b5c9",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/app/loader.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "3ab28bd0f96144d4fcfa5493769dec9d6ff19cc69f4ba990c11adcd47b9b43d3",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/app/mesh_preview.rs",
+      "category": "arrowhead-pens-walkcx-threading",
+      "currentLfSha256": "bd01a2eb7b6ab60c8578f33020310aa6587cc0a62888e975a411920927d10ae8",
+      "provenance": "Threads WalkCx::arrowhead_pens (0.0 default) across scene/preview/test callers; 352-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/app/mod.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "8e30bcbc1a4e662b8a0f4e1264b3633ec9b68551ec373284e8db62ce7992a9d2",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "A",
+      "path": "src/app/runtime.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "75ac88ef8360589b09238b005ce9e64b03460f258713b16c20c4520ce74e495c",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/app/scene.rs",
+      "category": "arrowhead-aspect-and-pens-override",
+      "currentLfSha256": "7061a49e1a1acecfb6a384bd5b06effbc11741f74004fa0090670035d3140be4",
+      "provenance": "Narrow HEAD_ASPECT = 0.30 solid arrowheads landing on exact vector/curve endpoints and Scene::arrowhead_pens override, verified in completion-stage-reconciliation-windows-20261118c.json"
+    },
+    {
+      "status": "M",
+      "path": "src/app/scene_instances.rs",
+      "category": "arrowhead-pens-walkcx-threading",
+      "currentLfSha256": "ea699452e676748e716e6dbecfcf9f151f5f209619446ffcbaea927aeac1c4bc",
+      "provenance": "Threads WalkCx::arrowhead_pens (0.0 default) across scene/preview/test callers; 352-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/app/scene_rows.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "ef35eb991a7c449f9cda4482e52f11a1ba21d5b9263ea35aff04f9e372f8daf4",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/app/scene_sync.rs",
+      "category": "arrowhead-pens-walkcx-threading",
+      "currentLfSha256": "455c6b32b2d7423ec48c4b9361459d58d732e24fb94616b7f555c723ed2bc8ca",
+      "provenance": "Threads WalkCx::arrowhead_pens (0.0 default) across scene/preview/test callers; 352-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/app/scene_sync/compaction.rs",
+      "category": "arrowhead-pens-walkcx-threading",
+      "currentLfSha256": "80c6a06d585abc1ee9b4fda62ffef9c1c743f0032982b2f74fa2d3a46ba8f12a",
+      "provenance": "Threads WalkCx::arrowhead_pens (0.0 default) across scene/preview/test callers; 352-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/app/scene_sync/notes.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "adedbfe50553859f2c4987abc8fc2476e61a427781b8f830aa7d344028ddb1fc",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/app/scene_text.rs",
+      "category": "arrowhead-pens-walkcx-threading",
+      "currentLfSha256": "6daa354260babf371a4916ee28fb05f8243f4560c327b4c30f00412fa727426a",
+      "provenance": "Threads WalkCx::arrowhead_pens (0.0 default) across scene/preview/test callers; 352-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/app/selection.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "67f5e1a5bcf8006d07bc3f090b8fade23dfc163a2de8b41185b46fd969b4268b",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/app/stage/actions.rs",
+      "category": "stage-runtime-and-orthographic-flat",
+      "currentLfSha256": "bfa174c8721621b2cd2876fd233cb2a23a9cb63e86bca0ae98dbee5dd29a3311",
+      "provenance": "Stage presentation engine, white-default graphic-statics palette, and flat.rs 2D orthographic construction layer, reconciled in completion-mathematics.md, stage-scene.md, and completion-stage-reconciliation-windows-20261118c.json"
+    },
+    {
+      "status": "A",
+      "path": "src/app/stage/application.rs",
+      "category": "stage-runtime-and-orthographic-flat",
+      "currentLfSha256": "95613c6969b8892128fc627782af0a1dbbd4b77db3d38a25e458f45d37a195e9",
+      "provenance": "Stage presentation engine, white-default graphic-statics palette, and flat.rs 2D orthographic construction layer, reconciled in completion-mathematics.md, stage-scene.md, and completion-stage-reconciliation-windows-20261118c.json"
+    },
+    {
+      "status": "M",
+      "path": "src/app/stage/deck.rs",
+      "category": "stage-runtime-and-orthographic-flat",
+      "currentLfSha256": "3bdbe7dc2f7aa1f7b0be06e9369d473e7a549c1320da119c4c78acb5a773bb75",
+      "provenance": "Stage presentation engine, white-default graphic-statics palette, and flat.rs 2D orthographic construction layer, reconciled in completion-mathematics.md, stage-scene.md, and completion-stage-reconciliation-windows-20261118c.json"
+    },
+    {
+      "status": "M",
+      "path": "src/app/stage/draw.rs",
+      "category": "stage-runtime-and-orthographic-flat",
+      "currentLfSha256": "627fc2235cb1519e3025f0febd48884b784fd8bbdcef544ea9f57e5ea075bf0f",
+      "provenance": "Stage presentation engine, white-default graphic-statics palette, and flat.rs 2D orthographic construction layer, reconciled in completion-mathematics.md, stage-scene.md, and completion-stage-reconciliation-windows-20261118c.json"
+    },
+    {
+      "status": "A",
+      "path": "src/app/stage/flat.rs",
+      "category": "stage-runtime-and-orthographic-flat",
+      "currentLfSha256": "6d58c5e99f0220e6ffdaa5af4005e56f60ec56fd2fc0da933dee74b5c49b4f7c",
+      "provenance": "Stage presentation engine, white-default graphic-statics palette, and flat.rs 2D orthographic construction layer, reconciled in completion-mathematics.md, stage-scene.md, and completion-stage-reconciliation-windows-20261118c.json"
+    },
+    {
+      "status": "M",
+      "path": "src/app/stage/layout.rs",
+      "category": "stage-runtime-and-orthographic-flat",
+      "currentLfSha256": "a73373c1f2f14ab88c0fb420a468b999c790548b159c10619e880a9b5105bc27",
+      "provenance": "Stage presentation engine, white-default graphic-statics palette, and flat.rs 2D orthographic construction layer, reconciled in completion-mathematics.md, stage-scene.md, and completion-stage-reconciliation-windows-20261118c.json"
+    },
+    {
+      "status": "M",
+      "path": "src/app/stage/matrix.rs",
+      "category": "stage-runtime-and-orthographic-flat",
+      "currentLfSha256": "d6bba4e397495cc53206bd97d17f7eb5dfabf17e7f8c5ec435489fdb52a50e9f",
+      "provenance": "Stage presentation engine, white-default graphic-statics palette, and flat.rs 2D orthographic construction layer, reconciled in completion-mathematics.md, stage-scene.md, and completion-stage-reconciliation-windows-20261118c.json"
+    },
+    {
+      "status": "M",
+      "path": "src/app/stage/mod.rs",
+      "category": "stage-runtime-and-orthographic-flat",
+      "currentLfSha256": "be0c9904c43f46dd608ac1d79a364c36d9e20e707f12266b4ef59bb2b635d180",
+      "provenance": "Stage presentation engine, white-default graphic-statics palette, and flat.rs 2D orthographic construction layer, reconciled in completion-mathematics.md, stage-scene.md, and completion-stage-reconciliation-windows-20261118c.json"
+    },
+    {
+      "status": "M",
+      "path": "src/app/stage/object.rs",
+      "category": "stage-runtime-and-orthographic-flat",
+      "currentLfSha256": "daf2e1b0362a9f8e22be03a1591ddff6f657ee5922832ce21d8dd6e77eb65e19",
+      "provenance": "Stage presentation engine, white-default graphic-statics palette, and flat.rs 2D orthographic construction layer, reconciled in completion-mathematics.md, stage-scene.md, and completion-stage-reconciliation-windows-20261118c.json"
+    },
+    {
+      "status": "M",
+      "path": "src/app/stage/paint.rs",
+      "category": "stage-runtime-and-orthographic-flat",
+      "currentLfSha256": "6711d59d1ed306cf1944f71a6072c4c288fa59ddd89e50efb0e336beb5140d25",
+      "provenance": "Stage presentation engine, white-default graphic-statics palette, and flat.rs 2D orthographic construction layer, reconciled in completion-mathematics.md, stage-scene.md, and completion-stage-reconciliation-windows-20261118c.json"
+    },
+    {
+      "status": "M",
+      "path": "src/app/stage/presentation_tests.rs",
+      "category": "stage-runtime-and-orthographic-flat",
+      "currentLfSha256": "c45cac90f734453dcf0149035ef60e9d38fa6819e6250357d956c3543996a665",
+      "provenance": "Stage presentation engine, white-default graphic-statics palette, and flat.rs 2D orthographic construction layer, reconciled in completion-mathematics.md, stage-scene.md, and completion-stage-reconciliation-windows-20261118c.json"
+    },
+    {
+      "status": "M",
+      "path": "src/app/stage/run.rs",
+      "category": "stage-runtime-and-orthographic-flat",
+      "currentLfSha256": "718417ad7762e4a3becaba90d1487bc5f9e2cedfa29913d174637e856c1a431f",
+      "provenance": "Stage presentation engine, white-default graphic-statics palette, and flat.rs 2D orthographic construction layer, reconciled in completion-mathematics.md, stage-scene.md, and completion-stage-reconciliation-windows-20261118c.json"
+    },
+    {
+      "status": "M",
+      "path": "src/app/stage/spatial.rs",
+      "category": "stage-runtime-and-orthographic-flat",
+      "currentLfSha256": "81e4b62a2f921f870273f59493821c15cea3db1eb3fd34371fee35fe2868c537",
+      "provenance": "Stage presentation engine, white-default graphic-statics palette, and flat.rs 2D orthographic construction layer, reconciled in completion-mathematics.md, stage-scene.md, and completion-stage-reconciliation-windows-20261118c.json"
+    },
+    {
+      "status": "M",
+      "path": "src/app/stage/tests.rs",
+      "category": "stage-runtime-and-orthographic-flat",
+      "currentLfSha256": "e2230a99ca136c63fe772f3fcf37822dcf77659df507b3dd07b3e0fd51dca49a",
+      "provenance": "Stage presentation engine, white-default graphic-statics palette, and flat.rs 2D orthographic construction layer, reconciled in completion-mathematics.md, stage-scene.md, and completion-stage-reconciliation-windows-20261118c.json"
+    },
+    {
+      "status": "M",
+      "path": "src/app/surface_preview.rs",
+      "category": "arrowhead-pens-walkcx-threading",
+      "currentLfSha256": "1ce76a1ef2b7e625b14f34a926151b7d3ea84d6d64547846b3253f2e5a0af0c3",
+      "provenance": "Threads WalkCx::arrowhead_pens (0.0 default) across scene/preview/test callers; 352-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/app/touch.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "7c566eb2a676000ba25b90a82512ea976c8252079fa05c3c21db2481669f300f",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/app/ui/mod.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "c5bb203005cfb26e5ee108986c5465d770e37d077b5b2f69bc39f6a88c2a3d72",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "A",
+      "path": "src/app/walk/application_tests.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "6ec68969f1d5ebb7facf9dafa093716b8a2fadfe61187b48c1ab6ad57c67860e",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/app/walk/brep.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "0a2d73ec9e991d1098a7efc62a24a485397e86069905e80dc14e626f65d0f2c2",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "A",
+      "path": "src/app/walk/brep/application_tests.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "ba8ab4cd78777e85984165f6649d4a231fe5a863da58fbbe0cc514f6f0df3c41",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/app/walk/brep_orient.rs",
+      "category": "arrowhead-pens-walkcx-threading",
+      "currentLfSha256": "74a520a9a0ed51ee9690bdea0296bad3d310b904f088f84494f93e5ae576778b",
+      "provenance": "Threads WalkCx::arrowhead_pens (0.0 default) across scene/preview/test callers; 352-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/app/walk/brep_shapes.rs",
+      "category": "arrowhead-pens-walkcx-threading",
+      "currentLfSha256": "2c8d7f141ead2943f7b847b5a863a49621536a2d7020fbd03dd375d558520c0e",
+      "provenance": "Threads WalkCx::arrowhead_pens (0.0 default) across scene/preview/test callers; 352-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/app/walk/cloud.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "84313f8cf50c315742e31ecab2080efe9c0487eb57e6a835241aaa5e3c846ed0",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "A",
+      "path": "src/app/walk/cloud/resident.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "15b06db4cbef9bd3a1cd05af8a43a6861b0685845498d63ae91bde683b695377",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "A",
+      "path": "src/app/walk/cloud/stream.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "9eba837026da0f2b4f0981c77e635587f4d7e9fb31ffe11df89ac1e8da6b7af3",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/app/walk/curves.rs",
+      "category": "arrowhead-aspect-and-pens-override",
+      "currentLfSha256": "61bd0666fe83ea3a83cd8944976079e96d681e908736802b9af5732e830e2b73",
+      "provenance": "Narrow HEAD_ASPECT = 0.30 solid arrowheads landing on exact vector/curve endpoints and Scene::arrowhead_pens override, verified in completion-stage-reconciliation-windows-20261118c.json"
+    },
+    {
+      "status": "M",
+      "path": "src/app/walk/display_features.rs",
+      "category": "arrowhead-pens-walkcx-threading",
+      "currentLfSha256": "e524496b2d336e1ef0e447a5df9399bbea813825b973eee0e213b5a62249e653",
+      "provenance": "Threads WalkCx::arrowhead_pens (0.0 default) across scene/preview/test callers; 352-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/app/walk/frames.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "7b0b034a6a704085a86f6cc8bb54614ee519cfd4d5e0d794b86c68ad6c41edaf",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "A",
+      "path": "src/app/walk/frames/application_tests.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "d0ed65130ed5185f3de8ecc8657656bfc54a3053f9c1ec711a3ad3804587a064",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/app/walk/mesh_ink.rs",
+      "category": "arrowhead-pens-walkcx-threading",
+      "currentLfSha256": "228ae7f99bc1bdee060ecf6dd1dc6e0be9a7af8fd67c8450558fbec60cccc254",
+      "provenance": "Threads WalkCx::arrowhead_pens (0.0 default) across scene/preview/test callers; 352-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/app/walk/mod.rs",
+      "category": "arrowhead-aspect-and-pens-override",
+      "currentLfSha256": "4f0a9780bf204cdef61267a28b08a1c2d8d472ebe92f9dce7beb8ef2d7608085",
+      "provenance": "Narrow HEAD_ASPECT = 0.30 solid arrowheads landing on exact vector/curve endpoints and Scene::arrowhead_pens override, verified in completion-stage-reconciliation-windows-20261118c.json"
+    },
+    {
+      "status": "A",
+      "path": "src/app/yielding.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "fa51e17c1f5834307b4b87ba5e483b9c2c21ba2122c88932116260ff90e0ad3e",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/camera.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "76793d7e307fdb36a20148fa0e54e143da9af2fd0245186d37148a3ab26544b9",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "A",
+      "path": "src/engine/diagnostics.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "2f9dfe697b1bf3fa3305dd53a2b2c0ee5f86ee0f22f6379524f1440af1daa9f3",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/engine/gpu/backdrop.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "4b90b3cb92cdcc90c88c06791137f81684830c6d14d6864142863965292055ea",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "A",
+      "path": "src/engine/gpu/backdrop/application_tests.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "b7e7738b097340cde9a1ea7780a0f2672c9bb6f79aa27807e7484807d9247899",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/engine/gpu/clip.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "ee32a1e79f4a4fa8625787b5b6a9e86b46ad9cff45dcd66cd73e47e7d90230a7",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "A",
+      "path": "src/engine/gpu/context.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "e90e75e6513d2571719624df9f7af7fc30500813470a0bd3d3c706ec5fcfebfe",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/engine/gpu/device.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "ced1cff229cd47c5cc3de6d7713b7049ce2181cac444226bd27053b397774a20",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/engine/gpu/frame.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "9d6dddc0b3f1a4c17f4da8adef89114ef2950a00351947a457eacabfa4f19d97",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/engine/gpu/hull.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "6546c2c6e49f166cd132b819585bbd5182c180fb882dbe2456a77a3cf376e751",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "A",
+      "path": "src/engine/gpu/hull/geometry.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "9d2db6b2a1db2974a49f27962838fc2bd1ce2154b4b9108d2b5b40009811a4c7",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "A",
+      "path": "src/engine/gpu/hull/upload.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "70d7356c0fceed1027de05c258644aa84d57e8a431c722366daf460b19eea59d",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/engine/gpu/instance.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "acc28f2185fcf71681fdc4316c431412e7d12dfd31ad2ec414fe8993389a58fd",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "A",
+      "path": "src/engine/gpu/instance/layout.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "a093d3e4a8959ad5411d63a50826346e9db19d5196982fdcb964bb32dc6793e8",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "A",
+      "path": "src/engine/gpu/instance/validation.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "64bca08af9086edbf4177c8f2582f0dac266c26805efbe4374743d50a1490a7e",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/engine/gpu/lane.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "b42d937e91e0ad5bfd33469285cf99309a78e854177fd8bd504cf50d8b352371",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/engine/gpu/mod.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "56a8e0538e0981ccc17f5baf98ed9f60acb42d3db2b1c9cf44ab6188731ecdf1",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/engine/gpu/objects.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "86bf47207c6bac7336c9cb2ffb18051235321c7c48110e705e6fa26eef3b8202",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "A",
+      "path": "src/engine/gpu/objects/gpu_tests.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "bb4c2ecf595208587734c525c95f02066d52cac0d2e4ba743ba1721b584ed924",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "A",
+      "path": "src/engine/gpu/objects/ink.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "bc6acfc40f024100e098d03f8a989559f985eae40bdc7162227e55d470e6d5e5",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "A",
+      "path": "src/engine/gpu/objects/lane.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "82590ecc2d6016b1cbccda7b00e6dd3c2be6f80f15ed563162d7b911c77103f2",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "A",
+      "path": "src/engine/gpu/objects/table.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "b63255c98016c145a613f5af464510afbb3a0e9d9f34792d8dbf8636433c1c2f",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/engine/gpu/present.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "98e20200ffcd612032d034ff8bf6d87ec81dd7e0cb4b6c35f45192f0ece58c16",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/engine/gpu/splat.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "378f8b97c64859e1a0d4c45f58dd01f4f0af844645dd8af31eac69954e35276f",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/engine/gpu/splat/cloud_witness/lod.rs",
+      "category": "arrowhead-pens-walkcx-threading",
+      "currentLfSha256": "fa450b036a87022114ce6e9735e15f33cc48149b12cc367350df70a5d680cfdc",
+      "provenance": "Threads WalkCx::arrowhead_pens (0.0 default) across scene/preview/test callers; 352-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/engine/gpu/ssao.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "d8204411fdc934639f91c676485aa915f3474ac266d847db9517285a62c1deb4",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/engine/gpu/surface_outline.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "25a9c85dcc0d431e2d88a65cc5de033c7b25a6414b894740d9b06d0371b5210d",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/engine/gpu/triangle_tiles.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "45b5bb3a8427700f764febc1df363841a167e50949781d3ddbac76b1bd6ce3c3",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/engine/gpu/ui.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "bcd2014f8a5c3cefae45889453d46c4d8080fe3885e2d2edaad1b294696907b2",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/engine/gpu/vectors.rs",
+      "category": "arrowhead-aspect-and-pens-override",
+      "currentLfSha256": "543035d4077f562ed19d538d69dacff12f80e5ed2b3385e2d3f9160eaaf4b935",
+      "provenance": "Narrow HEAD_ASPECT = 0.30 solid arrowheads landing on exact vector/curve endpoints and Scene::arrowhead_pens override, verified in completion-stage-reconciliation-windows-20261118c.json"
+    },
+    {
+      "status": "M",
+      "path": "src/engine/mod.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "d3fd163e8b7b946364db2f3ef7b0b8687a2a861b54bf9d9d1899267551ecc140",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/engine/performance.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "1a3d117f8e09ce3cc2dbfa5a446637e3429616f4cb0f03071e5708a009def7d8",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "A",
+      "path": "src/engine/pipelines/core.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "e8772a78252be84671a26723a24e29d5afd5611f0c976464e48be8e72cfc5fc4",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "A",
+      "path": "src/engine/pipelines/geometry.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "7ad7d6f1d08e751f0a3d4707fc6726c4f14139d366a1fe86289997b033ccdb88",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/engine/pipelines/mod.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "b6c6fd7c934d74e2206d8524433aefae7c582a77f747ace5d4a0ccc91655f015",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/engine/text.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "c1744228a1cdddd628fed1c6fdad4bc5acdf07178a351cb68015e767bf92f70e",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "A",
+      "path": "src/engine/text/application_tests.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "1bedc6e27b3e8d90874603475d4040ff8c2ed9afb31785923da0faa9bc1e63ed",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/lib.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "52947baf8d0dec30cf1a18343e6842f48393fb126bb7df844444b0104a6a4d91",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/selftest.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "87131f0c1ddd8bdc620dcd205815f6dd86894aac0df780dce6c393d7fb8cb8fc",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/selftest/profile.rs",
+      "category": "arrowhead-pens-walkcx-threading",
+      "currentLfSha256": "aa74110c7c2ddf6a542e9d49ac38a2bdc8d278f2e1344321c99659011fe00955",
+      "provenance": "Threads WalkCx::arrowhead_pens (0.0 default) across scene/preview/test callers; 352-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/shaders/arrow.wgsl",
+      "category": "arrowhead-aspect-and-pens-override",
+      "currentLfSha256": "a489f84371e4a43d9a2eb383a7d11cd33db12b250a8c0a9f25b3652d5b26e20a",
+      "provenance": "Narrow HEAD_ASPECT = 0.30 solid arrowheads landing on exact vector/curve endpoints and Scene::arrowhead_pens override, verified in completion-stage-reconciliation-windows-20261118c.json"
+    },
+    {
+      "status": "M",
+      "path": "src/shaders/ribbon.wgsl",
+      "category": "arrowhead-aspect-and-pens-override",
+      "currentLfSha256": "6108dc8853ed7166d3ab7c1e05c44160814145c4f7923b7bae5670943a184f3a",
+      "provenance": "Narrow HEAD_ASPECT = 0.30 solid arrowheads landing on exact vector/curve endpoints and Scene::arrowhead_pens override, verified in completion-stage-reconciliation-windows-20261118c.json"
+    },
+    {
+      "status": "M",
+      "path": "src/shaders/scan_triangle_tiles.wgsl",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "5fb767bd32a68fb56546c4d59341c394bce1b4c84b4bc2110f2623b178a6e80a",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/state/edit.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "e9069c10379cad51566f3cf4e8a11e1a57ab4c6b58542e4a62c39dfa0cfa1ea0",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    },
+    {
+      "status": "M",
+      "path": "src/state/hydrate.rs",
+      "category": "cumulative-module-boundary-or-include-marker",
+      "currentLfSha256": "2a91e85f2d8e2ee2665ff145745a6d97e77e23df029b7a2ef9d5d9b83069a29a",
+      "provenance": "Cumulative assembly module split, registration boundary, or `--8<--` teaching snippet marker; production viewer behavior unchanged and 351-file endpoint audited"
+    }
+  ],
+  "productionSourceFileCount": 352,
+  "teachingWitnessCount": 360
+}

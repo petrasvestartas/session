@@ -772,6 +772,7 @@ mod walk_tests {
                         row: 0,
                         interactions: false,
                         attributes: false,
+                        arrowhead_pens: 0.0,
                     };
                     let walked = walk_geometry(&mut Walk::of(&mut up), &cx, geometry);
                     let mut object = ObjectRow::new(Xform::identity(), walked.flags);

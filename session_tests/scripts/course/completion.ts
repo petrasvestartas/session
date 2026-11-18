@@ -3,7 +3,7 @@ import path from 'node:path';
 import {viewer, type Files, materializedContent} from './model.ts';
 
 export const completionSubjects = ['frame', 'painting', 'mathematics', 'dock', 'camera', 'rows', 'geometry', 'decoding', 'application'] as const;
-const mathematics = ['actions', 'check', 'deck', 'draw', 'eval', 'font', 'geometry', 'layout',
+const mathematics = ['actions', 'check', 'deck', 'draw', 'eval', 'flat', 'font', 'geometry', 'layout',
     'matrix', 'math_mode', 'morph', 'net', 'object', 'paint', 'presentation',
     'presentation_tests', 'run', 'tests', 'tex', 'tween', 'view'];
 

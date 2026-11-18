@@ -1,6 +1,6 @@
 # Run the application
 
-Wire all eight subsystems into the concrete `App` / `State` host (`src/app/runtime.rs`, `src/state.rs`) and build the standalone `production.html` viewer (`351/351` production Rust/WGSL files).
+Wire all eight subsystems into the concrete `App` / `State` host (`src/app/runtime.rs`, `src/state.rs`) and build the standalone `production.html` viewer (`352/352` production Rust/WGSL files).
 
 ![Tutorial 9 output: production viewer running loaded comparison BReps/surfaces, nameplate and command dock](../screenshots/active/application-loaded-1280.png)
 
@@ -8,7 +8,7 @@ Wire all eight subsystems into the concrete `App` / `State` host (`src/app/runti
 
 ## Prerequisites and ownership
 
-Requires [8. Decode a document](completion-decoding.md). Checkpoint `application` (`369` files: `351` files under `src/`, `8` build/browser support files, and `10` retained course example files) completes source parity with `session_viewer`:
+Requires [8. Decode a document](completion-decoding.md). Checkpoint `application` (`370` files: `352` files under `src/`, `8` build/browser support files, and `10` retained course example files) completes source parity with `session_viewer`:
 
 | Core host file | Role |
 | --- | --- |
@@ -76,5 +76,5 @@ Holding `&mut State` across `.await` would block input and rendering for the ent
 
 ## Validation
 
-- **Passing**: `351/351` exact production source parity (`0` missing, `0` extra, `0` rewrites), locked `wasm32` tutorial + production Trunk builds, `609` default native tests (`60` ignored), and `8` desktop/upright browser captures ([production reconciliation](release/completion-production-reconciliation-20261118.json)).
+- **Passing**: `352/352` exact production source parity (`0` missing, `0` extra, `0` rewrites), locked `wasm32` tutorial + production Trunk builds, `24/24` `app::stage` + `5/5` `curves` native tests (`609` baseline native tests, `60` ignored), and `85` stage + `8` viewer desktop/upright browser captures ([production reconciliation](release/completion-production-reconciliation-20261118c.json)).
 - **Pending (`acceptance: pending`)**: In the [37-test GPU run](release/completion-application-gpu-windows-20261116.json), `36` pass and `1` fails (`instanced_frames_match_the_baked_scene`: [diagnostic](release/completion-application-gpu-diagnostic-windows-20261116.json) reproduces `31` pixels differing by `3` channel levels vs `<= 2` in the turned scene). That assertion and physical-device verification remain open.

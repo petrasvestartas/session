@@ -6,7 +6,7 @@
 title: WHY IT WORKS
 grid: {center: [3.5, 3.5], size: 9, step: 1}
 camera: {yaw: -58, pitch: 26}
-palette: {free: pink}
+palette: {free: ink}
 net:
   fixed: {n1: [0, 0, 0], n2: [5, 0, 3], n3: [0, 7, 3], n4: [7, 5, 0]}
   free: {n0: [3.6, 3.4, 1.9]}
@@ -37,16 +37,16 @@ slides:
           - solve: true
           - {text: '**1. Goal:** a clean matrix way to project 3D cable forces onto $x, y, z$', align: left, size: 19, gap: 8}
           - {text: '**2. Geometric realization:** $\partial l_k / \partial x_0$ is the negative direction cosine along $x$:', align: left, size: 19, gap: 12}
-          - {tex: '\frac{\partial l_k}{\partial x_0} = \frac{-(x_k - x_0)}{l_k} = -\cos\alpha_k', size: 21, gap: 8, color: yellow}
+          - {tex: '\frac{\partial l_k}{\partial x_0} = \frac{-(x_k - x_0)}{l_k} = -\cos\alpha_k', size: 21, gap: 8, color: accent}
           - {text: '**3. Jacobian matrix:** collect all branch length derivatives into $\mathbf{C}_N^{T}\mathbf{U}\mathbf{L}^{-1}$', align: left, size: 19, gap: 12}
           - {text: '**4. Project forces:** multiply by tensions $\mathbf{f}$ to project 3D forces onto node axes:', align: left, size: 19, gap: 12}
-          - {tex: '\mathbf{C}_N^{T}\,\mathbf{U}\,\mathbf{L}^{-1}\,\mathbf{f} = \mathbf{p}_x', size: 22, gap: 10, color: yellow}
+          - {tex: '\mathbf{C}_N^{T}\,\mathbf{U}\,\mathbf{L}^{-1}\,\mathbf{f} = \mathbf{p}_x', size: 22, gap: 10, color: accent}
 
   - title: QUESTION AND ROADMAP
     steps:
       - say: 'Cables have square-root lengths, yet five steps make the solve linear.'
         do:
-          - {tex: 'l_k = \sqrt{(x_k - x_0)^2 + (y_k - y_0)^2 + (z_k - z_0)^2}', size: 21, gap: 8, color: yellow}
+          - {tex: 'l_k = \sqrt{(x_k - x_0)^2 + (y_k - y_0)^2 + (z_k - z_0)^2}', size: 21, gap: 8, color: accent}
           - {text: '**1. Cable length $l_k$:** 3D Pythagoras between free node and anchor', align: left, size: 19, gap: 16}
           - {text: '**2. Tiny nudge $\partial l_k / \partial x_0$:** length derivative gives direction cosine', align: left, size: 19, gap: 12}
           - {text: '**3. Jacobian $\mathbf{C}_N^{T}\mathbf{U}\mathbf{L}^{-1}$:** direction cosines for all branches at once', align: left, size: 19, gap: 12}

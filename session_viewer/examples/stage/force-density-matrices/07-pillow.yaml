@@ -6,7 +6,7 @@
 title: PILLOW GRID
 grid: {center: [4.5, 4.5], size: 12, step: 1}
 camera: {yaw: -52, pitch: 30}
-palette: {free: pink}
+palette: {free: ink}
 net:
   grid: [10, 10]
   fixed: boundary

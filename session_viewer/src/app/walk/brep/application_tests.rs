@@ -22,6 +22,7 @@ fn exact_rational_border_samples_preserve_faces_source_ids_and_edit_preview() {
             row: 7,
             interactions: false,
             attributes: false,
+            arrowhead_pens: 0.0,
         },
         &source,
     );

@@ -1332,7 +1332,7 @@
   {
     "path": "src/app/mesh_preview.rs",
     "owner": "application",
-    "sourceSha256": "f3d0f365cb0cee67d71d49b84c59d29b228e2a575c527ab0b5d3e9010a73130f",
+    "sourceSha256": "bd01a2eb7b6ab60c8578f33020310aa6587cc0a62888e975a411920927d10ae8",
     "explanation": {
       "page": "journey/completion-modeling.md",
       "heading": "### Drafts, tools, delayed drags & subobject deformation",
@@ -1402,7 +1402,7 @@
   {
     "path": "src/app/scene.rs",
     "owner": "application",
-    "sourceSha256": "3f93b8250b971488665b86443fd834d8440f8667fb7657d13e51978963d8b0ce",
+    "sourceSha256": "7061a49e1a1acecfb6a384bd5b06effbc11741f74004fa0090670035d3140be4",
     "explanation": {
       "page": "journey/completion-documents.md",
       "heading": "### A file, a document and a row",
@@ -1422,7 +1422,7 @@
   {
     "path": "src/app/scene_instances.rs",
     "owner": "application",
-    "sourceSha256": "614aa01d7777e2715f35d53a009d28dcd5f1ba41e9ee59886a3c4474a41b37b9",
+    "sourceSha256": "ea699452e676748e716e6dbecfcf9f151f5f209619446ffcbaea927aeac1c4bc",
     "explanation": {
       "page": "journey/completion-documents.md",
       "heading": "### Large documents, idle refinement and archives",
@@ -1452,7 +1452,7 @@
   {
     "path": "src/app/scene_sync.rs",
     "owner": "application",
-    "sourceSha256": "b43a8e86a8bae9e996db38320f6ba9f51906b542d1c6bc83a43c4fe2060e777c",
+    "sourceSha256": "455c6b32b2d7423ec48c4b9361459d58d732e24fb94616b7f555c723ed2bc8ca",
     "explanation": {
       "page": "journey/completion-documents.md",
       "heading": "### Stage updates without confusing identity and storage",
@@ -1482,7 +1482,7 @@
   {
     "path": "src/app/scene_sync/compaction.rs",
     "owner": "application",
-    "sourceSha256": "1f1e4598b7b7498f3ed7ed7baa9eb0656cf5d6baee2a92bae01400e5109d7f6a",
+    "sourceSha256": "80c6a06d585abc1ee9b4fda62ffef9c1c743f0032982b2f74fa2d3a46ba8f12a",
     "explanation": {
       "page": "journey/completion-documents.md",
       "heading": "### Delete, undo and reuse memory",
@@ -1582,7 +1582,7 @@
   {
     "path": "src/app/scene_text.rs",
     "owner": "application",
-    "sourceSha256": "7294f84b7b73e0db7adbeb62ebab58020032c3d92e0cb6d4763a48f70e66e8d5",
+    "sourceSha256": "6daa354260babf371a4916ee28fb05f8243f4560c327b4c30f00412fa727426a",
     "explanation": {
       "page": "journey/completion-text.md",
       "heading": "### Document titles & DOM metric harness",
@@ -1642,21 +1642,21 @@
   {
     "path": "src/app/stage/actions.rs",
     "owner": "mathematics",
-    "sourceSha256": "86c398aaa783b700da125488b3e0b44adc726711cd207898d77bf1a3400abc95",
+    "sourceSha256": "bfa174c8721621b2cd2876fd233cb2a23a9cb63e86bca0ae98dbee5dd29a3311",
     "explanation": {
       "page": "journey/completion-mathematics.md",
       "heading": "### Clock, actions and drawing",
-      "paragraph": "`src/app/stage/actions.rs` applies identical state transitions during animated forward steps and instant replay, staggering group reveals, attaching flush `-1.2`-unit highlight boxes, and cascading removals to dependent labels and boxes."
+      "paragraph": "`src/app/stage/actions.rs` applies identical state transitions during animated forward steps and instant replay, co-highlighting matching equation symbols and `matrix_name_key` titles/labels in `accent` blue while keeping numeric cell `entries` in `ink`, attaching `-1.2`-unit boxes, and cascading removals."
     }
   },
   {
     "path": "src/app/stage/application.rs",
     "owner": "application",
-    "sourceSha256": "52b8b21b64ca83ead25f0e33555fd47d59a238e8384e01a39fc275518ee6776b",
+    "sourceSha256": "95613c6969b8892128fc627782af0a1dbbd4b77db3d38a25e458f45d37a195e9",
     "explanation": {
       "page": "journey/stage-scene.md",
       "heading": "### Input and portrait layout",
-      "paragraph": "`src/app/stage/application.rs` (`StageApp`) routes keyboard steps/chapters/themes, scene-half mouse orbit/zoom/double-click reset, column-click step advance, and single-finger touch gestures (short tap, horizontal swipe step, hold-to-orbit) across desktop and `Frame::stacked` upright layouts."
+      "paragraph": "`src/app/stage/application.rs` (`StageApp`) routes `?stage=...` index/chapter/picture/font prefetches, keyboard steps/chapters/themes (`T`), scene-half mouse orbit/zoom/double-click reset, column-click advance, and touch gestures across desktop and `Frame::stacked` upright layouts."
     }
   },
   {
@@ -1672,21 +1672,21 @@
   {
     "path": "src/app/stage/deck.rs",
     "owner": "mathematics",
-    "sourceSha256": "e8bd642d043f6449b5b10903a1bce91138bb75c4c4924b0cf634471abb0d1687",
+    "sourceSha256": "3bdbe7dc2f7aa1f7b0be06e9369d473e7a549c1320da119c4c78acb5a773bb75",
     "explanation": {
       "page": "journey/completion-mathematics.md",
       "heading": "### Deck data and errors",
-      "paragraph": "`src/app/stage/deck.rs` parses index and chapter YAML, defaults to the dark ground when `theme` is omitted, parses fixed-width row slots in `em`, and merges step options onto scalar and nested `eq`/`then`/`tex` blocks via `object_with_options` with chapter/step error context."
+      "paragraph": "`src/app/stage/deck.rs` parses index and chapter YAML, defaults to the white paper ground (`Theme::Light`) when `theme` is omitted, parses fixed-width row slots in `em` and `drawing:` shapes, builds the `6`-stop `show: forces` rank ramp, and merges step options via `object_with_options` with chapter/step error context."
     }
   },
   {
     "path": "src/app/stage/draw.rs",
     "owner": "mathematics",
-    "sourceSha256": "2d3e6ca2d45561493f342fa853642c382e00de23667bcc0a151daa56e3efb91d",
+    "sourceSha256": "627fc2235cb1519e3025f0febd48884b784fd8bbdcef544ea9f57e5ea075bf0f",
     "explanation": {
       "page": "journey/completion-mathematics.md",
       "heading": "### Clock, actions and drawing",
-      "paragraph": "`src/app/stage/draw.rs` (`prims_of`) samples positions, colours and fade alpha into slide pixels and neutralizes matrix cell fills whenever all entry glyphs in that cell are hidden."
+      "paragraph": "`src/app/stage/draw.rs` (`prims_of` and `snapshot`) samples positions, colours, `flat_draws` paths and fade alpha into slide pixels and neutralizes matrix cell fills to `faint` whenever all entry glyphs in that cell are hidden."
     }
   },
   {
@@ -1697,6 +1697,16 @@
       "page": "journey/completion-mathematics.md",
       "heading": "### Deck data and errors",
       "paragraph": "`src/app/stage/eval.rs` evaluates scalar and 3D `Val` expressions (`+`, `-`, `*`, `/`) by recursive descent against named `Points`, rejecting invalid point-times-point products."
+    }
+  },
+  {
+    "path": "src/app/stage/flat.rs",
+    "owner": "mathematics",
+    "sourceSha256": "6d58c5e99f0220e6ffdaa5af4005e56f60ec56fd2fc0da933dee74b5c49b4f7c",
+    "explanation": {
+      "page": "journey/completion-mathematics.md",
+      "heading": "### Clock, actions and drawing",
+      "paragraph": "`src/app/stage/flat.rs` (`flat_draws`) renders `Content::Drawing` (`drawing:` + `at: [x, y]`) directly in `1600×900` slide coordinates: `point` draws a `5.5 px` open ring filled with `bg` paper, `arrow` trims its shaft behind an elongated `24.0 × 0.30` solid head landing on the exact vector tip, and `line`, `polyline` and `polygon` draw dashed projectors and translucent washes."
     }
   },
   {
@@ -1742,21 +1752,21 @@
   {
     "path": "src/app/stage/matrix.rs",
     "owner": "mathematics",
-    "sourceSha256": "a478d50c41e1eb4966562107235664ee797f5567423aaa1bfccb0427544b55fd",
+    "sourceSha256": "d6bba4e397495cc53206bd97d17f7eb5dfabf17e7f8c5ec435489fdb52a50e9f",
     "explanation": {
       "page": "journey/completion-mathematics.md",
       "heading": "### Matrices and addresses",
-      "paragraph": "`src/app/stage/matrix.rs` measures every entry before sizing uniform cells, records slice groups (`r,c`, `r,:`, `:,c`, `cells`, `entries`), picks contrast-safe ink against cell fills, and switches matrices above `14` rows/columns (or `pattern: true`) to sparse structure squares."
+      "paragraph": "`src/app/stage/matrix.rs` measures every entry before sizing uniform cells, fills signed pills (`pos` `#ff5c9a`, `neg` `#4c9bff`, `cell` `#e4e7e8`/`#3f4548`), selects whichever of `ink` or `bg` has greater BT.601 luminance contrast (`0.299R + 0.587G + 0.114B`), and switches matrices above `14` rows/columns (or `pattern: true`) to sparse squares."
     }
   },
   {
     "path": "src/app/stage/mod.rs",
     "owner": "mathematics",
-    "sourceSha256": "dc53a36f5cea2e53450dea8a416028a57c68c01500fe1ed16f0146ebb055f2e1",
+    "sourceSha256": "be0c9904c43f46dd608ac1d79a364c36d9e20e707f12266b4ef59bb2b635d180",
     "explanation": {
       "page": "journey/completion-mathematics.md",
       "heading": "### One schema, two hosts",
-      "paragraph": "`src/app/stage/mod.rs` is the additive module index for the stage engine: checkpoint `mathematics` registers the `21` host-independent modules above, and checkpoint `application` appends `mode`, `spatial` and `application` without editing earlier stage files."
+      "paragraph": "`src/app/stage/mod.rs` is the additive module index for the stage engine: checkpoint `mathematics` registers the `22` host-independent modules above, and checkpoint `application` appends `mode`, `spatial` and `application` without editing earlier stage files."
     }
   },
   {
@@ -1792,21 +1802,21 @@
   {
     "path": "src/app/stage/object.rs",
     "owner": "mathematics",
-    "sourceSha256": "49ba380ec63351e3db9c8dd65c0680e0c09dc7494fcb02815df8c909c8eaefc6",
+    "sourceSha256": "daf2e1b0362a9f8e22be03a1591ddff6f657ee5922832ce21d8dd6e77eb65e19",
     "explanation": {
       "page": "journey/completion-mathematics.md",
       "heading": "### Column and equals alignment",
-      "paragraph": "`src/app/stage/object.rs` separates immutable `Rc<Expr>` primitives from animated `Tween` channels (`pos`, `dim`, per-glyph colour) and `hidden` index sets so hiding matrix entries never shifts group addresses."
+      "paragraph": "`src/app/stage/object.rs` separates immutable `Rc<Expr>` primitives and `Content::Drawing` shapes from animated `Tween` channels (`pos`, `dim`, per-glyph colour) and `hidden` index sets, assigning default optical sizes (`Tex` `36 px`, `Matrix`/`Row` `30 px`, `Text` `25 px`, `Label` `24 px`, `Code` `19 px`)."
     }
   },
   {
     "path": "src/app/stage/paint.rs",
     "owner": "mathematics",
-    "sourceSha256": "8a06cc62bc4b0b148e70db608835c111e9e6eb39dfdb773ab39cc6a12106adac",
+    "sourceSha256": "6711d59d1ed306cf1944f71a6072c4c288fa59ddd89e50efb0e336beb5140d25",
     "explanation": {
       "page": "journey/completion-mathematics.md",
       "heading": "### Frame and letterbox",
-      "paragraph": "`src/app/stage/paint.rs` maps the authored `1600×900` slide into letterboxed desktop points (`Frame::fit`) or stacked upright halves (`Frame::stacked`), rasterizes glyphs via `swash` into a 1 px-guttered `Atlas` keyed by `(font, glyph_id, px)`, and draws the slide title (or chapter fallback) at top-left."
+      "paragraph": "`src/app/stage/paint.rs` maps the authored `1600×900` slide into letterboxed desktop points (`Frame::fit`) or stacked upright halves (`Frame::stacked`), rasterizes glyphs via `swash` into a `1 px`-guttered `Atlas` keyed by `(font, glyph_id, px)`, and paints the bold `accent` slide title, `650 ms` `say:` narration, `ETH Zürich | BRG` marks and `4 px` `accent` progress bar."
     }
   },
   {
@@ -1822,41 +1832,41 @@
   {
     "path": "src/app/stage/presentation_tests.rs",
     "owner": "mathematics",
-    "sourceSha256": "45ac39084fa7073bf86a4c49d77847d0fd415613d6a716d63aa501eb4c40d839",
+    "sourceSha256": "c45cac90f734453dcf0149035ef60e9d38fa6819e6250357d956c3543996a665",
     "explanation": {
       "page": "journey/completion-mathematics.md",
       "heading": "### Test the model and its host separately",
-      "paragraph": "`src/app/stage/presentation_tests.rs` verifies `Presentation` picture aspect ratios, reversible `1600×900` coordinate round trips at desktop/upright viewports, repaint settling on static frames, and host-untouched `math_mode` theme/step transitions."
+      "paragraph": "`src/app/stage/presentation_tests.rs` verifies `Presentation` picture aspect ratios, reversible `1600×900` coordinate round trips at desktop/upright viewports, repaint settling on static frames, and host-untouched `math_mode` white-to-black theme and step transitions."
     }
   },
   {
     "path": "src/app/stage/run.rs",
     "owner": "mathematics",
-    "sourceSha256": "92501f32ea13bebed0f35006be924709a1c719e803343886c0bf476ffcbf266a",
+    "sourceSha256": "718417ad7762e4a3becaba90d1487bc5f9e2cedfa29913d174637e856c1a431f",
     "explanation": {
       "page": "journey/completion-mathematics.md",
       "heading": "### Steps, slides and stepping backward",
-      "paragraph": "`src/app/stage/run.rs` flattens slide steps into a linear timeline: stepping forward finishes active tweens first, while stepping backward resets chapter state and replays actions deterministically with `animate = false` up to `step - 1`."
+      "paragraph": "`src/app/stage/run.rs` flattens slide steps into a linear timeline with default `3.2 px` geometric pens (`split = 0.46`): stepping forward finishes active tweens first, while stepping backward resets chapter state and replays actions deterministically with `animate = false` up to `step - 1`."
     }
   },
   {
     "path": "src/app/stage/spatial.rs",
     "owner": "application",
-    "sourceSha256": "95f4bbaf98e9a39d1548a72b06f1fa21aaeacdb8393508bc3d27dea5cc796252",
+    "sourceSha256": "81e4b62a2f921f870273f59493821c15cea3db1eb3fd34371fee35fe2868c537",
     "explanation": {
       "page": "journey/stage-scene.md",
       "heading": "### Order one scene frame & sync GPU rows",
-      "paragraph": "`src/app/stage/spatial.rs` (`Scene3`) maps authored stage IDs to non-pickable `112 B` GPU rows, updating point/segment `Xform`s, RGBA tints and reveal in place (rebuilding rows only on polyline shape/width/dash changes or `> 2%` slide-scale resets)."
+      "paragraph": "`src/app/stage/spatial.rs` (`Scene3`) sets `state.scene.arrowhead_pens = 24.0` for elongated `0.30`-aspect heads, bakes each `3D` `Point` as an outer `ink` disc plus a `0.58`-scale `bg` paper-centre disc, and maps stage IDs to non-pickable `112 B` GPU rows updated in place."
     }
   },
   {
     "path": "src/app/stage/tests.rs",
     "owner": "mathematics",
-    "sourceSha256": "3dbb22d4b9748df166c2b64c072ce31d0d873faa394d201d1158600ae7f8b6f3",
+    "sourceSha256": "e2230a99ca136c63fe772f3fcf37822dcf77659df507b3dd07b3e0fd51dca49a",
     "explanation": {
       "page": "journey/completion-mathematics.md",
       "heading": "### Test the model and its host separately",
-      "paragraph": "`src/app/stage/tests.rs` verifies math-axis fractions, fixed-width row-slot centring, `object_with_options` merging, matrix cell addressing, dark-default theme flips, deterministic backward replay and ink-overlap checks against shipped fonts and decks."
+      "paragraph": "`src/app/stage/tests.rs` verifies math-axis fractions, fixed-width row-slot centring, `object_with_options` merging, vivid matrix sign fills, `yellow`/`accent` co-highlighting with black numbers, white-default ground swaps, deterministic backward replay and ink-overlap checks against all `6` shipped decks."
     }
   },
   {
@@ -1902,7 +1912,7 @@
   {
     "path": "src/app/surface_preview.rs",
     "owner": "application",
-    "sourceSha256": "d7527df1c881b721e3077a432f1a1e524b9cbc3e7b653d67d089f45dc4b0de02",
+    "sourceSha256": "1ce76a1ef2b7e625b14f34a926151b7d3ea84d6d64547846b3253f2e5a0af0c3",
     "explanation": {
       "page": "journey/completion-modeling.md",
       "heading": "### Drafts, tools, delayed drags & subobject deformation",
@@ -2032,7 +2042,7 @@
   {
     "path": "src/app/walk/application_tests.rs",
     "owner": "application",
-    "sourceSha256": "ebc773030fe2290de9c7773461c646669632c0966213e3be433a3a692c1df123",
+    "sourceSha256": "6ec68969f1d5ebb7facf9dafa093716b8a2fadfe61187b48c1ab6ad57c67860e",
     "explanation": {
       "page": "journey/completion-debugging.md",
       "heading": "### Targeted rendering & WGSL contract regressions (`9` modules)",
@@ -2052,7 +2062,7 @@
   {
     "path": "src/app/walk/brep.rs",
     "owner": "geometry",
-    "sourceSha256": "3b2a570728e23c8c1e5a2edd86221708bdd18134d3a0f334e3b9827d661ca63a",
+    "sourceSha256": "0a2d73ec9e991d1098a7efc62a24a485397e86069905e80dc14e626f65d0f2c2",
     "explanation": {
       "page": "journey/completion-geometry.md",
       "heading": "### Tessellate a BRep without replacing its model",
@@ -2062,7 +2072,7 @@
   {
     "path": "src/app/walk/brep/application_tests.rs",
     "owner": "application",
-    "sourceSha256": "d759194a7b1300dd6fe4bc4438778f84f08fe787a75f1edc06e1eb7425d617a8",
+    "sourceSha256": "ba8ab4cd78777e85984165f6649d4a231fe5a863da58fbbe0cc514f6f0df3c41",
     "explanation": {
       "page": "journey/completion-debugging.md",
       "heading": "### Targeted rendering & WGSL contract regressions (`9` modules)",
@@ -2082,7 +2092,7 @@
   {
     "path": "src/app/walk/brep_orient.rs",
     "owner": "geometry",
-    "sourceSha256": "7d819164969180839f1c344ca653e77ed0d8693f694702b85baf7047f2b37315",
+    "sourceSha256": "74a520a9a0ed51ee9690bdea0296bad3d310b904f088f84494f93e5ae576778b",
     "explanation": {
       "page": "journey/completion-geometry.md",
       "heading": "### Tessellate a BRep without replacing its model",
@@ -2092,7 +2102,7 @@
   {
     "path": "src/app/walk/brep_shapes.rs",
     "owner": "geometry",
-    "sourceSha256": "e8f417ea6574c5f3151401b62f674fe37bd825ea4cf1a3b23d8b3ea9381ef97a",
+    "sourceSha256": "2c8d7f141ead2943f7b847b5a863a49621536a2d7020fbd03dd375d558520c0e",
     "explanation": {
       "page": "journey/completion-geometry.md",
       "heading": "### Tessellate a BRep without replacing its model",
@@ -2132,11 +2142,11 @@
   {
     "path": "src/app/walk/curves.rs",
     "owner": "geometry",
-    "sourceSha256": "fc35bdd392da229cca1d5a0fdce0e39b0432ea2f13338adf0ac323cd878f743a",
+    "sourceSha256": "61bd0666fe83ea3a83cd8944976079e96d681e908736802b9af5732e830e2b73",
     "explanation": {
       "page": "journey/completion-geometry.md",
       "heading": "### Strokes, dashes and reveal",
-      "paragraph": "Emits chained polyline/NURBS segments with cumulative arc-length dash offsets, terminal arrowhead `VectorRow`s, and marker-aware endpoint trims."
+      "paragraph": "Emits chained polyline/NURBS segments with cumulative arc-length dash offsets, `arrowhead_pens`-scaled terminal `VectorRow`s landing on exact endpoints, and marker-aware trims."
     }
   },
   {
@@ -2152,7 +2162,7 @@
   {
     "path": "src/app/walk/display_features.rs",
     "owner": "geometry",
-    "sourceSha256": "a9f2310994bdef6ead1789330e0d5e66779ef20507f8e0c8dc116ea4f5df1829",
+    "sourceSha256": "e524496b2d336e1ef0e447a5df9399bbea813825b973eee0e213b5a62249e653",
     "explanation": {
       "page": "journey/completion-geometry.md",
       "heading": "### Tessellate a BRep without replacing its model",
@@ -2212,7 +2222,7 @@
   {
     "path": "src/app/walk/mesh_ink.rs",
     "owner": "geometry",
-    "sourceSha256": "8d9ac0dd2e5c4b4ac38ee3e1cb7fb39b99c10f399b4e45065f65d395265b9803",
+    "sourceSha256": "228ae7f99bc1bdee060ecf6dd1dc6e0be9a7af8fd67c8450558fbec60cccc254",
     "explanation": {
       "page": "journey/completion-geometry.md",
       "heading": "### Convert mesh topology into faces and ink",
@@ -2232,11 +2242,11 @@
   {
     "path": "src/app/walk/mod.rs",
     "owner": "geometry",
-    "sourceSha256": "4e55c5b51fc19ec17a560254d47aa453a9daf17f0129f1ee34629e1673aa40a2",
+    "sourceSha256": "4f0a9780bf204cdef61267a28b08a1c2d8d472ebe92f9dce7beb8ef2d7608085",
     "explanation": {
       "page": "journey/completion-geometry.md",
       "heading": "### Borrow tables without losing object identity",
-      "paragraph": "Splits mutable `Upload` borrows via `Walk::solid` so converters append faces, edges and dots under one `WalkCx` object row without cloning tables."
+      "paragraph": "Splits mutable `Upload` borrows via `Walk::solid` and threads `WalkCx` (`row`, `cloud_px`, `arrowhead_pens` override) so converters append faces, edges and dots without cloning tables."
     }
   },
   {
@@ -2752,7 +2762,7 @@
   {
     "path": "src/engine/gpu/splat/cloud_witness/lod.rs",
     "owner": "application",
-    "sourceSha256": "982f3d3ef796d537386887d3a95610f9194580af04cabb1a7b54109121016175",
+    "sourceSha256": "fa450b036a87022114ce6e9735e15f33cc48149b12cc367350df70a5d680cfdc",
     "explanation": {
       "page": "journey/completion-debugging.md",
       "heading": "### Headless `selftest` CPU/GPU harnesses & witnesses",
@@ -2912,7 +2922,7 @@
   {
     "path": "src/engine/gpu/vectors.rs",
     "owner": "geometry",
-    "sourceSha256": "1d00e493774cb5b67c60555f484de5ba393a61cadf8349ca3aa82b085ecac04a",
+    "sourceSha256": "543035d4077f562ed19d538d69dacff12f80e5ed2b3385e2d3f9160eaaf4b935",
     "explanation": {
       "page": "journey/completion-geometry.md",
       "heading": "### Generate planes and arrows from compact rows",
@@ -3082,7 +3092,7 @@
   {
     "path": "src/selftest/profile.rs",
     "owner": "application",
-    "sourceSha256": "3f00d2715d9b5b3498e07af727b4b13dfde6fcfba83c7fd0a945999ea9bbeff1",
+    "sourceSha256": "aa74110c7c2ddf6a542e9d49ac38a2bdc8d278f2e1344321c99659011fe00955",
     "explanation": {
       "page": "journey/completion-debugging.md",
       "heading": "### Headless `selftest` CPU/GPU harnesses & witnesses",
@@ -3132,11 +3142,11 @@
   {
     "path": "src/shaders/arrow.wgsl",
     "owner": "geometry",
-    "sourceSha256": "cdfc4ae2bb668430f5742ba33213b96f584b2b9a5e6e317dafdf8beaf7c18662",
+    "sourceSha256": "a489f84371e4a43d9a2eb383a7d11cd33db12b250a8c0a9f25b3652d5b26e20a",
     "explanation": {
       "page": "journey/completion-geometry.md",
       "heading": "### The arrow function boundary",
-      "paragraph": "`src/shaders/arrow.wgsl` generates `18` shaft and start/end head vertices per vector by accepting scalar/vector arguments individually rather than a packed `VectorRow` struct, avoiding an observed Android WebGPU driver struct-argument corruption bug."
+      "paragraph": "`src/shaders/arrow.wgsl` generates `18` shaft and narrow `HEAD_ASPECT = 0.30` start/end head vertices per vector (landing on the exact endpoint) by accepting scalar/vector arguments individually rather than a packed `VectorRow` struct, avoiding an observed Android WebGPU driver struct-argument corruption bug."
     }
   },
   {
@@ -3272,11 +3282,11 @@
   {
     "path": "src/shaders/ribbon.wgsl",
     "owner": "geometry",
-    "sourceSha256": "daaa9f018f0b1e5391cc1d3edc21d65457138602fdfb32f11340d0eb287cc89d",
+    "sourceSha256": "6108dc8853ed7166d3ab7c1e05c44160814145c4f7923b7bae5670943a184f3a",
     "explanation": {
       "page": "journey/completion-geometry.md",
       "heading": "### Strokes, dashes and reveal",
-      "paragraph": "Extrudes `6`-vertex screen-space quads with neighbour miter planes, arrowhead trims, cumulative dash phase, per-segment `reveal` and sag-bit silhouette tests."
+      "paragraph": "Extrudes `6`-vertex screen-space quads with neighbour miter planes, `HEAD_ASPECT = 0.30` arrowhead trims, cumulative dash phase, per-segment `reveal` and sag-bit silhouette tests."
     }
   },
   {

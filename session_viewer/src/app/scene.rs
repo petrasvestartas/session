@@ -81,8 +81,9 @@ pub struct Scene {
     pub colors: HashMap<(usize, Rc<str>), [u8; 3]>,      // face colour overrides
     pub edge_colors: HashMap<(usize, Rc<str>), [u8; 3]>, // edge colour overrides
     pub selected: Option<u32>,                           // selected object row
-    pub interactions: bool, // element interactions drawn, on from the start
+    pub interactions: bool,  // element interactions drawn, on from the start
     pub attributes: bool, // an element's attributes shown: its attributes group and its own features
+    pub arrowhead_pens: f32, // arrowhead length in pens; 0 uses the renderer default
     order: Vec<Rc<str>>,  // guid of each row, empty when free
     owners: Vec<usize>,   // document of each row, or TEXT, FREE, SINK
     feet: Vec<Footprint>, // lane rows of each row
@@ -163,6 +164,7 @@ impl Scene {
             selected: None,
             interactions: true,
             attributes: false,
+            arrowhead_pens: 0.0,
             order: Vec::new(),
             owners: Vec::new(),
             feet: Vec::new(),
@@ -232,6 +234,7 @@ impl Scene {
         self.locked.clear();
         self.colors.clear();
         self.edge_colors.clear();
+        self.arrowhead_pens = 0.0;
         self.reset_rows();
         gpu.release();
     }
@@ -518,6 +521,7 @@ impl Scene {
                 row,
                 interactions: self.interactions,
                 attributes: self.attributes,
+                arrowhead_pens: self.arrowhead_pens,
             };
             let start = self.uploaded.plus(Counts::of(&self.tables));
             let r = walk_geometry(&mut Walk::of(&mut self.tables), &cx, geom);

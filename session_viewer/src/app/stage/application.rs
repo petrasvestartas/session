@@ -33,7 +33,11 @@ impl StageApp {
     /// Open the deck at the chapter and step named in the page address.
     pub fn new(loaded: Loaded, now: f64) -> Self {
         let mut presentation = presentation::Presentation::new(
-            loaded.fonts, loaded.index, loaded.chapters, loaded.pictures, now,
+            loaded.fonts,
+            loaded.index,
+            loaded.chapters,
+            loaded.pictures,
+            now,
         );
         let stage = &mut presentation.stage;
         #[cfg(target_arch = "wasm32")]
@@ -101,7 +105,11 @@ impl StageApp {
             } => match state {
                 ElementState::Pressed => {
                     let at = frame.slide(egui::pos2(self.cursor[0], self.cursor[1]));
-                    self.press = Some((self.cursor, at, at[0] < self.presentation.stage.split * run::W));
+                    self.press = Some((
+                        self.cursor,
+                        at,
+                        at[0] < self.presentation.stage.split * run::W,
+                    ));
                     false
                 }
                 ElementState::Released => {

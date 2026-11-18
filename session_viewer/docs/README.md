@@ -42,6 +42,6 @@ Keep `Cargo.lock` intact so every checkpoint resolves the same `wgpu`, `egui`, `
 
 1. **[1. Open a GPU frame](journey/completion-frame.md)** — initialize WebGPU and clear a surface (`13` files).
 2. **[2. Paint shapes and text](journey/completion-painting.md)** — composite an `egui` triangle and label (`15` files).
-3. **[3. Lay out and animate mathematics](journey/completion-mathematics.md)** — typeset TeX, matrices and tweens (`41` files).
+3. **[3. Lay out and animate mathematics](journey/completion-mathematics.md)** — typeset TeX, matrices and 2D/3D stage constructions (`42` files).
 
 Optional Rust warm-up exercises live in [Foundations](foundations.md); learner checkpoint commands live in [Save and recovery](journey/recovery.md); target rendering requirements live in [Destination](journey/destination.md). Earlier drafts stay in [Archived tutorials](archived/README.md).

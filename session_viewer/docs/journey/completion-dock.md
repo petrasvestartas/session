@@ -9,7 +9,7 @@ Drive command entry, prefix completion, clickable option chips and `200`-entry c
 
 ## Prerequisites and ownership
 
-Requires [3. Lay out and animate mathematics](completion-mathematics.md). Checkpoint `dock` (`45` files) retains Tutorials 1–3 and adds `4` files:
+Requires [3. Lay out and animate mathematics](completion-mathematics.md). Checkpoint `dock` (`46` files) retains Tutorials 1–3 and adds `4` files:
 
 | Added file | Role |
 | --- | --- |
@@ -69,4 +69,4 @@ Type `He`, cycle completion with `Tab`, and press `Enter`: predict whether histo
 
 ## Validation
 
-Verified by `45`-file locked `wasm32` build, `19` passing native tests (`1` GPU test ignored), retention checks, and desktop/upright browser interaction tests in the recorded Windows Intel WebGPU environment ([receipt](release/completion-partials-windows-20261115.json)). Physical-phone virtual-keyboard bridging is covered in [9.3 Input](completion-input.md).
+Verified by `46`-file locked `wasm32` build ([stage reconciliation](release/completion-stage-reconciliation-windows-20261118c.json)), `19` passing baseline native tests (`1` GPU test ignored), retention checks, and desktop/upright browser interaction tests in the recorded Windows Intel WebGPU environment ([receipt](release/completion-partials-windows-20261115.json)). Physical-phone virtual-keyboard bridging is covered in [9.3 Input](completion-input.md).

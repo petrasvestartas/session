@@ -484,6 +484,7 @@ mod tests {
             row: 5,
             interactions: false,
             attributes: false,
+            arrowhead_pens: 0.0,
         };
         let row = {
             let mut ink = Ink {
@@ -506,6 +507,7 @@ mod tests {
             row: 0,
             interactions: false,
             attributes: false,
+            arrowhead_pens: 0.0,
         };
         let result = super::super::display::candidate(|| {
             let mut ink = Ink {
@@ -714,6 +716,7 @@ mod tests {
             row: 7,
             interactions: false,
             attributes: false,
+            arrowhead_pens: 0.0,
         };
         let row = walk_surface(&mut arena, &mut ink, &b.m_surfaces[0], &cx);
         assert_ne!(row.flags & Instance::FLAG_OPEN, 0);
@@ -742,6 +745,7 @@ mod tests {
                 row: 7,
                 interactions: false,
                 attributes: false,
+                arrowhead_pens: 0.0,
             };
             walk_surface(&mut arena, &mut ink, &surface, &cx);
             (arena, seg)

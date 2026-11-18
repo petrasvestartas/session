@@ -6,7 +6,7 @@
 title: MATERIALIZATION
 grid: {center: [3.5, 3.5], size: 9, step: 1}
 camera: {yaw: -58, pitch: 26}
-palette: {free: pink}
+palette: {free: ink}
 net:
   fixed: {n1: [0, 0, 0], n2: [5, 0, 3], n3: [0, 7, 3], n4: [7, 5, 0]}
   free: {n0: [3, 3, 0.25]}
@@ -38,15 +38,15 @@ slides:
               - '\qquad'
               - {id: fv, matrix: {rows: [['4.250'], ['4.535'], ['5.706'], ['4.479']], name: '\mathbf{f} = \mathbf{q}\cdot\mathbf{l}\text{ (kN)}'}}
             size: 26
-          - eq: {tex: 'l_{0,k} = \frac{l_k}{1 + \dfrac{f_k}{EA}}', size: 26, gap: 22, color: yellow}
+          - eq: {tex: 'l_{0,k} = \frac{l_k}{1 + \dfrac{f_k}{EA}}', size: 26, gap: 22, color: accent}
 
   - title: EXAMPLE CABLE $e_0$
     steps:
       - say: 'Cut cable $e_0$ $36\text{ mm}$ shorter so it stretches into equilibrium.'
         do:
-          - color: {target: e0, color: yellow}
+          - color: {target: e0, color: accent}
           - camera: {fit: [n0, n1], yaw: -52, pitch: 22, with: true}
           - eq: {tex: 'l_{0,1} &= \frac{4.250}{1 + \dfrac{4.250}{500}} = \textcolor{pos}{4.214\text{ m}}', size: 26, gap: 20}
-          - eq: {tex: '\Delta l_1 &= 4.250 - 4.214 = \textcolor{yellow}{0.036\text{ m}}', size: 25, gap: 14}
+          - eq: {tex: '\Delta l_1 &= 4.250 - 4.214 = \textcolor{accent}{0.036\text{ m}}', size: 25, gap: 14}
           - add: {id: cut, line: [n1, 'lerp(n1, n0, 4.214/4.250)'], color: free, width: 5}
           - add: {id: cutl, label: 'lerp(n1, n0, 0.5)', tex: 'l_{0,1} = 4.214\text{ m}', color: free, size: 21}

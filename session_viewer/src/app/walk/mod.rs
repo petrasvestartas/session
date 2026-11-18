@@ -72,11 +72,12 @@ impl<'a> Walk<'a> {
 /// Where one object's rows go.
 pub struct WalkCx {
     pub quality: display::Quality,
-    pub vert_base: u32,     // arena vertices already on the GPU
-    pub cloud_px: f32,      // point size override in px, 0 = file's own
-    pub row: u32,           // this object's row index
-    pub interactions: bool, // draw the features other elements put on an element, inside its row
-    pub attributes: bool,   // draw an element's own features, an axis or a section
+    pub vert_base: u32,      // arena vertices already on the GPU
+    pub cloud_px: f32,       // point size override in px, 0 = file's own
+    pub row: u32,            // this object's row index
+    pub interactions: bool,  // draw the features other elements put on an element, inside its row
+    pub attributes: bool,    // draw an element's own features, an axis or a section
+    pub arrowhead_pens: f32, // arrowhead length in pens; 0 uses the renderer default
 }
 
 /// What a producer reports for one object row.
@@ -274,7 +275,7 @@ pub fn walk_geometry(w: &mut Walk, cx: &WalkCx, geom: &Geometry) -> Row {
             let (arena, mut ink) = w.solid();
             walk_surface(arena, &mut ink, s, cx)
         }
-        Geometry::Line(l) => walk_line(w.seg, w.lanes, l, cx.row),
+        Geometry::Line(l) => walk_line(w.seg, w.lanes, l, cx.row, cx.arrowhead_pens),
         Geometry::Polyline(pl) => walk_polyline(w.seg, w.lanes, pl, cx.row),
         Geometry::NurbsCurve(c) => {
             curves::walk_nurbscurve_quality(w.seg, w.lanes, c, cx.row, cx.quality)
