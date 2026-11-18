@@ -117,14 +117,9 @@ slides:
           - eq: {tex: '\mathbf{P}_i + \mathbf{F}_{ji} + \mathbf{F}_{li} + \mathbf{F}_{ki} = \mathbf{0}', color: blue, align: left}
           - eq: {tex: '\boxed{F_{\mathrm{V},ji} + F_{\mathrm{V},ki} + F_{\mathrm{V},li} = P_i}', align: left}
           - text: 'Vertical equilibrium holds because the three 3D rises stack to the exact height of $P_i$.'
-      - say: 'Viewed from above in 2D, $P_i$ projects to a point and the 3D Force Diagram lands directly on the closed 2D triangle $\Gamma^*$:'
+      - say: 'Viewed from above in plan, only the 2D diagrams $\Gamma$ and $\Gamma^*$ remain: dual branches are parallel and close the horizontal triangle:'
         camera: {view: top, fit: [jG, kG, lG, Q0, Q1, Q2, CG, CF]}
         show: [gt, fhj.label, fhk.label, fhl.label]
-        hide: [f3t, ps.label, fjs.label, fls.label, fks.label]
-        dim: [fj, fk, fl, pi, jp, kp, lp, ip, pi_drop, pj_drop, pk_drop, pl_drop, f3_fill1, f3_fill2, ps, fjs, fls, fks, t0p, v0p, v1p, v2p, q0_drop, q1_drop, q2_drop]
+        remove: [g3t, f3t, fj, fk, fl, pi, jp, kp, lp, ip, pi_drop, pj_drop, pk_drop, pl_drop, f3_fill1, f3_fill2, q0_drop, q1_drop, q2_drop, ps, fjs, fls, fks, t0p, v0p, v1p, v2p]
         do:
           - eq: {tex: '\boxed{F_{\mathrm{H},ji} + F_{\mathrm{H},ki} + F_{\mathrm{H},li} = 0}\qquad F_{\mathrm{H},ji} = \frac{1}{r} \cdot l^*_{\mathrm{H},ji}', align: left}
-      - say: 'Returning to 3D shows both levels together: $\mathbf{G}$ above $\Gamma$ on the left, and the 3D Force Diagram above $\Gamma^*$ on the right.'
-        camera: {yaw: -112, pitch: 22, fit: [j, k, l, jG, kG, T0, V1, Q1, Q2, P_TOP, CF3]}
-        undim: [fj, fk, fl, pi, jp, kp, lp, ip, pi_drop, pj_drop, pk_drop, pl_drop, f3_fill1, f3_fill2, ps, fjs, fls, fks, t0p, v0p, v1p, v2p, q0_drop, q1_drop, q2_drop]
-        show: [g3t, f3t, fj.label, fk.label, fl.label, pi.label, jp.label, kp.label, lp.label, ip.label, ps.label, fjs.label, fls.label, fks.label]
