@@ -1,0 +1,129 @@
+# cd /home/pv/brg/code_cpp/wood_research/session/session_viewer && aws s3 sync examples/stage s3://session-viewer-data/stage/ --delete --exclude '*' --include '*.yaml' --content-type application/yaml --cache-control no-cache --profile r2 --endpoint-url https://0520459c6817bd96c1e25fcb49461c4e.r2.cloudflarestorage.com
+# Open local: http://127.0.0.1:8770/?stage=decks/thrust-network_analysis_one_node/index.yaml&data=off&chapter=1&step=1
+# Open live: https://petrasvestartas.github.io/session/?stage=thrust-network_analysis_one_node&chapter=1&step=1
+
+# Chapter 1: 3 fixed nodes and 1 free node, the core tangent formula, the three diagrams G, Gamma, Gamma*, and 3D stacked forces.
+title: TANGENT FORMULA AND THREE DIAGRAMS
+split: 0.52
+camera: {yaw: -112, pitch: 20, fit: [i, j, k, l, Mj, P_TOP]}
+points:
+  i: [0, 0, 4]
+  j: [-4, 3, 1]
+  k: [0, -4, 2]
+  l: [4, 3, 1]
+  Mj: [0, 0, 1]
+  P_TOP: [0, 0, 6.2]
+  CG3: [-1.1, 0.5, 5.8]
+  CG: [-1.1, 2.2, -3.2]
+  CF: [8.1, 2.6, -3.2]
+  iG: [0, 0, -3.2]
+  jG: [-4, 3, -3.2]
+  kG: [0, -4, -3.2]
+  lG: [4, 3, -3.2]
+  Q0: [7.0, 2.0, -3.2]
+  Q1: [9.2, 0.35, -3.2]
+  Q2: [7.0, -1.3, -3.2]
+  T0: [7.0, 2.0, 4.65]
+  V0: [7.0, 2.0, -0.3]
+  V1: [9.2, 0.35, 1.35]
+  V2: [7.0, -1.3, 3.0]
+slides:
+  - title: ONE NODE AND THE TANGENT FORMULA
+    steps:
+      - say: 'Three fixed supports $j, k, l$ hold one free node $i$ in compression under load $P_i$. On bar $ji$, axial force aligns with slope $\tan\alpha$:'
+        add:
+          - {id: ej, line: [j, i], color: ink, width: 2.2}
+          - {id: ek, line: [k, i], color: ink, width: 2.2}
+          - {id: el, line: [l, i], color: ink, width: 2.2}
+          - {id: fj, arrow: [j, 'lerp(j, i, 0.88)'], color: ink, width: 3.2, label: 'F_{ji}', dir: [-0.2, 1]}
+          - {id: pi, arrow: [P_TOP, i], color: load, width: 3.2, label: 'P_i', dir: [1, 0]}
+          - {id: jp, point: j, color: fixed, label: 'j', dir: [-1, 0.2]}
+          - {id: kp, point: k, color: fixed, label: 'k', dir: [1, -0.4]}
+          - {id: lp, point: l, color: fixed, label: 'l', dir: [1, 0.2]}
+          - {id: ip, point: i, color: free, label: 'i', dir: [-1, 0.5]}
+        dim: [ek, el, kp, lp, kp.label, lp.label]
+        do:
+          - add:
+              - {id: base_j, arrow: [j, Mj], color: ink, width: 3.0, dash: true, label: 'F_{\mathrm{H},ji}\;(\,l_{\mathrm{H},ji}\,)', dir: [0, -1]}
+              - {id: rise_j, arrow: [Mj, i], color: ink, width: 3.0, dash: true, label: 'F_{\mathrm{V},ji}\;(\,\Delta z\,)', dir: [1, 0]}
+              - {id: mjp, point: Mj, color: grey, size: 0.7}
+              - {id: arc_a, polyline: [[-2.9200, 2.1900, 1.0000], [-2.9225, 2.1918, 1.0911], [-2.9298, 2.1974, 1.1818], [-2.9421, 2.2066, 1.2717], [-2.9592, 2.2194, 1.3604], [-2.9810, 2.2358, 1.4474], [-3.0075, 2.2556, 1.5323], [-3.0385, 2.2789, 1.6148], [-3.0739, 2.3054, 1.6946]], color: pink, width: 2.4}
+              - {id: arc_t, label: [-2.635, 1.977, 1.472], tex: '\alpha', color: pink}
+          - eq: {tex: '\tan\alpha = \frac{\Delta z}{l_{\mathrm{H},ji}} = \frac{F_{\mathrm{V},ji}}{F_{\mathrm{H},ji}}', align: left}
+      - say: 'Because horizontal length $l_{\mathrm{H},ji}$ and horizontal thrust $F_{\mathrm{H},ji}$ are known in 2D, vertical thrust is linear in $z_i$:'
+        do:
+          - eq: {tex: '\boxed{F_{\mathrm{V},ji} = F_{\mathrm{H},ji} \cdot \frac{z_i - z_j}{l_{\mathrm{H},ji}}}', color: blue, align: left}
+          - text: 'This tangent relation avoids the 3D bar length and its square root.'
+
+  - title: THREE DIAGRAMS · G, Γ, AND Γ*
+    steps:
+      - say: 'Projecting all three compression bars vertically onto the horizontal plane links the 3D form $\mathbf{G}$ to its 2D Form Diagram $\Gamma$:'
+        camera: {yaw: -112, pitch: 22, fit: [j, k, l, jG, kG, T0, V1, Q1, Q2, P_TOP]}
+        remove: [base_j, rise_j, mjp, arc_a, arc_t]
+        undim: [ek, el, kp, lp, kp.label, lp.label]
+        do:
+          - add:
+              - {id: fk, arrow: [k, 'lerp(k, i, 0.88)'], color: ink, width: 3.2, label: 'F_{ki}', dir: [1, -0.2]}
+              - {id: fl, arrow: [l, 'lerp(l, i, 0.88)'], color: ink, width: 3.2, label: 'F_{li}', dir: [0.4, 1]}
+              - {id: g3t, label: CG3, tex: '\mathbf{G}', color: accent}
+              - {id: gt, label: CG, tex: '\Gamma', color: accent}
+              - {id: pi_drop, line: [i, iG], color: grey, width: 1.3, dash: true}
+              - {id: pj_drop, line: [j, jG], color: grey, width: 1.3, dash: true}
+              - {id: pk_drop, line: [k, kG], color: grey, width: 1.3, dash: true}
+              - {id: pl_drop, line: [l, lG], color: grey, width: 1.3, dash: true}
+              - {id: ejG, line: [jG, iG], color: grey, width: 1.8}
+              - {id: ekG, line: [kG, iG], color: grey, width: 1.8}
+              - {id: elG, line: [lG, iG], color: grey, width: 1.8}
+              - {id: fhj, arrow: [jG, 'lerp(jG, iG, 0.88)'], color: ink, width: 3.2, label: 'F_{\mathrm{H},ji}', dir: [-0.2, -1]}
+              - {id: fhk, arrow: [kG, 'lerp(kG, iG, 0.88)'], color: ink, width: 3.2, label: 'F_{\mathrm{H},ki}', dir: [1, -0.3]}
+              - {id: fhl, arrow: [lG, 'lerp(lG, iG, 0.88)'], color: ink, width: 3.2, label: 'F_{\mathrm{H},li}', dir: [0.5, 1]}
+              - {id: jGp, point: jG, color: fixed}
+              - {id: kGp, point: kG, color: fixed}
+              - {id: lGp, point: lG, color: fixed}
+              - {id: iGp, point: iG, color: free}
+          - text: '**$\mathbf{G}$ · Thrust network** — the 3D compression form $(x, y, z)$ carrying axial thrusts $F_{ji}, F_{ki}, F_{li}$.'
+          - text: '**$\Gamma$ · Form diagram** — the 2D $(x, y)$ plan projection of $\mathbf{G}$, with branch lengths $l_{\mathrm{H}}$ and horizontal thrusts $F_{\mathrm{H}}$.'
+      - say: 'Beside $\Gamma$ lies $\Gamma^*$, the 2D Force Diagram: parallel reciprocal branches of length $l^*_{\mathrm{H}}$ close the horizontal thrusts:'
+        do:
+          - add: {id: ft, label: CF, tex: '\Gamma^*', color: accent}
+          - derive: {from: fhj, id: tj, arrow: [Q0, Q1], color: ink, width: 3.2, label: 'F_{\mathrm{H},ji}', dir: [0.4, 1]}
+          - derive: {from: fhl, id: tl, arrow: [Q1, Q2], color: ink, width: 3.2, label: 'F_{\mathrm{H},li}', dir: [1, -0.4]}
+          - derive: {from: fhk, id: tk, arrow: [Q2, Q0], color: ink, width: 3.2, label: 'F_{\mathrm{H},ki}', dir: [-1, 0]}
+          - add:
+              - {id: q0, point: Q0, color: ink}
+              - {id: q1, point: Q1, color: ink}
+              - {id: q2, point: Q2, color: ink}
+          - text: '**$\Gamma^*$ · Force diagram** — the 2D reciprocal polygon of dual lengths $l^*_{\mathrm{H}}$, scaled by $1/r$:'
+          - eq: {tex: '\boxed{F_{\mathrm{H},ji} + F_{\mathrm{H},ki} + F_{\mathrm{H},li} = 0}', align: left}
+
+  - title: 2D EQUILIBRIUM AND 3D STACKED FORCES
+    steps:
+      - say: 'Viewed from above in 2D, each dual branch in $\Gamma^*$ is parallel to its branch in $\Gamma$ and closes the horizontal triangle:'
+        camera: {view: top, fit: [jG, kG, lG, Q0, Q1, Q2, CG, CF]}
+        dim: [ej, ek, el, fj, fk, fl, pi, jp, kp, lp, ip, pi_drop, pj_drop, pk_drop, pl_drop]
+        hide: [g3t, fj.label, fk.label, fl.label, pi.label, jp.label, kp.label, lp.label, ip.label]
+        eq: {tex: 'F_{\mathrm{H},ji} = \frac{1}{r} \cdot l^*_{\mathrm{H},ji}', align: left}
+      - say: 'In 3D above $\Gamma^*$, drop the downward load $P_i$, then stack $F_{ji}, F_{li}, F_{ki}$ head-to-tail along vertical projectors:'
+        camera: {yaw: -112, pitch: 22, fit: [j, k, l, jG, kG, T0, V1, Q1, Q2, P_TOP]}
+        undim: [ej, ek, el, fj, fk, fl, pi, jp, kp, lp, ip, pi_drop, pj_drop, pk_drop, pl_drop]
+        show: [g3t, fj.label, fk.label, fl.label, pi.label, jp.label, kp.label, lp.label, ip.label]
+        do:
+          - add:
+              - {id: q0_drop, line: [T0, Q0], color: grey, width: 1.3, dash: true}
+              - {id: q1_drop, line: [V1, Q1], color: grey, width: 1.3, dash: true}
+              - {id: q2_drop, line: [V2, Q2], color: grey, width: 1.3, dash: true}
+          - derive: {from: pi, id: ps, arrow: [T0, V0], color: load, width: 3.2, label: 'P_i', dir: [-1, 0]}
+          - derive: {from: fj, id: fjs, arrow: [V0, V1], color: ink, width: 3.2, label: 'F_{ji}', dir: [0.3, -1]}
+          - derive: {from: fl, id: fls, arrow: [V1, V2], color: ink, width: 3.2, label: 'F_{li}', dir: [1, 0.3]}
+          - derive: {from: fk, id: fks, arrow: [V2, T0], color: ink, width: 3.2, label: 'F_{ki}', dir: [-0.3, 1]}
+          - add:
+              - {id: t0p, point: T0, color: ink}
+              - {id: v0p, point: V0, color: ink}
+              - {id: v1p, point: V1, color: ink}
+              - {id: v2p, point: V2, color: ink}
+          - eq: {tex: '\mathbf{P}_i + \mathbf{F}_{ji} + \mathbf{F}_{li} + \mathbf{F}_{ki} = \mathbf{0}', color: blue, align: left}
+      - say: 'Zooming onto the 3D force prism: $\Gamma^*$ closes horizontally below, while the vertical rises stack up to $P_i$:'
+        camera: {yaw: -108, pitch: 22, fit: [T0, V0, V1, V2, Q0, Q1, Q2, CF]}
+        hide: [g3t, gt, fj.label, fk.label, fl.label, pi.label, jp.label, kp.label, lp.label, ip.label, fhj.label, fhk.label, fhl.label]
+        do:
+          - eq: {tex: '\boxed{F_{\mathrm{V},ji} + F_{\mathrm{V},ki} + F_{\mathrm{V},li} = P_i}', align: left}

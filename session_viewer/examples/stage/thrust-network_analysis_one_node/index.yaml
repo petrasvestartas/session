@@ -5,8 +5,6 @@
 # Thrust network analysis of one node, no matrices. A session_viewer stage deck.
 name: Thrust network analysis · one node
 chapters:
-  - 01-method.yaml
-  - 02-question.yaml
-  - 03-reciprocal.yaml
-  - 04-equilibrium.yaml
-  - 05-forces.yaml
+  - 01-diagrams.yaml
+  - 02-derivation.yaml
+  - 03-coordinates.yaml
