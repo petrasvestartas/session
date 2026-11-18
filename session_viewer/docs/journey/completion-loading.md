@@ -2,11 +2,9 @@
 
 Start `window.__viewerEarly` fetches before `.wasm` compiles, guard overlapping scene reloads with monotonic generations, bound HTTP `Range` concurrency to `3` slots, and re-hydrate released geometry on demand before edits or saves.
 
+![Parallel __viewerEarly startup, 3-slot RangeGate and token-checked on-demand hydration](../illustrations/stage/09e-early-fetch-hydration.svg)
+
 ![Malformed scene load rejected with contextual error while retaining the active viewer state and grid](../screenshots/active/loading-malformed-retains.png)
-
-![Parallel early fetch, WebGPU setup, generation-checked adoption and bounded RangeGate](../illustrations/loading.svg)
-
-![Display-only source release versus token-checked hydration on edit or Save](../illustrations/source-cache.svg)
 
 ## Prerequisites and ownership
 
@@ -14,7 +12,7 @@ Chapter `9.5` of [9. Run the application](completion-application.md) (`applicati
 
 ## Build
 
-### Start independent work together
+### Step 1: Overlap `window.__viewerEarly` pre-fetches with wasm compilation
 
 `src/app/fetch.rs` takes one-shot ownership of pre-started `window.__viewerEarly` Promises/AbortControllers (separating `8,192 B` head probes from full GETs), leaves large payloads in JS `Uint8Array`s until needed, resets stall timers per chunk, and caps whole-file bodies at `512 MiB`.
 
@@ -22,7 +20,7 @@ Chapter `9.5` of [9. Run the application](completion-application.md) (`applicati
 --8<-- "session_viewer/src/app/fetch.rs:loading-early"
 ```
 
-### Routes, manifests, generations & range gating
+### Step 2: Guard routes, load generations and `RangeGate` permits
 
 | File | Specification |
 | --- | --- |
@@ -32,10 +30,14 @@ Chapter `9.5` of [9. Run the application](completion-application.md) (`applicati
 | [src/app/range_gate.rs](../../src/app/range_gate.rs) | Caps concurrent HTTP `Range` reads at `3` permits in FIFO `Future` order, handing slots forward on `Drop` and waking waiters when a scene closes. |
 
 ```rust
+--8<-- "session_viewer/src/app/range_gate.rs:8:33"
+```
+
+```rust
 --8<-- "session_viewer/src/app/loader.rs:loading-generations"
 ```
 
-### Restore released geometry only when needed
+### Step 3: Release display-only RAM and re-hydrate on demand
 
 - `src/app/scene_release.rs` drops resident `Session` geometry on unmodified display-only documents while keeping tree nodes, names, shape summaries, GPU rows and a unique release token for later identity-checked re-hydration.
 - `src/state/hydrate.rs` distinguishes read-only streamed shells from releasable documents, queues pending `Save`/edit `Resume` actions, and re-fetches source `.pb` bytes validated against the current document index and release token.

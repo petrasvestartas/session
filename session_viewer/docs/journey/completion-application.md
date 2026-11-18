@@ -2,9 +2,9 @@
 
 Wire all eight subsystems into the concrete `App` / `State` host (`src/app/runtime.rs`, `src/state.rs`) and build the standalone `production.html` viewer (`352/352` production Rust/WGSL files).
 
-![Tutorial 9 output: production viewer running loaded comparison BReps/surfaces, nameplate and command dock](../screenshots/active/application-loaded-1280.png)
+![Single-owner State event loop: EventLoopProxy<Msg>, ordered pick hooks and frame invariants](../illustrations/stage/09-state-event-loop.svg)
 
-![Single-owner State architecture and EventLoopProxy message flow](../illustrations/ownership.svg)
+![Tutorial 9 output: production viewer running loaded comparison BReps/surfaces, nameplate and command dock](../screenshots/active/application-loaded-1280.png)
 
 ## Prerequisites and ownership
 
@@ -17,7 +17,7 @@ Requires [8. Decode a document](completion-decoding.md). Checkpoint `application
 | [src/state/features.rs](../../src/state/features.rs) | Hook tables (`BEFORE_PICK`, `TAKE_PICK`, `AFTER_PICK`, group expansion) decoupling drags, drafts, splits and queries from the event loop. |
 | [Trunk.toml](../../Trunk.toml), [index.html](../../index.html), [assets/view_local.yaml](../../assets/view_local.yaml) | Production release bundler (`production.html` in the checkpoint), early asset prefetcher, diagnostics hook and scene manifest. |
 
-Nine focused chapters document every subsystem wired into `State`:
+Nine step-by-step chapters complete every subsystem wired into `State`:
 
 1. [9.1 Documents, hierarchy and history](completion-documents.md) — `Scene`, `(doc, GUID)` rows, `Footprint`, `256 MiB` undo tombs, layers and archives.
 2. [9.2 Commands, tools and editing](completion-commands.md) — `Spec` / `Action` / `Draw` verb registry, `Move` preview and section planes.
@@ -39,20 +39,24 @@ npm --prefix ../session_tests run course -- checkpoint application ../session_vi
 trunk build production.html
 ```
 
-### One owner for changing state
+### Step 1: Serialize async updates into one `State` owner
 
 - `src/app/runtime.rs` implements `ApplicationHandler<Msg>`: panels consume events before scene shortcuts, `Box<dyn Mode<State>>` temporarily moves out during callbacks to avoid double mutable borrows, `FramePacing` prevents submission backlogs, and `State::resize` throttles target rebuilds to `100 ms`.
 - `src/state.rs` holds `Arc<Window>`, `Gpu`, `Camera`, `Scene` and `Selection` in one struct mutated exclusively on the event loop thread via `EventLoopProxy<Msg>`, preserving user camera navigation if `State::append` finishes after the camera moved from its load-start pose.
 
 ```rust
+--8<-- "session_viewer/src/app/runtime.rs:23:45"
+```
+
+```rust
 --8<-- "session_viewer/src/app/mode.rs:application-mode"
 ```
 
-### Register state and frame responsibilities
+### Step 2: Register ordered pick hooks and cross-frame features
 
 `src/state/features.rs` stores cross-frame interaction state (`Draft`, `ObjectDrag`, pending splits, cloud/sheet query generations, `Snap` and `Hierarchy`) and dispatches ordered `TAKE_PICK` hooks so active drags claim delayed GPU picks before ordinary selection runs.
 
-### Package the browser entry and its dependencies
+### Step 3: Package the browser entry, prefetcher and manifests
 
 - `Trunk.toml` configures release builds, relative `public_url`, pre-build Vue docs generation, watch paths (`../session_rust`, `docs`), and `Cache-Control: no-store` on the dev index HTML.
 - `index.html` (materialized as `production.html` alongside the course's `index.html`) mounts `#viewer`, starts `window.__viewerEarly` fetches ahead of `.wasm`, loads `diagnostics.js`, copies `stage/`, `decks/`, `text/` and `docs/`, and handles same-origin `postMessage` scene reloads.

@@ -2,10 +2,10 @@
 
 Route pointer, keyboard, multi-touch and mobile IME events to one owner at a time, preview drags at `60 Hz` on the GPU, and resolve asynchronous `19×19` GPU pick readbacks by generation.
 
+![19x19 GPU pick window, 3 px visibility halo, gesture priority and generation-stamped readback](../illustrations/stage/09c-pick-window-gestures.svg)
+
 ![Picking an element feature pixel resolves its parent Element first](../screenshots/completion/feature-pixel-selected.png)
 ![Deleting the picked Element removes its visible feature and pickability while keeping tomb storage for Undo](../screenshots/completion/feature-pixel-deleted.png)
-
-![One gesture: 60 Hz GPU placement preview during drag, 1 undo transaction on release](../illustrations/active/one-gesture-112.svg)
 
 ## Prerequisites and ownership
 
@@ -13,20 +13,15 @@ Chapter `9.3` of [9. Run the application](completion-application.md) (`applicati
 
 ## Build
 
-### A pointer belongs to one interaction & dock binding
+### Step 1: Isolate UI panels from canvas gestures
 
 - `src/app/ui/pointer.rs` checks live `egui` panel and popup rectangles on press so panel drags stay inside UI, scene drags released over panels cancel cleanly, and wheel/touch events respect the canvas rect.
 - `src/app/ui/command_line.rs` binds `CommandLine` to `REGISTRY` completions, active `Tool` prompts/chips and `Escape` priority, returning keyboard focus to the canvas after command execution.
-
-### Choose a gesture before changing geometry
-
-`src/app/gesture/mod.rs` tests registered handlers in priority order (`control` -> `gizmo` -> `object` -> `box_select`), converting CSS thresholds into physical pixels with wider touch hit radii so clicks never accidentally drag geometry.
+- `src/app/gesture/mod.rs` tests registered handlers in priority order (`control` -> `gizmo` -> `object` -> `box_select`), converting CSS thresholds into physical pixels with wider touch hit radii so clicks never accidentally drag geometry.
 
 ```rust
 --8<-- "session_viewer/src/app/gesture/mod.rs:input-gestures"
 ```
-
-### Give each adapter a precise release policy
 
 | File | Specification |
 | --- | --- |
@@ -36,7 +31,7 @@ Chapter `9.3` of [9. Run the application](completion-application.md) (`applicati
 | [gesture/box_select.rs](../../src/app/gesture/box_select.rs) | Tracks mouse-drag rectangles without touching geometry, delegating window (left-to-right) and crossing (right-to-left) resolution on release. |
 | [src/app/keys.rs](../../src/app/keys.rs) | Maps unfocused canvas keys (`Escape`, `Enter`, `Delete`, `F`, `H`, `S`, `Ctrl/Cmd+Z/Y/A`) through the shared command dispatcher after text-focus checks. |
 
-### Touch has its own state & IME keyboard bridge
+### Step 2: Multi-touch camera and mobile IME keyboard bridge
 
 - `src/app/touch.rs` tracks active touch IDs (`1` finger orbits, `2` fingers pan by midpoint and clamped pinch-zoom, double-tap fits bounds) while resetting span baselines whenever finger count changes.
 - `src/app/agent.rs` (`CommandAgent`) manages the hidden mobile `<input>`, forwarding full-string replacements, tracking IME `compositionstart`/`compositionend` so active compositions are never clobbered, and detaching all DOM closures on `Drop`.
@@ -45,13 +40,11 @@ Chapter `9.3` of [9. Run the application](completion-application.md) (`applicati
 --8<-- "session_viewer/src/app/touch.rs:input-touch-camera"
 ```
 
-### Retain input state & tie selection to its gesture
+### Step 3: Cropped `19×19` GPU pick window and generation-stamped selection
 
-![19x19 GPU pick window (13x13 readback + 3 px visibility halo) vs full canvas](../illustrations/picking.svg)
-
-![Object, edge, face and control-point selection modes](../illustrations/pick-modes.svg)
-
-![Geometric ControlId addresses versus tessellated display vertices](../illustrations/controls.svg)
+```rust
+--8<-- "session_viewer/src/engine/gpu/pick.rs:7:29"
+```
 
 | File | Specification |
 | --- | --- |

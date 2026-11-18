@@ -1,0 +1,235 @@
+{
+  "status": "verified",
+  "date": "2026-11-18",
+  "baseSessionHead": "a08cb83f6cee93933c70b0552d93134a11eacb96",
+  "priorStageReconciliation": {
+    "path": "journey/release/completion-stage-reconciliation-windows-20261118c.json",
+    "sha256": "4f99e3719dd22e23aa9c61b0b12cee592aff161d7c141efdb2b36ac0dc772755",
+    "decks": 6,
+    "chapters": 27,
+    "cases": 54
+  },
+  "scope": "Thrust-network-analysis one-node deck reconciliation (2026-11-18e, commit a08cb83f6): completion.test.ts (352/352 files, 0 rewrites), mathematics + application tutorial/production wasm checks, freshly compiled mathematics (25 passed, 1 GPU ignored) and application app::stage (24 passed) native suites covering all 7 shipped decks (30 chapters including thrust-network_analysis_one_node), Trunk release bundle, and Chrome WebGPU playback across all 3 chapters of thrust-network_analysis_one_node at 1280x800 and 390x844 (6 cases, completing 60 total cases across all 30 chapters of all 7 decks, 0 overlaps, 24 captures); desktop Intel Gen-12LP emulation only, no physical-device claim",
+  "updatedFilesSince20261118c": {
+    "src/app/stage/tests.rs": {
+      "beforeLfSha256": "e2230a99ca136c63fe772f3fcf37822dcf77659df507b3dd07b3e0fd51dca49a",
+      "afterLfSha256": "7627a75894696d00ccfb65eec751327966408ba4731b1bc55e28fcf1fb86b8b4",
+      "summary": "Extends const DECKS from 6 to 7 shipped decks by adding thrust-network_analysis_one_node"
+    },
+    "examples/stage/thrust-network_analysis_one_node/index.yaml": {
+      "afterLfSha256": "865f767a053ec6c727cbd922008082c8aedae7c6d7c34d4f1234225b9707ca10"
+    },
+    "examples/stage/thrust-network_analysis_one_node/01-diagrams.yaml": {
+      "afterLfSha256": "d59390558eef417f29cd597cce895e1763cb8b4e68fbef609b70742a6cc1dd18"
+    },
+    "examples/stage/thrust-network_analysis_one_node/02-derivation.yaml": {
+      "afterLfSha256": "ec0bb7bf4e640e8401de01f9cf2ad0f4e82740036559f01dfc1a12726b983f4c"
+    },
+    "examples/stage/thrust-network_analysis_one_node/03-coordinates.yaml": {
+      "afterLfSha256": "70609561d81711ba9a8cd1b862f26e21f12cf40be722cf3582aeed1658eea3e6"
+    }
+  },
+  "rustAndWasmJob": {
+    "manifest": "session_viewer/target/stage-reconcile-20261118e-rust/resources.json",
+    "manifestSha256": "a88153bb092c2f11890280b77396aaa209c107dc43d1e4be8925cc4b4623d7ff",
+    "planSha256": "eff71fce101511fd1a2a2895ed75310b2e09f9c3f0b7d664115f23b7661028f8",
+    "resultSha256": "86f244a06c0776f52dd4bc9f08eadbc26cb37282c346326028e351274c3db670",
+    "processId": 46464,
+    "exitCode": 0,
+    "elapsedSeconds": 161.074,
+    "peakJobCommitBytes": 1927249920,
+    "postguards": "passed",
+    "commands": [
+      {
+        "name": "completion-unit-tests",
+        "exitCode": 0,
+        "elapsedSeconds": 0.661
+      },
+      {
+        "name": "mathematics-assemble",
+        "exitCode": 0,
+        "elapsedSeconds": 0.249
+      },
+      {
+        "name": "mathematics-wasm-tutorial",
+        "exitCode": 0,
+        "elapsedSeconds": 7.722
+      },
+      {
+        "name": "application-assemble",
+        "exitCode": 0,
+        "elapsedSeconds": 0.418
+      },
+      {
+        "name": "application-wasm-tutorial",
+        "exitCode": 0,
+        "elapsedSeconds": 9.641
+      },
+      {
+        "name": "application-wasm-production",
+        "exitCode": 0,
+        "elapsedSeconds": 4.751
+      },
+      {
+        "name": "mathematics-native-tests",
+        "exitCode": 0,
+        "elapsedSeconds": 23.037
+      },
+      {
+        "name": "application-native-stage-tests",
+        "exitCode": 0,
+        "elapsedSeconds": 27.888
+      },
+      {
+        "name": "application-native-curves-tests",
+        "exitCode": 0,
+        "elapsedSeconds": 0.366
+      },
+      {
+        "name": "application-wasm-release-build",
+        "exitCode": 0,
+        "elapsedSeconds": 75.837
+      },
+      {
+        "name": "application-trunk-production-build",
+        "exitCode": 0,
+        "elapsedSeconds": 4.64
+      }
+    ]
+  },
+  "browserJob": {
+    "manifest": "session_viewer/target/stage-reconcile-20261118e-browser/resources.json",
+    "manifestSha256": "35d9548a8e30399a145332368b18fde15e856bfd0d3624c52e877cb9521d8796",
+    "resultSha256": "79287c296c4239b1b29e36d7d5b8448026b2cc71d691e0376617ef4a83bffae3",
+    "processId": 50072,
+    "exitCode": 0,
+    "elapsedSeconds": 60.932,
+    "peakJobCommitBytes": 712577024,
+    "browser": "157.0.8103.79",
+    "totalCases": 6,
+    "totalForwardStepsChecked": 34,
+    "capturesCount": 24,
+    "captures": [
+      {
+        "file": "tna1-1280-back-light.png",
+        "bytes": 73751,
+        "sha256": "cd8aa2d9fcc407d515837032e4371deb2c2152ddceb14c5a86d7190da3d967f8"
+      },
+      {
+        "file": "tna1-1280-dark.png",
+        "bytes": 78231,
+        "sha256": "33aa28cff214dee8eca01ce71e90c436fd99086eee0fe11e5c7100deb2af9c25"
+      },
+      {
+        "file": "tna1-1280-first-light.png",
+        "bytes": 64368,
+        "sha256": "ca52754ce8663fa73064e6b694e21acb026a44d7c65c0d3c4a64becd11ee8aac"
+      },
+      {
+        "file": "tna1-1280-last-light.png",
+        "bytes": 63797,
+        "sha256": "6fd7ea0a616ef4845c85f801125d5c7bc9723a71a70168e39af35cf77d826281"
+      },
+      {
+        "file": "tna1-390-back-light.png",
+        "bytes": 32867,
+        "sha256": "62d0066f8ed39ee9d427e9d7fc917694e9c086a1a4f43a8ac96d4df025f7ea41"
+      },
+      {
+        "file": "tna1-390-dark.png",
+        "bytes": 35539,
+        "sha256": "691bc316fc85dfb0f54d9fc16e857c5fc2f79309d1b8e3e8db708e70427fc4dc"
+      },
+      {
+        "file": "tna1-390-first-light.png",
+        "bytes": 27882,
+        "sha256": "e81ef3a9d5437a84a101a48d41abddca4234f9372809209a34acf4c30572b899"
+      },
+      {
+        "file": "tna1-390-last-light.png",
+        "bytes": 29889,
+        "sha256": "f365d6c53011c6a39645dc73c0a36faeb540f056d8f7ba5f621faa0b5ad349c6"
+      },
+      {
+        "file": "tna2-1280-back-light.png",
+        "bytes": 93939,
+        "sha256": "979e033dd8d97907c704f1e53326d7c2cc915fdf75305d385730b4a596531cb4"
+      },
+      {
+        "file": "tna2-1280-dark.png",
+        "bytes": 114169,
+        "sha256": "2ff8d21d202973ebfef4cb0435dd793b67a2610332933900cc4bcab239f182fa"
+      },
+      {
+        "file": "tna2-1280-first-light.png",
+        "bytes": 108445,
+        "sha256": "3e2e34179b5274644c941fb70e8103e2c733098bfbbf6bc5c83367cd359c4fba"
+      },
+      {
+        "file": "tna2-1280-last-light.png",
+        "bytes": 105143,
+        "sha256": "c0cf1c638878711ee432e0355f7e6e2a80077a41be6a898c1bf18e4ac44c6e53"
+      },
+      {
+        "file": "tna2-390-back-light.png",
+        "bytes": 42559,
+        "sha256": "f22a0966ef7315caeca14607a79991dd08ddc7f51871a27dc5395dd957fe68fc"
+      },
+      {
+        "file": "tna2-390-dark.png",
+        "bytes": 48431,
+        "sha256": "5076394763396087ce02665bd20106d48482583a63e07465be06ab9d0d1c4871"
+      },
+      {
+        "file": "tna2-390-first-light.png",
+        "bytes": 44477,
+        "sha256": "a1f999284e0e236a55849a793bfd7dea04612b06c7e1235cb4550abee4297af2"
+      },
+      {
+        "file": "tna2-390-last-light.png",
+        "bytes": 47647,
+        "sha256": "79bd7e0fd27b787db0220e756331fad9483153d05a3b027a04329f7c4d2a376c"
+      },
+      {
+        "file": "tna3-1280-back-light.png",
+        "bytes": 98106,
+        "sha256": "bd169445cdeee598de83519c076da6d87114bbc932d35b3feb570e99b67359c1"
+      },
+      {
+        "file": "tna3-1280-dark.png",
+        "bytes": 114808,
+        "sha256": "ddc0ebce1753d4877b2efc70686c5724f377505d70cc098d53ed4c9be64ddc3f"
+      },
+      {
+        "file": "tna3-1280-first-light.png",
+        "bytes": 88188,
+        "sha256": "822dcca4a389c08ae182a77dbd127ba96a7639edab213552e3507b91140e0da8"
+      },
+      {
+        "file": "tna3-1280-last-light.png",
+        "bytes": 113167,
+        "sha256": "f3af6d307c38aa8f7f429a6d74e4be7023a85478319fc27e7af8594a6ffcdb55"
+      },
+      {
+        "file": "tna3-390-back-light.png",
+        "bytes": 43515,
+        "sha256": "564eafd166bf194cfc1c73f0b8d4c0427bce8140ca2fadabd8afd68244400b3a"
+      },
+      {
+        "file": "tna3-390-dark.png",
+        "bytes": 49295,
+        "sha256": "985a34733d2930aadc0e3a7462de56d07dc55125073080c2255c1ae59e700639"
+      },
+      {
+        "file": "tna3-390-first-light.png",
+        "bytes": 38450,
+        "sha256": "f54662b147f94b9690be49b977aeb1021a0b16fcba4e2f69a547cfb3b5802b88"
+      },
+      {
+        "file": "tna3-390-last-light.png",
+        "bytes": 48706,
+        "sha256": "d6b73678f3bf31e16ed9613e358a9cdafaf61122f3f343ea142de80625cc5a29"
+      }
+    ]
+  }
+}

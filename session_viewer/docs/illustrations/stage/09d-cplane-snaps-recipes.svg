@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 415" width="960" height="415">
+  <rect x="0.5" y="0.5" width="959" height="414" fill="#ffffff" stroke="#e4e7e8" stroke-width="1"/>
+  <line x1="460.8" y1="54" x2="460.8" y2="393" stroke="#e4e7e8" stroke-width="1"/>
+  <text x="26" y="32" font-family="Georgia, 'Times New Roman', serif" font-size="14.2" font-weight="700" fill="#007bc4">CPLANE FRAMES, SNAPS AND RECIPES</text>
+  <text x="482.8" y="32" font-family="Georgia, 'Times New Roman', serif" font-size="13.0" fill="#111111">Orthonormalize 3-point <tspan font-style="italic">CPlanes</tspan>, snap in screen cells, and commit <tspan font-style="italic">Made</tspan> once.</text>
+  <text x="30" y="74" font-family="Georgia, 'Times New Roman', serif" font-size="13.5" font-weight="400" fill="#007bc4">cplane.rs · from_3_points orthonormal frame &amp; parabola</text>
+  <line x1="142" y1="151.26" x2="76.66" y2="186" stroke="#eceff1" stroke-width="0.9" stroke-linecap="round"/>
+  <line x1="158.33" y1="159.94" x2="93" y2="194.69" stroke="#eceff1" stroke-width="0.9" stroke-linecap="round"/>
+  <line x1="174.67" y1="168.63" x2="109.33" y2="203.37" stroke="#eceff1" stroke-width="0.9" stroke-linecap="round"/>
+  <line x1="191" y1="177.31" x2="125.67" y2="212.06" stroke="#eceff1" stroke-width="0.9" stroke-linecap="round"/>
+  <line x1="207.34" y1="186" x2="142" y2="220.74" stroke="#eceff1" stroke-width="0.9" stroke-linecap="round"/>
+  <line x1="142" y1="151.26" x2="207.34" y2="186" stroke="#eceff1" stroke-width="0.9" stroke-linecap="round"/>
+  <line x1="125.67" y1="159.94" x2="191" y2="194.69" stroke="#eceff1" stroke-width="0.9" stroke-linecap="round"/>
+  <line x1="109.33" y1="168.63" x2="174.67" y2="203.37" stroke="#eceff1" stroke-width="0.9" stroke-linecap="round"/>
+  <line x1="93" y1="177.31" x2="158.33" y2="212.06" stroke="#eceff1" stroke-width="0.9" stroke-linecap="round"/>
+  <line x1="76.66" y1="186" x2="142" y2="220.74" stroke="#eceff1" stroke-width="0.9" stroke-linecap="round"/>
+  <line x1="119.13" y1="184.26" x2="144.47" y2="197.74" stroke="#ff2d7a" stroke-width="2.2" stroke-linecap="round"/>
+  <polygon points="155.07,203.37 143.63,199.33 145.32,196.15" fill="#ff2d7a" stroke="none"/>
+  <line x1="119.13" y1="184.26" x2="139.57" y2="173.39" stroke="#00c46a" stroke-width="2.2" stroke-linecap="round"/>
+  <polygon points="150.17,167.76 140.42,174.98 138.73,171.81" fill="#00c46a" stroke="none"/>
+  <line x1="119.13" y1="184.26" x2="119.13" y2="162.96" stroke="#007bc4" stroke-width="2.2" stroke-linecap="round"/>
+  <polygon points="119.13,150.96 120.93,162.96 117.33,162.96" fill="#007bc4" stroke="none"/>
+  <circle cx="119.13" cy="184.26" r="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <circle cx="155.07" cy="203.37" r="3.6" fill="#ffffff" stroke="#ff2d7a" stroke-width="2"/>
+  <text x="162.07" y="207.37" font-family="Georgia, 'Times New Roman', serif" font-size="11.2" fill="#ff2d7a"><tspan font-weight="700">e</tspan><tspan font-size="9" dy="2">x</tspan><tspan dy="-2"> (on_x)</tspan></text>
+  <text x="157.17" y="163.76" font-family="Georgia, 'Times New Roman', serif" font-size="11.2" fill="#00c46a"><tspan font-weight="700">e</tspan><tspan font-size="9" dy="2">y</tspan><tspan dy="-2"> = </tspan><tspan font-weight="700">e</tspan><tspan font-size="9" dy="2">z</tspan><tspan dy="-2"> × </tspan><tspan font-weight="700">e</tspan><tspan font-size="9" dy="2">x</tspan></text>
+  <text x="126.13" y="154.96" font-family="Georgia, 'Times New Roman', serif" font-size="11.5" fill="#007bc4"><tspan font-weight="700">e</tspan><tspan font-size="9" dy="2">z</tspan></text>
+  <text x="30" y="252" font-family="Georgia, 'Times New Roman', serif" font-size="13.5" font-weight="400" fill="#007bc4">Exact rational NURBS arc &amp; parabola control geometry</text>
+  <line x1="58" y1="352" x2="178" y2="274" stroke="#888888" stroke-width="1.2" stroke-linecap="round" stroke-dasharray="4 3"/>
+  <line x1="178" y1="274" x2="298" y2="352" stroke="#888888" stroke-width="1.2" stroke-linecap="round" stroke-dasharray="4 3"/>
+  <polyline points="58,352 68,345.77 78,340.08 88,334.94 98,330.33 108,326.27 118,322.75 128,319.77 138,317.33 148,315.44 158,314.08 168,313.27 178,313 188,313.27 198,314.08 208,315.44 218,317.33 228,319.77 238,322.75 248,326.27 258,330.33 268,334.94 278,340.08 288,345.77 298,352" fill="none" stroke="#007bc4" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="58" cy="352" r="3.8" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <circle cx="298" cy="352" r="3.8" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <circle cx="178" cy="274" r="3.8" fill="#ffffff" stroke="#ff7a1a" stroke-width="2"/>
+  <circle cx="178" cy="313" r="3.5" fill="#ff2d7a"/>
+  <text x="194" y="278" font-family="Georgia, 'Times New Roman', serif" font-size="11.2" fill="#ff7a1a" font-weight="700">P₁ = 2·apex − ½(P₀+P₂)</text>
+  <text x="178" y="338" font-family="Georgia, 'Times New Roman', serif" font-size="11.2" fill="#ff2d7a" font-weight="700" text-anchor="middle">C(0.5) = apex</text>
+  <text x="486" y="74" font-family="Georgia, 'Times New Roman', serif" font-size="13.5" font-weight="400" fill="#007bc4">snap.rs · prioritized screen-cell SnapKind candidates</text>
+  <rect x="486" y="92" width="68" height="34" rx="4.5" fill="#ffc400" stroke="none"/>
+  <text x="520" y="112.6" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.6" fill="#111111" font-weight="500" text-anchor="middle">End</text>
+  <rect x="560" y="92" width="68" height="34" rx="4.5" fill="#ff5c9a" stroke="none"/>
+  <text x="594" y="112.6" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.6" fill="#111111" font-weight="500" text-anchor="middle">Vertex</text>
+  <rect x="634" y="92" width="68" height="34" rx="4.5" fill="#a9c9ff" stroke="none"/>
+  <text x="668" y="112.6" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.6" fill="#111111" font-weight="500" text-anchor="middle">Mid</text>
+  <rect x="708" y="92" width="68" height="34" rx="4.5" fill="#00c46a" stroke="none"/>
+  <text x="742" y="112.6" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.6" fill="#111111" font-weight="500" text-anchor="middle">Center</text>
+  <rect x="782" y="92" width="68" height="34" rx="4.5" fill="#a9c9ff" stroke="none"/>
+  <text x="816" y="112.6" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.6" fill="#111111" font-weight="500" text-anchor="middle">Perp</text>
+  <rect x="856" y="92" width="68" height="34" rx="4.5" fill="#e4e7e8" stroke="none"/>
+  <text x="890" y="112.6" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.6" fill="#111111" font-weight="500" text-anchor="middle">Near</text>
+  <text x="486" y="150" font-family="Georgia, 'Times New Roman', serif" font-size="11.6" fill="#666666">Picked Draft points serialize as wX,Y,Z so CPlane is applied once.</text>
+  <text x="486" y="186" font-family="Georgia, 'Times New Roman', serif" font-size="13.5" font-weight="400" fill="#007bc4">gather.rs · Recipe step queue (17 shapes + 7 NURBS surfaces)</text>
+  <text x="538" y="198" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#888888" font-weight="500" text-anchor="middle">ordered picks</text>
+  <text x="650" y="198" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#888888" font-weight="500" text-anchor="middle">inline chips</text>
+  <text x="762" y="198" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#888888" font-weight="500" text-anchor="middle">Brep | Mesh</text>
+  <text x="874" y="198" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#888888" font-weight="500" text-anchor="middle">1 undo step</text>
+  <rect x="486" y="204" width="104" height="36" rx="4.5" fill="#e4e7e8" stroke="none"/>
+  <text x="538" y="225.57" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#111111" font-weight="500" text-anchor="middle">Points/Curves</text>
+  <rect x="598" y="204" width="104" height="36" rx="4.5" fill="#a9c9ff" stroke="none"/>
+  <text x="650" y="225.57" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#111111" font-weight="500" text-anchor="middle">Numbers/Opts</text>
+  <rect x="710" y="204" width="104" height="36" rx="4.5" fill="#ffc400" stroke="none"/>
+  <text x="762" y="225.57" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#111111" font-weight="500" text-anchor="middle">Kernel build</text>
+  <rect x="822" y="204" width="104" height="36" rx="4.5" fill="#ff5c9a" stroke="none"/>
+  <text x="874" y="225.57" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#111111" font-weight="500" text-anchor="middle">Made commit</text>
+  <text x="486" y="276" font-family="Georgia, 'Times New Roman', serif" font-size="13.5" font-weight="400" fill="#007bc4">Split, Trim, Extend &amp; exact Gauss / tetrahedral measures</text>
+  <text x="486" y="306" font-family="Georgia, 'Times New Roman', serif" font-size="13" fill="#111111">Signed volume:  <tspan font-style="italic">V</tspan> = ⅙ ∑ ( (<tspan font-weight="700">a</tspan> − <tspan font-weight="700">o</tspan>) × (<tspan font-weight="700">b</tspan> − <tspan font-weight="700">o</tspan>) ) · (<tspan font-weight="700">c</tspan> − <tspan font-weight="700">o</tspan>)</text>
+  <text x="486" y="334" font-family="Georgia, 'Times New Roman', serif" font-size="11.8" fill="#111111">• area.rs integrates 8×8 Gauss quadrature across NURBS knot spans.</text>
+  <text x="486" y="358" font-family="Georgia, 'Times New Roman', serif" font-size="11.8" fill="#666666">• deform.rs edits mesh vertices &amp; (u, v) NURBS CVs in place at 60 Hz.</text>
+  <rect x="0.5" y="411.5" width="959" height="3" fill="#e4e7e8"/>
+  <rect x="0.5" y="411.5" width="707.37" height="3" fill="#007bc4"/>
+</svg>

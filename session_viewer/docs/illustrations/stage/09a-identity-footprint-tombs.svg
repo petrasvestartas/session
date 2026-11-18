@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 410" width="960" height="410">
+  <rect x="0.5" y="0.5" width="959" height="409" fill="#ffffff" stroke="#e4e7e8" stroke-width="1"/>
+  <line x1="460.8" y1="54" x2="460.8" y2="388" stroke="#e4e7e8" stroke-width="1"/>
+  <text x="26" y="32" font-family="Georgia, 'Times New Roman', serif" font-size="14.2" font-weight="700" fill="#007bc4">ROW IDENTITY, FOOTPRINTS AND TOMBS</text>
+  <text x="482.8" y="32" font-family="Georgia, 'Times New Roman', serif" font-size="13.0" fill="#111111">Keep <tspan fill="#007bc4">(doc_idx, GUID)</tspan> row IDs stable while lane spans relocate or wait in tombs.</text>
+  <text x="30" y="74" font-family="Georgia, 'Times New Roman', serif" font-size="13.5" font-weight="400" fill="#007bc4">Shared Rc&lt;Session&gt; placed twice into distinct GPU rows</text>
+  <rect x="38" y="112" width="116" height="48" rx="4" fill="#ffe38a" fill-opacity="0.45" stroke="#111111" stroke-width="1.8"/>
+  <text x="96" y="134" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="11" fill="#111111" font-weight="700" text-anchor="middle">Rc&lt;Session&gt;</text>
+  <text x="96" y="150" font-family="Georgia, 'Times New Roman', serif" font-size="10.5" fill="#666666" text-anchor="middle">1 mesh in RAM</text>
+  <line x1="156" y1="126" x2="213.53" y2="107.39" stroke="#007bc4" stroke-width="1.9" stroke-linecap="round"/>
+  <polygon points="224,104 214.04,108.96 213.03,105.82" fill="#007bc4" stroke="none"/>
+  <line x1="156" y1="146" x2="213.53" y2="164.61" stroke="#ff2d7a" stroke-width="1.9" stroke-linecap="round"/>
+  <polygon points="224,168 213.03,166.18 214.04,163.04" fill="#ff2d7a" stroke="none"/>
+  <rect x="228" y="86" width="194" height="34" rx="4" fill="#a9c9ff" fill-opacity="0.22" stroke="#007bc4" stroke-width="1.6"/>
+  <text x="325" y="107" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#007bc4" font-weight="700" text-anchor="middle">(doc 0, guid) → Row 1</text>
+  <rect x="228" y="150" width="194" height="34" rx="4" fill="#ff8fbd" fill-opacity="0.22" stroke="#ff2d7a" stroke-width="1.6"/>
+  <text x="325" y="171" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#ff2d7a" font-weight="700" text-anchor="middle">(doc 1, guid) → Row 2</text>
+  <text x="30" y="224" font-family="Georgia, 'Times New Roman', serif" font-size="13.5" font-weight="400" fill="#007bc4">tombs.rs (≤ 256 MiB Undo) &amp; compaction.rs (≥ 16 MiB dead)</text>
+  <text x="99" y="238" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#007bc4" font-weight="500" text-anchor="middle">active rows</text>
+  <text x="229" y="238" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#111111" font-weight="500" text-anchor="middle">Weak&lt;Tomb&gt; Undo</text>
+  <text x="359" y="238" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#888888" font-weight="500" text-anchor="middle">sink → compact</text>
+  <rect x="38" y="244" width="122" height="40" rx="4.5" fill="#a9c9ff" stroke="none"/>
+  <text x="99" y="267.67" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.8" fill="#111111" font-weight="500" text-anchor="middle">Live spans</text>
+  <rect x="168" y="244" width="122" height="40" rx="4.5" fill="#ffc400" stroke="none"/>
+  <text x="229" y="267.67" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.8" fill="#111111" font-weight="500" text-anchor="middle">Tomb (≤256M)</text>
+  <rect x="298" y="244" width="122" height="40" rx="4.5" fill="#e4e7e8" stroke="none"/>
+  <text x="359" y="267.67" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.8" fill="#111111" font-weight="500" text-anchor="middle">Dead (≥16M)</text>
+  <text x="38" y="314" font-family="Georgia, 'Times New Roman', serif" font-size="11.6" fill="#111111">• Delete routes GPU spans to hidden sink &amp; retains Weak&lt;Tomb&gt;.</text>
+  <text x="38" y="336" font-family="Georgia, 'Times New Roman', serif" font-size="11.6" fill="#007bc4" font-weight="700">• Undo unburies exact GPU spans in O(1) without re-tessellating!</text>
+  <text x="38" y="358" font-family="Georgia, 'Times New Roman', serif" font-size="11.4" fill="#666666">• Compacts when dead ≥ 16 MiB and dead + tomb &gt; live bytes.</text>
+  <text x="486" y="74" font-family="Georgia, 'Times New Roman', serif" font-size="13.5" font-weight="400" fill="#007bc4">scene_rows.rs · Footprint lane-span indirection</text>
+  <text x="538" y="86" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#888888" font-weight="500" text-anchor="middle">single mesh</text>
+  <text x="650" y="86" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#888888" font-weight="500" text-anchor="middle">multi-part</text>
+  <text x="762" y="86" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#888888" font-weight="500" text-anchor="middle">octree slot</text>
+  <text x="874" y="86" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#888888" font-weight="500" text-anchor="middle">empty/group</text>
+  <rect x="486" y="92" width="104" height="38" rx="4.5" fill="#a9c9ff" stroke="none"/>
+  <text x="538" y="114.67" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.8" fill="#111111" font-weight="500" text-anchor="middle">One(Span)</text>
+  <rect x="598" y="92" width="104" height="38" rx="4.5" fill="#ff5c9a" stroke="none"/>
+  <text x="650" y="114.67" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.8" fill="#111111" font-weight="500" text-anchor="middle">Many(Box)</text>
+  <rect x="710" y="92" width="104" height="38" rx="4.5" fill="#ffc400" stroke="none"/>
+  <text x="762" y="114.67" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.8" fill="#111111" font-weight="500" text-anchor="middle">Cloud(u32)</text>
+  <rect x="822" y="92" width="104" height="38" rx="4.5" fill="#e4e7e8" stroke="none"/>
+  <text x="874" y="114.67" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.8" fill="#111111" font-weight="500" text-anchor="middle">None</text>
+  <text x="486" y="156" font-family="Georgia, 'Times New Roman', serif" font-size="11.8" fill="#666666">Row ID never changes when buffers compact; only feet[row] offsets update.</text>
+  <text x="486" y="196" font-family="Georgia, 'Times New Roman', serif" font-size="13.5" font-weight="400" fill="#007bc4">scene_sync · 4 change flags &amp; 5 ordered GPU stages</text>
+  <text x="527" y="208" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#888888" font-weight="500" text-anchor="middle">step 1</text>
+  <text x="616" y="208" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#888888" font-weight="500" text-anchor="middle">step 2</text>
+  <text x="705" y="208" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#888888" font-weight="500" text-anchor="middle">step 3</text>
+  <text x="794" y="208" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#888888" font-weight="500" text-anchor="middle">step 4</text>
+  <text x="883" y="208" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#888888" font-weight="500" text-anchor="middle">step 5</text>
+  <rect x="486" y="214" width="82" height="36" rx="4.5" fill="#e4e7e8" stroke="none"/>
+  <text x="527" y="235.6" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.6" fill="#111111" font-weight="500" text-anchor="middle">retire</text>
+  <rect x="575" y="214" width="82" height="36" rx="4.5" fill="#ffc400" stroke="none"/>
+  <text x="616" y="235.6" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.6" fill="#111111" font-weight="500" text-anchor="middle">bury</text>
+  <rect x="664" y="214" width="82" height="36" rx="4.5" fill="#a9c9ff" stroke="none"/>
+  <text x="705" y="235.6" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.6" fill="#111111" font-weight="500" text-anchor="middle">patch</text>
+  <rect x="753" y="214" width="82" height="36" rx="4.5" fill="#ff5c9a" stroke="none"/>
+  <text x="794" y="235.6" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.6" fill="#111111" font-weight="500" text-anchor="middle">geometry</text>
+  <rect x="842" y="214" width="82" height="36" rx="4.5" fill="#00c46a" stroke="none"/>
+  <text x="883" y="235.6" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.6" fill="#111111" font-weight="500" text-anchor="middle">place</text>
+  <text x="486" y="282" font-family="Georgia, 'Times New Roman', serif" font-size="11.8" fill="#111111">• notes.rs maps history ops to GEOMETRY | PLACE | PRESENCE | SUBTREE.</text>
+  <text x="486" y="306" font-family="Georgia, 'Times New Roman', serif" font-size="11.8" fill="#111111">• hierarchy.rs flattens 128-row pre-order pages keyed by row_revision.</text>
+  <text x="486" y="330" font-family="Georgia, 'Times New Roman', serif" font-size="11.8" fill="#111111">• ui/mod.rs runs fill → draw → apply so panel clicks mutate after egui.</text>
+  <text x="486" y="354" font-family="Georgia, 'Times New Roman', serif" font-size="11.6" fill="#666666">• session_io.rs writes ≤ 512 MiB .session archives (hydrating first).</text>
+  <rect x="0.5" y="406.5" width="959" height="3" fill="#e4e7e8"/>
+  <rect x="0.5" y="406.5" width="555.79" height="3" fill="#007bc4"/>
+</svg>

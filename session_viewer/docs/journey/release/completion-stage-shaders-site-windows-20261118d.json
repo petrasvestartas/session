@@ -1,0 +1,577 @@
+{
+  "status": "verified",
+  "date": "2026-11-18",
+  "scope": "Minimal step-by-step webpage UI, 25 hand-crafted white-paper examples/stage SVG plates (docs/illustrations/stage/), 33/33 live WGSL shader source coverage, and 7-deck / 30-chapter TNA reconciliation (completion-docs45 + support-docs-browser20; prior docs42 anchor check and browser18 SVG XML entity check preserved): 22 focused tooling tests, 8 accepted scoped subjects (*-20261118d), 360/360 teaching witnesses across 352 src/ files and 8 support files, strict Vite site build, 65 verified embedded figures (0 legacy git/dark SVGs), 127 live --8<-- includes, 6 kernel motion repository links, bottom-right UTC timestamp, and 93 reviewed 1280x800 and 390x844 captures; session_viewer/src/ untouched, application remains pending, and physical-device acceptance is not claimed",
+  "preservedPriorDocsAttempt": {
+    "manifest": "session_viewer/target/completion-docs42/resources.json",
+    "manifestSha256": "7760bf7343bbd539fe027a6b6b6350536f1a7afed82a89695c2d522242fff409",
+    "processId": 47672,
+    "exitCode": 1,
+    "reason": "strict-site reported missing #prepare-your-computer heading anchor in docs/README.md referenced by two archived tutorials; restored heading while preserving docs42 intact"
+  },
+  "preservedPriorBrowserAttempt": {
+    "manifest": "session_viewer/target/support-docs-browser18-job/resources.json",
+    "manifestSha256": "95bb5c5dc8d45597197c2c36deb0b5efd3a13193a4d9205a5536bcf5f45e2272",
+    "processId": 29720,
+    "exitCode": 1,
+    "reason": "03-opentype-math-atlas.svg had an unescaped '&' on line 32 rejected by strict image/svg+xml <img> decoding; escaped to '&amp;' and verified all 25 SVGs via strict XML parser while preserving browser18 intact"
+  },
+  "docsBuildJob": {
+    "manifest": "session_viewer/target/completion-docs45/resources.json",
+    "manifestSha256": "ae554c19dac7160e65816e1e6177b5faa93b5de54a92518048cb37efbf67d4a3",
+    "planSha256": "eff0d51a104a22cfc6c9c5cd70dd60f6bcef0c2c11c01379780be49720755d53",
+    "resultSha256": "3fdbe6048fb75afbe8df446974c0494c6f565bbdf361fa85546b164c6b9b9016",
+    "processId": 11440,
+    "exitCode": 0,
+    "elapsedSeconds": 53.523,
+    "peakJobCommitBytes": 1364656128,
+    "pinnedInputsVerified": 5281,
+    "commands": [
+      {
+        "name": "teaching-tests",
+        "exitCode": 0
+      },
+      {
+        "name": "active-audit",
+        "exitCode": 0
+      },
+      {
+        "name": "teaching",
+        "exitCode": 0
+      },
+      {
+        "name": "strict-site",
+        "exitCode": 0
+      }
+    ],
+    "delivery": {
+      "base": "/docs/",
+      "assetUrls": [
+        "/docs/assets/main-C7o16IC9.js",
+        "/docs/assets/main-BEZY3qp2.css"
+      ],
+      "indexSha256": "80d975aa221c986c9538ffbf0963af9d3d935416cfc074dab8325a4db4700ecd"
+    }
+  },
+  "browserJob": {
+    "manifest": "session_viewer/target/support-docs-browser20-job/resources.json",
+    "manifestSha256": "04cb4b92c6d8e1b8f4c2309028392c527f37c81d9ff5936e5964746c15abc4e9",
+    "resultSha256": "e41406ee469dd601ef64b7fc0918b61e37b0f4c59e933428f6a93debf01627ce",
+    "processId": 41436,
+    "exitCode": 0,
+    "elapsedSeconds": 16.014,
+    "peakJobCommitBytes": 1132572672,
+    "pinnedInputsVerified": 8629,
+    "cliCourseHome": [
+      {
+        "width": 1280,
+        "checkpoints": 9,
+        "tutorials": 19,
+        "chapterOwner": "geometry",
+        "navigation": "geometry/visibility/decoding"
+      },
+      {
+        "width": 390,
+        "checkpoints": 9,
+        "tutorials": 19,
+        "chapterOwner": "geometry",
+        "navigation": "geometry/visibility/decoding"
+      }
+    ],
+    "kernelSourceChecks": [
+      {
+        "api": "Vector::lerp",
+        "href": "https://github.com/petrasvestartas/session_rust/blob/main/src/vector.rs"
+      },
+      {
+        "api": "Color::lerp",
+        "href": "https://github.com/petrasvestartas/session_rust/blob/main/src/color.rs"
+      },
+      {
+        "api": "Line::lerp",
+        "href": "https://github.com/petrasvestartas/session_rust/blob/main/src/line.rs"
+      },
+      {
+        "api": "Polyline::resampled",
+        "href": "https://github.com/petrasvestartas/session_rust/blob/main/src/polyline.rs"
+      },
+      {
+        "api": "Polyline::morph",
+        "href": "https://github.com/petrasvestartas/session_rust/blob/main/src/polyline.rs"
+      },
+      {
+        "api": "Xform::interpolate",
+        "href": "https://github.com/petrasvestartas/session_rust/blob/main/src/xform.rs"
+      }
+    ],
+    "imagesChecked": 23,
+    "capturesCount": 93,
+    "captures": [
+      {
+        "file": "course-drawer-390.png",
+        "bytes": 49577,
+        "sha256": "c58450b12053189a21a84e387402a47ddbfb218dc289daad786b94abec102be6"
+      },
+      {
+        "file": "course-home-1280.png",
+        "bytes": 89538,
+        "sha256": "30caaf3092321f50a795895d7d2edf680215e4f48f121fc99c519343909e2060"
+      },
+      {
+        "file": "course-home-390.png",
+        "bytes": 48192,
+        "sha256": "f5479ae13be6e920acb4504277e094602523c04c1aa82c553e4fe2339d26df51"
+      },
+      {
+        "file": "journey-active-top-1280.png",
+        "bytes": 115954,
+        "sha256": "80e06981e14ad7f371dc3e7f672561a31eaf5b133c8ffe795150886b2166a840"
+      },
+      {
+        "file": "journey-active-top-390.png",
+        "bytes": 50059,
+        "sha256": "223ba4d22dab7c723bb66e414f2b6fa8fad130c6ec230bd9fc9dd453bab31d9e"
+      },
+      {
+        "file": "journey-completion-application-build-1280.png",
+        "bytes": 147583,
+        "sha256": "24efa9ad24d840fe24b533e30d5a67399abcd9d8d75dfdeb6614a2c259433f4d"
+      },
+      {
+        "file": "journey-completion-application-build-390.png",
+        "bytes": 46524,
+        "sha256": "3ed9d4bd83927fa5842ea17e028992001e057365f62ef63788f38f0e9c7ea7ba"
+      },
+      {
+        "file": "journey-completion-application-top-1280.png",
+        "bytes": 169351,
+        "sha256": "9e5e18ea90ae4e84defbc33fde38c92702de593cb03d56b1dd65097ba961e6c4"
+      },
+      {
+        "file": "journey-completion-application-top-390.png",
+        "bytes": 71408,
+        "sha256": "9ce5d91627bc7503216dfdda45c22c356766eb368be2a993bc9f2f4940ca5544"
+      },
+      {
+        "file": "journey-completion-camera-build-1280.png",
+        "bytes": 133757,
+        "sha256": "25db3f519137497bb9dafaf0266af948f33eae35157e7a12f4717d6725b3c893"
+      },
+      {
+        "file": "journey-completion-camera-build-390.png",
+        "bytes": 48413,
+        "sha256": "86856da18495100e81a5e07ae603f67d5dd2b8fd74b45c9988d49f21e9b5f3af"
+      },
+      {
+        "file": "journey-completion-camera-top-1280.png",
+        "bytes": 144947,
+        "sha256": "36e542f3d26dc38b699ac4b2e1a8dbb1d3110cac04a1b1bb2cde3fa1af3c2236"
+      },
+      {
+        "file": "journey-completion-camera-top-390.png",
+        "bytes": 58850,
+        "sha256": "362a2c54b8e7bffbfc9650a5c854754bbaed2ae1c7d3bc71ae2c19b37bd5274d"
+      },
+      {
+        "file": "journey-completion-commands-build-1280.png",
+        "bytes": 119232,
+        "sha256": "38d8225caba840d283504083da5ede89d501708637e6ef09272b2f1c5a7fcd85"
+      },
+      {
+        "file": "journey-completion-commands-build-390.png",
+        "bytes": 48428,
+        "sha256": "24bde907ddefd9e1983c04a981da801a658d846275db6bb828a5af10b335509c"
+      },
+      {
+        "file": "journey-completion-commands-top-1280.png",
+        "bytes": 158407,
+        "sha256": "ca79706825217e7412117ade5e56a0650e955c884575e3af8fae11c1f0f92728"
+      },
+      {
+        "file": "journey-completion-commands-top-390.png",
+        "bytes": 74779,
+        "sha256": "a37b477035263c57436022042cfb53e7eb0a31cca96efdb5d069312034805e98"
+      },
+      {
+        "file": "journey-completion-contract-top-1280.png",
+        "bytes": 106239,
+        "sha256": "36543b1faf0186b4d644b4e5d074773896c2774c1767594c31526e3c4f92a8d8"
+      },
+      {
+        "file": "journey-completion-contract-top-390.png",
+        "bytes": 42877,
+        "sha256": "d1bee9b01fdb2a046dd1150fa943cea5e607adfdc14caf22a521cf0835829404"
+      },
+      {
+        "file": "journey-completion-debugging-build-1280.png",
+        "bytes": 114256,
+        "sha256": "17aa27de594845bf79c07ea0e50aa881ea212fe0ac1294e9a46866a84078ed92"
+      },
+      {
+        "file": "journey-completion-debugging-build-390.png",
+        "bytes": 32753,
+        "sha256": "5a4249fce2ab82841cbbf022135c9329e12b1889cf94734cdcbdf658a3fc691c"
+      },
+      {
+        "file": "journey-completion-debugging-top-1280.png",
+        "bytes": 119582,
+        "sha256": "03d88930fe0f28ec784d1e33cf0aa7a6c0fdd684277189e5bff4783b61cabd86"
+      },
+      {
+        "file": "journey-completion-debugging-top-390.png",
+        "bytes": 46365,
+        "sha256": "056e75015c59de39598e6a2405eb1a4e3772e97a30b72646be60cdf2df992c57"
+      },
+      {
+        "file": "journey-completion-decoding-build-1280.png",
+        "bytes": 124156,
+        "sha256": "14c2f871d47116b03a60a907570b32127864c68645152bb7ffbc65b3f3c3ed8f"
+      },
+      {
+        "file": "journey-completion-decoding-build-390.png",
+        "bytes": 50480,
+        "sha256": "2891a1b509b90020e4621f6f984184a4d1502210f76fb8c66d30e15ec78bb742"
+      },
+      {
+        "file": "journey-completion-decoding-top-1280.png",
+        "bytes": 136232,
+        "sha256": "d7ff1a5a4830d1d0460d10a1a009a635739807bed82a79f77c78979b66958d6e"
+      },
+      {
+        "file": "journey-completion-decoding-top-390.png",
+        "bytes": 47598,
+        "sha256": "cbc69ee1ae0bf0980dec853d0b26245d3e2435876b0513739e247c8d416c4636"
+      },
+      {
+        "file": "journey-completion-dock-build-1280.png",
+        "bytes": 138858,
+        "sha256": "c221370f67b399b9137f6ebd816a3805ecbc9a847de2d5efff3458946ae70c5b"
+      },
+      {
+        "file": "journey-completion-dock-build-390.png",
+        "bytes": 50117,
+        "sha256": "5d3d013e26d60c3b33bc12bed3d82e3161e1c6145f65a3d9ed6b2bb4cf3345f3"
+      },
+      {
+        "file": "journey-completion-dock-top-1280.png",
+        "bytes": 116003,
+        "sha256": "0d19045a723baffaf674bc30ec77b180dd42b583702a0924daaa1dc889862189"
+      },
+      {
+        "file": "journey-completion-dock-top-390.png",
+        "bytes": 37617,
+        "sha256": "55a85fd1468af6445e5d0871dbdfafa318f61727cf98cecf15931a2da4fe5c7d"
+      },
+      {
+        "file": "journey-completion-documents-build-1280.png",
+        "bytes": 127713,
+        "sha256": "7a16faaf732a76558af2ef22eae2aaa37540e9b106435680b1f983cd3b816f73"
+      },
+      {
+        "file": "journey-completion-documents-build-390.png",
+        "bytes": 50719,
+        "sha256": "38b4ed1749247b46b4aa9cba99e5628c864b40650ed9d06f62160057976b4ac7"
+      },
+      {
+        "file": "journey-completion-documents-top-1280.png",
+        "bytes": 181186,
+        "sha256": "55d178a1e624bea889c094c3ff894b719aeb00aed58be092baaa7bce9ab63957"
+      },
+      {
+        "file": "journey-completion-documents-top-390.png",
+        "bytes": 72190,
+        "sha256": "5cfae188e4de6ac89645705accc0cff41d65a7c4a78d34266a44e6fb8e32eeb4"
+      },
+      {
+        "file": "journey-completion-frame-build-1280.png",
+        "bytes": 123702,
+        "sha256": "3cb903dece407d6f0bb0753e7e0b6820c8b3af997973dfa5cae570187bc09963"
+      },
+      {
+        "file": "journey-completion-frame-build-390.png",
+        "bytes": 47128,
+        "sha256": "2879074dde08adcaf044192a47f9820cf803d3ce8acd5290f7806b130f07cfe6"
+      },
+      {
+        "file": "journey-completion-frame-top-1280.png",
+        "bytes": 110481,
+        "sha256": "110c54097e170a77bf3f3985d8ff4b4ea82835c1c9fa37742db01214fbcb3f45"
+      },
+      {
+        "file": "journey-completion-frame-top-390.png",
+        "bytes": 45853,
+        "sha256": "bbcf08d0c1f12f0922f8f16c1fbcf1c0783cc24836781f0e0fe22e3cc105bfe6"
+      },
+      {
+        "file": "journey-completion-geometry-build-1280.png",
+        "bytes": 160124,
+        "sha256": "5ecaf03ff79158f7ad5d3ddf1ca1ce6064873be6ac9e6be5f1a654fe3f6bf450"
+      },
+      {
+        "file": "journey-completion-geometry-build-390.png",
+        "bytes": 54576,
+        "sha256": "517f7198e84c1e7f793d5e2a6cf076fdfc8a38114f162a9803af2d875910674c"
+      },
+      {
+        "file": "journey-completion-geometry-top-1280.png",
+        "bytes": 120414,
+        "sha256": "4cbd16cf4c57967f6eb3b28b712a6015deaf24716baad9a25780edc691cf0b73"
+      },
+      {
+        "file": "journey-completion-geometry-top-390.png",
+        "bytes": 32748,
+        "sha256": "4eda0475ba643a4fd3365447515ed0f627d30643275cb5c625c6ca1a5424a8e7"
+      },
+      {
+        "file": "journey-completion-input-build-1280.png",
+        "bytes": 133202,
+        "sha256": "d93cac08665705673e57b46daa6e7670da4e693da1db437b5edebb133148252e"
+      },
+      {
+        "file": "journey-completion-input-build-390.png",
+        "bytes": 50926,
+        "sha256": "490f3df852601597023072baba713e1101c4ce39a23b6f8a9eb63a69877d8078"
+      },
+      {
+        "file": "journey-completion-input-top-1280.png",
+        "bytes": 131867,
+        "sha256": "f2b92506bd288328984f84442d66f72a56c662f6110728cb8de1f43866ab8880"
+      },
+      {
+        "file": "journey-completion-input-top-390.png",
+        "bytes": 45143,
+        "sha256": "f48899219c3f5d682e0b0e3a3a41e00eebdfec0988d33fa4a6d4505114100526"
+      },
+      {
+        "file": "journey-completion-loading-build-1280.png",
+        "bytes": 126703,
+        "sha256": "c386aa078cf415c7902016c520b4a95ec73bb7faf2f72eb74051c504e9391527"
+      },
+      {
+        "file": "journey-completion-loading-build-390.png",
+        "bytes": 54354,
+        "sha256": "3b3a3673e15ea1e6088ac8636073d4f14e655fda4b9fb18556c50c993f5b7686"
+      },
+      {
+        "file": "journey-completion-loading-top-1280.png",
+        "bytes": 151848,
+        "sha256": "cc4db2704e5bba1f1a425202e1ed497c047c2d791f352c336a01afa56b138dc0"
+      },
+      {
+        "file": "journey-completion-loading-top-390.png",
+        "bytes": 60009,
+        "sha256": "8e39164fe0eaaa2a1bdd5b05194e6fac1995b3518bc54d208cf27b0b43811656"
+      },
+      {
+        "file": "journey-completion-mathematics-build-1280.png",
+        "bytes": 128100,
+        "sha256": "ebe9d06c180e9865ca5993587c71b9dcab259f5b4268eb806bcf9b8983ff2f11"
+      },
+      {
+        "file": "journey-completion-mathematics-build-390.png",
+        "bytes": 45102,
+        "sha256": "deefe2c7c8ec8e37aec9116ebc72494511f5344b85e8f2b52825362e947b7370"
+      },
+      {
+        "file": "journey-completion-mathematics-palette-1280.png",
+        "bytes": 141303,
+        "sha256": "d08aadb4c236bedaffc7f24b609cd003930bc86c815be75d4ec9a1dc39cc7bae"
+      },
+      {
+        "file": "journey-completion-mathematics-palette-390.png",
+        "bytes": 54604,
+        "sha256": "650fed7d2a57bda0f75f3d5a2a4f715149142bb2f857c24fc7b56c63ec1d8994"
+      },
+      {
+        "file": "journey-completion-mathematics-top-1280.png",
+        "bytes": 103989,
+        "sha256": "ab6d7d01d27f79659f148e1d3827df821203c8b71a1e33605ead3ae982e70c73"
+      },
+      {
+        "file": "journey-completion-mathematics-top-390.png",
+        "bytes": 29158,
+        "sha256": "2834e789e13573e2f11685eabb94f60ea2731008041962c5b42362788a9d3fee"
+      },
+      {
+        "file": "journey-completion-modeling-build-1280.png",
+        "bytes": 125032,
+        "sha256": "ace67dfdaaa143d512ee361e994cd9e46ced579d06f5540008d6f4651c026c11"
+      },
+      {
+        "file": "journey-completion-modeling-build-390.png",
+        "bytes": 47487,
+        "sha256": "a3bffd58e4cb7f8898c32b0ba3ce86f8c27996e663cbc42ac380a3a3f4393d18"
+      },
+      {
+        "file": "journey-completion-modeling-top-1280.png",
+        "bytes": 126054,
+        "sha256": "115cdaab7b664b79144eb51e27b8003ec8f7fd39b0d16038f285513e75e3c910"
+      },
+      {
+        "file": "journey-completion-modeling-top-390.png",
+        "bytes": 48326,
+        "sha256": "f47e03f0906a1c924b92be78018ac39110d98cc65c825148394ff7e8a0f819a1"
+      },
+      {
+        "file": "journey-completion-painting-build-1280.png",
+        "bytes": 118618,
+        "sha256": "d9c5092956abcc7d5e6c746ba73e4aee36dc6f6755b86d78038e2fb59d7d1f84"
+      },
+      {
+        "file": "journey-completion-painting-build-390.png",
+        "bytes": 48378,
+        "sha256": "a0a427015b293a30f4893a396b28b2fbb00317b4a13acd7e201ff4634c416cd3"
+      },
+      {
+        "file": "journey-completion-painting-top-1280.png",
+        "bytes": 108349,
+        "sha256": "d4072a467caaad7a40dc551e9aa5e8fd603e3e452e1a725f405e9260bb190bb8"
+      },
+      {
+        "file": "journey-completion-painting-top-390.png",
+        "bytes": 48076,
+        "sha256": "c4169119f05b546600d94e45ba264b043f0dbcfda8eb434b99ed068254fc9212"
+      },
+      {
+        "file": "journey-completion-rows-build-1280.png",
+        "bytes": 126421,
+        "sha256": "2aaf7d8e214263a128a76cbc9bf288d37c45360c943e3afcad251d2059a51688"
+      },
+      {
+        "file": "journey-completion-rows-build-390.png",
+        "bytes": 48078,
+        "sha256": "a5bb67e29a57654181f745c2638f765ba822ae249cdb42c9901bbb522f3f40d6"
+      },
+      {
+        "file": "journey-completion-rows-top-1280.png",
+        "bytes": 137488,
+        "sha256": "e8f9b3bc32f05715fa666f98a0707452bafbe66ec069bfa1a2b968e2bf452071"
+      },
+      {
+        "file": "journey-completion-rows-top-390.png",
+        "bytes": 50613,
+        "sha256": "62f171a28f49d12c345e9eca26eb866eb4c593aaec7cf0ae6feb421e4b01966f"
+      },
+      {
+        "file": "journey-completion-streaming-build-1280.png",
+        "bytes": 131759,
+        "sha256": "8bbadf45582c3236eee068b822b20acaed60a50c64dea4ed2771a9ad2b634444"
+      },
+      {
+        "file": "journey-completion-streaming-build-390.png",
+        "bytes": 46731,
+        "sha256": "ad1e1a95a260bde89a7f2b768c50251579f35ef2c296518250c6e9a23e38440f"
+      },
+      {
+        "file": "journey-completion-streaming-top-1280.png",
+        "bytes": 171167,
+        "sha256": "4fb50d4b56e5eb255e6ccfe3729a8ca555f590b0bd1b61525d57fa935a4bb974"
+      },
+      {
+        "file": "journey-completion-streaming-top-390.png",
+        "bytes": 47207,
+        "sha256": "e6d6cfb1b652e1707ed46c4961835c5d71d285f9319949691f60f28d763a97ba"
+      },
+      {
+        "file": "journey-completion-text-build-1280.png",
+        "bytes": 116022,
+        "sha256": "7ed5085026c4478e89a4b1eadf8178ee32442f9dc2e28cb483c44aa458cbd4e7"
+      },
+      {
+        "file": "journey-completion-text-build-390.png",
+        "bytes": 47696,
+        "sha256": "04ee8f0dfbbe8ff481b87fc9e72e92eb2aa94cb11e7afa754f3f3d913cb94105"
+      },
+      {
+        "file": "journey-completion-text-top-1280.png",
+        "bytes": 150200,
+        "sha256": "df9b6465b5beaed117145d7bf33b53241e19ce6667d5de460a1bf94662a85f4e"
+      },
+      {
+        "file": "journey-completion-text-top-390.png",
+        "bytes": 51367,
+        "sha256": "e0e960acf3a6f4b2ad15ca1d192f996faa4fe68cafd28bc27662a9e95e1e66d2"
+      },
+      {
+        "file": "journey-completion-visibility-build-1280.png",
+        "bytes": 134651,
+        "sha256": "54daaedac958aed434c382b34803721321a0342e99760183da1ad8a0a8ab05e8"
+      },
+      {
+        "file": "journey-completion-visibility-build-390.png",
+        "bytes": 51011,
+        "sha256": "72628d6864edb2d7d453ef3660ee5cb332c345d4794fa356389abc2be85f941f"
+      },
+      {
+        "file": "journey-completion-visibility-top-1280.png",
+        "bytes": 179089,
+        "sha256": "6057350af187cb73117347384bbc1e41e65d4d1dfd5cb3e2873640640068e5d3"
+      },
+      {
+        "file": "journey-completion-visibility-top-390.png",
+        "bytes": 66593,
+        "sha256": "562cfa350b2fa2195224cdd52d5d60877d36deb99cd9c4d37ba0b6bb268b6734"
+      },
+      {
+        "file": "journey-release-top-1280.png",
+        "bytes": 85393,
+        "sha256": "3e4d2435f56193c7ffd9d54bc1920478360ed0ee8c80aca0eb4188fb1d346a7c"
+      },
+      {
+        "file": "journey-release-top-390.png",
+        "bytes": 36987,
+        "sha256": "815b74a2acbafce065c29b6db5c2bed74965affe13f6647785cc17d672cc3e6c"
+      },
+      {
+        "file": "journey-stage-scene-build-1280.png",
+        "bytes": 139838,
+        "sha256": "42ece1047359d7dc80e12584249547a8b599d294f89eed0f0b5f128ac5beeb15"
+      },
+      {
+        "file": "journey-stage-scene-build-390.png",
+        "bytes": 52364,
+        "sha256": "58d486e69a927749e2162b4d2b910cc22a71a648d8bf93cc5ace1384cb8b4e61"
+      },
+      {
+        "file": "journey-stage-scene-deck-1280.png",
+        "bytes": 138070,
+        "sha256": "8b544fc0b09cdc8abb183eb047da87b693000e8c5b93044de443ba1ff316e845"
+      },
+      {
+        "file": "journey-stage-scene-deck-390.png",
+        "bytes": 49007,
+        "sha256": "cae53dc98d75fac89097efbd11c4db08c67b1b252080b173cf5b5cd54538d834"
+      },
+      {
+        "file": "journey-stage-scene-foppl-1280.png",
+        "bytes": 168878,
+        "sha256": "2a25e99e3b71aaf4b963ed2c63eca390f7596fdb6b4901f322ccb01904e57fd1"
+      },
+      {
+        "file": "journey-stage-scene-foppl-390.png",
+        "bytes": 63276,
+        "sha256": "2a2a5974f7e0935869d07937eae02321634ddea39b8a82af7d5ac35d5d891f27"
+      },
+      {
+        "file": "journey-stage-scene-top-1280.png",
+        "bytes": 181009,
+        "sha256": "5d43e5c4f1f88de742b37c8f452fbfea08c5d75b996f99ec546af8c47cf55b34"
+      },
+      {
+        "file": "journey-stage-scene-top-390.png",
+        "bytes": 70042,
+        "sha256": "446e886b7f6a5d3ac9f1a532f872970132fb19248b747ea8253ffd9488993b7c"
+      },
+      {
+        "file": "readme-top-1280.png",
+        "bytes": 113464,
+        "sha256": "029390f0be99bdc16e0e5025bc4e2c99500a4e8fa45c44736c5e2caa4b116f9f"
+      },
+      {
+        "file": "readme-top-390.png",
+        "bytes": 52767,
+        "sha256": "e0d1d57e2dc5875da8a4ce17af8fe0f6640e2b2f9728b452d0eef22ce5de3d06"
+      }
+    ]
+  }
+}

@@ -2,9 +2,9 @@
 
 Isolate loading, synchronization, CPU-walk, WGSL-layout and GPU-driver defects using `viewerDiagnostics`, `?inspect=1` memory/row snapshots, CPU `scene_sync` fuzz oracles and headless `selftest` ray/ID witnesses.
 
-![Offscreen GPU render from instanced_frames_match_the_baked_scene diagnostic](../screenshots/active/gpu-diagnostic-instanced.png)
+![Four failure boundaries and independent diagnostic oracles: ?inspect=1, scene_sync fuzz, naga offset_of! and CPU ray oracle](../illustrations/stage/09i-four-diagnostic-oracles.svg)
 
-![Four failure boundaries and four independent diagnostic oracles](../illustrations/active/debug-oracles.svg)
+![Offscreen GPU render from instanced_frames_match_the_baked_scene diagnostic](../screenshots/active/gpu-diagnostic-instanced.png)
 
 ## Prerequisites and ownership
 
@@ -12,7 +12,7 @@ Chapter `9.9` of [9. Run the application](completion-application.md) (`applicati
 
 ## Build
 
-### Browser diagnostics, feedback & `?inspect=1` snapshots
+### Step 1: Browser diagnostics, feedback and `?inspect=1` snapshots
 
 | File | Specification |
 | --- | --- |
@@ -23,7 +23,7 @@ Chapter `9.9` of [9. Run the application](completion-application.md) (`applicati
 | [src/app/inspection.rs](../../src/app/inspection.rs) | Serializes live camera matrices, row counts, selection, lane capacities and timing counters onto `#viewer[data-viewer-inspection]` when `?inspect=1`. |
 | [src/app/inspection/source_memory.rs](../../src/app/inspection/source_memory.rs) | Sums unique `Rc<Session>` geometry vectors, strings, maps and history capacities via weak pointers to report scoped `known_bytes`. |
 
-### Headless `selftest` CPU/GPU harnesses & witnesses
+### Step 2: Headless `selftest` CPU ray oracle and software witnesses
 
 | File | Specification |
 | --- | --- |
@@ -36,10 +36,14 @@ Chapter `9.9` of [9. Run the application](completion-application.md) (`applicati
 | [src/engine/gpu/splat/cloud_witness/lod.rs](../../src/engine/gpu/splat/cloud_witness/lod.rs) | Runs `LodWalk::select` on CPU cloud metadata to inspect chosen octree `(first, count, spacing, tile)` spans independently of shaders. |
 
 ```rust
+--8<-- "session_viewer/src/selftest/oracle.rs:14:38"
+```
+
+```rust
 --8<-- "session_viewer/src/selftest.rs:selftest-pixels"
 ```
 
-### Incremental `scene_sync` vs fresh-walk oracle (`6` modules)
+### Step 3: Incremental `scene_sync` fuzzing and `naga` WGSL contract checks
 
 | File | Specification |
 | --- | --- |
@@ -49,8 +53,6 @@ Chapter `9.9` of [9. Run the application](completion-application.md) (`applicati
 | [scene_sync/editing_tests.rs](../../src/app/scene_sync/editing_tests.rs) | Verifies `100`-point cloud tomb burial/unbury, forced tomb-cap release, post-compaction `Undo` rebuild and multi-document single-step deletion. |
 | [scene_sync/commands_tests.rs](../../src/app/scene_sync/commands_tests.rs) | Bounds `200`-frame growing-curve previews to `<= 16` reallocations and checks `100,000`-object vs `1,000`-object incremental edit scaling. |
 | [scene_sync/split_tests.rs](../../src/app/scene_sync/split_tests.rs) | Verifies incremental row synchronization, cutter preservation and `Undo` restoration across BRep/mesh split edits. |
-
-### Targeted rendering & WGSL contract regressions (`9` modules)
 
 | File | Specification |
 | --- | --- |

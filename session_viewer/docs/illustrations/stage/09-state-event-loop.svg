@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 405" width="960" height="405">
+  <rect x="0.5" y="0.5" width="959" height="404" fill="#ffffff" stroke="#e4e7e8" stroke-width="1"/>
+  <line x1="451.2" y1="54" x2="451.2" y2="383" stroke="#e4e7e8" stroke-width="1"/>
+  <text x="26" y="32" font-family="Georgia, 'Times New Roman', serif" font-size="14.2" font-weight="700" fill="#007bc4">SINGLE-OWNER STATE AND MESSAGE LOOP</text>
+  <text x="473.2" y="32" font-family="Georgia, 'Times New Roman', serif" font-size="13.0" fill="#111111">Serialize async messages and UI panels onto one <tspan font-style="italic">State</tspan> owner without locks.</text>
+  <text x="30" y="74" font-family="Georgia, 'Times New Roman', serif" font-size="13.5" font-weight="400" fill="#007bc4">runtime.rs · EventLoopProxy&lt;Msg&gt; into single-owner State</text>
+  <rect x="186" y="134" width="152" height="136" rx="6" fill="#a9c9ff" fill-opacity="0.2" stroke="#111111" stroke-width="2.2"/>
+  <text x="262" y="158" font-family="Georgia, 'Times New Roman', serif" font-size="15" fill="#007bc4" font-weight="700" text-anchor="middle">State</text>
+  <text x="262" y="182" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#111111" font-weight="500" text-anchor="middle">Arc&lt;Window&gt;</text>
+  <text x="262" y="203" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#111111" font-weight="500" text-anchor="middle">Gpu + Camera</text>
+  <text x="262" y="224" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#111111" font-weight="500" text-anchor="middle">Scene + Selection</text>
+  <text x="262" y="245" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#111111" font-weight="500" text-anchor="middle">Features + Mode</text>
+  <text x="36" y="156" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.2" fill="#ff2d7a" font-weight="500">Msg::File</text>
+  <line x1="132" y1="152" x2="171" y2="152" stroke="#ff2d7a" stroke-width="1.9" stroke-linecap="round"/>
+  <polygon points="182,152 171,153.65 171,150.35" fill="#ff2d7a" stroke="none"/>
+  <circle cx="132" cy="152" r="3.4" fill="#ffffff" stroke="#ff2d7a" stroke-width="2"/>
+  <text x="36" y="202" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.2" fill="#ff2d7a" font-weight="500">Msg::CloudChunk</text>
+  <line x1="132" y1="198" x2="171" y2="198" stroke="#ff2d7a" stroke-width="1.9" stroke-linecap="round"/>
+  <polygon points="182,198 171,199.65 171,196.35" fill="#ff2d7a" stroke="none"/>
+  <circle cx="132" cy="198" r="3.4" fill="#ffffff" stroke="#ff2d7a" stroke-width="2"/>
+  <text x="36" y="248" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.2" fill="#ff2d7a" font-weight="500">Msg::Hydrated</text>
+  <line x1="132" y1="244" x2="171" y2="244" stroke="#ff2d7a" stroke-width="1.9" stroke-linecap="round"/>
+  <polygon points="182,244 171,245.65 171,242.35" fill="#ff2d7a" stroke="none"/>
+  <circle cx="132" cy="244" r="3.4" fill="#ffffff" stroke="#ff2d7a" stroke-width="2"/>
+  <text x="36" y="316" font-family="Georgia, 'Times New Roman', serif" font-size="11" fill="#111111" font-weight="700">Input order: 1. egui panels → 2. Mode/Tool → 3. Scene</text>
+  <text x="36" y="342" font-family="Georgia, 'Times New Roman', serif" font-size="10.8" fill="#666666">Box&lt;dyn Mode&lt;State&gt;&gt; moves out during callbacks.</text>
+  <text x="474" y="74" font-family="Georgia, 'Times New Roman', serif" font-size="13.5" font-weight="400" fill="#007bc4">features.rs · ordered pick hooks &amp; frame invariants</text>
+  <text x="545" y="86" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#888888" font-weight="500" text-anchor="middle">prepare ray/snap</text>
+  <text x="697" y="86" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#007bc4" font-weight="500" text-anchor="middle">drag/split claim</text>
+  <text x="849" y="86" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#ff2d7a" font-weight="500" text-anchor="middle">selection update</text>
+  <rect x="474" y="92" width="142" height="38" rx="4.5" fill="#e4e7e8" stroke="none"/>
+  <text x="545" y="114.74" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="11" fill="#111111" font-weight="500" text-anchor="middle">BEFORE_PICK</text>
+  <rect x="626" y="92" width="142" height="38" rx="4.5" fill="#ffc400" stroke="none"/>
+  <text x="697" y="114.74" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="11" fill="#111111" font-weight="500" text-anchor="middle">TAKE_PICK</text>
+  <rect x="778" y="92" width="142" height="38" rx="4.5" fill="#ff5c9a" stroke="none"/>
+  <text x="849" y="114.74" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="11" fill="#111111" font-weight="500" text-anchor="middle">AFTER_PICK</text>
+  <line x1="617" y1="111" x2="621.4" y2="111" stroke="#007bc4" stroke-width="1.7" stroke-linecap="round"/>
+  <polygon points="625,111 621.4,111.54 621.4,110.46" fill="#007bc4" stroke="none"/>
+  <line x1="769" y1="111" x2="773.4" y2="111" stroke="#ff2d7a" stroke-width="1.7" stroke-linecap="round"/>
+  <polygon points="777,111 773.4,111.54 773.4,110.46" fill="#ff2d7a" stroke="none"/>
+  <text x="474" y="174" font-family="Georgia, 'Times New Roman', serif" font-size="13.5" font-weight="400" fill="#007bc4">Production runtime safeguards (352/352 src/ parity)</text>
+  <text x="474" y="204" font-family="Georgia, 'Times New Roman', serif" font-size="12" fill="#111111">• Resize throttle: surface target rebuilds coalesce to 100 ms intervals.</text>
+  <text x="474" y="230" font-family="Georgia, 'Times New Roman', serif" font-size="12" fill="#111111">• Camera preservation on slow load: Msg::Fit compares current camera</text>
+  <text x="486" y="250" font-family="Georgia, 'Times New Roman', serif" font-size="11.6" fill="#666666">pose against load-start pose so manual orbit is never snapped back.</text>
+  <text x="474" y="278" font-family="Georgia, 'Times New Roman', serif" font-size="12" fill="#111111">• FramePacing: queue.on_submitted_work_done gate prevents frame backlog.</text>
+  <text x="474" y="306" font-family="Georgia, 'Times New Roman', serif" font-size="12" fill="#111111">• Trunk production.html bundles stage/, decks/, text/, pb/ &amp; docs/.</text>
+  <text x="474" y="344" font-family="Georgia, 'Times New Roman', serif" font-size="11.6" fill="#007bc4" font-weight="700">Status: 8 checkpoints accepted; Tutorial 9 tracks 31-px instanced test.</text>
+  <rect x="0.5" y="401.5" width="959" height="3" fill="#e4e7e8"/>
+  <rect x="0.5" y="401.5" width="505.26" height="3" fill="#007bc4"/>
+</svg>

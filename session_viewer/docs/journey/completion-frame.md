@@ -1,20 +1,20 @@
 # Open a GPU frame
 
-Open a WebGPU surface on `#canvas`, clear every pixel to white on the GPU queue, and resize cleanly across desktop and upright viewports.
+Open a WebGPU surface on `#canvas`, clear every pixel to white on the GPU queue, and resize cleanly across desktop (`1280×800`) and upright (`390×844`) viewports.
 
-![Four wgpu objects before any drawing: Instance, Surface, Adapter and Device + Queue](../illustrations/gpu-objects.svg)
+![WebGPU surface resize, DeviceSetup handshake and white-frame clear pass](../illustrations/stage/01-surface-frame.svg)
 
-![Tutorial 1 startup and white-frame submission loop](../illustrations/active/frame-clear.svg)
+![Tutorial 1 output: WebGPU white surface cleared and presented at 1280x800](../screenshots/active/frame-white-1280.png)
 
 ## Prerequisites and ownership
 
-Install Rust `1.97.1`, `wasm32-unknown-unknown`, Trunk `0.21.14` and a WebGPU browser ([setup](../README.md)). Checkpoint `frame` starts from scratch with `13` files:
+Install Rust `1.97.1`, `wasm32-unknown-unknown`, Trunk `0.21.14` and a WebGPU browser. Checkpoint `frame` starts from an empty directory and owns `13` files:
 
 | File | Role |
 | --- | --- |
 | [Cargo.toml](../../Cargo.toml), [Cargo.lock](../../Cargo.lock) | Crate manifest (`cdylib` + `rlib`) and pinned dependency graph. |
 | [src/lib.rs](../../src/lib.rs) | Crate root, `shader!` macro and `#[cfg(all(target_arch = "wasm32", feature = "tutorial"))]` entry gate. |
-| [src/app/mod.rs](../../src/app/mod.rs), [src/engine/mod.rs](../../src/engine/mod.rs), [src/engine/gpu/mod.rs](../../src/engine/gpu/mod.rs) | Module index files extended strictly by additive `mod` declarations in later checkpoints. |
+| [src/app/mod.rs](../../src/app/mod.rs), [src/engine/mod.rs](../../src/engine/mod.rs), [src/engine/gpu/mod.rs](../../src/engine/gpu/mod.rs) | Module roots extended strictly by additive `mod` declarations in later tutorials. |
 | [src/app/launch.rs](../../src/app/launch.rs) | Generic `winit` event-loop launcher passing `EventLoopProxy<Message>` into the app factory. |
 | [src/engine/gpu/device.rs](../../src/engine/gpu/device.rs) | Production WebGPU/native adapter request, `256 MiB` storage limit cap, error capture and surface configuration. |
 | [examples/course/index.html](../../examples/course/index.html) | Full-viewport `#canvas` entry compiled by Trunk with `--features tutorial`. |
@@ -27,57 +27,61 @@ Install Rust `1.97.1`, `wasm32-unknown-unknown`, Trunk `0.21.14` and a WebGPU br
 
 ## Build
 
-Materialize checkpoint `frame` into a fresh directory, or create the files below directly:
+Materialize checkpoint `frame` into a fresh workspace or create the `13` files step by step:
 
 ```sh
 npm --prefix ../session_tests run course -- checkpoint frame ../session_viewer/target/learn-frame
 ```
 
-### 1. Crate manifest and lock
+### Step 1. Create `Cargo.toml`, `Cargo.lock` and module roots
 
-`Cargo.toml` emits both `cdylib` for the browser `.wasm` bundle and `rlib` for native tests, linking `wgpu 29`, `winit 0.30`, `egui 0.34.3`, and `session_rust` with `default-features = false` and `viewer-display`.
-
-`Cargo.lock` pins the exact dependency graph, including single-version `skrifa`/`swash` font crates, `wasm-bindgen` bindings, `web-sys` DOM features, JS `getrandom` on wasm, and native-only `pollster`.
+Write `Cargo.toml` with both `cdylib` (for the browser `.wasm` target) and `rlib` (for native tests), linking `wgpu 29`, `winit 0.30`, `egui 0.34.3`, and `session_rust` with `default-features = false` and `viewer-display`. Copy `Cargo.lock` alongside it so `skrifa`/`swash` font crates, `wasm-bindgen`, `web-sys` DOM bindings, JS `getrandom` on wasm, and native-only `pollster` stay locked to exact versions.
 
 ```toml
 --8<-- "session_viewer/Cargo.toml:1:26"
 ```
 
-### 2. HTML canvas and event-loop launcher
+Create `src/lib.rs` plus the three additive module roots (`src/app/mod.rs`, `src/engine/mod.rs`, `src/engine/gpu/mod.rs`):
 
-Size the initial surface from `canvas.clientWidth * devicePixelRatio` before `winit`'s first resize callback arrives, and build the `EventLoopProxy` ahead of `spawn_app` so `async` GPU initialization can send `Ready` back without borrowing the loop across `.await`.
+```rust
+--8<-- "session_viewer/src/lib.rs:1:12"
+```
+
+### Step 2. Add `index.html`, `src/app/launch.rs` and `canvas.rs`
+
+Create `examples/course/index.html` with a full-viewport `#canvas` element, then add `src/app/launch.rs` so `EventLoopProxy<Message>` is cloned *before* `spawn_app` starts the `async` WebGPU handshake without borrowing the event loop across `.await`:
 
 ```html
 --8<-- "session_viewer/examples/course/index.html:course-page"
 ```
 
-`src/app/launch.rs` builds a typed `EventLoop<Message>`, hands a cloneable `EventLoopProxy<Message>` to the `FnOnce` constructor before `spawn_app`, and avoids blocking the browser main thread.
-
 ```rust
 --8<-- "session_viewer/src/app/launch.rs"
 ```
+
+Add `examples/course/canvas.rs` to compute initial physical texel dimensions from `canvas.clientWidth * devicePixelRatio` before `winit`'s first resize callback arrives:
 
 ```rust
 --8<-- "session_viewer/examples/course/canvas.rs:course-canvas"
 ```
 
-### 3. WebGPU device and surface
+### Step 3. Request the WebGPU device in `src/engine/gpu/device.rs`
 
-`src/engine/gpu/device.rs` selects `BROWSER_WEBGPU` on wasm or `PRIMARY` natively, caps `max_storage_buffer_binding_size` at `256 MiB`, prefers an sRGB surface format, and records the first uncaptured GPU error or device loss in `Arc<Mutex<Option<String>>>`.
+Write `src/engine/gpu/device.rs` to select `BROWSER_WEBGPU` on wasm or `PRIMARY` natively, cap `max_storage_buffer_binding_size` at `256 MiB`, prefer an sRGB surface format, and store the first uncaptured GPU error or device loss in `Arc<Mutex<Option<String>>>`:
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/device.rs:20:154"
 ```
 
-### 4. Clear pass and URL dispatcher
+### Step 4. Record the white clear pass and register `?tutorial=frame`
 
-Drop `_pass` before calling `encoder.finish()`, submit the command buffer to `gpu.queue`, and return `false` so static frames sleep until resize or input.
+Write `examples/course/frame.rs` to acquire the current swapchain view, drop `_pass` before calling `encoder.finish()`, submit the command buffer to `gpu.queue`, present the frame, and return `false` so idle frames park the event loop:
 
 ```rust
 --8<-- "session_viewer/examples/course/frame.rs:course-frame"
 ```
 
-Read `?tutorial=` in `entry.rs` so every later checkpoint keeps `?tutorial=frame` runnable side-by-side:
+Register `("frame", frame::start)` in `examples/course/registration.rs` and dispatch `?tutorial=` in `examples/course/entry.rs` so every later tutorial keeps `?tutorial=frame` runnable side by side:
 
 ```rust
 --8<-- "session_viewer/examples/course/entry.rs:course-entry"
@@ -85,13 +89,13 @@ Read `?tutorial=` in `entry.rs` so every later checkpoint keeps `?tutorial=frame
 
 ## Run and observe
 
-Serve the checkpoint with Trunk (`CARGO_TARGET_DIR` shared across checkpoints) and open `http://127.0.0.1:8780/?tutorial=frame`:
+Serve the checkpoint with Trunk and open `http://127.0.0.1:8780/?tutorial=frame`:
 
 ```sh
 trunk serve --port 8780
 ```
 
-Every pixel clears to `#ffffff` with no `data-course-error` attribute on `#canvas`, and resizing to `390×844` reconfigures the surface cleanly without stale borders.
+Every pixel clears to `#ffffff` with no `data-course-error` attribute on `#canvas`, and resizing to `390×844` reconfigures the swapchain cleanly without stale borders.
 
 ## Predict and try
 

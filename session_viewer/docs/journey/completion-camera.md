@@ -1,51 +1,55 @@
 # Project and fit a scene
 
-Orbit, pan, zoom toward the cursor, toggle perspective/orthographic projection, and fit 3D bounds using the production `src/camera.rs` math.
+Orbit, pan, zoom toward the cursor, toggle perspective/orthographic projection, and fit `3D` bounds inside the unobstructed viewport using the production `src/camera.rs` math.
+
+![3D camera basis, reversed-Z frustum, cursor-pinned zoom_at and five coordinate spaces](../illustrations/stage/05-camera-frustum-spaces.svg)
 
 ![Perspective wireframe cube projected through src/camera.rs at 1280x800](../screenshots/active/camera-cube-1280.png)
 
-![Camera basis: target, distance, quaternion orientation and derived eye/right/up axes](../illustrations/camera-basis.svg)
-
 ## Prerequisites and ownership
 
-Requires [4. Enter commands](completion-dock.md). This fifth cumulative subject is reviewed against native tests, locked `wasm32` builds and desktop/upright WebGPU interactions. Checkpoint `camera` (`48` files) adds `2` files:
+Requires [4. Enter commands](completion-dock.md). This fifth cumulative subject is reviewed against native tests, locked `wasm32` builds and desktop/upright WebGPU interactions. Checkpoint `camera` (`48` files) retains Tutorials 1–4 and adds `2` files:
 
 | Added file | Role |
 | --- | --- |
-| [src/camera.rs](../../src/camera.rs) | Anchor-relative view/projection matrices, reversed-Z `[1..0]` depth, cursor-preserving `zoom_at`, world rays and panel-aware `fit_in`. |
+| [src/camera.rs](../../src/camera.rs) | Anchor-relative `f64` view/projection matrices, reversed-Z `[1..0]` depth, cursor-preserving `zoom_at`, world rays and panel-aware `fit_in`. |
 | [examples/course/camera.rs](../../examples/course/camera.rs) | Projects `8` `session_rust::Point` cube corners and `12` edges onto the canvas with orbit/zoom/fit controls. |
-
-```rust
---8<-- "session_viewer/src/camera.rs:camera-pose"
-```
 
 ## Build
 
-Materialize checkpoint `camera` or add `src/camera.rs` and `examples/course/camera.rs`:
+Materialize checkpoint `camera` or add `src/camera.rs` and `examples/course/camera.rs` step by step:
 
 ```sh
 npm --prefix ../session_tests run course -- checkpoint camera ../session_viewer/target/learn-camera
 ```
 
-### Anchor-relative view and reversed-Z projection
+### Step 1. Store camera pose in `f64` meters (`src/camera.rs`)
 
-![Perspective versus orthographic frustums and reversed-Z depth](../illustrations/frustum.svg)
+Create `src/camera.rs` and declare `pub mod camera;` in `src/lib.rs`. Store `target`, `position`, `distance` and quaternion `orientation` in `f64` meters so large architectural coordinates never lose precision during orbit or pan:
 
-![Coordinate spaces from scene units to physical screen pixels](../illustrations/spaces.svg)
+```rust
+--8<-- "session_viewer/src/camera.rs:camera-pose"
+```
 
-Compose scene-unit scaling (`mm` -> `m`), anchor-relative view, reversed-Z projection (`near` mapped to `z = 1.0`, `far` to `z = 0.0`) and panel `frame` lens shift:
+### Step 2. Compose anchor-relative view and reversed-Z projection
+
+Subtract `anchor` from `eye` and `target` in `f64` before building `view`, swap `far` and `near` in `Xform::perspective(fov, aspect, far, near)` so `near` maps to `z = 1.0` and `far` maps to `z = 0.0` (reversed-Z), and pre-multiply the unobstructed panel `lens` translation:
 
 ```rust
 --8<-- "session_viewer/src/camera.rs:camera-projection"
 ```
 
-### Motion and fitting
+### Step 3. Lock the cursor ray in `zoom_at` and frame bounds in `fit_in`
 
-`src/camera.rs` implements quaternion `orbit` (world-up yaw + right-axis pitch), distance-scaled `pan`, world `ray` unprojection, cursor-locked `zoom_at` (shifting `target` by the cursor's offset on the target plane), and `fit_in` across all `8` box corners inside the unobstructed panel `frame`.
+`src/camera.rs` implements quaternion `orbit` (world-up yaw + right-axis pitch), distance-scaled `pan`, world `ray` unprojection, `fit_in` across all `8` `AABB` corners inside `frame`, and cursor-locked `zoom_at`, which shifts `target` by `(1 - k)` times the cursor's offset on the target plane so the point under the cursor never drifts:
 
-### Wireframe cube checkpoint
+```rust
+--8<-- "session_viewer/src/camera.rs:204:230"
+```
 
-Project the `8` cube corners with `Xform::transform_point` and flip NDC `+Y` (up) into screen `+Y` (down):
+### Step 4. Project the `8`-corner wireframe cube (`examples/course/camera.rs`)
+
+Write `examples/course/camera.rs` and register `("camera", camera::start)` in `examples/course/registration.rs`, flipping NDC `+Y` (up) into screen `+Y` (down) via `(1.0 - ndc[1]) * 0.5 * height`:
 
 ```rust
 --8<-- "session_viewer/examples/course/camera.rs:course-camera"
@@ -55,17 +59,17 @@ Project the `8` cube corners with `Xform::transform_point` and flip NDC `+Y` (up
 
 Serve the checkpoint and open `http://127.0.0.1:8780/?tutorial=camera`:
 
-- Drag or press arrow keys to orbit; scroll wheel to zoom around the cursor.
+- Drag or press arrow keys to orbit; scroll the wheel to zoom around the cursor point.
 - `P` switches perspective and orthographic projection; `F` fits the cube inside the viewport (including `390×844`); `Home` restores orthographic isometric fit.
 
 ## Predict and try
 
-Orbit slightly off-axis and press `P`: predict which cube edges converge in perspective versus staying parallel in orthographic projection, then verify both modes in the browser.
+Orbit `20°` off-axis and press `P`: predict which cube edges converge toward a vanishing point in perspective versus staying parallel in orthographic projection, then verify both modes in the browser.
 
 ## Question and answer
 
 **Why does screen mapping negate the normalized `y` coordinate (`(1.0 - ndc.y) * 0.5 * height`)?**
-Clip/NDC `+Y` points up, whereas canvas/egui pixel `+Y` points down from the top-left corner; omitting the sign flip mirrors the scene vertically.
+Clip/NDC `+Y` points up, whereas canvas/egui pixel `+Y` points down from the top-left corner; omitting the sign flip mirrors the `3D` scene vertically.
 
 ## Validation
 

@@ -11,8 +11,8 @@
       "chapters": [],
       "acceptance": "accepted",
       "review": {
-        "path": "journey/release/completion-frame-acceptance-20261118b.json",
-        "sha256": "d65c2af8b35bbd35fe8c930059006c6b5232127c9e2c7a7f64795b1d6d88cb42"
+        "path": "journey/release/completion-frame-acceptance-20261118d.json",
+        "sha256": "d152f0d956ce2e9c23b7e9f6947625ff21fc411efaca6d6d0e2a4222cccddf85"
       }
     },
     {
@@ -25,8 +25,8 @@
       "chapters": [],
       "acceptance": "accepted",
       "review": {
-        "path": "journey/release/completion-painting-acceptance-20261118b.json",
-        "sha256": "fba6c0b44314acf79c7ff9c550c2ac193414180e7c02988b5f3143b2328040bc"
+        "path": "journey/release/completion-painting-acceptance-20261118d.json",
+        "sha256": "05128744cb6714d981765f849c91527d4d0473074881f9f19dda6b2e8b2bea0c"
       }
     },
     {
@@ -39,8 +39,8 @@
       "chapters": [],
       "acceptance": "accepted",
       "review": {
-        "path": "journey/release/completion-mathematics-acceptance-20261118c.json",
-        "sha256": "080693d8f6bdd843b3f440bfd518c85127d738c8d5f2e9444a0d950ff1b37df2"
+        "path": "journey/release/completion-mathematics-acceptance-20261118d.json",
+        "sha256": "0d570183525b546f33ce6c6f7ca425b41b5b65f49c8dbf7cea5a62018cd723c4"
       }
     },
     {
@@ -53,8 +53,8 @@
       "chapters": [],
       "acceptance": "accepted",
       "review": {
-        "path": "journey/release/completion-dock-acceptance-20261118c.json",
-        "sha256": "16a9148b4681d42d8e74042c8753a1318d7c4b20b703c77d249e4efa1fc7d879"
+        "path": "journey/release/completion-dock-acceptance-20261118d.json",
+        "sha256": "8277c83b58b174005a95485461680d2a0295066763de140977a396caec56750c"
       }
     },
     {
@@ -67,8 +67,8 @@
       "chapters": [],
       "acceptance": "accepted",
       "review": {
-        "path": "journey/release/completion-camera-acceptance-20261118c.json",
-        "sha256": "46061080ec37e5c8118aa667dc18d74d3787d2195f0bdcbb80bc9164366a59fa"
+        "path": "journey/release/completion-camera-acceptance-20261118d.json",
+        "sha256": "76c78289a99abef0efc0fa4ce5cdf9279ecb52bbd3f7110ffef38aada510bb2e"
       }
     },
     {
@@ -81,8 +81,8 @@
       "chapters": [],
       "acceptance": "accepted",
       "review": {
-        "path": "journey/release/completion-rows-acceptance-20261118c.json",
-        "sha256": "d74675de9e8ffed4081d111d6be7f3bcccf45dea091476a3963b15a602c92cab"
+        "path": "journey/release/completion-rows-acceptance-20261118d.json",
+        "sha256": "59d508d3d2afcc765a17a936a773fd9a595de3ce0f41730ebd50fa8543cbac77"
       }
     },
     {
@@ -97,8 +97,8 @@
       ],
       "acceptance": "accepted",
       "review": {
-        "path": "journey/release/completion-geometry-acceptance-20261118c.json",
-        "sha256": "1fa8b4a62692c19fa7f875036e4a577dd0b8edf8859f084e7adf85fd4210934b"
+        "path": "journey/release/completion-geometry-acceptance-20261118d.json",
+        "sha256": "116d6ff1f450c52da36732ddb294a3d3628c61243627c7c26b91802d6b1c9cb2"
       }
     },
     {
@@ -111,8 +111,8 @@
       "chapters": [],
       "acceptance": "accepted",
       "review": {
-        "path": "journey/release/completion-decoding-acceptance-20261118c.json",
-        "sha256": "e2c26375f6c0c0289f4d1623a05e19cb9ffd25bd99996b708f6449ba0af72eec"
+        "path": "journey/release/completion-decoding-acceptance-20261118d.json",
+        "sha256": "51d55df524296390976dfae2cf570b1222024782f860c1a269649abbdb5e9529"
       }
     },
     {

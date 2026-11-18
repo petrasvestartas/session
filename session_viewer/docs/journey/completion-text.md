@@ -2,12 +2,12 @@
 
 Shape and cache `glyphon` scene labels, world-plane signs and selectable document nameplates, upgrade subset fonts to full faces asynchronously on missing glyphs, and verify metrics against browser DOM typography.
 
+![Five scene TextPlacement modes, revision-keyed TextLane cache and subset-to-full font delivery](../illustrations/stage/09f-scene-text-placements.svg)
+
 ![World-plane label in isometric view reusing shaped glyph runs across camera orbit](../screenshots/completion/world-plane-iso.png)
 ![Same world-plane label viewed from Top without reshaping](../screenshots/completion/world-plane-top.png)
 
 ![WebGPU scene text (left) versus browser DOM text (right) across five font sizes](../screenshots/completion/matched-font-text.png)
-
-![Text shaping, revision keys and GPU preparation pipeline](../illustrations/text-pipeline.svg)
 
 ## Prerequisites and ownership
 
@@ -15,9 +15,7 @@ Chapter `9.6` of [9. Run the application](completion-application.md) (`applicati
 
 ## Build
 
-### Placement modes & validated shaping reuse
-
-![Screen, anchored, nameplate, world-plane and billboard text placements](../illustrations/text-placement.svg)
+### Step 1: Five `TextPlacement` modes and validated shaping reuse
 
 `src/engine/text.rs` defines `5` `TextPlacement` modes (screen, depth-tested anchored, overlay nameplate, world-plane and billboard) and validates `TextDocument::set_labels` atomically so moving or recolouring labels reuses shaped `glyphon` buffers while font upgrades advance `font_revision`.
 
@@ -29,9 +27,7 @@ Chapter `9.6` of [9. Run the application](completion-application.md) (`applicati
 --8<-- "session_viewer/src/engine/text.rs:scene-text-shaping"
 ```
 
-### Prepare GPU data only when its inputs change
-
-![Subset glyph coverage check triggering one-shot full-font HTTP delivery](../illustrations/glyph-coverage.svg)
+### Step 2: Revision-keyed GPU preparation and async subset-to-full font delivery
 
 | File | Specification |
 | --- | --- |
@@ -42,7 +38,11 @@ Chapter `9.6` of [9. Run the application](completion-application.md) (`applicati
 | [src/app/ui/theme.rs](../../src/app/ui/theme.rs) | Re-exports `command_dock` `Visuals` and orders static `Noto Sans` + `Symbols` subsets so UI and scene labels share one initial font allocation. |
 | [src/app/command/verbs/text.rs](../../src/app/command/verbs/text.rs) | Validates `1..80`-char strings, orients `CPlane` axes toward the eye, and commits an undoable world-plane white-on-black label. |
 
-### Document titles & DOM metric harness
+```rust
+--8<-- "session_viewer/src/app/fonts.rs:9:22"
+```
+
+### Step 3: Selectable document nameplates and DOM metric verification
 
 | File | Specification |
 | --- | --- |

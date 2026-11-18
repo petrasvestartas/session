@@ -95,33 +95,24 @@
         <router-link to="/course" class="nav-button" :class="{ active: currentRoute === 'course' }">Viewer course</router-link>
 
         <div v-if="currentRoute === 'course'" class="suites-section course-section">
-          <router-link to="/course/journey/active" class="suite-button course-link">Course map</router-link>
-          <router-link to="/course/journey/active#acceptance" class="suite-button course-link" :class="{ active: currentSlug === 'journey/roadmap' }">Status &amp; progress</router-link>
-          <details v-for="g in courseGroups" :key="g.title" :open="g.title === 'Cumulative subjects' || g.slugs.includes(currentSlug)">
-            <summary class="group-title">{{ g.title }}</summary>
-            <template v-if="g.sections">
-              <template v-for="section in g.sections" :key="section.title">
-                <router-link
-                  v-if="section.slugs.length === 1"
-                  :to="'/course/' + section.slugs[0]"
-                  class="suite-button course-link"
-                  :class="{ active: section.slugs[0] === currentSlug }">
-                  {{ coursePages[section.slugs[0]]?.title || section.title }}
-                </router-link>
-                <details v-else :open="section.slugs.includes(currentSlug)" class="book-section">
-                  <summary class="group-title">{{ section.title }}</summary>
-                  <router-link v-for="s in section.slugs" :key="s" :to="'/course/' + s" class="suite-button course-link" :class="{ active: s === currentSlug }">{{ coursePages[s]?.title }}</router-link>
-                </details>
-              </template>
-            </template>
-            <router-link v-else
-              v-for="s in g.slugs" :key="s"
-              :to="'/course/' + s"
+          <template v-for="t in courseTutorials" :key="t.id">
+            <router-link
+              :to="'/course/' + t.slug"
               class="suite-button course-link"
-              :class="{ active: s === currentSlug }">
-              {{ coursePages[s]?.title }}
+              :class="{ active: t.slug === currentSlug }">
+              <span class="course-num">{{ t.number }}.</span> {{ t.title }}
             </router-link>
-          </details>
+            <div v-if="t.chapters.length" class="chapter-nav">
+              <router-link
+                v-for="c in t.chapters"
+                :key="c.slug"
+                :to="'/course/' + c.slug"
+                class="suite-button course-link chapter-nav-link"
+                :class="{ active: c.slug === currentSlug }">
+                <span class="course-num">{{ c.number }}</span> {{ c.title }}
+              </router-link>
+            </div>
+          </template>
         </div>
       </div>
     </nav>
@@ -140,7 +131,7 @@
 <script setup lang="ts">
 import { computed, ref, onMounted, onBeforeUnmount, watch, nextTick, defineAsyncComponent } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { groups as courseGroups, pages as coursePages } from 'virtual:course';
+import { tutorials as courseTutorials } from 'virtual:course';
 import { ensureTestData } from '../../dataLoader';
 import { sections as installSections } from '../../installSections';
 
@@ -379,8 +370,6 @@ watch(
 </script>
 
 <style scoped>
-.book-section { margin-left: 0.65rem; }
-
 .main-layout {
   height: 100vh;
   height: 100dvh;
@@ -574,6 +563,23 @@ watch(
 .course-link {
   display: block;
   line-height: 1.35;
+}
+
+.course-num {
+  font-variant-numeric: tabular-nums;
+  color: #007bc4;
+  font-weight: 600;
+  margin-right: 0.2rem;
+}
+
+.chapter-nav {
+  display: flex;
+  flex-direction: column;
+  padding-left: 0.95rem;
+}
+
+.chapter-nav-link {
+  font-size: 12.5px;
 }
 
 .functions-section {

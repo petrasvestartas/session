@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 425" width="960" height="425">
+  <rect x="0.5" y="0.5" width="959" height="424" fill="#ffffff" stroke="#e4e7e8" stroke-width="1"/>
+  <line x1="460.8" y1="54" x2="460.8" y2="403" stroke="#e4e7e8" stroke-width="1"/>
+  <text x="26" y="32" font-family="Georgia, 'Times New Roman', serif" font-size="14.2" font-weight="700" fill="#007bc4">TILE PREFIX SCAN AND SAG VISIBILITY</text>
+  <text x="482.8" y="32" font-family="Georgia, 'Times New Roman', serif" font-size="13.0" fill="#111111">Bin 96 B triangles into prefix-scanned tiles and test local slope + sag.</text>
+  <text x="30" y="74" font-family="Georgia, 'Times New Roman', serif" font-size="13.5" font-weight="400" fill="#007bc4">triangle_tiles.wgsl · covered_tile edge-equation binning</text>
+  <rect x="48" y="90" width="28" height="28" fill="#ffffff" stroke="#e4e7e8" stroke-width="1"/>
+  <rect x="76" y="90" width="28" height="28" fill="#ffe38a" fill-opacity="0.55" stroke="#e4e7e8" stroke-width="1"/>
+  <rect x="104" y="90" width="28" height="28" fill="#ff8fbd" fill-opacity="0.18" stroke="#e4e7e8" stroke-width="1"/>
+  <text x="118" y="107.92" font-family="Georgia, 'Times New Roman', serif" font-size="12" fill="#ff2d7a" font-weight="700" text-anchor="middle">×</text>
+  <rect x="132" y="90" width="28" height="28" fill="#ff8fbd" fill-opacity="0.18" stroke="#e4e7e8" stroke-width="1"/>
+  <text x="146" y="107.92" font-family="Georgia, 'Times New Roman', serif" font-size="12" fill="#ff2d7a" font-weight="700" text-anchor="middle">×</text>
+  <rect x="160" y="90" width="28" height="28" fill="#ffffff" stroke="#e4e7e8" stroke-width="1"/>
+  <rect x="48" y="118" width="28" height="28" fill="#ffffff" stroke="#e4e7e8" stroke-width="1"/>
+  <rect x="76" y="118" width="28" height="28" fill="#ffe38a" fill-opacity="0.55" stroke="#e4e7e8" stroke-width="1"/>
+  <rect x="104" y="118" width="28" height="28" fill="#ffe38a" fill-opacity="0.55" stroke="#e4e7e8" stroke-width="1"/>
+  <rect x="132" y="118" width="28" height="28" fill="#ff8fbd" fill-opacity="0.18" stroke="#e4e7e8" stroke-width="1"/>
+  <text x="146" y="135.92" font-family="Georgia, 'Times New Roman', serif" font-size="12" fill="#ff2d7a" font-weight="700" text-anchor="middle">×</text>
+  <rect x="160" y="118" width="28" height="28" fill="#ffffff" stroke="#e4e7e8" stroke-width="1"/>
+  <rect x="48" y="146" width="28" height="28" fill="#ffffff" stroke="#e4e7e8" stroke-width="1"/>
+  <rect x="76" y="146" width="28" height="28" fill="#ffe38a" fill-opacity="0.55" stroke="#e4e7e8" stroke-width="1"/>
+  <rect x="104" y="146" width="28" height="28" fill="#ffe38a" fill-opacity="0.55" stroke="#e4e7e8" stroke-width="1"/>
+  <rect x="132" y="146" width="28" height="28" fill="#ffe38a" fill-opacity="0.55" stroke="#e4e7e8" stroke-width="1"/>
+  <rect x="160" y="146" width="28" height="28" fill="#ffffff" stroke="#e4e7e8" stroke-width="1"/>
+  <rect x="48" y="174" width="28" height="28" fill="#ffffff" stroke="#e4e7e8" stroke-width="1"/>
+  <rect x="76" y="174" width="28" height="28" fill="#ffe38a" fill-opacity="0.55" stroke="#e4e7e8" stroke-width="1"/>
+  <rect x="104" y="174" width="28" height="28" fill="#ffe38a" fill-opacity="0.55" stroke="#e4e7e8" stroke-width="1"/>
+  <rect x="132" y="174" width="28" height="28" fill="#ffe38a" fill-opacity="0.55" stroke="#e4e7e8" stroke-width="1"/>
+  <rect x="160" y="174" width="28" height="28" fill="#ffffff" stroke="#e4e7e8" stroke-width="1"/>
+  <polygon points="81.6,98.4 154.4,157.2 84.4,190.8" fill="#a9c9ff" fill-opacity="0.28" stroke="#007bc4" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="81.6" cy="98.4" r="3.5" fill="#ffffff" stroke="#007bc4" stroke-width="2"/>
+  <circle cx="154.4" cy="157.2" r="3.5" fill="#ffffff" stroke="#007bc4" stroke-width="2"/>
+  <circle cx="84.4" cy="190.8" r="3.5" fill="#ffffff" stroke="#007bc4" stroke-width="2"/>
+  <text x="210" y="114" font-family="Georgia, 'Times New Roman', serif" font-size="12" fill="#007bc4" font-weight="700">96 B ProjectedTriangle:</text>
+  <text x="210" y="136" font-family="Georgia, 'Times New Roman', serif" font-size="11.6" fill="#111111">• edge0..3: inward line eqs</text>
+  <text x="210" y="156" font-family="Georgia, 'Times New Roman', serif" font-size="11.6" fill="#111111">• gradient: (∂z/∂x, ∂z/∂y, z_near)</text>
+  <text x="210" y="176" font-family="Georgia, 'Times New Roman', serif" font-size="11.6" fill="#111111">• yellow = covered_tile kept</text>
+  <text x="210" y="196" font-family="Georgia, 'Times New Roman', serif" font-size="11.6" fill="#ff2d7a">• pink × = bbox tile discarded</text>
+  <text x="30" y="236" font-family="Georgia, 'Times New Roman', serif" font-size="13.5" font-weight="400" fill="#007bc4">ink_visibility.wgsl · ink_sag_slack on grazing facets</text>
+  <line x1="46" y1="356" x2="396" y2="276" stroke="#111111" stroke-width="2.2" stroke-linecap="round"/>
+  <polygon points="46,356 396,276 396,372 46,372" fill="#a9c9ff" fill-opacity="0.18" stroke="none"/>
+  <line x1="224" y1="315" x2="224" y2="293" stroke="#ff7a1a" stroke-width="2" stroke-linecap="round"/>
+  <polygon points="224,282 225.65,293 222.35,293" fill="#ff7a1a" stroke="none"/>
+  <circle cx="224" cy="282" r="4.2" fill="#ff2d7a"/>
+  <circle cx="224" cy="315" r="3.6" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <text x="214" y="302" font-family="Georgia, 'Times New Roman', serif" font-size="11.5" fill="#ff7a1a" font-weight="700" text-anchor="end">sag.x + sag.y |∇z|</text>
+  <text x="116" y="360" font-family="Georgia, 'Times New Roman', serif" font-size="11.5" fill="#007bc4" font-weight="700">facet depth z(x)</text>
+  <text x="234" y="276" font-family="Georgia, 'Times New Roman', serif" font-size="11.5" fill="#ff2d7a" font-weight="700">curved edge ink</text>
+  <text x="46" y="392" font-family="Georgia, 'Times New Roman', serif" font-size="11.4" fill="#666666">Grazing facets fall by sag.y · |∇z| across the chord rise without hiding front ink.</text>
+  <text x="486" y="74" font-family="Georgia, 'Times New Roman', serif" font-size="13.5" font-weight="400" fill="#007bc4">scan_triangle_tiles.wgsl · 256-lane saturating prefix sum</text>
+  <text x="555" y="86" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#888888" font-weight="500" text-anchor="middle">tile 1</text>
+  <text x="627" y="86" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#888888" font-weight="500" text-anchor="middle">tile 2</text>
+  <text x="699" y="86" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#888888" font-weight="500" text-anchor="middle">tile 3</text>
+  <text x="771" y="86" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#888888" font-weight="500" text-anchor="middle">tile 4</text>
+  <text x="843" y="86" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#888888" font-weight="500" text-anchor="middle">tile 5</text>
+  <text x="515" y="111" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#888888" font-weight="500" text-anchor="end">count</text>
+  <text x="515" y="147" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#888888" font-weight="500" text-anchor="end">start</text>
+  <rect x="522" y="92" width="66" height="30" rx="4.5" fill="#e4e7e8" stroke="none"/>
+  <text x="555" y="110.91" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="11.5" fill="#111111" font-weight="500" text-anchor="middle">2</text>
+  <rect x="594" y="92" width="66" height="30" rx="4.5" fill="#e4e7e8" stroke="none"/>
+  <text x="627" y="110.91" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="11.5" fill="#111111" font-weight="500" text-anchor="middle">0</text>
+  <rect x="666" y="92" width="66" height="30" rx="4.5" fill="#e4e7e8" stroke="none"/>
+  <text x="699" y="110.91" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="11.5" fill="#111111" font-weight="500" text-anchor="middle">3</text>
+  <rect x="738" y="92" width="66" height="30" rx="4.5" fill="#e4e7e8" stroke="none"/>
+  <text x="771" y="110.91" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="11.5" fill="#111111" font-weight="500" text-anchor="middle">1</text>
+  <rect x="810" y="92" width="66" height="30" rx="4.5" fill="#e4e7e8" stroke="none"/>
+  <text x="843" y="110.91" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="11.5" fill="#111111" font-weight="500" text-anchor="middle">2</text>
+  <rect x="522" y="128" width="66" height="30" rx="4.5" fill="#ffc400" stroke="none"/>
+  <text x="555" y="146.91" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="11.5" fill="#111111" font-weight="500" text-anchor="middle">0</text>
+  <rect x="594" y="128" width="66" height="30" rx="4.5" fill="#ffc400" stroke="none"/>
+  <text x="627" y="146.91" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="11.5" fill="#111111" font-weight="500" text-anchor="middle">2</text>
+  <rect x="666" y="128" width="66" height="30" rx="4.5" fill="#ff5c9a" stroke="none"/>
+  <text x="699" y="146.91" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="11.5" fill="#111111" font-weight="500" text-anchor="middle">2</text>
+  <rect x="738" y="128" width="66" height="30" rx="4.5" fill="#a9c9ff" stroke="none"/>
+  <text x="771" y="146.91" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="11.5" fill="#111111" font-weight="500" text-anchor="middle">5</text>
+  <rect x="810" y="128" width="66" height="30" rx="4.5" fill="#00c46a" stroke="none"/>
+  <text x="843" y="146.91" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="11.5" fill="#111111" font-weight="500" text-anchor="middle">6</text>
+  <text x="486" y="178" font-family="Georgia, 'Times New Roman', serif" font-size="12.4" fill="#007bc4" font-weight="700">Three compute dispatches:  scan_tiles  →  scan_blocks  →  finish_offsets</text>
+  <text x="486" y="200" font-family="Georgia, 'Times New Roman', serif" font-size="11.6" fill="#666666">Saturates at pool capacity on overflow; async CPU readback doubles the pool next frame.</text>
+  <text x="486" y="236" font-family="Georgia, 'Times New Roman', serif" font-size="13.5" font-weight="400" fill="#007bc4">triangle.wgsl, face_coverage.wgsl &amp; carry tolerance</text>
+  <text x="486" y="268" font-family="Georgia, 'Times New Roman', serif" font-size="13.2" fill="#111111">ε(<tspan font-style="italic">z, g, L</tspan>) = |<tspan font-style="italic">z</tspan>| · 2<tspan font-size="9.5" dy="-5">−19</tspan><tspan dy="5"> + |</tspan><tspan font-style="italic">g</tspan>| · (1 / 256) · (1 + <tspan font-style="italic">L</tspan>)</text>
+  <text x="486" y="298" font-family="Georgia, 'Times New Roman', serif" font-size="11.8" fill="#111111">• <tspan font-family="monospace" font-size="11.0" fill="#007bc4">triangle.wgsl</tspan>: decodes <tspan font-family="monospace" font-size="11.0">oct32</tspan>, flips winding when <tspan font-family="monospace" font-size="11.0">det(M) &lt; 0</tspan>,</text>
+  <text x="498" y="318" font-family="Georgia, 'Times New Roman', serif" font-size="11.6" fill="#666666">applies per-sample <tspan font-family="monospace" font-size="11.0">clip_mask</tspan>, and writes <tspan font-family="monospace" font-size="11.0">2×u16</tspan> primitive IDs.</text>
+  <text x="486" y="344" font-family="Georgia, 'Times New Roman', serif" font-size="11.8" fill="#111111">• <tspan font-family="monospace" font-size="11.0" fill="#007bc4">face_coverage.wgsl</tspan>: converts nonzero MSAA primitive samples into exact</text>
+  <text x="498" y="364" font-family="Georgia, 'Times New Roman', serif" font-size="11.6" fill="#666666">fractional coverage &amp; <tspan font-family="monospace" font-size="11.0">@builtin(sample_mask)</tspan> for silhouettes.</text>
+  <rect x="0.5" y="421.5" width="959" height="3" fill="#e4e7e8"/>
+  <rect x="0.5" y="421.5" width="404.21" height="3" fill="#007bc4"/>
+</svg>

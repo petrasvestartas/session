@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 390" width="960" height="390">
+  <rect x="0.5" y="0.5" width="959" height="389" fill="#ffffff" stroke="#e4e7e8" stroke-width="1"/>
+  <line x1="451.2" y1="54" x2="451.2" y2="368" stroke="#e4e7e8" stroke-width="1"/>
+  <text x="26" y="32" font-family="Georgia, 'Times New Roman', serif" font-size="14.2" font-weight="700" fill="#007bc4">WEBGPU SURFACE AND CLEAR PASS</text>
+  <text x="473.2" y="32" font-family="Georgia, 'Times New Roman', serif" font-size="13.0" fill="#111111">Size the physical surface from <tspan font-style="italic">clientWidth · dpr</tspan>, clear white and present.</text>
+  <text x="34" y="76" font-family="Georgia, 'Times New Roman', serif" font-size="13.5" font-weight="400" fill="#007bc4">Viewport resize · CSS points to physical texels</text>
+  <rect x="42" y="98" width="224" height="140" fill="#a9c9ff" fill-opacity="0.14" stroke="#111111" stroke-width="2.2"/>
+  <text x="54" y="120" font-family="Georgia, 'Times New Roman', serif" font-size="12.5" fill="#007bc4" font-weight="700">#canvas · 1280 × 800</text>
+  <text x="54" y="140" font-family="Georgia, 'Times New Roman', serif" font-size="12" fill="#666666" font-style="italic">fill = (1, 1, 1, 1)</text>
+  <line x1="42" y1="256" x2="253" y2="256" stroke="#007bc4" stroke-width="1.6" stroke-linecap="round"/>
+  <polygon points="266,256 253,257.95 253,254.05" fill="#007bc4" stroke="none"/>
+  <line x1="266" y1="256" x2="55" y2="256" stroke="#007bc4" stroke-width="1.6" stroke-linecap="round"/>
+  <polygon points="42,256 55,254.05 55,257.95" fill="#007bc4" stroke="none"/>
+  <text x="154" y="272" font-family="Georgia, 'Times New Roman', serif" font-size="12" fill="#007bc4" text-anchor="middle"><tspan font-style="italic">W</tspan><tspan font-size="9.5" dy="3">px</tspan><tspan dy="-3"> = 1280 · </tspan><tspan font-style="italic">s</tspan></text>
+  <line x1="266" y1="98" x2="324" y2="98" stroke="#888888" stroke-width="1.2" stroke-linecap="round" stroke-dasharray="5 3.8"/>
+  <line x1="266" y1="238" x2="324" y2="284" stroke="#888888" stroke-width="1.2" stroke-linecap="round" stroke-dasharray="5 3.8"/>
+  <rect x="324" y="98" width="86" height="186" fill="#ff8fbd" fill-opacity="0.15" stroke="#111111" stroke-width="2.2"/>
+  <text x="367" y="122" font-family="Georgia, 'Times New Roman', serif" font-size="11.5" fill="#ff2d7a" font-weight="700" text-anchor="middle">390 × 844</text>
+  <text x="367" y="140" font-family="Georgia, 'Times New Roman', serif" font-size="11" fill="#666666" font-style="italic" text-anchor="middle">reconfigure</text>
+  <circle cx="42" cy="98" r="3.8" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <circle cx="266" cy="98" r="3.8" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <circle cx="42" cy="238" r="3.8" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <circle cx="266" cy="238" r="3.8" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <circle cx="324" cy="98" r="3.8" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <circle cx="410" cy="98" r="3.8" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <circle cx="324" cy="284" r="3.8" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <circle cx="410" cy="284" r="3.8" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <line x1="70" y1="220" x2="48" y2="294" stroke="#ff7a1a" stroke-width="1.2" stroke-linecap="round" stroke-dasharray="5 3.8"/>
+  <rect x="48" y="294" width="54" height="54" fill="#ffe38a" fill-opacity="0.28" stroke="#111111" stroke-width="2"/>
+  <line x1="75" y1="294" x2="75" y2="348" stroke="#888888" stroke-width="1.1" stroke-linecap="round" stroke-dasharray="3 2.5"/>
+  <line x1="48" y1="321" x2="102" y2="321" stroke="#888888" stroke-width="1.1" stroke-linecap="round" stroke-dasharray="3 2.5"/>
+  <circle cx="61.5" cy="307.5" r="2.6" fill="#ff7a1a"/>
+  <circle cx="61.5" cy="334.5" r="2.6" fill="#ff7a1a"/>
+  <circle cx="88.5" cy="307.5" r="2.6" fill="#ff7a1a"/>
+  <circle cx="88.5" cy="334.5" r="2.6" fill="#ff7a1a"/>
+  <text x="116" y="314" font-family="Georgia, 'Times New Roman', serif" font-size="12.2" fill="#111111">1 CSS pt → <tspan font-style="italic">s × s</tspan> physical texels</text>
+  <text x="116" y="334" font-family="Georgia, 'Times New Roman', serif" font-size="11.8" fill="#666666">sized before first <tspan font-style="italic">winit</tspan> resize</text>
+  <text x="474" y="76" font-family="Georgia, 'Times New Roman', serif" font-size="13.5" font-weight="400" fill="#007bc4">DeviceSetup::new · async browser &amp; native handshake</text>
+  <rect x="474" y="94" width="92" height="38" rx="5" fill="#e4e7e8" stroke="none"/>
+  <text x="520" y="111" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="11" fill="#111111" font-weight="700" text-anchor="middle">Instance</text>
+  <text x="520" y="125" font-family="Georgia, 'Times New Roman', serif" font-size="10.5" fill="#111111" text-anchor="middle">WebGPU</text>
+  <line x1="568" y1="113" x2="576.25" y2="113" stroke="#007bc4" stroke-width="1.8" stroke-linecap="round"/>
+  <polygon points="583,113 576.25,114.01 576.25,111.99" fill="#007bc4" stroke="none"/>
+  <rect x="586" y="94" width="92" height="38" rx="5" fill="#a9c9ff" stroke="none"/>
+  <text x="632" y="111" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="11" fill="#111111" font-weight="700" text-anchor="middle">Surface</text>
+  <text x="632" y="125" font-family="Georgia, 'Times New Roman', serif" font-size="10.5" fill="#111111" text-anchor="middle">'static #canvas</text>
+  <line x1="680" y1="113" x2="688.25" y2="113" stroke="#007bc4" stroke-width="1.8" stroke-linecap="round"/>
+  <polygon points="695,113 688.25,114.01 688.25,111.99" fill="#007bc4" stroke="none"/>
+  <rect x="698" y="94" width="92" height="38" rx="5" fill="#ffc400" stroke="none"/>
+  <text x="744" y="111" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="11" fill="#111111" font-weight="700" text-anchor="middle">Adapter</text>
+  <text x="744" y="125" font-family="Georgia, 'Times New Roman', serif" font-size="10.5" fill="#111111" text-anchor="middle">sRGB + limits</text>
+  <line x1="792" y1="113" x2="800.25" y2="113" stroke="#007bc4" stroke-width="1.8" stroke-linecap="round"/>
+  <polygon points="807,113 800.25,114.01 800.25,111.99" fill="#007bc4" stroke="none"/>
+  <rect x="810" y="94" width="92" height="38" rx="5" fill="#ff5c9a" stroke="none"/>
+  <text x="856" y="111" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="11" fill="#111111" font-weight="700" text-anchor="middle">Device+Queue</text>
+  <text x="856" y="125" font-family="Georgia, 'Times New Roman', serif" font-size="10.5" fill="#111111" text-anchor="middle">≤ 256 MiB</text>
+  <text x="474" y="168" font-family="Georgia, 'Times New Roman', serif" font-size="13.2" fill="#111111"><tspan font-style="italic">W</tspan><tspan font-size="10" dy="3">px</tspan><tspan dy="-3"> = max(1, ⌊</tspan><tspan font-style="italic">W</tspan><tspan font-size="10" dy="3">css</tspan><tspan dy="-3"> · </tspan><tspan font-style="italic">s</tspan><tspan font-size="10" dy="3">dpr</tspan><tspan dy="-3">⌋),     </tspan><tspan font-style="italic">B</tspan><tspan font-size="10" dy="3">storage</tspan><tspan dy="-3"> = min(adapter, 256 MiB)</tspan></text>
+  <text x="474" y="204" font-family="Georgia, 'Times New Roman', serif" font-size="13.5" font-weight="400" fill="#007bc4">Frame::draw · record, finish, submit, present</text>
+  <line x1="518" y1="244" x2="623" y2="244" stroke="#007bc4" stroke-width="2.2" stroke-linecap="round"/>
+  <polygon points="637,244 623,246.1 623,241.9" fill="#007bc4" stroke="none"/>
+  <line x1="642" y1="244" x2="749" y2="244" stroke="#007bc4" stroke-width="2.2" stroke-linecap="round"/>
+  <polygon points="763,244 749,246.1 749,241.9" fill="#007bc4" stroke="none"/>
+  <line x1="768" y1="244" x2="869" y2="244" stroke="#00c46a" stroke-width="2.2" stroke-linecap="round"/>
+  <polygon points="883,244 869,246.1 869,241.9" fill="#00c46a" stroke="none"/>
+  <circle cx="518" cy="244" r="4.5" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <circle cx="642" cy="244" r="4.5" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <circle cx="768" cy="244" r="4.5" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <circle cx="888" cy="244" r="4.5" fill="#ffffff" stroke="#00c46a" stroke-width="2"/>
+  <text x="518" y="231" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="9.8" fill="#111111" font-weight="500" text-anchor="middle">current_texture()</text>
+  <text x="642" y="231" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="9.8" fill="#007bc4" font-weight="500" text-anchor="middle">Clear(1,1,1,1)</text>
+  <text x="768" y="231" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="9.8" fill="#111111" font-weight="500" text-anchor="middle">drop(pass); submit</text>
+  <text x="888" y="231" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="9.8" fill="#00c46a" font-weight="500" text-anchor="middle">present()</text>
+  <text x="518" y="265" font-family="Georgia, 'Times New Roman', serif" font-size="11" fill="#666666" text-anchor="middle">swapchain view</text>
+  <text x="642" y="265" font-family="Georgia, 'Times New Roman', serif" font-size="11" fill="#666666" text-anchor="middle">command buffer</text>
+  <text x="768" y="265" font-family="Georgia, 'Times New Roman', serif" font-size="11" fill="#666666" text-anchor="middle">GPU queue</text>
+  <text x="888" y="265" font-family="Georgia, 'Times New Roman', serif" font-size="11" fill="#666666" text-anchor="middle">scanout #ffffff</text>
+  <line x1="474" y1="294" x2="934" y2="294" stroke="#e4e7e8" stroke-width="1" stroke-linecap="round"/>
+  <text x="474" y="320" font-family="Georgia, 'Times New Roman', serif" font-size="12.4" fill="#111111">On-demand loop: <tspan font-family="monospace" font-size="11.5" fill="#007bc4">draw() → false</tspan> parks <tspan font-style="italic">ControlFlow::Wait</tspan> until resize or input.</text>
+  <text x="474" y="346" font-family="Georgia, 'Times New Roman', serif" font-size="12" fill="#666666">Async bridge: <tspan font-family="monospace" font-size="11.5">EventLoopProxy</tspan> cloned before <tspan font-family="monospace" font-size="11.5">spawn_app</tspan> avoids borrowing across <tspan font-family="monospace" font-size="11.5">.await</tspan>.</text>
+  <rect x="0.5" y="386.5" width="959" height="3" fill="#e4e7e8"/>
+  <rect x="0.5" y="386.5" width="50.53" height="3" fill="#007bc4"/>
+</svg>

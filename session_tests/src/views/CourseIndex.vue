@@ -2,37 +2,32 @@
   <div class="course-index">
     <h1>Viewer course</h1>
     <p class="lead">
-      Build the Session Viewer in Rust and wgpu across {{ checkpointCount.toLocaleString('en-US') }} executable subject checkpoints.
+      Build the Session Viewer from scratch in Rust and WebGPU across {{ checkpointCount.toLocaleString('en-US') }} cumulative checkpoints, from the first cleared surface to every WGSL shader, presentation stage and scene tool. Install Rust <code>1.97.1</code>, the browser target and Trunk <code>0.21.14</code>, then follow the tutorials step by step:
     </p>
-    <p class="jump-row">
-      <router-link class="start-link" to="/course/journey/completion-frame">Start Tutorial 1: Open a GPU frame →</router-link>
-    </p>
-    <p class="meta-row">
-      <router-link to="/course/journey/active">Course map</router-link>
-      · <router-link to="/course/journey/active#acceptance">Acceptance status</router-link>
-      <template v-if="latestLesson"> · <router-link :to="'/course/' + latestLesson">Endpoint: {{ pages[latestLesson].title }}</router-link></template>
-    </p>
-    <details v-for="g in groups" :key="g.title" :open="g.title === 'Cumulative subjects'">
-      <summary>{{ g.title }}</summary>
-      <template v-if="g.sections">
-        <details v-for="section in g.sections" :key="section.title" class="book-section">
-          <summary>{{ section.title }}</summary>
-          <ol><li v-for="s in section.slugs" :key="s"><router-link :to="'/course/' + s">{{ pages[s]?.title }}</router-link></li></ol>
-        </details>
-      </template>
-      <ol v-else :class="{ numbered: g.title === 'Cumulative subjects' }">
-        <li v-for="s in g.slugs" :key="s">
-          <router-link :to="'/course/' + s">{{ pages[s]?.title }}</router-link>
-        </li>
-      </ol>
-    </details>
+    <pre class="setup-code"><code>rustup toolchain install 1.97.1 --component rustfmt clippy
+rustup target add --toolchain 1.97.1 wasm32-unknown-unknown
+cargo +1.97.1 install trunk --version 0.21.14 --locked</code></pre>
+    <ol class="tutorial-list">
+      <li v-for="t in tutorials" :key="t.id" class="tutorial-item">
+        <router-link :to="'/course/' + t.slug" class="tutorial-link">
+          <span class="tutorial-num">{{ t.number }}.</span>
+          <span class="tutorial-title">{{ t.title }}</span>
+        </router-link>
+        <ol v-if="t.chapters.length" class="chapter-list">
+          <li v-for="c in t.chapters" :key="c.slug" class="chapter-item">
+            <router-link :to="'/course/' + c.slug" class="tutorial-link chapter-link">
+              <span class="tutorial-num">{{ c.number }}</span>
+              <span class="tutorial-title">{{ c.title }}</span>
+            </router-link>
+          </li>
+        </ol>
+      </li>
+    </ol>
   </div>
 </template>
 
 <script setup lang="ts">
-import { checkpointCount, groups, pages } from 'virtual:course';
-import { latestCodingLesson } from '../courseOrder';
-const latestLesson = latestCodingLesson(pages);
+import { checkpointCount, tutorials } from 'virtual:course';
 </script>
 
 <style scoped>
@@ -42,84 +37,83 @@ const latestLesson = latestCodingLesson(pages);
   line-height: 1.55;
 }
 
-.book-section { margin-left: 1rem; }
-.book-section summary { margin-top: 0.7rem; border: 0; }
-
 h1 {
   font-size: 26px;
   font-weight: 600;
-  margin: 0 0 0.35rem;
-}
-
-summary {
-  font-size: 15px;
-  font-weight: 600;
-  margin: 1.6rem 0 0.4rem;
-  padding-bottom: 0.3rem;
-  border-bottom: 1px solid var(--rule);
-  cursor: pointer;
+  margin: 0 0 0.45rem;
 }
 
 .lead {
-  color: var(--muted);
-  margin: 0 0 0.9rem;
+  color: var(--fg);
+  margin: 0 0 0.75rem;
+  font-size: 15px;
 }
 
-.jump-row {
-  margin: 0 0 0.55rem;
+.lead code {
+  font-size: 0.88em;
+  background: var(--code-bg);
+  padding: 0.08em 0.3em;
+  border-radius: 3px;
 }
 
-.start-link {
-  display: inline-block;
-  padding: 0.42rem 0.85rem;
-  font-size: 14.5px;
-  font-weight: 600;
-  color: #ffffff;
-  background: #111111;
-  border-radius: 5px;
-  text-decoration: none;
+.setup-code {
+  margin: 0 0 1.5rem;
+  padding: 0.7rem 0.95rem;
+  background: var(--code-bg);
+  border-radius: 4px;
+  overflow-x: auto;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #1a1a1a;
 }
 
-.start-link:hover {
-  background: #2b2b33;
-  text-decoration: none;
-}
-
-.meta-row {
-  margin: 0;
-  font-size: 13.5px;
-  color: var(--muted);
-}
-
-.meta-row a {
-  color: var(--muted);
-}
-
-ol {
+.tutorial-list,
+.chapter-list {
   list-style: none;
   padding: 0;
   margin: 0;
 }
 
-ol.numbered {
-  list-style: decimal;
-  padding-left: 1.35rem;
+.tutorial-item {
+  border-top: 1px solid var(--rule);
+  padding: 0.42rem 0;
 }
 
-ol.numbered li {
-  padding: 0.2rem 0.15rem;
+.tutorial-item:last-child {
+  border-bottom: 1px solid var(--rule);
 }
 
-li {
-  padding: 0.15rem 0;
+.chapter-list {
+  padding: 0.15rem 0 0.15rem 1.85rem;
 }
 
-a {
+.chapter-item {
+  padding: 0.16rem 0;
+}
+
+.tutorial-link {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.5rem;
   color: var(--fg);
   text-decoration: none;
+  font-size: 15.5px;
+  font-weight: 500;
 }
 
-a:hover {
+.chapter-link {
+  font-size: 14.5px;
+  font-weight: 400;
+}
+
+.tutorial-num {
+  font-variant-numeric: tabular-nums;
+  color: #007bc4;
+  font-weight: 600;
+  min-width: 1.65rem;
+}
+
+.tutorial-link:hover .tutorial-title {
   text-decoration: underline;
 }
 </style>

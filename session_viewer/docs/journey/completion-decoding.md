@@ -2,10 +2,10 @@
 
 Validate and decode `.pb` `Session` payloads under explicit byte, object-count and tree-depth limits while yielding cooperatively to the browser event loop.
 
+![Bounded protobuf decode: 1 MiB JS window, truncated 0x80 varint guard, four explicit caps and 25,000-object yield](../illustrations/stage/08-protobuf-bounds-yield.svg)
+
 ![Tutorial 8 output: bounded protobuf decoder reporting 4 BReps in course-comparison.pb](../screenshots/active/decoding-summary-1280.png)
 ![Contextual filename error when a truncated 0x80 varint is appended](../screenshots/active/decoding-error-1280.png)
-
-![Four explicit bounds and cooperative browser yielding before scene upload](../illustrations/active/decode-bounds.svg)
 
 ## Prerequisites and ownership
 
@@ -26,21 +26,33 @@ Materialize checkpoint `decoding` to compile the validator, decoder and recovery
 npm --prefix ../session_tests run course -- checkpoint decoding ../session_viewer/target/learn-decoding
 ```
 
-### Bytes, ownership and limits
+### Step 1: Enforce explicit byte, object-count and hierarchy bounds
 
 `src/app/decode.rs` reads `Body::Bytes` or windowed `1 MiB` `Body::Js` slices with checked offsets, enforces a `512 MiB` whole-file cap, counts at most `2,000,000` geometry records (`Rc`-shared between typed tables and GUID maps), and rebuilds the hierarchy on an explicit `Vec` stack capped at depth `64` plus bidirectional graph edges and local instance transforms.
 
-### Protobuf fields and validation
+```rust
+--8<-- "session_viewer/src/app/decode.rs:21:45"
+```
+
+### Step 2: Validate wire varints and post-`prost` geometry invariants
 
 `src/app/validate.rs` checks complete varints (`validate::varint`) and enclosing message bounds (`Reader::field`) so unknown valid fields skip cleanly while truncated tags fail, then validates decoded `prost` mesh vertex indices, cloud column lengths and NURBS control/knot invariants before constructing `session_rust` objects.
 
-### Yielding without threads
+```rust
+--8<-- "session_viewer/src/app/validate.rs:4:15"
+```
+
+### Step 3: Yield to the browser event loop every 25,000 objects
 
 `src/app/yielding.rs` pauses async decoding every `25,000` converted objects by awaiting a zero-millisecond browser timer Promise (`yield_now`), keeping `wasm32` single-threaded without holding any `RefCell` borrow across `.await`.
 
 ```rust
 --8<-- "session_viewer/src/app/yielding.rs:browser-yield"
 ```
+
+### Step 4: Wire the checkpoint and `0x80` fault-injection harness
+
+`examples/course/decoding.rs` decodes `course-comparison.pb`, lets `E` append a truncated `0x80` varint byte to exercise `TRUNCATED` error reporting with filename context, and lets `R` re-decode the clean original bytes.
 
 ```rust
 --8<-- "session_viewer/examples/course/decoding.rs:course-decoding"

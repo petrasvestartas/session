@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 420" width="960" height="420">
+  <rect x="0.5" y="0.5" width="959" height="419" fill="#ffffff" stroke="#e4e7e8" stroke-width="1"/>
+  <line x1="460.8" y1="54" x2="460.8" y2="398" stroke="#e4e7e8" stroke-width="1"/>
+  <text x="26" y="32" font-family="Georgia, 'Times New Roman', serif" font-size="14.2" font-weight="700" fill="#007bc4">ANCHORED CAMERA AND REVERSED-Z</text>
+  <text x="482.8" y="32" font-family="Georgia, 'Times New Roman', serif" font-size="13.0" fill="#111111">Subtract anchor in <tspan font-style="italic">f64</tspan>, swap near/far (near→1), and lock cursor rays.</text>
+  <text x="30" y="74" font-family="Georgia, 'Times New Roman', serif" font-size="13.5" font-weight="400" fill="#007bc4">3D camera basis, reversed-Z frustum &amp; cursor-pinned zoom_at</text>
+  <line x1="232" y1="210.4" x2="104.86" y2="278" stroke="#eceff1" stroke-width="0.9" stroke-linecap="round"/>
+  <line x1="253.19" y1="221.66" x2="126.05" y2="289.27" stroke="#eceff1" stroke-width="0.9" stroke-linecap="round"/>
+  <line x1="274.38" y1="232.93" x2="147.24" y2="300.53" stroke="#eceff1" stroke-width="0.9" stroke-linecap="round"/>
+  <line x1="295.57" y1="244.2" x2="168.43" y2="311.8" stroke="#eceff1" stroke-width="0.9" stroke-linecap="round"/>
+  <line x1="316.76" y1="255.47" x2="189.62" y2="323.07" stroke="#eceff1" stroke-width="0.9" stroke-linecap="round"/>
+  <line x1="337.95" y1="266.73" x2="210.81" y2="334.34" stroke="#eceff1" stroke-width="0.9" stroke-linecap="round"/>
+  <line x1="359.14" y1="278" x2="232" y2="345.6" stroke="#eceff1" stroke-width="0.9" stroke-linecap="round"/>
+  <line x1="232" y1="210.4" x2="359.14" y2="278" stroke="#eceff1" stroke-width="0.9" stroke-linecap="round"/>
+  <line x1="210.81" y1="221.66" x2="337.95" y2="289.27" stroke="#eceff1" stroke-width="0.9" stroke-linecap="round"/>
+  <line x1="189.62" y1="232.93" x2="316.76" y2="300.53" stroke="#eceff1" stroke-width="0.9" stroke-linecap="round"/>
+  <line x1="168.43" y1="244.2" x2="295.57" y2="311.8" stroke="#eceff1" stroke-width="0.9" stroke-linecap="round"/>
+  <line x1="147.24" y1="255.47" x2="274.38" y2="323.07" stroke="#eceff1" stroke-width="0.9" stroke-linecap="round"/>
+  <line x1="126.05" y1="266.73" x2="253.19" y2="334.34" stroke="#eceff1" stroke-width="0.9" stroke-linecap="round"/>
+  <line x1="104.86" y1="278" x2="232" y2="345.6" stroke="#eceff1" stroke-width="0.9" stroke-linecap="round"/>
+  <polygon points="316,102 424,136 404,256 296,218" fill="#a9c9ff" fill-opacity="0.18" stroke="#007bc4" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round"/>
+  <polygon points="164,128 218,146 208,206 154,188" fill="#ff8fbd" fill-opacity="0.22" stroke="#ff2d7a" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+  <line x1="82" y1="146" x2="316" y2="102" stroke="#888888" stroke-width="1" stroke-linecap="round" stroke-dasharray="4 3.5"/>
+  <line x1="82" y1="146" x2="424" y2="136" stroke="#888888" stroke-width="1" stroke-linecap="round" stroke-dasharray="4 3.5"/>
+  <line x1="82" y1="146" x2="404" y2="256" stroke="#888888" stroke-width="1" stroke-linecap="round" stroke-dasharray="4 3.5"/>
+  <line x1="82" y1="146" x2="296" y2="218" stroke="#888888" stroke-width="1" stroke-linecap="round" stroke-dasharray="4 3.5"/>
+  <line x1="195.98" y1="279.13" x2="82" y2="146" stroke="#ff7a1a" stroke-width="1.4" stroke-linecap="round" stroke-dasharray="5 3.8"/>
+  <line x1="195.98" y1="279.13" x2="234.12" y2="264.29" stroke="#ff7a1a" stroke-width="1.4" stroke-linecap="round" stroke-dasharray="5 3.8"/>
+  <line x1="82" y1="146" x2="222.28" y2="255.08" stroke="#007bc4" stroke-width="2.3" stroke-linecap="round"/>
+  <polygon points="234.12,264.29 220.9,256.86 223.66,253.3" fill="#007bc4" stroke="none"/>
+  <line x1="82" y1="146" x2="113.37" y2="162.43" stroke="#ff2d7a" stroke-width="2.1" stroke-linecap="round"/>
+  <polygon points="124,168 112.53,164.03 114.21,160.84" fill="#ff2d7a" stroke="none"/>
+  <line x1="82" y1="146" x2="85" y2="109.96" stroke="#00c46a" stroke-width="2.1" stroke-linecap="round"/>
+  <polygon points="86,98 86.8,110.11 83.21,109.81" fill="#00c46a" stroke="none"/>
+  <line x1="82" y1="146" x2="343.09" y2="176.49" stroke="#ff7a1a" stroke-width="1.9" stroke-linecap="round" stroke-dasharray="5 3"/>
+  <polygon points="356,178 342.86,178.43 343.31,174.56" fill="#ff7a1a" stroke="none"/>
+  <circle cx="195.98" cy="279.13" r="4.2" fill="#ffffff" stroke="#ff7a1a" stroke-width="2"/>
+  <circle cx="82" cy="146" r="4.6" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <circle cx="234.12" cy="264.29" r="4.4" fill="#ffffff" stroke="#007bc4" stroke-width="2"/>
+  <circle cx="356" cy="178" r="3.8" fill="#ff7a1a"/>
+  <text x="58" y="152" font-family="Georgia, 'Times New Roman', serif" font-size="14" fill="#111111" font-weight="700">e</text>
+  <text x="128" y="176" font-family="Georgia, 'Times New Roman', serif" font-size="13" fill="#ff2d7a" font-weight="700">r</text>
+  <text x="70" y="98" font-family="Georgia, 'Times New Roman', serif" font-size="13" fill="#00c46a" font-weight="700">u</text>
+  <text x="242.12" y="278.29" font-family="Georgia, 'Times New Roman', serif" font-size="14" fill="#007bc4" font-weight="700">t</text>
+  <text x="181.98" y="297.13" font-family="Georgia, 'Times New Roman', serif" font-size="12" fill="#ff7a1a" font-weight="700">anchor a (f64)</text>
+  <text x="364" y="182" font-family="Georgia, 'Times New Roman', serif" font-size="12.5" fill="#ff7a1a" font-weight="700">p<tspan font-size="9.5" dy="2">cursor</tspan></text>
+  <text x="166" y="120" font-family="Georgia, 'Times New Roman', serif" font-size="11.5" fill="#ff2d7a" font-weight="700">near z = 1</text>
+  <text x="352" y="96" font-family="Georgia, 'Times New Roman', serif" font-size="11.5" fill="#007bc4" font-weight="700">far z = 0</text>
+  <text x="486" y="74" font-family="Georgia, 'Times New Roman', serif" font-size="13.5" font-weight="400" fill="#007bc4">Camera::view_proj_anchored · exact composition</text>
+  <text x="486" y="112" font-family="Georgia, 'Times New Roman', serif" font-size="13.8" fill="#111111"><tspan font-weight="700">M</tspan><tspan font-size="10" dy="3">vp</tspan><tspan dy="-3"> = </tspan><tspan fill="#007bc4" font-weight="700">T</tspan><tspan fill="#007bc4" font-size="10" dy="3">lens</tspan><tspan dy="-3">(δ</tspan><tspan font-size="10" dy="3">x</tspan><tspan dy="-3">, δ</tspan><tspan font-size="10" dy="3">y</tspan><tspan dy="-3">) · </tspan><tspan fill="#ff2d7a" font-weight="700">P</tspan><tspan fill="#ff2d7a" font-size="10" dy="3">rev-z</tspan><tspan dy="-3"> · </tspan><tspan font-weight="700">V</tspan>(<tspan font-weight="700">e − a</tspan>, <tspan font-weight="700">t − a</tspan>) · <tspan font-weight="700">S</tspan>(<tspan font-style="italic">u</tspan><tspan font-size="10" dy="3">m</tspan><tspan dy="-3">)</tspan></text>
+  <text x="486" y="142" font-family="Georgia, 'Times New Roman', serif" font-size="12.8" fill="#666666">Panel shift:  δ<tspan font-size="9.5" dy="2">x</tspan><tspan dy="-2"> = </tspan><tspan font-style="italic">f</tspan><tspan font-size="9.5" dy="2">0</tspan><tspan dy="-2"> + </tspan><tspan font-style="italic">f</tspan><tspan font-size="9.5" dy="2">2</tspan><tspan dy="-2"> − 1,    </tspan>δ<tspan font-size="9.5" dy="2">y</tspan><tspan dy="-2"> = 1 − </tspan><tspan font-style="italic">f</tspan><tspan font-size="9.5" dy="2">1</tspan><tspan dy="-2"> − </tspan><tspan font-style="italic">f</tspan><tspan font-size="9.5" dy="2">3</tspan></text>
+  <text x="486" y="178" font-family="Georgia, 'Times New Roman', serif" font-size="13.5" font-weight="400" fill="#007bc4">Five coordinate spaces from kernel f64 to screen pixels</text>
+  <text x="527" y="190" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#888888" font-weight="500" text-anchor="middle">f64 units</text>
+  <text x="617" y="190" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#888888" font-weight="500" text-anchor="middle">p − a (m)</text>
+  <text x="707" y="190" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#888888" font-weight="500" text-anchor="middle">(x,y,z,w)</text>
+  <text x="797" y="190" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#888888" font-weight="500" text-anchor="middle">÷ w</text>
+  <text x="887" y="190" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#888888" font-weight="500" text-anchor="middle">+y down</text>
+  <rect x="486" y="196" width="82" height="40" rx="4.5" fill="#e4e7e8" stroke="none"/>
+  <text x="527" y="219.81" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="11.2" fill="#111111" font-weight="500" text-anchor="middle">World</text>
+  <rect x="576" y="196" width="82" height="40" rx="4.5" fill="#ffc400" stroke="none"/>
+  <text x="617" y="219.81" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="11.2" fill="#111111" font-weight="500" text-anchor="middle">Anchored</text>
+  <rect x="666" y="196" width="82" height="40" rx="4.5" fill="#a9c9ff" stroke="none"/>
+  <text x="707" y="219.81" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="11.2" fill="#111111" font-weight="500" text-anchor="middle">Clip</text>
+  <rect x="756" y="196" width="82" height="40" rx="4.5" fill="#ff5c9a" stroke="none"/>
+  <text x="797" y="219.81" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="11.2" fill="#111111" font-weight="500" text-anchor="middle">NDC</text>
+  <rect x="846" y="196" width="82" height="40" rx="4.5" fill="#00c46a" stroke="none"/>
+  <text x="887" y="219.81" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="11.2" fill="#111111" font-weight="500" text-anchor="middle">Screen</text>
+  <text x="486" y="274" font-family="Georgia, 'Times New Roman', serif" font-size="13.5" fill="#111111"><tspan font-style="italic">x</tspan><tspan font-size="9.5" dy="2">scr</tspan><tspan dy="-2"> = ½ (1 + </tspan><tspan font-style="italic">x</tspan><tspan font-size="9.5" dy="2">ndc</tspan><tspan dy="-2">) </tspan><tspan font-style="italic">W</tspan>,       <tspan font-style="italic">y</tspan><tspan font-size="9.5" dy="2">scr</tspan><tspan dy="-2"> = ½ (1 </tspan><tspan fill="#ff2d7a" font-weight="700">−</tspan> <tspan font-style="italic">y</tspan><tspan font-size="9.5" dy="2">ndc</tspan><tspan dy="-2">) </tspan><tspan font-style="italic">H</tspan></text>
+  <line x1="486" y1="298" x2="934" y2="298" stroke="#e4e7e8" stroke-width="1" stroke-linecap="round"/>
+  <text x="486" y="322" font-family="Georgia, 'Times New Roman', serif" font-size="12" fill="#111111">• <tspan font-weight="700">Anchor subtraction in f64</tspan>: large coordinates cancel before f32 upload.</text>
+  <text x="486" y="346" font-family="Georgia, 'Times New Roman', serif" font-size="12" fill="#111111">• <tspan font-weight="700">Reversed-Z</tspan> (<tspan font-family="monospace" font-size="11.0">perspective(fov, aspect, far, near)</tspan>): mantissa bits</text>
+  <text x="498" y="366" font-family="Georgia, 'Times New Roman', serif" font-size="11.8" fill="#666666">stay dense near z = 0 where distant roofs &amp; floor grids compete.</text>
+  <rect x="0.5" y="416.5" width="959" height="3" fill="#e4e7e8"/>
+  <rect x="0.5" y="416.5" width="252.63" height="3" fill="#007bc4"/>
+</svg>

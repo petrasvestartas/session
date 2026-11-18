@@ -7,19 +7,32 @@ async function verifyCourseHome(page, base) {
     await page.goto(base + '#/course');
     const home = page.locator('.course-index');
     await home.waitFor();
-    assert((await home.locator('.lead').innerText()).includes(`${course.subjects.length} executable subject checkpoints`));
-    const chapters = home.locator(':scope > details').filter({has: page.getByText('Subject chapters', {exact: true})});
-    await chapters.locator(':scope > summary').click();
-    const geometry = chapters.locator('.book-section').filter({has: page.getByText('Render kernel geometry', {exact: true})});
-    await geometry.locator(':scope > summary').click();
-    const link = geometry.getByRole('link', {name: 'Decide which ink is visible', exact: true});
+    assert((await home.locator('.lead').innerText()).includes(`${course.subjects.length} cumulative checkpoints`));
+    assert.equal(await home.locator(':scope > details').count(), 0);
+    assert.equal(await home.locator('.tutorial-list > .tutorial-item').count(), course.subjects.length);
+    const totalTutorialLinks = course.subjects.reduce((sum, s) => sum + 1 + s.chapters.length, 0);
+    assert.equal(await home.locator('.tutorial-list a.tutorial-link').count(), totalTutorialLinks);
+
+    const geometryItem = home.locator('.tutorial-list > .tutorial-item').nth(6);
+    const link = geometryItem.locator('.chapter-list a.chapter-link').filter({hasText: 'Decide which ink is visible'});
     assert((await link.getAttribute('href')).endsWith('/course/journey/completion-visibility'));
     await link.click();
     await page.waitForURL('**/journey/completion-visibility');
     assert((await page.locator('.pager .prev').getAttribute('href')).endsWith('/journey/completion-geometry'));
     assert((await page.locator('.pager .next').getAttribute('href')).endsWith('/journey/completion-decoding'));
+
+    await page.goto(base + '#/course/journey/completion-frame');
+    await page.locator('article.doc h1').waitFor();
+    assert.equal(await page.locator('.pager .prev').count(), 0);
+    assert((await page.locator('.pager .next').getAttribute('href')).endsWith('/journey/completion-painting'));
+
     await page.goto(base + '#/course');
-    return {checkpoints: course.subjects.length, chapterOwner: 'geometry', navigation: 'geometry/visibility/decoding'};
+    return {
+        checkpoints: course.subjects.length,
+        tutorials: totalTutorialLinks,
+        chapterOwner: 'geometry',
+        navigation: 'geometry/visibility/decoding',
+    };
 }
 
 module.exports = {verifyCourseHome};

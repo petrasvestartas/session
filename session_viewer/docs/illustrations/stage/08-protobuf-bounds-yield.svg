@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 405" width="960" height="405">
+  <rect x="0.5" y="0.5" width="959" height="404" fill="#ffffff" stroke="#e4e7e8" stroke-width="1"/>
+  <line x1="451.2" y1="54" x2="451.2" y2="383" stroke="#e4e7e8" stroke-width="1"/>
+  <text x="26" y="32" font-family="Georgia, 'Times New Roman', serif" font-size="14.2" font-weight="700" fill="#007bc4">BOUNDED PROTOBUF DECODE AND YIELD</text>
+  <text x="473.2" y="32" font-family="Georgia, 'Times New Roman', serif" font-size="13.0" fill="#111111">Enforce 512 MiB, 2M-object and 64-depth caps while yielding every 25,000 objects.</text>
+  <text x="30" y="74" font-family="Georgia, 'Times New Roman', serif" font-size="13.5" font-weight="400" fill="#007bc4">1 MiB sliding Body::Js window &amp; varint continuation check</text>
+  <rect x="40" y="96" width="376" height="46" rx="4" fill="#e4e7e8" stroke="#111111" stroke-width="1.8"/>
+  <rect x="136" y="99" width="108" height="40" rx="3" fill="#a9c9ff" stroke="#007bc4" stroke-width="2"/>
+  <text x="190" y="123" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.2" fill="#111111" font-weight="700" text-anchor="middle">1 MiB wasm window</text>
+  <line x1="248" y1="119" x2="286" y2="119" stroke="#007bc4" stroke-width="2" stroke-linecap="round"/>
+  <polygon points="298,119 286,120.8 286,117.2" fill="#007bc4" stroke="none"/>
+  <text x="228" y="160" font-family="Georgia, 'Times New Roman', serif" font-size="11.4" fill="#666666" text-anchor="middle">JS Uint8Array body (≤ 512 MiB; never copied whole at once)</text>
+  <text x="30" y="204" font-family="Georgia, 'Times New Roman', serif" font-size="13.5" font-weight="400" fill="#007bc4">validate::varint · why appending 0x80 fails immediately</text>
+  <text x="84" y="216" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#888888" font-weight="500" text-anchor="middle">field tag</text>
+  <text x="176" y="216" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#007bc4" font-weight="500" text-anchor="middle">payload</text>
+  <text x="268" y="216" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#ff2d7a" font-weight="500" text-anchor="middle">expects next</text>
+  <text x="360" y="216" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#ff7a1a" font-weight="500" text-anchor="middle">missing byte</text>
+  <rect x="42" y="222" width="84" height="38" rx="4.5" fill="#e4e7e8" stroke="none"/>
+  <text x="84" y="244.57" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#111111" font-weight="500" text-anchor="middle">0x0a (len)</text>
+  <rect x="134" y="222" width="84" height="38" rx="4.5" fill="#a9c9ff" stroke="none"/>
+  <text x="176" y="244.57" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#111111" font-weight="500" text-anchor="middle">valid bytes</text>
+  <rect x="226" y="222" width="84" height="38" rx="4.5" fill="#ff5c9a" stroke="none"/>
+  <text x="268" y="244.57" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#111111" font-weight="500" text-anchor="middle">0x80 (MSB=1)</text>
+  <rect x="318" y="222" width="84" height="38" rx="4.5" fill="#ffc400" stroke="none"/>
+  <text x="360" y="244.57" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#111111" font-weight="500" text-anchor="middle">EOF!</text>
+  <text x="42" y="294" font-family="Georgia, 'Times New Roman', serif" font-size="11.6" fill="#111111">Bit 7 = 1 promises another 7-bit group; hitting EOF inside a varint or</text>
+  <text x="42" y="314" font-family="Georgia, 'Times New Roman', serif" font-size="11.6" fill="#666666">length-delimited span returns TRUNCATED before prost allocates.</text>
+  <text x="42" y="348" font-family="Georgia, 'Times New Roman', serif" font-size="11.6" fill="#007bc4" font-weight="700">Press E → injects 0x80 error; press R → re-decodes clean bytes.</text>
+  <text x="474" y="74" font-family="Georgia, 'Times New Roman', serif" font-size="13.5" font-weight="400" fill="#007bc4">Four explicit structural &amp; geometric guards (validate.rs)</text>
+  <text x="528" y="86" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#888888" font-weight="500" text-anchor="middle">MAX_FILE</text>
+  <text x="644" y="86" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#888888" font-weight="500" text-anchor="middle">MAX_OBJECTS</text>
+  <text x="760" y="86" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#888888" font-weight="500" text-anchor="middle">Vec tree stack</text>
+  <text x="876" y="86" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#888888" font-weight="500" text-anchor="middle">post-prost check</text>
+  <rect x="474" y="92" width="108" height="40" rx="4.5" fill="#a9c9ff" stroke="none"/>
+  <text x="528" y="115.67" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.8" fill="#111111" font-weight="500" text-anchor="middle">≤ 512 MiB</text>
+  <rect x="590" y="92" width="108" height="40" rx="4.5" fill="#ffc400" stroke="none"/>
+  <text x="644" y="115.67" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.8" fill="#111111" font-weight="500" text-anchor="middle">≤ 2,000,000</text>
+  <rect x="706" y="92" width="108" height="40" rx="4.5" fill="#ff5c9a" stroke="none"/>
+  <text x="760" y="115.67" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.8" fill="#111111" font-weight="500" text-anchor="middle">depth ≤ 64</text>
+  <rect x="822" y="92" width="108" height="40" rx="4.5" fill="#00c46a" stroke="none"/>
+  <text x="876" y="115.67" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.8" fill="#111111" font-weight="500" text-anchor="middle">mesh / NURBS</text>
+  <text x="474" y="158" font-family="Georgia, 'Times New Roman', serif" font-size="11.8" fill="#111111">• Post-prost checks verify face vertex indices &lt; V, matching cloud column lengths,</text>
+  <text x="484" y="178" font-family="Georgia, 'Times New Roman', serif" font-size="11.6" fill="#666666">and clamped/periodic NURBS knot vector counts + positive weights.</text>
+  <text x="474" y="218" font-family="Georgia, 'Times New Roman', serif" font-size="13.5" font-weight="400" fill="#007bc4">yielding.rs · cooperative single-threaded wasm32 scheduling</text>
+  <line x1="496" y1="266" x2="610" y2="266" stroke="#007bc4" stroke-width="2.2" stroke-linecap="round"/>
+  <polygon points="623,266 610,267.95 610,264.05" fill="#007bc4" stroke="none"/>
+  <line x1="628" y1="266" x2="740" y2="266" stroke="#ff7a1a" stroke-width="2.2" stroke-linecap="round" stroke-dasharray="4 3"/>
+  <polygon points="753,266 740,267.95 740,264.05" fill="#ff7a1a" stroke="none"/>
+  <line x1="758" y1="266" x2="878" y2="266" stroke="#007bc4" stroke-width="2.2" stroke-linecap="round"/>
+  <polygon points="891,266 878,267.95 878,264.05" fill="#007bc4" stroke="none"/>
+  <circle cx="496" cy="266" r="4.4" fill="#ffffff" stroke="#007bc4" stroke-width="2"/>
+  <circle cx="628" cy="266" r="4.4" fill="#ffffff" stroke="#ff7a1a" stroke-width="2"/>
+  <circle cx="758" cy="266" r="4.4" fill="#ffffff" stroke="#007bc4" stroke-width="2"/>
+  <circle cx="896" cy="266" r="4.4" fill="#ffffff" stroke="#00c46a" stroke-width="2"/>
+  <text x="562" y="254" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.2" fill="#007bc4" font-weight="500" text-anchor="middle">25,000 objects</text>
+  <text x="693" y="254" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.2" fill="#ff7a1a" font-weight="500" text-anchor="middle">setTimeout(0)</text>
+  <text x="827" y="254" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.2" fill="#007bc4" font-weight="500" text-anchor="middle">next 25,000</text>
+  <text x="693" y="288" font-family="Georgia, 'Times New Roman', serif" font-size="11.2" fill="#ff7a1a" text-anchor="middle">browser repaints UI &amp; input</text>
+  <text x="474" y="326" font-family="Georgia, 'Times New Roman', serif" font-size="11.8" fill="#111111">• No RefCell borrow is held across next_tick().await.</text>
+  <text x="474" y="350" font-family="Georgia, 'Times New Roman', serif" font-size="11.8" fill="#666666">• Typed tables &amp; lookup maps share each object via Rc&lt;Geometry&gt;.</text>
+  <rect x="0.5" y="401.5" width="959" height="3" fill="#e4e7e8"/>
+  <rect x="0.5" y="401.5" width="454.74" height="3" fill="#007bc4"/>
+</svg>

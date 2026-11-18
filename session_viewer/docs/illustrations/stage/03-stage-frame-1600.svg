@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 415" width="960" height="415">
+  <rect x="0.5" y="0.5" width="959" height="414" fill="#ffffff" stroke="#e4e7e8" stroke-width="1"/>
+  <line x1="451.2" y1="54" x2="451.2" y2="393" stroke="#e4e7e8" stroke-width="1"/>
+  <text x="26" y="32" font-family="Georgia, 'Times New Roman', serif" font-size="14.2" font-weight="700" fill="#007bc4">AUTHORED 1600 × 900 SLIDE AND FLAT INK</text>
+  <text x="473.2" y="32" font-family="Georgia, 'Times New Roman', serif" font-size="13.0" fill="#111111">Fit <tspan fill="#007bc4">1600 × 900</tspan> on desktop, stack halves upright, and draw exact 0.30 arrowheads.</text>
+  <text x="30" y="74" font-family="Georgia, 'Times New Roman', serif" font-size="13.5" font-weight="400" fill="#007bc4">Desktop letterbox (1600 × 900)  vs  Upright Frame::stacked</text>
+  <rect x="32" y="92" width="264" height="148.5" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="33" y="93" width="120.44" height="143.5" fill="#a9c9ff" fill-opacity="0.14" stroke="none"/>
+  <line x1="153.44" y1="108" x2="153.44" y2="230.5" stroke="#888888" stroke-width="1.1" stroke-linecap="round"/>
+  <line x1="40" y1="103" x2="139.44" y2="103" stroke="#007bc4" stroke-width="2.6" stroke-linecap="round"/>
+  <line x1="161.44" y1="103" x2="284" y2="103" stroke="#111111" stroke-width="2" stroke-linecap="round"/>
+  <line x1="92" y1="180" x2="54" y2="204" stroke="#111111" stroke-width="1.7" stroke-linecap="round"/>
+  <circle cx="54" cy="204" r="2.6" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <line x1="92" y1="180" x2="86" y2="134" stroke="#111111" stroke-width="1.7" stroke-linecap="round"/>
+  <circle cx="86" cy="134" r="2.6" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <line x1="92" y1="180" x2="136" y2="190" stroke="#111111" stroke-width="1.7" stroke-linecap="round"/>
+  <circle cx="136" cy="190" r="2.6" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <line x1="92" y1="180" x2="92" y2="206" stroke="#007bc4" stroke-width="1.8" stroke-linecap="round"/>
+  <polygon points="92,216 90.5,206 93.5,206" fill="#007bc4" stroke="none"/>
+  <circle cx="92" cy="180" r="2.8" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="167.44" y="136" width="18" height="16" rx="2.5" fill="#ff5c9a" stroke="none"/>
+  <text x="176.44" y="146.89" font-family="Georgia, 'Times New Roman', serif" font-size="8.5" fill="#111111" text-anchor="middle">1</text>
+  <rect x="188.44" y="136" width="18" height="16" rx="2.5" fill="#4c9bff" stroke="none"/>
+  <text x="197.44" y="146.89" font-family="Georgia, 'Times New Roman', serif" font-size="8.5" fill="#111111" text-anchor="middle">-1</text>
+  <rect x="209.44" y="136" width="18" height="16" rx="2.5" fill="#e4e7e8" stroke="none"/>
+  <text x="218.44" y="146.89" font-family="Georgia, 'Times New Roman', serif" font-size="8.5" fill="#111111" text-anchor="middle">0</text>
+  <rect x="167.44" y="155" width="18" height="16" rx="2.5" fill="#ff5c9a" stroke="none"/>
+  <text x="176.44" y="165.89" font-family="Georgia, 'Times New Roman', serif" font-size="8.5" fill="#111111" text-anchor="middle">1</text>
+  <rect x="188.44" y="155" width="18" height="16" rx="2.5" fill="#e4e7e8" stroke="none"/>
+  <text x="197.44" y="165.89" font-family="Georgia, 'Times New Roman', serif" font-size="8.5" fill="#111111" text-anchor="middle">0</text>
+  <rect x="209.44" y="155" width="18" height="16" rx="2.5" fill="#4c9bff" stroke="none"/>
+  <text x="218.44" y="165.89" font-family="Georgia, 'Times New Roman', serif" font-size="8.5" fill="#111111" text-anchor="middle">-1</text>
+  <rect x="33" y="236.5" width="262" height="3" fill="#e4e7e8" stroke="none"/>
+  <rect x="33" y="236.5" width="145.2" height="3" fill="#007bc4" stroke="none"/>
+  <text x="288" y="232.5" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="7.5" fill="#111111" font-weight="500" text-anchor="end">ETH|BRG</text>
+  <text x="92.72" y="256.5" font-family="Georgia, 'Times New Roman', serif" font-size="11" fill="#007bc4" text-anchor="middle">x ∈ [0, 736]</text>
+  <text x="224.72" y="256.5" font-family="Georgia, 'Times New Roman', serif" font-size="11" fill="#666666" text-anchor="middle">column [770, 1544]</text>
+  <line x1="296" y1="126" x2="336" y2="126" stroke="#ff7a1a" stroke-width="1.2" stroke-linecap="round" stroke-dasharray="5 3.8"/>
+  <line x1="296" y1="222.5" x2="336" y2="234" stroke="#ff7a1a" stroke-width="1.2" stroke-linecap="round" stroke-dasharray="5 3.8"/>
+  <rect x="336" y="92" width="86" height="172" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="337" y="93" width="84" height="80.84" fill="#a9c9ff" fill-opacity="0.15" stroke="none"/>
+  <line x1="336" y1="172.84" x2="422" y2="172.84" stroke="#ff7a1a" stroke-width="1.4" stroke-linecap="round" stroke-dasharray="4 3"/>
+  <text x="379" y="134" font-family="Georgia, 'Times New Roman', serif" font-size="10.5" fill="#007bc4" font-weight="700" text-anchor="middle">3D top (k₁)</text>
+  <text x="379" y="218" font-family="Georgia, 'Times New Roman', serif" font-size="10.5" fill="#111111" text-anchor="middle">column (k₂)</text>
+  <rect x="337" y="260" width="84" height="3" fill="#007bc4" stroke="none"/>
+  <text x="379" y="280" font-family="Georgia, 'Times New Roman', serif" font-size="11" fill="#ff7a1a" font-weight="700" text-anchor="middle">H ≥ 1.1 W</text>
+  <text x="30" y="308" font-family="Georgia, 'Times New Roman', serif" font-size="13.5" font-weight="400" fill="#007bc4">Non-overlapping 650 ms narration cross-rise (paint.rs)</text>
+  <line x1="42" y1="344" x2="168" y2="344" stroke="#888888" stroke-width="2.2" stroke-linecap="round"/>
+  <line x1="168" y1="344" x2="398" y2="344" stroke="#007bc4" stroke-width="2.6" stroke-linecap="round"/>
+  <circle cx="42" cy="344" r="3.5" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <circle cx="168" cy="344" r="3.8" fill="#ffffff" stroke="#ff7a1a" stroke-width="2"/>
+  <circle cx="398" cy="344" r="3.5" fill="#ffffff" stroke="#007bc4" stroke-width="2"/>
+  <text x="105" y="333" font-family="Georgia, 'Times New Roman', serif" font-size="11" fill="#666666" text-anchor="middle">old fades out (0..0.4)</text>
+  <text x="283" y="333" font-family="Georgia, 'Times New Roman', serif" font-size="11" fill="#007bc4" text-anchor="middle">new rises +6 px (0.4..1.0)</text>
+  <text x="168" y="365" font-family="Georgia, 'Times New Roman', serif" font-size="11" fill="#ff7a1a" text-anchor="middle">t = 260 ms: zero text overlap</text>
+  <text x="476" y="74" font-family="Georgia, 'Times New Roman', serif" font-size="13.5" font-weight="400" fill="#007bc4">Frame::new &amp; reversible slide ↔ screen mapping</text>
+  <text x="476" y="112" font-family="Georgia, 'Times New Roman', serif" font-size="13.5" fill="#111111"><tspan font-style="italic">k</tspan> = min( <tspan font-style="italic">W</tspan><tspan font-size="9.5" dy="2">scr</tspan><tspan dy="-2"> / 1600,  </tspan><tspan font-style="italic">H</tspan><tspan font-size="9.5" dy="2">scr</tspan><tspan dy="-2"> / 900 ),     </tspan><tspan font-weight="700">p</tspan><tspan font-size="9.5" dy="2">scr</tspan><tspan dy="-2"> = </tspan><tspan font-weight="700">o</tspan> + <tspan font-style="italic">k</tspan> <tspan font-weight="700">p</tspan><tspan font-size="9.5" dy="2">slide</tspan></text>
+  <text x="476" y="138" font-family="Georgia, 'Times New Roman', serif" font-size="12.5" fill="#666666">Default split = 0.46 (x = 736); column budget TOP = 150 .. 830 (680 px).</text>
+  <text x="476" y="176" font-family="Georgia, 'Times New Roman', serif" font-size="13.5" font-weight="400" fill="#007bc4">flat.rs · orthographic construction ink &amp; 0.30 arrowhead</text>
+  <line x1="500" y1="224" x2="790" y2="292" stroke="#888888" stroke-width="1.4" stroke-linecap="round" stroke-dasharray="5 3.8"/>
+  <line x1="500" y1="292" x2="743.27" y2="234.96" stroke="#007bc4" stroke-width="2.8" stroke-linecap="round"/>
+  <polygon points="790,224 744.91,241.97 741.62,227.95" fill="#007bc4" fill-opacity="0.92" stroke="#007bc4" stroke-width="1.2" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="500" cy="292" r="5.2" fill="#ffffff" stroke="#111111" stroke-width="2.2"/>
+  <circle cx="790" cy="292" r="5.2" fill="#ffffff" stroke="#111111" stroke-width="2.2"/>
+  <circle cx="743.27" cy="234.96" r="3" fill="#ff2d7a"/>
+  <circle cx="790" cy="224" r="2.8" fill="#111111"/>
+  <text x="484" y="310" font-family="Georgia, 'Times New Roman', serif" font-size="13.5" fill="#111111" font-weight="700">a</text>
+  <text x="800" y="228" font-family="Georgia, 'Times New Roman', serif" font-size="12.5" fill="#007bc4" font-weight="700">b (exact tip)</text>
+  <text x="715.27" y="222.96" font-family="Georgia, 'Times New Roman', serif" font-size="12" fill="#ff2d7a">b − 24 u</text>
+  <text x="630" y="242" font-family="Georgia, 'Times New Roman', serif" font-size="15" fill="#007bc4" font-weight="700">P</text>
+  <text x="476" y="344" font-family="Georgia, 'Times New Roman', serif" font-size="12.6" fill="#111111">Head length <tspan font-style="italic">L</tspan> = min(24, 0.45 ‖<tspan font-weight="700">b − a</tspan>‖),   width / <tspan font-style="italic">L</tspan> = <tspan fill="#007bc4" font-weight="700">0.30</tspan>,   shaft stops at <tspan fill="#ff2d7a">base</tspan>.</text>
+  <text x="476" y="368" font-family="Georgia, 'Times New Roman', serif" font-size="11.9" fill="#666666">Matches 3D <tspan font-family="monospace" font-size="11.2">arrow.wgsl</tspan> proportions so 2D and 3D force polygons share one visual pen.</text>
+  <rect x="0.5" y="411.5" width="959" height="3" fill="#e4e7e8"/>
+  <rect x="0.5" y="411.5" width="151.58" height="3" fill="#007bc4"/>
+</svg>

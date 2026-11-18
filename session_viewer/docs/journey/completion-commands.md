@@ -2,10 +2,10 @@
 
 Register typed and interactive CAD commands through `Spec`, `Action` and `Draw`, preview transforms without polluting undo history, and drive section planes and view modes from the dock.
 
+![Command Spec registry, 0-cost Move preview, Window vs Crossing selection and section planes](../illustrations/stage/09b-command-spec-clipping.svg)
+
 ![Newly created line selected with active 3-axis gumball and Created layer entry](../screenshots/active/commands-created-1280.png)
 ![Typed Move 0 1000 0 translating the selected line with one undo transaction](../screenshots/completion/typed-move.png)
-
-![Interactive tool loop: Draft state, cursor preview and single-transaction commit](../illustrations/tool-loop.svg)
 
 ## Prerequisites and ownership
 
@@ -13,7 +13,7 @@ Chapter `9.2` of [9. Run the application](completion-application.md) (`applicati
 
 ## Build
 
-### Separate spelling from execution
+### Step 1: Separate declarative `Spec` spelling from `Action` execution
 
 - `src/app/command/mod.rs` defines `Spec`, `Action` and `Draw`, matching longest space/case-insensitive command prefixes, canonicalizing verbs/options, rejecting non-finite numbers and returning `Result<Box<dyn Action>, String>` without mutating `State`.
 - `src/app/command/verbs/mod.rs` expands `verbs!` into `REGISTRY` so every command registers completion, option chips, help and parsing in one place without editing the dock widget.
@@ -26,7 +26,7 @@ Chapter `9.2` of [9. Run the application](completion-application.md) (`applicati
 --8<-- "session_viewer/src/state/edit.rs:command-dispatch"
 ```
 
-### Drawing is a checked construction & shared verb rules
+### Step 2: Checked `Draw` constructions and interactive option chips
 
 `src/app/command/verbs/geometry.rs` (`Create::run`) validates finite coordinates within scene bounds, invokes the verb's constructor, commits the created object to `Scene`, syncs GPU rows, and selects the new row (leaving document and row counts untouched on error).
 
@@ -42,7 +42,7 @@ Chapter `9.2` of [9. Run the application](completion-application.md) (`applicati
 | [tool/options.rs](../../src/app/command/tool/options.rs) | Matches multi-word options case- and space-insensitively while reserving empty `Enter` and `Escape` for tool continuation. |
 | [command/tests.rs](../../src/app/command/tests.rs) | Verifies sorted unique `REGISTRY` completions, readable labels, and identical `Action` parsing across aliases and canonical spellings. |
 
-### Delegate each command to the state it owns
+### Step 3: Delegate state, display and selection verbs cleanly
 
 | Verb files | Delegated state operation |
 | --- | --- |
@@ -52,8 +52,6 @@ Chapter `9.2` of [9. Run the application](completion-application.md) (`applicati
 | [verbs/layers.rs](../../src/app/command/verbs/layers.rs), [verbs/report.rs](../../src/app/command/verbs/report.rs) | `layers.rs` toggles/expands the hierarchy panel (`All`/`Off`); `report.rs` triggers JSON diagnostics export through the `feedback` boundary. |
 | [verbs/arctic.rs](../../src/app/command/verbs/arctic.rs), [verbs/outline.rs](../../src/app/command/verbs/outline.rs), [verbs/opacity.rs](../../src/app/command/verbs/opacity.rs) | `arctic.rs` enables ambient clay shading + surface outlines; `outline.rs` toggles borders independently; `opacity.rs` validates finite `[0.0, 1.0]` face alpha. |
 | [verbs/attributes.rs](../../src/app/command/verbs/attributes.rs), [verbs/interactions.rs](../../src/app/command/verbs/interactions.rs), [verbs/arrowhead.rs](../../src/app/command/verbs/arrowhead.rs) | `attributes.rs` toggles owned element features; `interactions.rs` toggles joint/cut/contact features (rewalking when needed); `arrowhead.rs` (`None`/`Start`/`End`/`Both`) replaces unlocked selected curves in one transaction. |
-
-### Select through a common eligibility rule
 
 | File | Specification |
 | --- | --- |
@@ -65,7 +63,7 @@ Chapter `9.2` of [9. Run the application](completion-application.md) (`applicati
 --8<-- "session_viewer/src/app/command/verbs/move.rs:command-move"
 ```
 
-### Change drawing and viewing context
+### Step 4: Construction planes, view presets and section-plane cuts
 
 | File | Specification |
 | --- | --- |
@@ -75,7 +73,9 @@ Chapter `9.2` of [9. Run the application](completion-application.md) (`applicati
 | [src/app/clipping.rs](../../src/app/clipping.rs) | Derives GPU half-space normals by crossing transformed in-plane axes (handling non-uniform scale) and anchors hatch direction to the plane frame. |
 | [src/state/clipping.rs](../../src/state/clipping.rs) | Reads live GPU row placements so dragging a plane updates the cut immediately, keeping cuts active when the plane border is hidden and verifying closed meshes on first cut. |
 
-### Exercise the command field frame by frame
+```rust
+--8<-- "session_viewer/src/app/clipping.rs:9:32"
+```
 
 `src/app/ui/command_line/tests.rs` drives character-by-character `egui` frame sequences verifying preserved spaces (`Orient 3 Points`), `Down`/`Up` option cycling (`Snap Off` -> `Snap End`) and `Enter` commit rules.
 

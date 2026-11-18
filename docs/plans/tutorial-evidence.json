@@ -231,6 +231,21 @@
       "subject": "Presentation colors, graphic-statics style, 1600x900 layout and ?stage=...&data=off tutorial verification (docs41 + browser17)",
       "scope": "docs41 (5132 pins, 22 tooling tests, active-audit 352 files / 8 accepted subjects on 20261118b/c receipts, teaching 360/360, strict site) and browser17 (95 personally viewed captures at 1280x800 and 390x844 across 23 routes, 93 embedded SVG/PNG figures including stage-layout-1600.svg, stage-palette-style.svg and foppl/fdm WebGPU captures, 78 live --8<-- includes); prior browser16 CHECKS mismatch preserved.",
       "path": "session_viewer/docs/journey/release/completion-presentation-style-site-windows-20261118.json"
+    },
+    {
+      "subject": "Thrust-network-analysis one-node deck reconciliation (2026-11-18e, 7 decks / 30 chapters)",
+      "scope": "Fast-forwarded origin/main (a08cb83f6): mathematics 25/25 native PASS (1 GPU ignored) and application app::stage 24/24 PASS across all 7 decks / 30 chapters, Trunk production bundle PASS, and 6 Chrome 157 Intel WebGPU cases across all 3 chapters of thrust-network_analysis_one_node at 1280x800 and 390x844 (completing 60 total cases across all 30 chapters, 0 overlaps/errors).",
+      "path": "session_viewer/docs/journey/release/completion-stage-reconciliation-windows-20261118e.json"
+    },
+    {
+      "subject": "Production baseline reconciliation ledger (2026-11-18e, commit a08cb83f6)",
+      "scope": "Reconciles all production/support/example deltas against baseline 87f844e41d08ef104fc071d5bc18163ffe9a4353 including thrust-network_analysis_one_node (7 decks, 30 chapters) while preserving 352/352 endpoint parity.",
+      "path": "session_viewer/docs/journey/release/completion-production-reconciliation-20261118e.json"
+    },
+    {
+      "subject": "Minimal step-by-step webpage UI, 25 white-paper stage SVG plates, 33/33 WGSL shader coverage and 7-deck TNA sync (docs45 + browser20)",
+      "scope": "docs45 (5281 pins, 22 tooling tests, active-audit 352 files / 8 accepted subjects on *-20261118d receipts, teaching 360/360, strict site 80d975aa; prior docs42/browser18 preserved) and browser20 (93 personally viewed captures at 1280x800 and 390x844 across 23 routes, short intro + 19 ordered step-by-step tutorials with 0 accordions, 25 Chrome-verified white-paper stage/ SVGs, 127 live --8<-- includes covering all 33 WGSL shaders and 7 decks / 30 chapters); session_viewer/src/ unchanged.",
+      "path": "session_viewer/docs/journey/release/completion-stage-shaders-site-windows-20261118d.json"
     }
   ],
   "open": [

@@ -484,8 +484,27 @@ export default function coursePlugin(): Plugin {
       chains.push(['journey/contents', ...reading.map(step => pageSlug(path.join(DOCS, step.page))),
         ...(book.comparison ? [pageSlug(path.join(DOCS, book.comparison.page))] : [])]);
     }
-    chains.push(['readme', 'journey', 'journey/active', ...active().subjects.flatMap(subject =>
-      [subject.page, ...subject.chapters].map(page => pageSlug(path.join(DOCS, page))))]);
+    const tutorials = active().subjects.map((subject, index) => {
+      const number = String(index + 1);
+      const slug = pageSlug(path.join(DOCS, subject.page));
+      return {
+        number,
+        id: subject.id,
+        title: pages.get(slug)?.title || subject.title,
+        slug,
+        chapters: subject.chapters.map((chapter, cIndex) => {
+          const cSlug = pageSlug(path.join(DOCS, chapter));
+          return {
+            number: `${number}.${cIndex + 1}`,
+            title: pages.get(cSlug)?.title || cSlug,
+            slug: cSlug,
+          };
+        }),
+      };
+    });
+    chains.push(['readme', 'journey', 'journey/active']);
+    chains.push(active().subjects.flatMap(subject =>
+      [subject.page, ...subject.chapters].map(page => pageSlug(path.join(DOCS, page)))));
     const connected = new Set(chains.flat());
     chains.push(order.filter((s) => !connected.has(s)));
     const meta: Record<string, { title: string; prev?: string; next?: string }> = {};
@@ -517,7 +536,7 @@ function fetchPage(url) {
   return loaded.get(url);
 }
 ` : '';
-    return `${fetchPage}export const checkpointCount = ${active().subjects.length};\nexport const groups = ${JSON.stringify(groups)};\nexport const pages = ${JSON.stringify(meta)};\nexport const loaders = {${loaders.join(',\n')}};\n`;
+    return `${fetchPage}export const checkpointCount = ${active().subjects.length};\nexport const tutorials = ${JSON.stringify(tutorials)};\nexport const groups = ${JSON.stringify(groups)};\nexport const pages = ${JSON.stringify(meta)};\nexport const loaders = {${loaders.join(',\n')}};\n`;
   };
 
   const kernelModule = () => {

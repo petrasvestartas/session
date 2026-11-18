@@ -2,10 +2,10 @@
 
 Stream multi-million-point clouds and `50+ MB` `2D` drawing sheets over HTTP `Range`, pick exact out-of-core source IDs and `.meta` side-table records on demand, and adopt live ETag/`EventSource` scene updates atomically.
 
+![Out-of-core point cloud streaming, SHM1 side-table HTTP Range directory and ETag live reload](../illustrations/stage/09g-out-of-core-streaming.svg)
+
 ![Out-of-core point cloud pick resolving exact source ID 0xfedcba98 beyond the 250k resident prefix](../screenshots/active/streaming-cloud-selected.png)
 ![2D drawing sheet streamed as a single segment batch with on-demand side-table metadata](../screenshots/19-sheets-overview.png)
-
-![Resident octree LOD walk versus splat disc pass folded back into reverse-Z scene depth](../illustrations/splat-resolve.svg)
 
 ## Prerequisites and ownership
 
@@ -13,29 +13,29 @@ Chapter `9.7` of [9. Run the application](completion-application.md) (`applicati
 
 ## Build
 
-### Streamed field boundaries & resident cloud slices
-
-![Octree LOD spacing threshold and resident chunk boundaries](../illustrations/lod.svg)
-
-![Batch segment streaming versus per-object heap overhead and .meta side table](../illustrations/sheet-cost.svg)
+### Step 1: Parse streamed field boundaries and resident cloud slices
 
 - `src/app/stream.rs` parses bounded `CloudFields` and `SheetFields` byte ranges (`field_at`), validating element strides, segment counts, packed-`f64` LOD alignment and source `ETag` revisions before issuing HTTP `Range` reads.
 - `src/app/walk/cloud/stream.rs` appends streamed position, colour (black-padded when absent) and complete normal slices into GPU chunks, installing the octree table once on the first slice while preserving `(source_offset, gpu_offset)`.
 
 ```rust
+--8<-- "session_viewer/src/app/stream.rs:1:33"
+```
+
+```rust
 --8<-- "session_viewer/src/app/loader.rs:loading-generations"
 ```
 
-### Out-of-core point & sheet side-table queries
-
-![Windowed metadata and side-table range lookup on selection](../illustrations/side-table.svg)
-
-![Out-of-core GPU point-cloud pick paging beyond the resident display budget](../illustrations/cloud-pick.svg)
+### Step 2: Out-of-core `65,536`-point GPU picks and `SHM1` side-table lookups
 
 - `src/app/cloud_query.rs` narrows out-of-core click candidates via octree LOD bounds (falling back to full scan if incomplete), streams `<= 65,536`-point pages through GPU pick ranking, and reads exact stored `u32` source IDs.
 - `src/app/sheet_query.rs` validates the `SHM1` side-table header, fixed-width `(offset, len)` directory and bounded UTF-8 JSON payloads pinned to the table's `ETag` revision.
 
-### Live notifications & atomic scene replacement
+```rust
+--8<-- "session_viewer/src/app/sheet_query.rs:5:34"
+```
+
+### Step 3: Live `EventSource` notifications and atomic `ETag` swaps
 
 - `src/app/live.rs` manages an `EventSource` change relay plus polling fallback, marking a recheck flag without trusting relay bytes and detaching DOM listeners cleanly on `Drop`.
 - `src/app/live_revision.rs` (`Revisions`) tracks HTTP `ETag` validators separately from received content hashes and stages complete replacements so unchanged polls or failed mid-reload fetches never reset the active camera or scene.

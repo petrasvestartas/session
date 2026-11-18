@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 405" width="960" height="405">
+  <rect x="0.5" y="0.5" width="959" height="404" fill="#ffffff" stroke="#e4e7e8" stroke-width="1"/>
+  <line x1="460.8" y1="54" x2="460.8" y2="383" stroke="#e4e7e8" stroke-width="1"/>
+  <text x="26" y="32" font-family="Georgia, 'Times New Roman', serif" font-size="14.2" font-weight="700" fill="#007bc4">LOGICAL POINTS AND COMPOSITED PASSES</text>
+  <text x="482.8" y="32" font-family="Georgia, 'Times New Roman', serif" font-size="13.0" fill="#111111">Map top-left <tspan font-style="italic">egui</tspan> points into NDC while preserving Pass 1 via <tspan fill="#007bc4">LoadOp::Load</tspan>.</text>
+  <text x="32" y="74" font-family="Georgia, 'Times New Roman', serif" font-size="13.5" font-weight="400" fill="#007bc4">Logical screen points (0, 0) top-left  →  WebGPU NDC [-1, +1]²</text>
+  <rect x="56" y="98" width="166" height="110" fill="#ffffff" stroke="#111111" stroke-width="1.9"/>
+  <line x1="56" y1="98" x2="98" y2="98" stroke="#007bc4" stroke-width="2.2" stroke-linecap="round"/>
+  <polygon points="110,98 98,99.8 98,96.2" fill="#007bc4" stroke="none"/>
+  <line x1="56" y1="98" x2="56" y2="136" stroke="#ff2d7a" stroke-width="2.2" stroke-linecap="round"/>
+  <polygon points="56,148 54.2,136 57.8,136" fill="#ff2d7a" stroke="none"/>
+  <text x="98" y="91" font-family="Georgia, 'Times New Roman', serif" font-size="12" fill="#007bc4" font-weight="700" font-style="italic">+x</text>
+  <text x="36" y="150" font-family="Georgia, 'Times New Roman', serif" font-size="12" fill="#ff2d7a" font-weight="700" font-style="italic">+y</text>
+  <polygon points="139,125 169,175 109,175" fill="#ff8fbd" fill-opacity="0.42" stroke="#ff2d7a" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="56" cy="98" r="3.8" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <circle cx="139" cy="153" r="3" fill="#111111"/>
+  <text x="64" y="200" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="9.8" fill="#111111" font-weight="500">Command:</text>
+  <text x="139" y="225" font-family="Georgia, 'Times New Roman', serif" font-size="11.2" fill="#666666" text-anchor="middle">(0, 0) → (<tspan font-style="italic">W/s, H/s</tspan>)</text>
+  <line x1="139" y1="125" x2="347" y2="127" stroke="#888888" stroke-width="1.15" stroke-linecap="round" stroke-dasharray="5 3.8"/>
+  <line x1="169" y1="175" x2="383" y2="191" stroke="#888888" stroke-width="1.15" stroke-linecap="round" stroke-dasharray="5 3.8"/>
+  <rect x="278" y="94" width="138" height="138" fill="#a9c9ff" fill-opacity="0.1" stroke="#111111" stroke-width="1.9"/>
+  <line x1="278" y1="163" x2="416" y2="163" stroke="#e4e7e8" stroke-width="1.1" stroke-linecap="round"/>
+  <line x1="347" y1="94" x2="347" y2="232" stroke="#e4e7e8" stroke-width="1.1" stroke-linecap="round"/>
+  <line x1="347" y1="163" x2="380" y2="163" stroke="#007bc4" stroke-width="2.1" stroke-linecap="round"/>
+  <polygon points="391,163 380,164.65 380,161.35" fill="#007bc4" stroke="none"/>
+  <line x1="347" y1="163" x2="347" y2="126" stroke="#ff2d7a" stroke-width="2.1" stroke-linecap="round"/>
+  <polygon points="347,115 348.65,126 345.35,126" fill="#ff2d7a" stroke="none"/>
+  <text x="393" y="167" font-family="Georgia, 'Times New Roman', serif" font-size="11.5" fill="#007bc4" font-weight="700" font-style="italic">+x</text>
+  <text x="353" y="115" font-family="Georgia, 'Times New Roman', serif" font-size="11" fill="#ff2d7a" font-weight="700" font-style="italic">+y (up)</text>
+  <polygon points="347,127 383,191 311,191" fill="#ff8fbd" fill-opacity="0.42" stroke="#ff2d7a" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="347" cy="163" r="3.8" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <text x="347" y="249" font-family="Georgia, 'Times New Roman', serif" font-size="11.2" fill="#666666" text-anchor="middle">NDC [-1, +1]², <tspan font-style="italic">z</tspan> ∈ [1, 0]</text>
+  <text x="32" y="278" font-family="Georgia, 'Times New Roman', serif" font-size="13.5" font-weight="400" fill="#007bc4">One-frame deferred glyph texture free (Ui::free_last_frame)</text>
+  <rect x="48" y="296" width="170" height="32" rx="4.5" fill="#a9c9ff" stroke="none"/>
+  <text x="133" y="316" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.8" fill="#111111" font-weight="500" text-anchor="middle">Frame N: delta.set + draw</text>
+  <line x1="222" y1="312" x2="246" y2="312" stroke="#007bc4" stroke-width="2" stroke-linecap="round"/>
+  <polygon points="258,312 246,313.8 246,310.2" fill="#007bc4" stroke="none"/>
+  <rect x="262" y="296" width="168" height="32" rx="4.5" fill="#ffc400" stroke="none"/>
+  <text x="346" y="316" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.8" fill="#111111" font-weight="500" text-anchor="middle">Frame N+1: free(prev)</text>
+  <text x="48" y="352" font-family="Georgia, 'Times New Roman', serif" font-size="11.8" fill="#666666">Never free an atlas texture while Frame N's render pass still samples it.</text>
+  <text x="486" y="74" font-family="Georgia, 'Times New Roman', serif" font-size="13.5" font-weight="400" fill="#007bc4">Density-independent coordinates &amp; NDC y-inversion</text>
+  <text x="486" y="118" font-family="Georgia, 'Times New Roman', serif" font-size="14.5" fill="#111111"><tspan font-style="italic">x</tspan><tspan font-size="10" dy="3">ndc</tspan><tspan dy="-3"> = </tspan></text>
+  <text x="570" y="108" font-family="Georgia, 'Times New Roman', serif" font-size="13" fill="#111111" text-anchor="middle">2 <tspan font-style="italic">x</tspan><tspan font-size="9.5" dy="2">pt</tspan></text>
+  <line x1="540" y1="112.5" x2="600" y2="112.5" stroke="#111111" stroke-width="1.15" stroke-linecap="round"/>
+  <text x="570" y="127" font-family="Georgia, 'Times New Roman', serif" font-size="13" fill="#111111" text-anchor="middle"><tspan font-style="italic">W</tspan><tspan font-size="9.5" dy="2">px</tspan><tspan dy="-2"> / </tspan><tspan font-style="italic">s</tspan></text>
+  <text x="608" y="118" font-family="Georgia, 'Times New Roman', serif" font-size="14.5" fill="#111111">− 1,</text>
+  <text x="676" y="118" font-family="Georgia, 'Times New Roman', serif" font-size="14.5" fill="#111111"><tspan font-style="italic">y</tspan><tspan font-size="10" dy="3">ndc</tspan><tspan dy="-3"> = 1 − </tspan></text>
+  <text x="782" y="108" font-family="Georgia, 'Times New Roman', serif" font-size="13" fill="#ff2d7a" text-anchor="middle">2 <tspan font-style="italic">y</tspan><tspan font-size="9.5" dy="2">pt</tspan></text>
+  <line x1="752" y1="112.5" x2="812" y2="112.5" stroke="#ff2d7a" stroke-width="1.15" stroke-linecap="round"/>
+  <text x="782" y="127" font-family="Georgia, 'Times New Roman', serif" font-size="13" fill="#ff2d7a" text-anchor="middle"><tspan font-style="italic">H</tspan><tspan font-size="9.5" dy="2">px</tspan><tspan dy="-2"> / </tspan><tspan font-style="italic">s</tspan></text>
+  <text x="486" y="162" font-family="Georgia, 'Times New Roman', serif" font-size="12.6" fill="#111111">Tessellation scale: <tspan font-family="monospace" font-size="11.8" fill="#007bc4">pixels_per_point = s</tspan> rasterizes edges at physical DPI.</text>
+  <text x="486" y="198" font-family="Georgia, 'Times New Roman', serif" font-size="13.5" font-weight="400" fill="#007bc4">Single CommandEncoder · two sequential render passes</text>
+  <text x="554" y="210" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#888888" font-weight="500" text-anchor="middle">background</text>
+  <text x="708" y="210" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#007bc4" font-weight="500" text-anchor="middle">GPU upload</text>
+  <text x="862" y="210" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#ff2d7a" font-weight="500" text-anchor="middle">2D overlay</text>
+  <rect x="486" y="216" width="136" height="42" rx="4.5" fill="#e4e7e8" stroke="none"/>
+  <text x="554" y="240.91" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="11.5" fill="#111111" font-weight="500" text-anchor="middle">Pass 1 · Clear</text>
+  <rect x="640" y="216" width="136" height="42" rx="4.5" fill="#ffc400" stroke="none"/>
+  <text x="708" y="240.91" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="11.5" fill="#111111" font-weight="500" text-anchor="middle">Ui::prepare</text>
+  <rect x="794" y="216" width="136" height="42" rx="4.5" fill="#ff5c9a" stroke="none"/>
+  <text x="862" y="240.91" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="11.5" fill="#111111" font-weight="500" text-anchor="middle">Pass 2 · Load</text>
+  <line x1="623" y1="237" x2="631.8" y2="237" stroke="#007bc4" stroke-width="1.8" stroke-linecap="round"/>
+  <polygon points="639,237 631.8,238.08 631.8,235.92" fill="#007bc4" stroke="none"/>
+  <line x1="777" y1="237" x2="785.8" y2="237" stroke="#ff2d7a" stroke-width="1.8" stroke-linecap="round"/>
+  <polygon points="793,237 785.8,238.08 785.8,235.92" fill="#ff2d7a" stroke="none"/>
+  <text x="486" y="294" font-family="Georgia, 'Times New Roman', serif" font-size="12.4" fill="#111111">• Pass 1 writes <tspan font-family="monospace" font-size="11.8">LoadOp::Clear(WHITE)</tspan> (and 3D scene ink in Tutorial 7).</text>
+  <text x="486" y="318" font-family="Georgia, 'Times New Roman', serif" font-size="12.4" fill="#111111">• <tspan font-family="monospace" font-size="11.8" fill="#007bc4">Ui::draw</tspan> opens Pass 2 with <tspan font-family="monospace" font-size="11.8" fill="#ff2d7a">LoadOp::Load</tspan> so Pass 1 pixels survive.</text>
+  <text x="486" y="342" font-family="Georgia, 'Times New Roman', serif" font-size="12.4" fill="#666666">• Premultiplied alpha blends anti-aliased glyph quads over the white paper.</text>
+  <rect x="0.5" y="401.5" width="959" height="3" fill="#e4e7e8"/>
+  <rect x="0.5" y="401.5" width="101.05" height="3" fill="#007bc4"/>
+</svg>

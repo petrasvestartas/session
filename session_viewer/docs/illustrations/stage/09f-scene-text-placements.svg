@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 405" width="960" height="405">
+  <rect x="0.5" y="0.5" width="959" height="404" fill="#ffffff" stroke="#e4e7e8" stroke-width="1"/>
+  <line x1="460.8" y1="54" x2="460.8" y2="383" stroke="#e4e7e8" stroke-width="1"/>
+  <text x="26" y="32" font-family="Georgia, 'Times New Roman', serif" font-size="14.2" font-weight="700" fill="#007bc4">FIVE TEXT PLACEMENTS AND FONT UPGRADE</text>
+  <text x="482.8" y="32" font-family="Georgia, 'Times New Roman', serif" font-size="13.0" fill="#111111">Reuse shaped <tspan font-style="italic">glyphon</tspan> runs across orbit and upgrade subsets on missing glyphs.</text>
+  <text x="30" y="74" font-family="Georgia, 'Times New Roman', serif" font-size="13.5" font-weight="400" fill="#007bc4">engine/text.rs · 5 TextPlacement modes in one viewport</text>
+  <line x1="224" y1="216.36" x2="126.88" y2="268" stroke="#eceff1" stroke-width="0.9" stroke-linecap="round"/>
+  <line x1="243.42" y1="226.69" x2="146.3" y2="278.33" stroke="#eceff1" stroke-width="0.9" stroke-linecap="round"/>
+  <line x1="262.85" y1="237.01" x2="165.73" y2="288.66" stroke="#eceff1" stroke-width="0.9" stroke-linecap="round"/>
+  <line x1="282.27" y1="247.34" x2="185.15" y2="298.99" stroke="#eceff1" stroke-width="0.9" stroke-linecap="round"/>
+  <line x1="301.7" y1="257.67" x2="204.58" y2="309.31" stroke="#eceff1" stroke-width="0.9" stroke-linecap="round"/>
+  <line x1="321.12" y1="268" x2="224" y2="319.64" stroke="#eceff1" stroke-width="0.9" stroke-linecap="round"/>
+  <line x1="224" y1="216.36" x2="321.12" y2="268" stroke="#eceff1" stroke-width="0.9" stroke-linecap="round"/>
+  <line x1="204.58" y1="226.69" x2="301.7" y2="278.33" stroke="#eceff1" stroke-width="0.9" stroke-linecap="round"/>
+  <line x1="185.15" y1="237.01" x2="282.27" y2="288.66" stroke="#eceff1" stroke-width="0.9" stroke-linecap="round"/>
+  <line x1="165.73" y1="247.34" x2="262.85" y2="298.99" stroke="#eceff1" stroke-width="0.9" stroke-linecap="round"/>
+  <line x1="146.3" y1="257.67" x2="243.42" y2="309.31" stroke="#eceff1" stroke-width="0.9" stroke-linecap="round"/>
+  <line x1="126.88" y1="268" x2="224" y2="319.64" stroke="#eceff1" stroke-width="0.9" stroke-linecap="round"/>
+  <rect x="42" y="92" width="96" height="24" rx="3" fill="#e4e7e8" stroke="#111111" stroke-width="1.3"/>
+  <text x="90" y="108" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="9.8" fill="#111111" font-weight="500" text-anchor="middle">1. Screen HUD</text>
+  <rect x="185.54" y="188.53" width="108" height="24" rx="5" fill="#111111" stroke="none"/>
+  <text x="239.54" y="204.53" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="9.8" fill="#ffffff" font-weight="500" text-anchor="middle">2. Nameplate</text>
+  <circle cx="171.55" cy="238.9" r="3.5" fill="#ff2d7a"/>
+  <rect x="79.55" y="210.9" width="92" height="22" rx="4" fill="#ffffff" stroke="#ff2d7a" stroke-width="1.4"/>
+  <text x="125.55" y="225.9" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="9.6" fill="#ff2d7a" font-weight="500" text-anchor="middle">3. Anchored</text>
+  <polygon points="214.29,275.23 255.08,296.92 229.83,310.35 189.04,288.66" fill="#a9c9ff" fill-opacity="0.35" stroke="#007bc4" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="255.08" cy="296.92" r="3" fill="#007bc4"/>
+  <text x="263.08" y="300.92" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="9.6" fill="#007bc4" font-weight="700">4. WorldPlane</text>
+  <line x1="224.29" y1="292.79" x2="219.83" y2="292.79" stroke="#007bc4" stroke-width="1.1" stroke-linecap="round" stroke-dasharray="3 2.5"/>
+  <rect x="234.39" y="229.33" width="92" height="22" rx="4" fill="#ffe38a" stroke="#ff7a1a" stroke-width="1.4"/>
+  <text x="280.39" y="244.33" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="9.6" fill="#111111" font-weight="500" text-anchor="middle">5. Billboard</text>
+  <text x="42" y="358" font-family="Georgia, 'Times New Roman', serif" font-size="11" fill="#666666">Orbit updates anchor projections while shaped_runs stays 0.</text>
+  <text x="486" y="74" font-family="Georgia, 'Times New Roman', serif" font-size="13.5" font-weight="400" fill="#007bc4">TextLane::prepare · composite revision key</text>
+  <text x="556" y="86" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#888888" font-weight="500" text-anchor="middle">label move/color</text>
+  <text x="706" y="86" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#888888" font-weight="500" text-anchor="middle">subset → full</text>
+  <text x="856" y="86" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#888888" font-weight="500" text-anchor="middle">reproject only</text>
+  <rect x="486" y="92" width="140" height="38" rx="4.5" fill="#a9c9ff" stroke="none"/>
+  <text x="556" y="114.67" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.8" fill="#111111" font-weight="500" text-anchor="middle">doc_revision</text>
+  <rect x="636" y="92" width="140" height="38" rx="4.5" fill="#ffc400" stroke="none"/>
+  <text x="706" y="114.67" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.8" fill="#111111" font-weight="500" text-anchor="middle">font_revision</text>
+  <rect x="786" y="92" width="140" height="38" rx="4.5" fill="#ff5c9a" stroke="none"/>
+  <text x="856" y="114.67" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.8" fill="#111111" font-weight="500" text-anchor="middle">camera_or_size</text>
+  <text x="486" y="156" font-family="Georgia, 'Times New Roman', serif" font-size="11.8" fill="#111111">• Moving or recolouring a label reuses shaped glyphon glyph buffers.</text>
+  <text x="486" y="180" font-family="Georgia, 'Times New Roman', serif" font-size="11.8" fill="#666666">• Pure Screen labels skip prepare even when the 3D camera orbits.</text>
+  <text x="486" y="220" font-family="Georgia, 'Times New Roman', serif" font-size="13.5" font-weight="400" fill="#007bc4">fonts.rs · async subset-to-full font delivery (need)</text>
+  <text x="538" y="232" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#888888" font-weight="500" text-anchor="middle">bundled fast</text>
+  <text x="650" y="232" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#888888" font-weight="500" text-anchor="middle">ASKED = true</text>
+  <text x="762" y="232" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#888888" font-weight="500" text-anchor="middle">async once</text>
+  <text x="874" y="232" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#888888" font-weight="500" text-anchor="middle">font_rev + 1</text>
+  <rect x="486" y="238" width="104" height="38" rx="4.5" fill="#e4e7e8" stroke="none"/>
+  <text x="538" y="260.57" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#111111" font-weight="500" text-anchor="middle">Noto Subset</text>
+  <rect x="598" y="238" width="104" height="38" rx="4.5" fill="#ff5c9a" stroke="none"/>
+  <text x="650" y="260.57" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#111111" font-weight="500" text-anchor="middle">!covers(&quot;Ω&quot;)</text>
+  <rect x="710" y="238" width="104" height="38" rx="4.5" fill="#a9c9ff" stroke="none"/>
+  <text x="762" y="260.57" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#111111" font-weight="500" text-anchor="middle">HTTP fetch()</text>
+  <rect x="822" y="238" width="104" height="38" rx="4.5" fill="#00c46a" stroke="none"/>
+  <text x="874" y="260.57" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#111111" font-weight="500" text-anchor="middle">Msg::Fonts</text>
+  <text x="486" y="306" font-family="Georgia, 'Times New Roman', serif" font-size="11.8" fill="#111111">• Replaces tofu fallback with 'Ω' in place without resetting camera.</text>
+  <text x="486" y="332" font-family="Georgia, 'Times New Roman', serif" font-size="11.8" fill="#111111">• text-quality.html verifies GPU glyph advances within 0.2 CSS px</text>
+  <text x="498" y="352" font-family="Georgia, 'Times New Roman', serif" font-size="11.6" fill="#666666">of browser DOM rendering across DPR 1, 1.25 and 2.</text>
+  <rect x="0.5" y="401.5" width="959" height="3" fill="#e4e7e8"/>
+  <rect x="0.5" y="401.5" width="808.42" height="3" fill="#007bc4"/>
+</svg>

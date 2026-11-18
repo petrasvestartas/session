@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 410" width="960" height="410">
+  <rect x="0.5" y="0.5" width="959" height="409" fill="#ffffff" stroke="#e4e7e8" stroke-width="1"/>
+  <line x1="460.8" y1="54" x2="460.8" y2="388" stroke="#e4e7e8" stroke-width="1"/>
+  <text x="26" y="32" font-family="Georgia, 'Times New Roman', serif" font-size="14.2" font-weight="700" fill="#007bc4">FOUR FAILURE BOUNDARIES AND ORACLES</text>
+  <text x="482.8" y="32" font-family="Georgia, 'Times New Roman', serif" font-size="13.0" fill="#111111">Cross-check GPU frames against CPU rays, <tspan font-style="italic">scene_sync</tspan> fuzz, <tspan font-style="italic">naga</tspan> and WARP.</text>
+  <text x="30" y="74" font-family="Georgia, 'Times New Roman', serif" font-size="13.5" font-weight="400" fill="#007bc4">selftest/oracle.rs · independent CPU ray hidden-line oracle</text>
+  <polygon points="212,188 264,214 222,276" fill="#a9c9ff" fill-opacity="0.35" stroke="#111111" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <line x1="52" y1="206" x2="305.45" y2="137.4" stroke="#00c46a" stroke-width="2.1" stroke-linecap="round"/>
+  <polygon points="318,134 305.96,139.28 304.94,135.51" fill="#00c46a" stroke="none"/>
+  <line x1="52" y1="206" x2="220.12" y2="230.28" stroke="#ff2d7a" stroke-width="2.1" stroke-linecap="round"/>
+  <polygon points="232,232 219.87,232.07 220.38,228.5" fill="#ff2d7a" stroke="none"/>
+  <line x1="232" y1="232" x2="352" y2="252" stroke="#888888" stroke-width="1.3" stroke-linecap="round" stroke-dasharray="4 3"/>
+  <circle cx="52" cy="206" r="4.2" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <circle cx="318" cy="134" r="3.8" fill="#00c46a"/>
+  <circle cx="232" cy="232" r="3.6" fill="#ff2d7a"/>
+  <circle cx="352" cy="252" r="3.6" fill="#ffffff" stroke="#888888" stroke-width="2"/>
+  <text x="326" y="132" font-family="Georgia, 'Times New Roman', serif" font-size="11" fill="#00c46a" font-weight="700">visible → px ≤ 190</text>
+  <text x="214" y="296" font-family="Georgia, 'Times New Roman', serif" font-size="11" fill="#ff2d7a" font-weight="700">triangle ≥ 0.05 mm nearer → hidden</text>
+  <text x="42" y="336" font-family="Georgia, 'Times New Roman', serif" font-size="11" fill="#111111">• Bins placed triangles in 48×48 cells; steps 3 px on strokes.</text>
+  <text x="42" y="358" font-family="Georgia, 'Times New Roman', serif" font-size="11" fill="#666666">• lifecycle.rs checks RGB pixels and (row, sub) pick buffers.</text>
+  <text x="486" y="74" font-family="Georgia, 'Times New Roman', serif" font-size="13.5" font-weight="400" fill="#007bc4">Four independent diagnostic layers (28 modules)</text>
+  <rect x="486" y="92" width="212" height="40" rx="4.5" fill="#a9c9ff" stroke="none"/>
+  <text x="592" y="115.6" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.6" fill="#111111" font-weight="500" text-anchor="middle">1. viewerDiagnostics + ?inspect=1</text>
+  <rect x="710" y="92" width="212" height="40" rx="4.5" fill="#ffc400" stroke="none"/>
+  <text x="816" y="115.6" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.6" fill="#111111" font-weight="500" text-anchor="middle">2. scene_sync 150-step fuzz</text>
+  <rect x="486" y="144" width="212" height="40" rx="4.5" fill="#ff5c9a" stroke="none"/>
+  <text x="592" y="167.6" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.6" fill="#111111" font-weight="500" text-anchor="middle">3. naga WGSL offset_of! check</text>
+  <rect x="710" y="144" width="212" height="40" rx="4.5" fill="#00c46a" stroke="none"/>
+  <text x="816" y="167.6" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.6" fill="#111111" font-weight="500" text-anchor="middle">4. Headless WARP + CPU oracle</text>
+  <text x="486" y="210" font-family="Georgia, 'Times New Roman', serif" font-size="13.5" font-weight="400" fill="#007bc4">What each oracle catches — and open Tutorial 9 boundary</text>
+  <text x="486" y="240" font-family="Georgia, 'Times New Roman', serif" font-size="11.5" fill="#111111">• ?inspect=1 exposes live camera, row counts, lane bytes &amp; weak-Rc RAM.</text>
+  <text x="486" y="266" font-family="Georgia, 'Times New Roman', serif" font-size="11.5" fill="#111111">• scene_sync/testing.rs compares incremental edits + 4 KiB tomb eviction</text>
+  <text x="498" y="286" font-family="Georgia, 'Times New Roman', serif" font-size="11.3" fill="#666666">bit-for-bit against a fresh multi-document walk.</text>
+  <text x="486" y="314" font-family="Georgia, 'Times New Roman', serif" font-size="11.1" fill="#ff2d7a" font-weight="700">• Open item (Tutorial 9 pending): instanced_frames_match_the_baked_scene</text>
+  <text x="498" y="334" font-family="Georgia, 'Times New Roman', serif" font-size="11.2" fill="#111111">(31 pixels differ by 3 levels vs ≤ 2 threshold in the turned scene;</text>
+  <text x="498" y="354" font-family="Georgia, 'Times New Roman', serif" font-size="11.2" fill="#666666">36/37 GPU assertions pass; hardware phone ABI remains separate).</text>
+  <rect x="0.5" y="406.5" width="959" height="3" fill="#e4e7e8"/>
+  <rect x="0.5" y="406.5" width="960" height="3" fill="#007bc4"/>
+</svg>

@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 405" width="960" height="405">
+  <rect x="0.5" y="0.5" width="959" height="404" fill="#ffffff" stroke="#e4e7e8" stroke-width="1"/>
+  <line x1="451.2" y1="54" x2="451.2" y2="383" stroke="#e4e7e8" stroke-width="1"/>
+  <text x="26" y="32" font-family="Georgia, 'Times New Roman', serif" font-size="14.2" font-weight="700" fill="#007bc4">COMMAND SPEC, DRAFTS AND SECTION PLANES</text>
+  <text x="473.2" y="32" font-family="Georgia, 'Times New Roman', serif" font-size="13.0" fill="#111111">Parse <tspan font-style="italic">Spec</tspan> into boxed <tspan font-style="italic">Actions</tspan>, preview <tspan font-style="italic">Move</tspan> at 0 undo cost, and cut solids.</text>
+  <text x="30" y="74" font-family="Georgia, 'Times New Roman', serif" font-size="13.5" font-weight="400" fill="#007bc4">Move preview (0 history ops) vs single-transaction commit</text>
+  <line x1="74" y1="158" x2="232" y2="114" stroke="#ff7a1a" stroke-width="1.8" stroke-linecap="round" stroke-dasharray="5 3.5"/>
+  <line x1="74" y1="158" x2="354" y2="158" stroke="#007bc4" stroke-width="2.4" stroke-linecap="round"/>
+  <polygon points="368,158 354,160.1 354,155.9" fill="#007bc4" stroke="none"/>
+  <circle cx="74" cy="158" r="4.2" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <circle cx="232" cy="114" r="4" fill="#ffffff" stroke="#ff7a1a" stroke-width="2"/>
+  <circle cx="368" cy="158" r="4.2" fill="#ffffff" stroke="#007bc4" stroke-width="2"/>
+  <text x="74" y="182" font-family="Georgia, 'Times New Roman', serif" font-size="11.5" fill="#111111" font-weight="700" text-anchor="middle">base_place</text>
+  <text x="232" y="98" font-family="Georgia, 'Times New Roman', serif" font-size="11.2" fill="#ff7a1a" text-anchor="middle">20 hover frames (Escape → 0 ops)</text>
+  <text x="368" y="182" font-family="Georgia, 'Times New Roman', serif" font-size="11.5" fill="#007bc4" font-weight="700" text-anchor="middle">click → 1 Undo op</text>
+  <text x="30" y="224" font-family="Georgia, 'Times New Roman', serif" font-size="13.5" font-weight="400" fill="#007bc4">selecting.rs · Window (L→R) vs Crossing (R→L) boxes</text>
+  <rect x="48" y="246" width="156" height="86" fill="#a9c9ff" fill-opacity="0.16" stroke="#007bc4" stroke-width="2"/>
+  <text x="126" y="272" font-family="Georgia, 'Times New Roman', serif" font-size="11.5" fill="#007bc4" font-weight="700" text-anchor="middle">Window (L → R)</text>
+  <text x="126" y="294" font-family="Georgia, 'Times New Roman', serif" font-size="11" fill="#111111" text-anchor="middle">all corners inside</text>
+  <rect x="236" y="246" width="166" height="86" fill="#ff8fbd" fill-opacity="0.16" stroke="#ff2d7a" stroke-width="2" stroke-dasharray="5 3.5"/>
+  <text x="319" y="272" font-family="Georgia, 'Times New Roman', serif" font-size="11.5" fill="#ff2d7a" font-weight="700" text-anchor="middle">Crossing (R → L)</text>
+  <text x="319" y="294" font-family="Georgia, 'Times New Roman', serif" font-size="11" fill="#111111" text-anchor="middle">any edge/interior hit</text>
+  <text x="48" y="356" font-family="Georgia, 'Times New Roman', serif" font-size="11.4" fill="#666666">Even-odd scanline polygon test supports freehand SelectLasso loops.</text>
+  <text x="474" y="74" font-family="Georgia, 'Times New Roman', serif" font-size="13.5" font-weight="400" fill="#007bc4">verbs! registry · declarative Spec vs executable Action</text>
+  <text x="527" y="86" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#888888" font-weight="500" text-anchor="middle">44 modules</text>
+  <text x="641" y="86" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#888888" font-weight="500" text-anchor="middle">pure &amp;str</text>
+  <text x="755" y="86" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#888888" font-weight="500" text-anchor="middle">validated</text>
+  <text x="869" y="86" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#888888" font-weight="500" text-anchor="middle">1 undo step</text>
+  <rect x="474" y="92" width="106" height="38" rx="4.5" fill="#e4e7e8" stroke="none"/>
+  <text x="527" y="114.67" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.8" fill="#111111" font-weight="500" text-anchor="middle">REGISTRY</text>
+  <rect x="588" y="92" width="106" height="38" rx="4.5" fill="#a9c9ff" stroke="none"/>
+  <text x="641" y="114.67" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.8" fill="#111111" font-weight="500" text-anchor="middle">Spec::parse</text>
+  <rect x="702" y="92" width="106" height="38" rx="4.5" fill="#ffc400" stroke="none"/>
+  <text x="755" y="114.67" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.8" fill="#111111" font-weight="500" text-anchor="middle">Box&lt;Action&gt;</text>
+  <rect x="816" y="92" width="106" height="38" rx="4.5" fill="#ff5c9a" stroke="none"/>
+  <text x="869" y="114.67" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.8" fill="#111111" font-weight="500" text-anchor="middle">State::edit</text>
+  <text x="474" y="156" font-family="Georgia, 'Times New Roman', serif" font-size="11.8" fill="#111111">• Tab completion &amp; option chips read Spec without mutating State.</text>
+  <text x="474" y="180" font-family="Georgia, 'Times New Roman', serif" font-size="11.8" fill="#111111">• Create::run rejects NaN/∞ or zero-length lines before row insertion.</text>
+  <text x="474" y="218" font-family="Georgia, 'Times New Roman', serif" font-size="13.5" font-weight="400" fill="#007bc4">clipping.rs · non-uniform-safe half-space normal</text>
+  <text x="474" y="252" font-family="Georgia, 'Times New Roman', serif" font-size="13.5" fill="#111111"><tspan font-weight="700">n</tspan><tspan font-size="9.5" dy="2">cut</tspan><tspan dy="-2"> = normalize( (</tspan><tspan font-weight="700">M x</tspan><tspan font-size="9.5" dy="2">plane</tspan><tspan dy="-2">) × (</tspan><tspan font-weight="700">M y</tspan><tspan font-size="9.5" dy="2">plane</tspan><tspan dy="-2">) )</tspan></text>
+  <text x="474" y="282" font-family="Georgia, 'Times New Roman', serif" font-size="11.8" fill="#111111">• Crosses transformed in-plane axes so non-uniform scale stays exact.</text>
+  <text x="474" y="306" font-family="Georgia, 'Times New Roman', serif" font-size="11.8" fill="#111111">• Up to 6 simultaneous section planes (Normal, 3Point, XY, YZ, ZX).</text>
+  <text x="474" y="330" font-family="Georgia, 'Times New Roman', serif" font-size="11.8" fill="#666666">• Hiding a clipping plane's border keeps its half-space cut active.</text>
+  <text x="474" y="354" font-family="Georgia, 'Times New Roman', serif" font-size="11.8" fill="#666666">• First active plane verifies closed solid shells before capping.</text>
+  <rect x="0.5" y="401.5" width="959" height="3" fill="#e4e7e8"/>
+  <rect x="0.5" y="401.5" width="606.32" height="3" fill="#007bc4"/>
+</svg>

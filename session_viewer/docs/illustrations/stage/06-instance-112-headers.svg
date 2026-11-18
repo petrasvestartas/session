@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 420" width="960" height="420">
+  <rect x="0.5" y="0.5" width="959" height="419" fill="#ffffff" stroke="#e4e7e8" stroke-width="1"/>
+  <line x1="451.2" y1="54" x2="451.2" y2="398" stroke="#e4e7e8" stroke-width="1"/>
+  <text x="26" y="32" font-family="Georgia, 'Times New Roman', serif" font-size="14.2" font-weight="700" fill="#007bc4">112-BYTE INSTANCE ROWS AND NORMALS</text>
+  <text x="473.2" y="32" font-family="Georgia, 'Times New Roman', serif" font-size="13.0" fill="#111111">Split <tspan font-style="italic">model</tspan> from camera-relative translation and pack oct32 normals.</text>
+  <text x="30" y="74" font-family="Georgia, 'Times New Roman', serif" font-size="13.5" font-weight="400" fill="#007bc4">scene.wgsl · place(i, p) = Mᵢ p + (Tᵢ − anchor)</text>
+  <line x1="168" y1="142.32" x2="100.9" y2="178" stroke="#eceff1" stroke-width="0.9" stroke-linecap="round"/>
+  <line x1="184.78" y1="151.24" x2="117.67" y2="186.92" stroke="#eceff1" stroke-width="0.9" stroke-linecap="round"/>
+  <line x1="201.55" y1="160.16" x2="134.45" y2="195.84" stroke="#eceff1" stroke-width="0.9" stroke-linecap="round"/>
+  <line x1="218.33" y1="169.08" x2="151.22" y2="204.76" stroke="#eceff1" stroke-width="0.9" stroke-linecap="round"/>
+  <line x1="235.1" y1="178" x2="168" y2="213.68" stroke="#eceff1" stroke-width="0.9" stroke-linecap="round"/>
+  <line x1="168" y1="142.32" x2="235.1" y2="178" stroke="#eceff1" stroke-width="0.9" stroke-linecap="round"/>
+  <line x1="151.22" y1="151.24" x2="218.33" y2="186.92" stroke="#eceff1" stroke-width="0.9" stroke-linecap="round"/>
+  <line x1="134.45" y1="160.16" x2="201.55" y2="195.84" stroke="#eceff1" stroke-width="0.9" stroke-linecap="round"/>
+  <line x1="117.67" y1="169.08" x2="184.78" y2="204.76" stroke="#eceff1" stroke-width="0.9" stroke-linecap="round"/>
+  <line x1="100.9" y1="178" x2="168" y2="213.68" stroke="#eceff1" stroke-width="0.9" stroke-linecap="round"/>
+  <line x1="127.74" y1="174.43" x2="161.74" y2="176.68" stroke="#007bc4" stroke-width="2.2" stroke-linecap="round"/>
+  <polygon points="174.71,177.54 161.61,178.62 161.87,174.73" fill="#007bc4" stroke="none"/>
+  <line x1="174.71" y1="177.54" x2="195.15" y2="159.53" stroke="#ff2d7a" stroke-width="2.2" stroke-linecap="round"/>
+  <polygon points="204.91,150.94 196.44,160.99 193.86,158.07" fill="#ff2d7a" stroke="none"/>
+  <line x1="127.74" y1="174.43" x2="204.91" y2="150.94" stroke="#888888" stroke-width="1.2" stroke-linecap="round" stroke-dasharray="5 3.8"/>
+  <circle cx="127.74" cy="174.43" r="4" fill="#ffffff" stroke="#ff7a1a" stroke-width="2"/>
+  <circle cx="174.71" cy="177.54" r="4.2" fill="#ffffff" stroke="#007bc4" stroke-width="2"/>
+  <circle cx="204.91" cy="150.94" r="4.2" fill="#ffffff" stroke="#ff2d7a" stroke-width="2"/>
+  <text x="119.74" y="166.43" font-family="Georgia, 'Times New Roman', serif" font-size="11.2" fill="#ff7a1a" font-weight="700" text-anchor="end">anchor (f64)</text>
+  <text x="182.71" y="193.54" font-family="Georgia, 'Times New Roman', serif" font-size="11.2" fill="#007bc4" font-weight="700">translations[i]</text>
+  <text x="212.91" y="154.94" font-family="Georgia, 'Times New Roman', serif" font-size="12" fill="#ff2d7a" font-weight="700">Mᵢ p + tᵢ</text>
+  <text x="30" y="244" font-family="Georgia, 'Times New Roman', serif" font-size="13.5" font-weight="400" fill="#007bc4">normals.wgsl · oct32_decode [-1, +1]² square</text>
+  <rect x="56" y="260" width="126" height="126" fill="#ff8fbd" fill-opacity="0.22" stroke="#111111" stroke-width="1.8"/>
+  <polygon points="119,260 182,323 119,386 56,323" fill="#a9c9ff" fill-opacity="0.35" stroke="#007bc4" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+  <line x1="56" y1="323" x2="182" y2="323" stroke="#888888" stroke-width="0.9" stroke-linecap="round" stroke-dasharray="3 3"/>
+  <line x1="119" y1="260" x2="119" y2="386" stroke="#888888" stroke-width="0.9" stroke-linecap="round" stroke-dasharray="3 3"/>
+  <circle cx="137" cy="307" r="3.2" fill="#007bc4"/>
+  <text x="119" y="328" font-family="Georgia, 'Times New Roman', serif" font-size="11.5" fill="#007bc4" font-weight="700" text-anchor="middle">n_z ≥ 0</text>
+  <text x="76" y="278" font-family="Georgia, 'Times New Roman', serif" font-size="10.2" fill="#ff2d7a" text-anchor="middle">z&lt;0</text>
+  <text x="162" y="278" font-family="Georgia, 'Times New Roman', serif" font-size="10.2" fill="#ff2d7a" text-anchor="middle">z&lt;0</text>
+  <text x="200" y="282" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.8" fill="#111111" font-weight="500">0x80008000u → no normal (0)</text>
+  <text x="200" y="306" font-family="Georgia, 'Times New Roman', serif" font-size="12" fill="#111111">e = unpack2x16snorm(p)</text>
+  <text x="200" y="328" font-family="Georgia, 'Times New Roman', serif" font-size="12" fill="#007bc4">n_z = 1 − |e_x| − |e_y|</text>
+  <text x="200" y="350" font-family="Georgia, 'Times New Roman', serif" font-size="11.8" fill="#ff2d7a">if n_z &lt; 0: fold corners inward</text>
+  <text x="200" y="372" font-family="Georgia, 'Times New Roman', serif" font-size="11.5" fill="#666666">1 u32 word replaces 12 B vec3!</text>
+  <text x="474" y="74" font-family="Georgia, 'Times New Roman', serif" font-size="13.5" font-weight="400" fill="#007bc4">Instance (112 B) + translations[i] (16 B) · @group(2)</text>
+  <text x="527" y="86" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#007bc4" font-weight="500" text-anchor="middle">+0 .. +64 B</text>
+  <text x="641" y="86" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#ff2d7a" font-weight="500" text-anchor="middle">+64 .. +80 B</text>
+  <text x="755" y="86" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#111111" font-weight="500" text-anchor="middle">+80 .. +96 B</text>
+  <text x="869" y="86" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#888888" font-weight="500" text-anchor="middle">+96 .. +112 B</text>
+  <rect x="474" y="92" width="106" height="40" rx="4.5" fill="#a9c9ff" stroke="none"/>
+  <text x="527" y="115.74" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="11" fill="#111111" font-weight="500" text-anchor="middle">model 4×4</text>
+  <rect x="588" y="92" width="106" height="40" rx="4.5" fill="#ff5c9a" stroke="none"/>
+  <text x="641" y="115.74" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="11" fill="#111111" font-weight="500" text-anchor="middle">color rgba</text>
+  <rect x="702" y="92" width="106" height="40" rx="4.5" fill="#ffc400" stroke="none"/>
+  <text x="755" y="115.74" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="11" fill="#111111" font-weight="500" text-anchor="middle">flags..edge</text>
+  <rect x="816" y="92" width="106" height="40" rx="4.5" fill="#e4e7e8" stroke="none"/>
+  <text x="869" y="115.74" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="11" fill="#111111" font-weight="500" text-anchor="middle">effect vec4</text>
+  <text x="474" y="154" font-family="Georgia, 'Times New Roman', serif" font-size="11.6" fill="#111111">Bytes +80..+96: <tspan font-family="monospace" font-size="11.0">flags: u32, ao_radius: f32, spacing: f32, edge_color: u32</tspan></text>
+  <text x="474" y="176" font-family="Georgia, 'Times New Roman', serif" font-size="11.6" fill="#111111">Bytes +96..+112: <tspan font-family="monospace" font-size="11.0" fill="#007bc4">effect = [reveal, point_scale, 0, 0]</tspan> + <tspan font-family="monospace" font-size="11.0">translations[i]</tspan></text>
+  <text x="474" y="212" font-family="Georgia, 'Times New Roman', serif" font-size="13.5" font-weight="400" fill="#007bc4">Cofactor normal transform &amp; 6 shared headers</text>
+  <text x="474" y="244" font-family="Georgia, 'Times New Roman', serif" font-size="13.5" fill="#111111"><tspan font-weight="700">n</tspan>′ = normalize( [ <tspan font-weight="700">y × z</tspan>,  <tspan font-weight="700">z × x</tspan>,  <tspan font-weight="700">x × y</tspan> ] · <tspan font-weight="700">n</tspan> · sgn(det <tspan font-weight="700">M</tspan>) )</text>
+  <text x="474" y="268" font-family="Georgia, 'Times New Roman', serif" font-size="11.6" fill="#666666">Preserves perpendicularity under non-uniform scale and reflection sign under mirroring.</text>
+  <rect x="474" y="292" width="142" height="30" rx="4.5" fill="#a9c9ff" stroke="none"/>
+  <text x="545" y="310.54" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.4" fill="#111111" font-weight="500" text-anchor="middle">scene.wgsl (112/80B)</text>
+  <rect x="624" y="292" width="142" height="30" rx="4.5" fill="#ffc400" stroke="none"/>
+  <text x="695" y="310.54" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.4" fill="#111111" font-weight="500" text-anchor="middle">normals.wgsl (oct32)</text>
+  <rect x="774" y="292" width="142" height="30" rx="4.5" fill="#ff5c9a" stroke="none"/>
+  <text x="845" y="310.54" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.4" fill="#111111" font-weight="500" text-anchor="middle">physical.wgsl (2×u16)</text>
+  <rect x="474" y="330" width="142" height="30" rx="4.5" fill="#e4e7e8" stroke="none"/>
+  <text x="545" y="348.54" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.4" fill="#111111" font-weight="500" text-anchor="middle">projected_tri (96B)</text>
+  <rect x="624" y="330" width="142" height="30" rx="4.5" fill="#a9c9ff" stroke="none"/>
+  <text x="695" y="348.54" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.4" fill="#111111" font-weight="500" text-anchor="middle">clip.wgsl (6 planes)</text>
+  <rect x="774" y="330" width="142" height="30" rx="4.5" fill="#ff8fbd" stroke="none"/>
+  <text x="845" y="348.54" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.4" fill="#111111" font-weight="500" text-anchor="middle">ink_visibility.wgsl</text>
+  <text x="474" y="382" font-family="Georgia, 'Times New Roman', serif" font-size="11.5" fill="#111111"><tspan font-family="monospace" font-size="10.8" fill="#007bc4">physical_primitive(id)</tspan> = <tspan font-family="monospace" font-size="10.8">(id &amp; 0xffff, id &gt;&gt; 16)</tspan> (4× MSAA lacks r32uint).</text>
+  <rect x="0.5" y="416.5" width="959" height="3" fill="#e4e7e8"/>
+  <rect x="0.5" y="416.5" width="303.16" height="3" fill="#007bc4"/>
+</svg>

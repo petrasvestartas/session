@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 395" width="960" height="395">
+  <rect x="0.5" y="0.5" width="959" height="394" fill="#ffffff" stroke="#e4e7e8" stroke-width="1"/>
+  <line x1="441.6" y1="54" x2="441.6" y2="373" stroke="#e4e7e8" stroke-width="1"/>
+  <text x="26" y="32" font-family="Georgia, 'Times New Roman', serif" font-size="14.2" font-weight="700" fill="#007bc4">NINE CUMULATIVE CHECKPOINTS</text>
+  <text x="463.6" y="32" font-family="Georgia, 'Times New Roman', serif" font-size="13.0" fill="#111111">Grow one crate additively from <tspan fill="#007bc4">13 files</tspan> (frame) to <tspan fill="#007bc4">370 files</tspan> (application).</text>
+  <text x="30" y="74" font-family="Georgia, 'Times New Roman', serif" font-size="13.5" font-weight="400" fill="#007bc4">Cumulative file count across checkpoints 1 .. 9 (zero rewrites)</text>
+  <line x1="48" y1="322" x2="416" y2="322" stroke="#111111" stroke-width="1.6" stroke-linecap="round"/>
+  <line x1="48" y1="322" x2="48" y2="104" stroke="#111111" stroke-width="1.6" stroke-linecap="round"/>
+  <polygon points="66,322 66,314.76 107.88,313.65 149.76,298.62 191.65,296.39 233.53,295.28 275.41,283.58 317.29,229.02 359.18,226.79 401.06,116 401.06,322" fill="#a9c9ff" fill-opacity="0.22" stroke="none"/>
+  <polyline points="66,314.76 107.88,313.65 149.76,298.62 191.65,296.39 233.53,295.28 275.41,283.58 317.29,229.02 359.18,226.79 401.06,116" fill="none" stroke="#007bc4" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="66" cy="314.76" r="3.8" fill="#ffffff" stroke="#007bc4" stroke-width="2"/>
+  <text x="66" y="338" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#007bc4" font-weight="700" text-anchor="middle">1</text>
+  <text x="66" y="304.76" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="9.8" fill="#111111" font-weight="500" text-anchor="middle">13</text>
+  <circle cx="107.88" cy="313.65" r="3.8" fill="#ffffff" stroke="#007bc4" stroke-width="2"/>
+  <text x="107.88" y="338" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#007bc4" font-weight="700" text-anchor="middle">2</text>
+  <text x="107.88" y="300.65" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="9.8" fill="#111111" font-weight="500" text-anchor="middle">15</text>
+  <circle cx="149.76" cy="298.62" r="3.8" fill="#ffffff" stroke="#007bc4" stroke-width="2"/>
+  <text x="149.76" y="338" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#007bc4" font-weight="700" text-anchor="middle">3</text>
+  <text x="149.76" y="288.62" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="9.8" fill="#111111" font-weight="500" text-anchor="middle">42</text>
+  <circle cx="191.65" cy="296.39" r="3.8" fill="#ffffff" stroke="#007bc4" stroke-width="2"/>
+  <text x="191.65" y="338" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#007bc4" font-weight="700" text-anchor="middle">4</text>
+  <text x="191.65" y="283.39" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="9.8" fill="#111111" font-weight="500" text-anchor="middle">46</text>
+  <circle cx="233.53" cy="295.28" r="3.8" fill="#ffffff" stroke="#007bc4" stroke-width="2"/>
+  <text x="233.53" y="338" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#007bc4" font-weight="700" text-anchor="middle">5</text>
+  <text x="233.53" y="285.28" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="9.8" fill="#111111" font-weight="500" text-anchor="middle">48</text>
+  <circle cx="275.41" cy="283.58" r="3.8" fill="#ffffff" stroke="#007bc4" stroke-width="2"/>
+  <text x="275.41" y="338" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#007bc4" font-weight="700" text-anchor="middle">6</text>
+  <text x="275.41" y="273.58" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="9.8" fill="#111111" font-weight="500" text-anchor="middle">69</text>
+  <circle cx="317.29" cy="229.02" r="3.8" fill="#ffffff" stroke="#007bc4" stroke-width="2"/>
+  <text x="317.29" y="338" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#007bc4" font-weight="700" text-anchor="middle">7</text>
+  <text x="317.29" y="219.02" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="9.8" fill="#111111" font-weight="500" text-anchor="middle">167</text>
+  <circle cx="359.18" cy="226.79" r="3.8" fill="#ffffff" stroke="#007bc4" stroke-width="2"/>
+  <text x="359.18" y="338" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#007bc4" font-weight="700" text-anchor="middle">8</text>
+  <text x="359.18" y="216.79" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="9.8" fill="#111111" font-weight="500" text-anchor="middle">171</text>
+  <circle cx="401.06" cy="116" r="3.8" fill="#ffffff" stroke="#ff2d7a" stroke-width="2"/>
+  <text x="401.06" y="338" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#007bc4" font-weight="700" text-anchor="middle">9</text>
+  <text x="401.06" y="106" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="9.8" fill="#111111" font-weight="500" text-anchor="middle">370</text>
+  <text x="226" y="362" font-family="Georgia, 'Times New Roman', serif" font-size="11.5" fill="#666666" text-anchor="middle">Checkpoint index (each keeps all earlier files intact)</text>
+  <text x="466" y="74" font-family="Georgia, 'Times New Roman', serif" font-size="13.5" font-weight="400" fill="#007bc4">Step-by-step route to 352/352 production Rust &amp; WGSL files</text>
+  <rect x="466" y="92" width="150" height="36" rx="4.5" fill="#e4e7e8" stroke="none"/>
+  <text x="541" y="113.67" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.8" fill="#111111" font-weight="500" text-anchor="middle">1 · frame (13)</text>
+  <rect x="624" y="92" width="150" height="36" rx="4.5" fill="#e4e7e8" stroke="none"/>
+  <text x="699" y="113.67" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.8" fill="#111111" font-weight="500" text-anchor="middle">2 · painting (15)</text>
+  <rect x="782" y="92" width="150" height="36" rx="4.5" fill="#a9c9ff" stroke="none"/>
+  <text x="857" y="113.67" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.8" fill="#111111" font-weight="500" text-anchor="middle">3 · math (42)</text>
+  <rect x="466" y="136" width="150" height="36" rx="4.5" fill="#e4e7e8" stroke="none"/>
+  <text x="541" y="157.67" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.8" fill="#111111" font-weight="500" text-anchor="middle">4 · dock (46)</text>
+  <rect x="624" y="136" width="150" height="36" rx="4.5" fill="#a9c9ff" stroke="none"/>
+  <text x="699" y="157.67" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.8" fill="#111111" font-weight="500" text-anchor="middle">5 · camera (48)</text>
+  <rect x="782" y="136" width="150" height="36" rx="4.5" fill="#ffc400" stroke="none"/>
+  <text x="857" y="157.67" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.8" fill="#111111" font-weight="500" text-anchor="middle">6 · rows (69)</text>
+  <rect x="466" y="180" width="150" height="36" rx="4.5" fill="#ff5c9a" stroke="none"/>
+  <text x="541" y="201.67" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.8" fill="#111111" font-weight="500" text-anchor="middle">7 · geometry (167)</text>
+  <rect x="624" y="180" width="150" height="36" rx="4.5" fill="#ffc400" stroke="none"/>
+  <text x="699" y="201.67" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.8" fill="#111111" font-weight="500" text-anchor="middle">8 · decoding (171)</text>
+  <rect x="782" y="180" width="150" height="36" rx="4.5" fill="#00c46a" stroke="none"/>
+  <text x="857" y="201.67" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.8" fill="#111111" font-weight="500" text-anchor="middle">9 · app (370)</text>
+  <text x="466" y="248" font-family="Georgia, 'Times New Roman', serif" font-size="13.5" font-weight="400" fill="#007bc4">Build &amp; bundle pipeline (Cargo 1.97.1 + Trunk 0.21.14)</text>
+  <text x="521" y="260" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#888888" font-weight="500" text-anchor="middle">minify 33 WGSL</text>
+  <text x="639" y="260" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#888888" font-weight="500" text-anchor="middle">cdylib + rlib</text>
+  <text x="757" y="260" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#888888" font-weight="500" text-anchor="middle">JS DOM shim</text>
+  <text x="875" y="260" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#888888" font-weight="500" text-anchor="middle">stage + docs</text>
+  <rect x="466" y="266" width="110" height="34" rx="4.5" fill="#ffc400" stroke="none"/>
+  <text x="521" y="286.47" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.2" fill="#111111" font-weight="500" text-anchor="middle">build.rs</text>
+  <rect x="584" y="266" width="110" height="34" rx="4.5" fill="#a9c9ff" stroke="none"/>
+  <text x="639" y="286.47" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.2" fill="#111111" font-weight="500" text-anchor="middle">cargo wasm32</text>
+  <rect x="702" y="266" width="110" height="34" rx="4.5" fill="#ff5c9a" stroke="none"/>
+  <text x="757" y="286.47" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.2" fill="#111111" font-weight="500" text-anchor="middle">wasm-bindgen</text>
+  <rect x="820" y="266" width="110" height="34" rx="4.5" fill="#e4e7e8" stroke="none"/>
+  <text x="875" y="286.47" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.2" fill="#111111" font-weight="500" text-anchor="middle">trunk dist/</text>
+  <text x="466" y="336" font-family="Georgia, 'Times New Roman', serif" font-size="11.8" fill="#111111">• Tutorials 6, 7 &amp; 7.1 cover all 33 WGSL shaders with live source includes.</text>
+  <text x="466" y="360" font-family="Georgia, 'Times New Roman', serif" font-size="11.8" fill="#666666">• Chapters 9.1 .. 9.9 complete documents, tools, input, streaming, stage &amp; oracles.</text>
+  <rect x="0.5" y="391.5" width="959" height="3" fill="#e4e7e8"/>
+  <rect x="0.5" y="391.5" width="960" height="3" fill="#007bc4"/>
+</svg>

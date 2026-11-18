@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 425" width="960" height="425">
+  <rect x="0.5" y="0.5" width="959" height="424" fill="#ffffff" stroke="#e4e7e8" stroke-width="1"/>
+  <line x1="460.8" y1="54" x2="460.8" y2="403" stroke="#e4e7e8" stroke-width="1"/>
+  <text x="26" y="32" font-family="Georgia, 'Times New Roman', serif" font-size="14.2" font-weight="700" fill="#007bc4">RIBBON STROKES, 0.30 ARROWS AND PLANES</text>
+  <text x="482.8" y="32" font-family="Georgia, 'Times New Roman', serif" font-size="13.0" fill="#111111">Extrude 6-vertex mitered quads in <tspan font-style="italic">ribbon.wgsl</tspan> and 18-vertex 0.30 arrows.</text>
+  <text x="30" y="74" font-family="Georgia, 'Times New Roman', serif" font-size="13.5" font-weight="400" fill="#007bc4">ribbon.wgsl · 6-vertex quad, join_plane miter &amp; reveal</text>
+  <polygon points="64,134 276,108 268,148 72,170" fill="#a9c9ff" fill-opacity="0.28" stroke="#007bc4" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+  <line x1="64" y1="134" x2="268" y2="148" stroke="#007bc4" stroke-width="0.9" stroke-linecap="round" stroke-dasharray="3 3"/>
+  <line x1="68" y1="152" x2="212" y2="135" stroke="#111111" stroke-width="2.8" stroke-linecap="round"/>
+  <line x1="212" y1="135" x2="274" y2="128" stroke="#888888" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="4 3"/>
+  <line x1="274" y1="128" x2="392" y2="174" stroke="#888888" stroke-width="1.8" stroke-linecap="round" stroke-dasharray="5 3.5"/>
+  <line x1="282" y1="96" x2="264" y2="166" stroke="#ff2d7a" stroke-width="1.8" stroke-linecap="round" stroke-dasharray="4 3"/>
+  <circle cx="68" cy="152" r="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <circle cx="274" cy="128" r="4" fill="#ffffff" stroke="#ff2d7a" stroke-width="2"/>
+  <circle cx="392" cy="174" r="3.8" fill="#ffffff" stroke="#888888" stroke-width="2"/>
+  <circle cx="212" cy="135" r="3.5" fill="#ff7a1a"/>
+  <text x="286" y="100" font-family="Georgia, 'Times New Roman', serif" font-size="11.2" fill="#ff2d7a" font-weight="700">join_plane</text>
+  <text x="212" y="178" font-family="Georgia, 'Times New Roman', serif" font-size="11.2" fill="#ff7a1a" font-weight="700" text-anchor="middle">reveal (effect.x)</text>
+  <text x="64" y="192" font-family="Georgia, 'Times New Roman', serif" font-size="11" fill="#007bc4">±(hw + 0.71 px)</text>
+  <text x="30" y="232" font-family="Georgia, 'Times New Roman', serif" font-size="13.5" font-weight="400" fill="#007bc4">arrow.wgsl + vector.wgsl · 18 vertices per VectorRow</text>
+  <rect x="122" y="305" width="222" height="14" fill="#a9c9ff" stroke="#111111" stroke-width="1.5"/>
+  <polygon points="68,312 128,298 128,326" fill="#ff5c9a" fill-opacity="0.18" stroke="#ff2d7a" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+  <polygon points="404,312 338,298 338,326" fill="#007bc4" fill-opacity="0.18" stroke="#007bc4" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="68" cy="312" r="3.2" fill="#111111"/>
+  <circle cx="404" cy="312" r="3.2" fill="#111111"/>
+  <text x="96" y="290" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.2" fill="#ff2d7a" font-weight="500" text-anchor="middle">v12..17</text>
+  <text x="233" y="290" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.2" fill="#111111" font-weight="500" text-anchor="middle">v0..5 shaft (tucked)</text>
+  <text x="375" y="290" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.2" fill="#007bc4" font-weight="500" text-anchor="middle">v6..11</text>
+  <text x="68" y="344" font-family="Georgia, 'Times New Roman', serif" font-size="11.5" fill="#111111" font-weight="700" text-anchor="middle">start</text>
+  <text x="404" y="344" font-family="Georgia, 'Times New Roman', serif" font-size="11.5" fill="#007bc4" font-weight="700" text-anchor="end">end (0.30 aspect)</text>
+  <text x="34" y="376" font-family="Georgia, 'Times New Roman', serif" font-size="11.5" fill="#666666">Scalar arguments in arrow_corner(...) avoid Android struct-packing driver bug.</text>
+  <text x="486" y="74" font-family="Georgia, 'Times New Roman', serif" font-size="13.5" font-weight="400" fill="#007bc4">Analytical pixel-square box_cdf anti-aliasing filter</text>
+  <text x="486" y="108" font-family="Georgia, 'Times New Roman', serif" font-size="13.2" fill="#111111">band_area(<tspan font-style="italic">d, hw</tspan>, <tspan font-weight="700">g</tspan>) = box_cdf(<tspan font-style="italic">d + hw</tspan>) − box_cdf(<tspan font-style="italic">d − hw</tspan>)</text>
+  <text x="486" y="132" font-family="Georgia, 'Times New Roman', serif" font-size="11.6" fill="#666666">Exact 1×1 pixel-square overlap with a stroke band; sub-pixel wires fade smoothly.</text>
+  <text x="486" y="168" font-family="Georgia, 'Times New Roman', serif" font-size="13.5" font-weight="400" fill="#007bc4">Procedural stroke, arrow, plane, grid &amp; backdrop lanes</text>
+  <rect x="486" y="186" width="140" height="38" rx="4.5" fill="#a9c9ff" stroke="none"/>
+  <text x="556" y="208.67" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.8" fill="#111111" font-weight="500" text-anchor="middle">ribbon.wgsl</text>
+  <rect x="636" y="186" width="140" height="38" rx="4.5" fill="#ff5c9a" stroke="none"/>
+  <text x="706" y="208.67" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.8" fill="#111111" font-weight="500" text-anchor="middle">arrow + vector</text>
+  <rect x="786" y="186" width="140" height="38" rx="4.5" fill="#ffc400" stroke="none"/>
+  <text x="856" y="208.67" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.8" fill="#111111" font-weight="500" text-anchor="middle">plane.wgsl</text>
+  <rect x="486" y="234" width="140" height="38" rx="4.5" fill="#e4e7e8" stroke="none"/>
+  <text x="556" y="256.67" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.8" fill="#111111" font-weight="500" text-anchor="middle">72 B StrokeSegment</text>
+  <rect x="636" y="234" width="140" height="38" rx="4.5" fill="#e4e7e8" stroke="none"/>
+  <text x="706" y="256.67" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.8" fill="#111111" font-weight="500" text-anchor="middle">64 B VectorRow</text>
+  <rect x="786" y="234" width="140" height="38" rx="4.5" fill="#e4e7e8" stroke="none"/>
+  <text x="856" y="256.67" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.8" fill="#111111" font-weight="500" text-anchor="middle">48 B PlaneRow</text>
+  <text x="486" y="292" font-family="Georgia, 'Times New Roman', serif" font-size="11.8" fill="#111111">• <tspan font-family="monospace" font-size="11.0" fill="#007bc4">plane.wgsl</tspan>: 1 row → <tspan font-family="monospace" font-size="11.0">22×6</tspan> grid verts (hidden by solids) + <tspan font-family="monospace" font-size="11.0">3×18</tspan> XYZ arrows.</text>
+  <text x="486" y="318" font-family="Georgia, 'Times New Roman', serif" font-size="11.8" fill="#111111">• <tspan font-family="monospace" font-size="11.0" fill="#007bc4">grid.wgsl</tspan>: <tspan font-family="monospace" font-size="11.0">44</tspan> floor vertices (±5 m at 1 m step) + pink X, green Y, blue Z axes.</text>
+  <text x="486" y="344" font-family="Georgia, 'Times New Roman', serif" font-size="11.8" fill="#111111">• <tspan font-family="monospace" font-size="11.0" fill="#007bc4">background.wgsl</tspan>: 1 oversized 3-vertex triangle <tspan font-family="monospace" font-size="11.0">(-1,-1),(3,-1),(-1,3)</tspan> at</text>
+  <text x="498" y="366" font-family="Georgia, 'Times New Roman', serif" font-size="11.6" fill="#666666">primitive ID = 0 (white 1.0, or 0.94 paper when SSAO is active).</text>
+  <rect x="0.5" y="421.5" width="959" height="3" fill="#e4e7e8"/>
+  <rect x="0.5" y="421.5" width="353.68" height="3" fill="#007bc4"/>
+</svg>

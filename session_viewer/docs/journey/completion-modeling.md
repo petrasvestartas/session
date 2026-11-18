@@ -2,11 +2,9 @@
 
 Resolve relative, polar and construction-plane coordinates, snap in screen space, build `17` parametric primitives and `7` NURBS surface families via `Recipe`, deform subobjects, split/trim/extend geometry, and measure lengths, areas and volumes.
 
+![Orthonormal 3-point CPlane frames, screen-cell snaps, rational NURBS parabola and Recipe queue](../illustrations/stage/09d-cplane-snaps-recipes.svg)
+
 ![Interactive gumball and CAD modeling controls in the production viewer](../screenshots/extensions-gumball.png)
-
-![Parametric shape frames and upright negative-height handling](../illustrations/shape-functions.svg)
-
-![Ordered Recipe input steps, option overrides and single-transaction Made output](../illustrations/recipe-steps.svg)
 
 ## Prerequisites and ownership
 
@@ -14,17 +12,21 @@ Chapter `9.4` of [9. Run the application](completion-application.md) (`applicati
 
 ## Build
 
-### Resolve coordinates & snap in screen space
+### Step 1: Resolve coordinates, `CPlane` frames and screen-space snaps
 
 - `src/app/coords.rs` parses absolute `x,y,z`, relative `@dx,dy,dz`, polar `@r<deg`, direction-locked distances and explicit `w` world prefixes before projecting through the active `CPlane`.
 - `src/app/cplane.rs` (`CPlane::from_3_points`) builds right-handed orthonormal frames (rejecting collinear triples) and maps square-on named views to their facing planes with grazing-ray fallbacks.
 - `src/app/snap.rs` evaluates prioritized `SnapKind` candidates (endpoints, vertices, midpoints, centres, perpendiculars, near curves) and rounds local `CPlane` `(u, v)` grid coordinates under per-move CSS-pixel and time budgets.
 
 ```rust
+--8<-- "session_viewer/src/app/cplane.rs:9:34"
+```
+
+```rust
 --8<-- "session_viewer/src/app/coords.rs:modeling-coordinates"
 ```
 
-### Drafts, tools, delayed drags & subobject deformation
+### Step 2: Drafts, tools, delayed drags and in-place subobject deformation
 
 | File | Specification |
 | --- | --- |
@@ -38,7 +40,7 @@ Chapter `9.4` of [9. Run the application](completion-application.md) (`applicati
 | [src/app/mesh_preview.rs](../../src/app/mesh_preview.rs) | Maps GPU arena vertices, pipes and markers back to source mesh vertex keys for in-place flat-shaded drag previews. |
 | [src/app/surface_preview.rs](../../src/app/surface_preview.rs) | Retains per-vertex `(surface_idx, u, v)` and pipe endpoint indices so CV drags re-evaluate only modified NURBS faces in place. |
 
-### Gather arguments before calling the kernel
+### Step 3: `Recipe` step queues, `17` parametric primitives and `7` NURBS surfaces
 
 | File | Specification |
 | --- | --- |
@@ -47,8 +49,6 @@ Chapter `9.4` of [9. Run the application](completion-application.md) (`applicati
 | [tool/surfacing.rs](../../src/app/command/tool/surfacing.rs) | Checks scale-relative Newell area and planarity, aligns open/closed section directions and seams, and requires `>= 3` sections for closed lofts. |
 | [tool/cut.rs](../../src/app/command/tool/cut.rs) | Converts lines/polylines to degree-`1` NURBS and transforms cutting planes/rays by `3` points / `2` points so non-uniform target scales stay exact. |
 
-### Construct primitives in a local frame (`17` verbs)
-
 | Primitive verbs | Geometric rule |
 | --- | --- |
 | [box.rs](../../src/app/command/verbs/box.rs), [block_with_hole.rs](../../src/app/command/verbs/block_with_hole.rs), [pyramid.rs](../../src/app/command/verbs/pyramid.rs) | `box.rs` treats picked corners as symmetric half-widths and translates `abs(h)` by `h/2` for negative heights; `block_with_hole.rs` adds a central through-hole bounded below half the shorter base side; `pyramid.rs` derives square edge `r * sqrt(2)` rotated `-45°` with upright signed height. |
@@ -56,19 +56,13 @@ Chapter `9.4` of [9. Run the application](completion-application.md) (`applicati
 | [tetrahedron.rs](../../src/app/command/verbs/tetrahedron.rs), [octahedron.rs](../../src/app/command/verbs/octahedron.rs), [icosahedron.rs](../../src/app/command/verbs/icosahedron.rs), [dodecahedron.rs](../../src/app/command/verbs/dodecahedron.rs) | Each Platonic verb (`tetrahedron.rs`, `octahedron.rs`, `icosahedron.rs`, `dodecahedron.rs`) scales edge length from unit circumradius, caches `OnceLock` wireframe previews, and rejects `Brep` radii `< 0.001`. |
 | [nurbs_curve_circle.rs](../../src/app/command/verbs/nurbs_curve_circle.rs), [nurbs_curve_ellipse.rs](../../src/app/command/verbs/nurbs_curve_ellipse.rs), [nurbs_curve_arc.rs](../../src/app/command/verbs/nurbs_curve_arc.rs), [nurbs_curve_parabola.rs](../../src/app/command/verbs/nurbs_curve_parabola.rs) | `nurbs_curve_circle.rs` places an exact rational circle on `CPlane`; `nurbs_curve_ellipse.rs` aligns major axis to a picked point and measures perpendicular minor reach; `nurbs_curve_arc.rs` (`Center` or `3Points`) splits sweeps `<= 90°` with middle weight `cos(theta/2)`; `nurbs_curve_parabola.rs` sets middle control `2*apex - 0.5*(a + b)` so `C(0.5) == apex`. |
 
-### Transforms, ordered-section surfaces & plane projection
-
 | Verb group | Specification |
 | --- | --- |
 | [move.rs](../../src/app/command/verbs/move.rs), [rotate.rs](../../src/app/command/verbs/rotate.rs), [scale.rs](../../src/app/command/verbs/scale.rs), [copy.rs](../../src/app/command/verbs/copy.rs), [orient_3_points.rs](../../src/app/command/verbs/orient_3_points.rs) | `move.rs` previews and commits `2`-point or typed translations; `rotate.rs` computes `atan2` angles around a picked `CPlane` pivot or typed world axis; `scale.rs` applies `1D`/`2D`/`3D` orthonormal reach ratios; `copy.rs` loops with `Next::Repeat` minting fresh GUIDs in parent frames; `orient_3_points.rs` composes rigid `6`-point orthonormal frame alignment without scaling. |
 | [nurbs_surface_4_points.rs](../../src/app/command/verbs/nurbs_surface_4_points.rs), [loft.rs](../../src/app/command/verbs/loft.rs), [nurbs_surface_loft.rs](../../src/app/command/verbs/nurbs_surface_loft.rs), [nurbs_surface_revolve.rs](../../src/app/command/verbs/nurbs_surface_revolve.rs), [nurbs_surface_sweep1.rs](../../src/app/command/verbs/nurbs_surface_sweep1.rs), [nurbs_surface_sweep2.rs](../../src/app/command/verbs/nurbs_surface_sweep2.rs), [nurbs_surface_network.rs](../../src/app/command/verbs/nurbs_surface_network.rs) | `nurbs_surface_4_points.rs` orders bilinear controls `(a, d, b, c)`; `loft.rs` (`Open`/`Closed`) and `nurbs_surface_loft.rs` (`Smooth` deg `3` / `Straight` deg `1`) loft aligned sections; `nurbs_surface_revolve.rs` rotates profiles `(0, 360]`° right-handedly; `nurbs_surface_sweep1.rs` blends compatible knots along perpendicular rail stations; `nurbs_surface_sweep2.rs` aligns two rails and shapes by endpoint proximity; `nurbs_surface_network.rs` `2`-colours `4..32` crossing curves into Coons or sampled Gordon patches. |
 | [project_to_plane.rs](../../src/app/command/verbs/project_to_plane.rs) | `project_to_plane.rs` flattens points, curves and meshes via `place^-1 * P_world * place`, clearing invalidated mesh normals and skipping degenerate collapses. |
 
-### Split, trim, extend, extrude & measurements
-
-![Section plane half-space and closed-solid cap rule](../illustrations/section-plane.svg)
-
-![Temporary projected measurement marks invalidated on row_revision](../illustrations/measure-mark.svg)
+### Step 4: Split, trim, extend, extrude and exact geometric measurements
 
 | File | Specification |
 | --- | --- |

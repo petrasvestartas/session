@@ -1,9 +1,5 @@
 <template>
   <div class="course-page">
-    <p class="course-progress">
-      <router-link to="/course/journey/active">Course map</router-link> · <router-link to="/course/journey/active#acceptance">Acceptance status</router-link>
-      <template v-if="latestLesson"> · <router-link :to="'/course/' + latestLesson">Endpoint: {{ pages[latestLesson].title }}</router-link></template>
-    </p>
     <p v-if="missing" class="missing">
       There is no course page named "{{ slug }}". <router-link to="/course">All lessons</router-link>
     </p>
@@ -35,7 +31,6 @@
 import { computed, nextTick, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { loaders, pages, type CoursePage } from 'virtual:course';
-import { latestCodingLesson } from '../courseOrder';
 
 const route = useRoute();
 const router = useRouter();
@@ -43,7 +38,6 @@ const page = ref<CoursePage | null>(null);
 const missing = ref(false);
 const slug = computed(() => String(route.params.slug || ''));
 const meta = computed(() => pages[slug.value]);
-const latestLesson = latestCodingLesson(pages);
 
 const scrollToHash = () => {
   const id = decodeURIComponent(route.hash.slice(1));
@@ -106,22 +100,6 @@ const onClick = (e: MouseEvent) => {
 <style scoped>
 .course-page {
   padding: 1.5rem 0 3rem;
-}
-
-.course-progress {
-  margin: 0 0 1rem;
-  font-size: 13.5px;
-  color: var(--muted);
-}
-
-.course-progress a {
-  color: var(--muted);
-  text-decoration: none;
-}
-
-.course-progress a:hover {
-  color: var(--fg);
-  text-decoration: underline;
 }
 
 .missing {

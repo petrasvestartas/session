@@ -182,6 +182,41 @@
       "sha256": "016072938b4f448e0c1de25184d23c7979e2c7bb4bf8a970fca77d00634cf64a",
       "bytes": 48512,
       "caption": "Force-density matrices Ch. 7 at 390x844 upright (Frame::stacked): 3D 100-node cable grid filling the top half with narration and sparse pattern C -> C_N, C_F stacked below."
+    },
+    {
+      "asset": "math-align-light-1280.png",
+      "sourceCapture": "session_viewer/target/math-light-20261118b-browser/captures/1280-math-step1-rewrite.png",
+      "sha256": "e437a541865dc5b40e35bbfcf4f7d948eef9507bd8eb500ba003fc7bf4f43511",
+      "bytes": 28902,
+      "caption": "Tutorial 3 (mathematics, default white ground): equals-aligned TeX fractions and radicals after symbol-preserving rewrite on the 1600x900 slide."
+    },
+    {
+      "asset": "math-matrix-light-1280.png",
+      "sourceCapture": "session_viewer/target/math-light-20261118b-browser/captures/1280-math-step3-matrix-accent.png",
+      "sha256": "9e04bd9c6625f07c05e5265cdb8927657406b97ff3d818f118d1ad90fc3759a1",
+      "bytes": 20280,
+      "caption": "Tutorial 3 (mathematics, default white ground): 2x2 signed matrix with row 0,: highlighted in accent blue and dark #111111 entries."
+    },
+    {
+      "asset": "math-flat-light-1280.png",
+      "sourceCapture": "session_viewer/target/math-light-20261118b-browser/captures/1280-math-step4-flat-construction.png",
+      "sha256": "334d851c2cae823e4a20ebb2696d560a444a1623af610305f975ad23cbef2a58",
+      "bytes": 31918,
+      "caption": "Tutorial 3 (mathematics, flat.rs orthographic construction): dashed reference chord, 24x0.30 load arrow and open-ring vertices on the 1600x900 slide."
+    },
+    {
+      "asset": "stage-tna-stacked-1280.png",
+      "sourceCapture": "session_viewer/target/stage-reconcile-20261118e-browser/captures/tna1-1280-last-light.png",
+      "sha256": "6fd7ea0a616ef4845c85f801125d5c7bc9723a71a70168e39af35cf77d826281",
+      "bytes": 63797,
+      "caption": "Thrust network analysis Ch. 1 (default white ground): 3D force prism stacked above the closed horizontal reciprocal polygon Gamma*."
+    },
+    {
+      "asset": "stage-tna-derivation-1280.png",
+      "sourceCapture": "session_viewer/target/stage-reconcile-20261118e-browser/captures/tna2-1280-last-light.png",
+      "sha256": "c0cf1c638878711ee432e0355f7e6e2a80077a41be6a898c1bf18e4ac44c6e53",
+      "bytes": 105143,
+      "caption": "Thrust network analysis Ch. 2 (default white ground): 3-fixed 1-free node compression tripod beside the single-slide boxed linear derivation for z_i."
     }
   ]
 }

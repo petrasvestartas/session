@@ -2,13 +2,13 @@
 
 Synchronize `3D` `session_rust` open-ring nodes, elongated `24×0.30` force vectors, auxiliary planes and force-density nets (`D_N x_N = p - D_F x_F`) with Tutorial 3's `1600×900` TeX, matrix and `2D` orthographic `drawing:` stage through one orthographic camera lens.
 
+![3D Scene3 row sync, 2x4 orthographic label lens and linear force-density equilibrium solver](../illustrations/stage/09h-stage-scene-lens.svg)
+
 ![Force-density matrices Ch. 1 on default white ground (#ffffff): 5-node star with open-ring nodes, black 3.2 px cables, #007bc4 load arrow p, Linkwitz/Schek slots and pink xN/yN/zN](../screenshots/active/stage-fdm-givens-light-1280.png)
 ![Same Ch. 1 slide swapped to dark ground (#000000 via T / &theme=dark) through theme_palette(Theme::Dark)](../screenshots/active/stage-fdm-givens-dark-1280.png)
 
 ![Force-density pillow chapter (step 1): 10x10 open-ring cable grid and upward blue load arrows beside sparse C -> CN, CF pattern matrices](../screenshots/active/stage-pillow-grid-1280.png)
 ![Force-density pillow chapter (final step): solved upward-loaded cushion (z = 2.025) beside runnable SciPy Cholesky script](../screenshots/active/stage-pillow-solved-1280.png)
-
-![Real-scene stage frame order: clock + net solve -> camera + 2x4 lens -> stage paint -> Scene3::sync](../illustrations/active/stage-scene-sync.svg)
 
 ## Prerequisites and ownership
 
@@ -16,18 +16,15 @@ Chapter `9.8` of [9. Run the application](completion-application.md) (`applicati
 
 ## Build
 
-### Geometry descriptions become kernel objects
+### Step 1: Emit `3D` kernel descriptors and sync `112 B` GPU rows
 
-`src/app/stage/geometry.rs` evaluates named `3D` points at clock `t`, emits `Spatial` descriptors (`Point`, `Line`, `Polyline`, `12`-edge cuboids, stroke width, `scale.powf(0.3)` pen scaling, dash and reveal), and places `16`-direction collision-scored anchor labels (`+15` hysteresis bonus).
+- `src/app/stage/geometry.rs` evaluates named `3D` points at clock `t`, emits `Spatial` descriptors (`Point`, `Line`, `Polyline`, `12`-edge cuboids, stroke width, `scale.powf(0.3)` pen scaling, dash and reveal), and places `16`-direction collision-scored anchor labels (`+15` hysteresis bonus).
+- `src/app/stage/mode.rs` runs each frame in strict order: tick stage clock -> apply orthographic camera -> derive `2×4` world-to-slide `lens` -> `Presentation::paint` (emitting current `Spatial` list) -> `Scene3::sync` -> return `egui::FullOutput`.
+- `src/app/stage/spatial.rs` (`Scene3`) sets `state.scene.arrowhead_pens = 24.0` for elongated `0.30`-aspect heads, bakes each `3D` `Point` as an outer `ink` disc plus a `0.58`-scale `bg` paper-centre disc, and maps stage IDs to non-pickable `112 B` GPU rows updated in place.
 
 ```rust
 --8<-- "session_viewer/src/app/stage/spatial.rs:stage-kernel-geometry"
 ```
-
-### Order one scene frame & sync GPU rows
-
-- `src/app/stage/mode.rs` runs each frame in strict order: tick stage clock -> apply orthographic camera -> derive `2×4` world-to-slide `lens` -> `Presentation::paint` (emitting current `Spatial` list) -> `Scene3::sync` -> return `egui::FullOutput`.
-- `src/app/stage/spatial.rs` (`Scene3`) sets `state.scene.arrowhead_pens = 24.0` for elongated `0.30`-aspect heads, bakes each `3D` `Point` as an outer `ink` disc plus a `0.58`-scale `bg` paper-centre disc, and maps stage IDs to non-pickable `112 B` GPU rows updated in place.
 
 ```rust
 --8<-- "session_viewer/src/app/stage/mode.rs:stage-frame-order"
@@ -48,7 +45,16 @@ In [examples/stage/foppl-spatial-joint/03-force-polygon.yaml](../../examples/sta
 --8<-- "session_viewer/examples/stage/foppl-spatial-joint/03-force-polygon.yaml:15:25"
 ```
 
-### The scene camera also projects labels
+![Thrust network analysis Ch. 1: 3D force prism stacked above the closed horizontal reciprocal polygon Gamma*](../screenshots/active/stage-tna-stacked-1280.png)
+![Thrust network analysis Ch. 2: 3-fixed 1-free node compression tripod beside the single-slide boxed linear derivation for z_i](../screenshots/active/stage-tna-derivation-1280.png)
+
+And in [examples/stage/thrust-network_analysis_one_node/01-diagrams.yaml](../../examples/stage/thrust-network_analysis_one_node/01-diagrams.yaml), `3` fixed supports and `1` free node derive the linear vertical-thrust tangent relation $\tan\alpha = \Delta z / l_{\mathrm{H},ji} = F_{\mathrm{V},ji} / F_{\mathrm{H},ji}$ without matrix assembly, stacking `3D` axial force vectors directly above the horizontal reciprocal diagram $\Gamma^*$:
+
+```yaml
+--8<-- "session_viewer/examples/stage/thrust-network_analysis_one_node/01-diagrams.yaml:31:56"
+```
+
+### Step 2: Project `2D` TeX labels through the live `2×4` camera lens
 
 `src/app/stage/view.rs` frames the `3D` points orthographically inside the slide's scene half (side-by-side on desktop, top half via `Frame::stacked` on upright screens) so `spatial::lens` projects node labels and `fill`/`fly` animations from live orbited coordinates.
 
@@ -60,7 +66,7 @@ In [examples/stage/foppl-spatial-joint/03-force-polygon.yaml](../../examples/sta
 --8<-- "session_viewer/src/app/stage/view.rs:stage-camera-fit"
 ```
 
-### Build and solve the cable-net matrices
+### Step 3: Build and solve the cable-net equilibrium matrices
 
 ![Force-density matrices Ch. 2: balance header with accent blue CN/CF co-highlighting, vivid pink/blue C cells, and yellow CN/CF columns keeping dark digits](../screenshots/active/stage-fdm-matrices-light-1280.png)
 ![6-stop force-rank ramp (show: forces): saddle net coloured navy -> blue -> green -> yellow -> orange -> pink and thickened by 1.2 + 2.8 * sqrt(f / f_max)](../screenshots/active/stage-forces-ramp-light-1280.png)
@@ -71,7 +77,7 @@ In [examples/stage/foppl-spatial-joint/03-force-polygon.yaml](../../examples/sta
 --8<-- "session_viewer/src/app/stage/net.rs:stage-net-equilibrium"
 ```
 
-### Input and portrait layout
+### Step 4: Route desktop and portrait `Frame::stacked` touch input
 
 ![Force-density matrices Ch. 7 at 390x844 upright (Frame::stacked): 3D 100-node cable grid on top with narration and sparse pattern matrices stacked below](../screenshots/active/stage-fdm-pillow-390-light.png)
 
@@ -83,7 +89,7 @@ In [examples/stage/foppl-spatial-joint/03-force-polygon.yaml](../../examples/sta
 
 ### Author and serve a multi-chapter deck (`?stage=...&data=off`)
 
-Opening `http://127.0.0.1:8080/?stage=decks/force-density-matrices/index.yaml&data=off` runs any of the `6` shipped multi-chapter YAML decks (`27` chapters across `equilibrium`, `force-density`, `force-density-matrices`, `force-density-derivation`, `force-density-materialization` and `foppl-spatial-joint`) directly from `examples/stage/` without viewer UI chrome:
+Opening `http://127.0.0.1:8080/?stage=decks/force-density-matrices/index.yaml&data=off` runs any of the `7` shipped multi-chapter YAML decks (`30` chapters across `equilibrium`, `force-density`, `force-density-matrices`, `force-density-derivation`, `force-density-materialization`, `foppl-spatial-joint` and `thrust-network_analysis_one_node`) directly from `examples/stage/` without viewer UI chrome:
 
 | Layer | Contract |
 | --- | --- |
@@ -126,4 +132,4 @@ Orbiting rotates `3D` cables and nodes on the GPU; projecting TeX node labels an
 
 ## Validation
 
-Verified by `24` passing native application stage tests and [the stage reconciliation receipt](release/completion-stage-reconciliation-windows-20261118c.json) covering all `27` chapters of all `6` shipped decks (`equilibrium`, `force-density`, `force-density-matrices`, `force-density-derivation`, `force-density-materialization`, `foppl-spatial-joint`) at `1280×800` and `390×844` (`54` cases, `220` forward step checks, backward replay, white/dark swaps, `0` settled overlaps and `85` reviewed captures), plus `6` injected font/chapter/picture error checks. Physical-phone touch hardware remains separate.
+Verified by `24` passing native application stage tests and [the stage reconciliation receipt](release/completion-stage-reconciliation-windows-20261118e.json) covering all `30` chapters of all `7` shipped decks (`equilibrium`, `force-density`, `force-density-matrices`, `force-density-derivation`, `force-density-materialization`, `foppl-spatial-joint`, `thrust-network_analysis_one_node`) at `1280×800` and `390×844` (`60` cases across `20261118c` + `20261118e`, backward replay, white/dark swaps and `0` settled overlaps), plus `6` injected font/chapter/picture error checks. Physical-phone touch hardware remains separate.

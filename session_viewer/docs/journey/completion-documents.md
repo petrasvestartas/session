@@ -2,9 +2,9 @@
 
 Map `(doc_idx, GUID)` identities to multi-lane GPU `Footprint` spans, retain `256 MiB` of deleted geometry tombs for zero-rewalk `Undo`, flatten `128`-row layer trees, and serialize `.session` archives.
 
-![Five selectable rows in the comparison fixture: four kernel objects plus the independent document title](../screenshots/completion/document-selection.png)
+![Row identity, relocatable Footprint spans, 256 MiB undo tombs and 5-stage scene_sync pipeline](../illustrations/stage/09a-identity-footprint-tombs.svg)
 
-![Stable (doc_idx, GUID) row identity and relocatable GPU Footprint spans](../illustrations/active/doc-identity.svg)
+![Five selectable rows in the comparison fixture: four kernel objects plus the independent document title](../screenshots/completion/document-selection.png)
 
 ## Prerequisites and ownership
 
@@ -14,7 +14,7 @@ Chapter `9.1` of [9. Run the application](completion-application.md) (`applicati
 
 All `25` modules compile inside checkpoint `application` (`trunk build production.html`).
 
-### A file, a document and a row
+### Step 1: Map `(doc_idx, GUID)` placements onto GPU rows and `Footprint` spans
 
 `src/app/scene.rs` wraps `Rc<Session>` inside `FileDoc` (name, file `Xform`, `point_size`, shell flag) so two placements can share one kernel `Session` while `(doc_idx, GUID)` maps each placed object to its own GPU display row.
 
@@ -26,9 +26,7 @@ All `25` modules compile inside checkpoint `application` (`trunk build productio
 --8<-- "session_viewer/src/app/scene_rows.rs:document-footprint"
 ```
 
-### Resolve only the affected tree paths
-
-![Transaction history buffer, cursor invalidation on commit and undo tombstones](../illustrations/history.svg)
+### Step 2: Translate history transactions into minimal tree invalidations
 
 | File | Specification |
 | --- | --- |
@@ -39,9 +37,7 @@ All `25` modules compile inside checkpoint `application` (`trunk build productio
 --8<-- "session_viewer/src/app/scene_sync/notes.rs:document-history-notes"
 ```
 
-### Stage updates without confusing identity and storage
-
-![Tombstone retention up to 256 MiB and hidden-sink compaction](../illustrations/tombstone.svg)
+### Step 3: Stage updates, retain `256 MiB` tombs and compact dead spans
 
 | File | Specification |
 | --- | --- |
@@ -51,21 +47,18 @@ All `25` modules compile inside checkpoint `application` (`trunk build productio
 | [src/app/scene_sync/preview.rs](../../src/app/scene_sync/preview.rs) | Captures single-object vertex/pipe spans during interactive drags so surface/mesh edits patch GPU buffers in place without full rewalks. |
 | [src/app/scene_sync/tombs.rs](../../src/app/scene_sync/tombs.rs) | Retains up to `256 MiB` of deleted lane spans keyed by weak kernel tomb pointers so `Undo` unburies rows without re-tessellating geometry. |
 
-### Delete, undo and reuse memory
+```rust
+--8<-- "session_viewer/src/app/scene_sync/tombs.rs:4:35"
+```
 
 `src/app/scene_sync/compaction.rs` triggers GPU lane compaction once dead bytes reach `16 MiB` and dead + tomb bytes exceed live bytes, rebuilding buffer bind groups and skipping shared `Rc<Session>` purges.
 
-### Flatten a hierarchy for a panel
+### Step 4: Flatten hierarchies, move layers and isolate panel actions
 
-`src/app/hierarchy.rs` flattens document trees into pre-order node slices (`depth`, `subtree_end`, row range, `128`-node UI pages and `truncated` flag) refreshed on `row_revision` while keeping graph edges separate.
-
-### Move identities between layers & resolve panel actions
-
+- `src/app/hierarchy.rs` flattens document trees into pre-order node slices (`depth`, `subtree_end`, row range, `128`-node UI pages and `truncated` flag) refreshed on `row_revision` while keeping graph edges separate.
 - `src/app/layers.rs` validates editable targets, deduplicates `(doc_idx, GUID)` pairs, drops descendants already carried by a selected ancestor, and moves tree nodes into the destination layer.
 - `src/state/panel.rs` decodes layer-panel clicks into `(doc_idx, GUID)` face and edge colour override maps (restricting edge overrides to rows with faces) and refreshes GPU rows.
 - `src/app/edit.rs` (`Scene::transform_rows`) converts world-space `Xform` deltas into each writable object's local parent frame, detaching shared `Rc<Session>` copies on write and skipping selected descendants of selected ancestors.
-
-### Keep panel drawing separate from actions & UI ownership
 
 | File | Specification |
 | --- | --- |
@@ -79,7 +72,7 @@ All `25` modules compile inside checkpoint `application` (`trunk build productio
 --8<-- "session_viewer/src/app/ui/mod.rs:application-panels"
 ```
 
-### Large documents, idle refinement and archives
+### Step 5: Instances, idle refinement and `.session` archives
 
 | File | Specification |
 | --- | --- |
