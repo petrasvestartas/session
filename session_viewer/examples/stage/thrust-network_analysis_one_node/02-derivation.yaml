@@ -15,12 +15,9 @@ points:
 blocks:
   node3:
     - add:
-        - {id: ej, line: [j, i], color: ink, width: 2.2}
-        - {id: ek, line: [k, i], color: ink, width: 2.2}
-        - {id: el, line: [l, i], color: ink, width: 2.2}
-        - {id: fj, arrow: [j, 'lerp(j, i, 0.85)'], color: ink, width: 3.2, label: 'F_{ji}', dir: [-0.2, 1]}
-        - {id: fk, arrow: [k, 'lerp(k, i, 0.85)'], color: ink, width: 3.2, label: 'F_{ki}', dir: [1, -0.2]}
-        - {id: fl, arrow: [l, 'lerp(l, i, 0.85)'], color: ink, width: 3.2, label: 'F_{li}', dir: [0.4, 1]}
+        - {id: fj, arrow: [j, i], color: ink, width: 3.2, label: 'F_{ji}', dir: [-0.2, 1]}
+        - {id: fk, arrow: [k, i], color: ink, width: 3.2, label: 'F_{ki}', dir: [1, -0.2]}
+        - {id: fl, arrow: [l, i], color: ink, width: 3.2, label: 'F_{li}', dir: [0.4, 1]}
         - {id: pi, arrow: [P_TOP, i], color: load, width: 3.2, label: 'P_i', dir: [1, 0]}
         - {id: jp, point: j, color: fixed, label: 'j', dir: [-1, 0.2]}
         - {id: kp, point: k, color: fixed, label: 'k', dir: [1, -0.4]}
