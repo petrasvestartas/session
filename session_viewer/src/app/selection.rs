@@ -1,6 +1,7 @@
 use session_rust::element::ElementGeometry;
 use session_rust::{Geometry, NurbsCurve, NurbsSurface, Point};
 
+// --8<-- [start:input-selection]
 /// One control point of a geometry.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, serde::Serialize)]
 pub enum ControlId {
@@ -30,6 +31,7 @@ pub enum SelectionMode {
     },
 }
 
+// --8<-- [end:input-selection]
 impl SelectionMode {
     /// The object row of a sub-selection.
     pub fn parent(&self) -> Option<u32> {

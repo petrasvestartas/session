@@ -779,13 +779,13 @@ Selection membership now handles unique order, locked and hidden exclusions and 
 
 ### Recorded visual result
 
-**Previous native render — current verification pending.**
+**Source31 native image reviewed.**
 
 The earlier box has one original face highlighted. This preparation adds selection or batch-edit infrastructure without changing that exercise.
 
-![Native renderer output for connect multi-hit state and highlight every selected row.](../screenshots/journey/44l-input.png)
+![Native presentation at this checkpoint.](../screenshots/journey/45b-membership-7dada61886fe.png)
 
-*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
+*Fresh Rust/NVIDIA raw-DPR4 presentation, personally reviewed at 2560 × 1920. Inherited gold Face(1), gray neighboring faces and original boundaries remain free of triangulation diagonals. Batch membership updates and multiple-owner selection require separate state checks; diagonal raster stepping retained. Fixed-resolution pixel checks and browser controls require separate acceptance.*
 
 <details>
 <summary>Code explanation and diagram</summary>

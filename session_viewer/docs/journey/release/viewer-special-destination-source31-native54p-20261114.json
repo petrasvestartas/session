@@ -1,0 +1,49 @@
+{
+  "schema": 1,
+  "status": "EXPLICIT_SPECIAL_DESTINATION_RECONCILED_WITH_FRESH_SOURCE31_NATIVE_CAPTURE",
+  "recordedUtc": "2026-11-14T16:54:20.308290+00:00",
+  "inventory": {
+    "path": "docs/journey/release/viewer-image-goal-inventory-1763-20261113.json",
+    "sha256": "9625bc0a53699b15fc420d45799da351f7d041a7f9cc386a7cc331c2d3227052"
+  },
+  "baselineIndex": 1327,
+  "originalLogicalDestination": "docs/screenshots/journey/54p-navigation.png",
+  "checkpoint": "54p-navigation",
+  "lane": "native",
+  "recipe": {
+    "route": "generic",
+    "rawDpr": 4,
+    "output": [
+      2560,
+      1920
+    ],
+    "fixture": "docs/journey/checks/53u-layers.rs",
+    "fixtureSha256": "e28a3bb514299f58630063440fbd2bbfa70d13f7cc13e6443ee86d4ca5edde48"
+  },
+  "qualification": {
+    "path": "docs/journey/release/math-boundary-quality-source31-native54p-dpr4-aeab6de33013.json",
+    "sha256": "0153a895f9cfbbaa7ef31e27c21957191ee8408f8d1f149ba07200a0321a7ae7"
+  },
+  "replacementImage": {
+    "path": "docs/screenshots/journey/54p-navigation-aeab6de33013.png",
+    "sha256": "aeab6de3301305b4cd9f51b8d4cdb4d705b40e3b1b7c62a2411aaa1e2145eae1"
+  },
+  "originalPhysicalImage": {
+    "path": "docs/screenshots/journey/54p-navigation.png",
+    "sha256": "36a1543796075e6f92e3028b87d7d3657116f3d40d109a2716c468d4c82dac9b"
+  },
+  "primaryReaderPlacement": {
+    "path": "docs/journey/consolidation/54-camera.md",
+    "anchor": "checkpoint-54p-navigation",
+    "sourceOnly": true,
+    "servedBrowserVerified": false,
+    "beforeSha256": "c5703c93fe8496e371af053e0977bea0f56ce46a4756d2c25adfde166488fbf8",
+    "afterSha256": "1af8c3c17f92c40854cbb276bebf6dce6b2b08910b169812f5cdfb5c49ac4083",
+    "exactInsertionReversalRestoresOriginalBytes": true,
+    "line": "Recorded native frame: [open the reviewed 2560 \u00d7 1920 image](../../screenshots/journey/54p-navigation-aeab6de33013.png). The actual53u fixture retains two blue Posts, original black boundaries and the unrelated brown beam; navigation input behavior requires separate state/browser checks."
+  },
+  "basis": "Original special row1327 is exactly the Native54p-navigation main image; Source13 exclusion remains historical. FreshSource31 actual53u-layers constructor, Rootoriginalpixelreview, checkedpublication andnormalretirement qualify its versionedreplacement. Two bluePosts andindependentbrownbeam only; no navigationinteraction/canonicalbrowser acceptance transferred. Original54p physicalpixels andaliases retained. No new or substituted inventorydestination.",
+  "oldAliasesAndStillUsedPixelsPreserved": true,
+  "inventoryOrDenominatorChanged": false,
+  "canonicalFinalPixelOrBrowserAcceptanceCreated": false
+}

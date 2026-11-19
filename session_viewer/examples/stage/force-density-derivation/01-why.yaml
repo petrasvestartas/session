@@ -1,7 +1,12 @@
-# Chapter 1: the formula of presentation 2 on the solved five nodes, the question why it holds, and the plan of the derivation.
-title: Why is the formula true?
+# cd /home/pv/brg/code_cpp/wood_research/session/session_viewer && aws s3 sync examples/stage s3://session-viewer-data/stage/ --delete --exclude '*' --include '*.yaml' --content-type application/yaml --cache-control no-cache --profile r2 --endpoint-url https://0520459c6817bd96c1e25fcb49461c4e.r2.cloudflarestorage.com
+# Open local: http://127.0.0.1:8770/?stage=decks/force-density-derivation/index.yaml&data=off&chapter=1&step=1
+# Open live: https://petrasvestartas.github.io/session/?stage=force-density-derivation&chapter=1&step=1
+
+# Chapter 1: why Linkwitz introduced the Jacobian to project 3D forces onto axes, and the derivation roadmap.
+title: WHY IT WORKS
 grid: {center: [3.5, 3.5], size: 9, step: 1}
 camera: {yaw: -58, pitch: 26}
+palette: {free: ink}
 net:
   fixed: {n1: [0, 0, 0], n2: [5, 0, 3], n3: [0, 7, 3], n4: [7, 5, 0]}
   free: {n0: [3.6, 3.4, 1.9]}
@@ -9,40 +14,41 @@ net:
   q: 1
   load: {n0: [0, 0, -5]}
 slides:
-  - title: Why is the formula true?
+  - title: FORCE DENSITY DERIVATION
     steps:
-      - say: 'Force density 3: where the formula of Klaus Linkwitz and Hans-Jörg Schek comes from.'
-        row:
-          - {id: linkwitz, image: {src: ../force-density/img/linkwitz.png, height: 6.5}}
-          - '\quad'
-          - {id: schek, image: {src: ../force-density/img/schek.png, height: 6.5}}
-        text: '**Klaus Linkwitz** $\qquad\qquad\qquad$ **Hans-Jörg Schek**'
-
-  - title: The formula we used
-    steps:
-      - say: 'The five nodes once more: four fixed nodes, one free node $n_0$, four cables, a load of 5 kN.'
+      - say: 'Where the equilibrium and cut-length formulas come from?'
         show: net
-      - say: 'Presentation 2 found the free node with one line per coordinate, used as a tool.'
-        eq: {tex: '\mathbf{x}_N = (\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N)^{-1}\,(\mathbf{p}_x - \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{x}_F)', color: x}
-      - say: 'One solve, and the node rests at $(3,\ 3,\ 0.25)$.'
-        solve: true
-      - say: 'But why is it true? The cables pull along their lengths, and the lengths depend on the node. Where did forces and lengths go?'
-        text: '**Why does a linear solve give equilibrium?**'
+        do:
+          - row:
+              - {id: linkwitz, image: {src: ../force-density/img/linkwitz.png, height: 6.5}}
+              - '\quad'
+              - {id: schek, image: {src: ../force-density/img/schek.png, height: 6.5}}
+          - row:
+              - {id: linkwitz.name, text: '**Klaus Linkwitz**', width: 7.7580645161}
+              - '\quad'
+              - {id: schek.name, text: '**Hans-Jörg Schek**', width: 7.5483870968}
+          - eq: {tex: '\mathbf{x}_N &= (\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N)^{-1}\,(\mathbf{p}_x - \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{x}_F)', size: 22, gap: 20}
+          - eq: {tex: 'l_{0,k} &= \frac{l_k}{1 + \dfrac{q_k\,l_k}{EA}}', size: 22, gap: 12}
 
-  - title: The plan
+  - title: WHY THE JACOBIAN?
     steps:
-      - say: 'Start from geometry: the length of one cable from the free node to an anchor.'
-        text: '**1.** the length of one cable $l_k$'
-        align: left
-      - say: 'Ask how that length changes when the free node moves a little (Linkwitz 6.4.2).'
-        text: '**2.** how $l_k$ changes when $n_0$ moves: two ways to find $\partial l_k / \partial x_0$'
-        align: left
-      - say: 'Collect the derivatives of all cables into one matrix.'
-        text: '**3.** all cables at once: the Jacobian'
-        align: left
-      - say: 'Write the equilibrium of the free node with that matrix (6.4.3).'
-        text: '**4.** equilibrium in matrix form'
-        align: left
-      - say: 'Prescribe force over length instead of force. The lengths drop out and the formula appears.'
-        text: '**5.** the force density substitution, and the formula of presentation 2'
-        align: left
+      - say: 'Jacobians project 3D cable forces onto coordinate axes.'
+        do:
+          - solve: true
+          - {text: '**1. Goal:** a clean matrix way to project 3D cable forces onto $x, y, z$', align: left, size: 19, gap: 8}
+          - {text: '**2. Geometric realization:** $\partial l_k / \partial x_0$ is the negative direction cosine along $x$:', align: left, size: 19, gap: 12}
+          - {tex: '\frac{\partial l_k}{\partial x_0} = \frac{-(x_k - x_0)}{l_k} = -\cos\alpha_k', size: 21, gap: 8, color: accent}
+          - {text: '**3. Jacobian matrix:** collect all branch length derivatives into $\mathbf{C}_N^{T}\mathbf{U}\mathbf{L}^{-1}$', align: left, size: 19, gap: 12}
+          - {text: '**4. Project forces:** multiply by tensions $\mathbf{f}$ to project 3D forces onto node axes:', align: left, size: 19, gap: 12}
+          - {tex: '\mathbf{C}_N^{T}\,\mathbf{U}\,\mathbf{L}^{-1}\,\mathbf{f} = \mathbf{p}_x', size: 22, gap: 10, color: accent}
+
+  - title: QUESTION AND ROADMAP
+    steps:
+      - say: 'Cables have square-root lengths, yet five steps make the solve linear.'
+        do:
+          - {tex: 'l_k = \sqrt{(x_k - x_0)^2 + (y_k - y_0)^2 + (z_k - z_0)^2}', size: 21, gap: 8, color: accent}
+          - {text: '**1. Cable length $l_k$:** 3D Pythagoras between free node and anchor', align: left, size: 19, gap: 16}
+          - {text: '**2. Tiny nudge $\partial l_k / \partial x_0$:** length derivative gives direction cosine', align: left, size: 19, gap: 12}
+          - {text: '**3. Jacobian $\mathbf{C}_N^{T}\mathbf{U}\mathbf{L}^{-1}$:** direction cosines for all branches at once', align: left, size: 19, gap: 12}
+          - {text: '**4. Force density $\mathbf{q} = \mathbf{L}^{-1}\mathbf{f}$:** eliminate square roots and solve $\mathbf{x}_N$', align: left, size: 19, gap: 12}
+          - {text: '**5. Materialization $\mathbf{l}_0$:** Hooke''s law from force densities to cut lengths', align: left, size: 19, gap: 12}

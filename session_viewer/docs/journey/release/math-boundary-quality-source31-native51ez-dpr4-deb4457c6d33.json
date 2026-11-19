@@ -1,0 +1,67 @@
+{
+  "batchCaptureReady": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-handles-six-case-51ez-01\\capture-ready.json",
+    "sha256": "80c8dff54dffc5a73edd397c1bb07285c44239cfc561e608bb46e175e5e83e4f"
+  },
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-14T03:57:28.704Z",
+  "id": "51ez-pack-and-sample-local-handle-vertices",
+  "lane": "native",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-51ez-pack-and-sample-local-handle-vertices-bb577354818b30d66b45\\capture.json.gz",
+    "sha256": "858cbff8c4bf32123a92aa359cf6d23624bf0cb35bc678c334c89f7727c9632c",
+    "bytes": 102020
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-handles-six-case-51ez-01\\capture-result.json",
+    "sha256": "6bb0cdae848c2b545bfab80583d51cea0d1af0776a5b25e99aaac394cb90b440"
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-handles-six-51ez-01-execution.json",
+    "sha256": "a4024a75d92cf23a3d1acb1f24d6d70c4f14f8a0ccaea67311d2aed1e6e70ac2"
+  },
+  "boundedTerminal": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-handles-six-case-51ez-01\\bounded-terminal.json",
+    "sha256": "e495b25f3621a00d46fa4cf028860df2fdedde7132aa5b9fc45dac5e120f230a"
+  },
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-31-stage-aware-native-density.json",
+    "sha256": "7e9980c097467f8f4a60519e63aef9bfdd87122e72179d1f35f1849391ade57a"
+  },
+  "sourceFreezeCoverage": {
+    "matchedFiles": 555,
+    "basis": "Pinned Native wrapper preflight and postflight; live hashes rechecked"
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\51ez-pack-and-sample-local-handle-vertices-deb4457c6d33.png",
+    "sha256": "deb4457c6d332860e5262a8cc4b53ad80e18bf9ee12aa74e56d0a676a960da68"
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\50d-ownership.png",
+    "sha256": "7229782badb63f944c0e0921f6fd70b0f706185b081c64db27749e1fb266bb7a"
+  },
+  "aliasManifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\image-aliases.json",
+    "sha256": "59a41176fb5daa71125bf02fc487c3fb2edbef2e4a35f20487a21999268affae"
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root personally inspected original2560x1920PNG: two separated gold selectedboxes with blackface/outerboundaries and shaded sides, short yellow rising Move band/circular endpoint betweenboxes, whitebackground, no triangulationwires. Actual50d fixture preserves savedmodels/offsetsdisplay/reusesmeshsettings; local handle vertices are not displayed or separately validated by this image. No handlemesh/liveGUI/browser/canonical640/full-unit acceptance inferred.",
+  "canonicalBehaviorExecuted": false,
+  "scope": "Source31 51ez-pack-and-sample-local-handle-vertices rawDPR4 image presentation. Actual fixture scope is stated in Rootreview; canonical640pixel/full-unit/browser acceptance remains separate. Original fixedpixel function bodies and oldaliases/pixels retained.",
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-handles-six-case-51ez-01\\publication.json",
+    "sha256": "cab95f364869c425db1d70434ff2d7f6108d93576461fa4951dc161e078d6316"
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-51ez-pack-and-sample-local-handle-vertices-bb577354818b30d66b45\\publication.json",
+    "sha256": "553be4031d1bc9b7c816b02c59018aefff126af9c34403785d0c395e9444de75"
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-51ez-pack-and-sample-local-handle-vertices-bb577354818b30d66b45\\retirement.json.gz",
+    "sha256": "da61657d172bcdeefc09fbfe92f13768a81c6cefbc23b1033d1640345ba95c8d"
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-51ez-pack-and-sample-local-handle-vertices-bb577354818b30d66b45\\retired.json",
+    "sha256": "a74699ad0e9c67553b786e3f3856e189c87cfa8798a066fd64421431289191a5"
+  }
+}

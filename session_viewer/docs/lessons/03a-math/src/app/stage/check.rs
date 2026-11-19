@@ -1,4 +1,3 @@
-// --8<-- [start:implementation]
 use super::run::{DPrim, Stage};
 use super::tex::Shape;
 
@@ -95,4 +94,3 @@ impl Stage {
             .collect()
     }
 }
-// --8<-- [end:implementation]

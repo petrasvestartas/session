@@ -1,0 +1,76 @@
+{
+  "preexistingImageReused": false,
+  "publisher": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-edge-boundary-three48-case-55zb-01\\publish.mjs",
+    "sha256": "62a1dea0d47602e67363af833302fd14f5ca75222f126a30b79f3854b1cd2348"
+  },
+  "originalPublisher": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-edge-boundary-three48-case-55zb-01\\publish-original-template.mjs",
+    "sha256": "f2d45fae1142e72cfad6fcf22b033cd6bad9a1e04d12c9cc42318f936045d799"
+  },
+  "batchCaptureReady": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-edge-boundary-three48-case-55zb-01\\capture-ready.json",
+    "sha256": "55da45681c6c28e4def8339da7ebae785f5c89b55ca323e593985adf8ba39966"
+  },
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-14T18:38:57.004Z",
+  "id": "55zb-follow-original-isoparametric-boundaries",
+  "lane": "native",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-55zb-follow-original-isoparametric-boundaries-733960f5cb447c66d6f8\\capture.json.gz",
+    "sha256": "d0af2a732348a24765920cd09b623250e7b609a98f35cc2cc79bf196e33201fe",
+    "bytes": 110977
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-edge-boundary-three48-case-55zb-01\\capture-result.json",
+    "sha256": "69607c3140c42b299f57d74219171e0687f63496a8fb0eff2f752d76f14f7841"
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-edge-boundary-three48-55zb-01-execution.json",
+    "sha256": "8b9451e575ad7b7a08ba4fc332610cceffbc43112c78092e6582567ab7bbe25d"
+  },
+  "boundedTerminal": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-edge-boundary-three48-case-55zb-01\\bounded-terminal.json",
+    "sha256": "29f96c89d5e224db6a5c058414bb0f372d458a037e95e17f447aadf3d2300243"
+  },
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-31-stage-aware-native-density.json",
+    "sha256": "7e9980c097467f8f4a60519e63aef9bfdd87122e72179d1f35f1849391ade57a"
+  },
+  "sourceFreezeCoverage": {
+    "matchedFiles": 555,
+    "basis": "Pinned Native wrapper preflight and postflight; live hashes rechecked"
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\55zb-follow-original-isoparametric-boundaries-2336125cd76e.png",
+    "sha256": "2336125cd76efe41a0418b87dbf27dda53d4f1b922926dea89b31cd62f877a3e"
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\55zc-follow-original-constrained-trim-labels.png",
+    "sha256": "56f6f5a4bf1ac72b0a8d31a78e80b8b4b71881310dca4530ea0dcfcc7a3a3915"
+  },
+  "aliasManifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\image-aliases.json",
+    "sha256": "59a41176fb5daa71125bf02fc487c3fb2edbef2e4a35f20487a21999268affae"
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root opened this original-resolution PNG and verified its exact byte SHA matches the full55za original personally viewed in this session. The reviewed pixels show a smooth blue parametric roof, original visible black boundaries and no triangulation wires; the central far-boundary gap is correct occlusion. Apparent contours arrive at63f/63g/63h. The actual inherited55g-surface constructor asserts one face,64 original edge-use samples and four boundary curves. Image/constructor presentation only; isoparametric boundary algorithms, canonical640pixel verification and GUI callbacks remain separate.",
+  "canonicalBehaviorExecuted": false,
+  "scope": "Source31 55zb-follow-original-isoparametric-boundaries rawDPR4 image presentation. Actual fixture scope is stated in Rootreview; canonical640pixel/full-unit/browser acceptance remains separate. Original fixedpixel function bodies and oldaliases/pixels retained.",
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-edge-boundary-three48-case-55zb-01\\publication.json",
+    "sha256": "cf4043ecbf7d7614955ede3dcc2636bfa93c1c047ca5a1bbaea61469608acba1"
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-55zb-follow-original-isoparametric-boundaries-733960f5cb447c66d6f8\\publication.json",
+    "sha256": "2835f3486ae9bd602710fcc8c4e05026ff204a579fde5a062e422334b15249c2"
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-55zb-follow-original-isoparametric-boundaries-733960f5cb447c66d6f8\\retirement.json.gz",
+    "sha256": "d392dbd18eb12502b2ec7a5047013735a0a52bbb11931da7fcaa725a0eaf9f97"
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-55zb-follow-original-isoparametric-boundaries-733960f5cb447c66d6f8\\retired.json",
+    "sha256": "628e29e0fedbb70c98209af314ec0b9bffbc5dd02d9888902e36fd6b468a6749"
+  }
+}

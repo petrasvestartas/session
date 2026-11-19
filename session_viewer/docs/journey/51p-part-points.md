@@ -57,15 +57,15 @@ Continue the previous two-box Move exercise. Selection-driven handle drawing con
 
 ### Recorded visual result
 
-**Previous native render — current verification pending.**
+**Source31 native image reviewed.**
 
 The earlier two selected boxes and temporary Move band remain.
 
-![Native renderer output for locate original mesh parts and curve controls.](../screenshots/journey/50d-ownership.png)
+![Native presentation at this checkpoint.](../screenshots/journey/51p-part-points-deb4457c6d33.png)
 
-*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
+*Fresh Rust/NVIDIA raw-DPR4 presentation, personally reviewed at 2560 × 1920. The inherited two-box Move preview remains the recorded scene; part-point geometry requires separate checks. Fixed-resolution pixel checks and browser controls require separate acceptance.*
 
-This reference image is shared with [7.5.5 · Cancel previews without consuming document history](50d-ownership.md). It does not demonstrate a new feature by itself.
+This scene continues [7.5.5 · Cancel previews without consuming document history](50d-ownership.md). This checkpoint was captured independently; its new source behavior requires separate state checks.
 
 <details>
 <summary>Code explanation and diagram</summary>

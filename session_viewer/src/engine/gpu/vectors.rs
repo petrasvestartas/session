@@ -303,6 +303,21 @@ mod tests {
         }
     }
 
+    /// Both sides of the head base total 0.50 of its length, as in the flat stage drawings.
+    #[test]
+    fn arrowhead_base_matches_stage_aspect() {
+        let (_, source) = SHADERS[0];
+        let aspect: f32 = source
+            .split("const HEAD_ASPECT: f32 = ")
+            .nth(1)
+            .and_then(|rest| rest.split(';').next())
+            .and_then(|value| value.parse().ok())
+            .expect("arrowhead aspect");
+        assert!(source.contains("let half0 = head0 * HEAD_ASPECT;"));
+        assert!(source.contains("let half1 = head1 * HEAD_ASPECT;"));
+        assert!((2.0 * aspect - 0.50).abs() < 1e-6);
+    }
+
     /// Colors pack red in the low byte, like the other lanes.
     #[test]
     fn vector_row_color() {
@@ -418,7 +433,7 @@ mod tests {
         dir: [f64; 2],
         r: f64,
     ) -> f64 {
-        let aspect = 0.55_f64;
+        let aspect = 0.25_f64; // half the base width over the head length, as in arrow.wgsl
         let side = (1.0 + aspect * aspect).sqrt();
         let mut near = Vec::new(); // (u, v, coverage) per pixel, apex at the point
 
@@ -645,9 +660,17 @@ mod tests {
                         }
                     }
 
-                    // no seam across a shaft at least a pixel wide: away from a tip the center line is inked
+                    // Measure the shaft between the largest possible heads; the tip checks cover their tapered ends.
                     if shaft && (vector.radius > 0.0 || *selected) {
-                        let margin = |bit: u32| if vector.heads & bit != 0 { 3.0 } else { 1.5 };
+                        let both = vector.heads & VectorRow::HEAD_START != 0
+                            && vector.heads & VectorRow::HEAD_END != 0;
+                        let margin = |bit: u32| {
+                            if vector.heads & bit != 0 {
+                                len * if both { 0.3 } else { 0.6 } + 1.5
+                            } else {
+                                1.5
+                            }
+                        };
                         let from = margin(VectorRow::HEAD_START);
                         let to = len - margin(VectorRow::HEAD_END);
                         let least = thinnest(&rgba, &paper, SIZE as usize, a, b, from, to);
@@ -772,6 +795,7 @@ mod walk_tests {
                         row: 0,
                         interactions: false,
                         attributes: false,
+                        arrowhead_pens: 0.0,
                     };
                     let walked = walk_geometry(&mut Walk::of(&mut up), &cx, geometry);
                     let mut object = ObjectRow::new(Xform::identity(), walked.flags);
@@ -835,8 +859,15 @@ mod walk_tests {
 
                         // a thick curve runs on under its head's base: no seam
                         if *name == "polyline thick" {
-                            let least =
-                                thinnest(&rgba, &paper, SIZE as usize, aim, tip, 1.5, len - 3.0);
+                            let least = thinnest(
+                                &rgba,
+                                &paper,
+                                SIZE as usize,
+                                aim,
+                                tip,
+                                1.5,
+                                len * 0.4 - 1.5,
+                            );
                             assert!(least >= 0.9, "{label}: center line only {least:.3} inked");
                         }
                     }

@@ -1,4 +1,3 @@
-// --8<-- [start:implementation]
 use super::deck::{Content, Pos};
 use super::eval;
 use super::object::Obj;
@@ -27,6 +26,7 @@ pub enum SpatialKind {
     Line,
     Arrow,
     Polyline,
+    Mesh,
 }
 
 /// The twelve edges of the box with opposite corners `a` and `b`.
@@ -88,7 +88,7 @@ impl Stage {
         match &o.content {
             Content::Point(a) => vec![p(a)],
             Content::Line { a, b, .. } | Content::Cuboid { a, b } => vec![p(a), p(b)],
-            Content::Polyline { pts, .. } => pts.iter().map(p).collect(),
+            Content::Polyline { pts, .. } | Content::Mesh(pts) => pts.iter().map(p).collect(),
             Content::Label { at, .. } => match &o.attach {
                 Some(id) => self.find(id).map(|i| {
                     let c = self.ctrl(&self.objs[i], now);
@@ -108,7 +108,7 @@ impl Stage {
         }
     }
 
-    /// Control points during a morph, blended by the kernel for points, lines and polylines.
+    /// Control points during a morph, blended by the kernel for points, lines, polylines and meshes.
     pub(super) fn geo_points(&self, o: &Obj, now: f64) -> Vec<[f64; 3]> {
         use session_rust::{Line, Point, Polyline};
         let live = self.ctrl(o, now);
@@ -167,6 +167,7 @@ impl Stage {
                 }
                 vec![one(SpatialKind::Polyline, pts, o.id.clone(), o.dash)]
             }
+            Content::Mesh(_) => vec![one(SpatialKind::Mesh, pts, o.id.clone(), false)],
             Content::Cuboid { .. } => {
                 let mut out = Vec::new();
                 for (k, (p, q)) in cuboid_edges(pts[0], pts[1]).into_iter().enumerate() {
@@ -193,6 +194,10 @@ impl Stage {
                 Content::Point(_) => discs.push(pts[0]),
                 Content::Line { .. } => segs.push((pts[0], pts[1])),
                 Content::Polyline { .. } => segs.extend(pts.windows(2).map(|w| (w[0], w[1]))),
+                Content::Mesh(_) if !pts.is_empty() => {
+                    segs.extend(pts.windows(2).map(|w| (w[0], w[1])));
+                    segs.push((pts[pts.len() - 1], pts[0]));
+                }
                 _ => {}
             }
         }
@@ -276,4 +281,3 @@ impl Stage {
         self.labels = placed;
     }
 }
-// --8<-- [end:implementation]

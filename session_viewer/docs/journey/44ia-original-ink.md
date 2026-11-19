@@ -50,15 +50,15 @@ The original-target overlay builders are ready; interactive drawing is connected
 
 ### Recorded visual result
 
-**Previous native render — current verification pending.**
+**Source31 native image reviewed.**
 
 The inherited placed boxes, source ink and ground grid remain visible. The image proves drawing; copied tests prove the new metadata.
 
-![Native renderer output for build highlights from original ink targets.](../screenshots/journey/44g-edge-ink.png)
+![Native presentation at this checkpoint.](../screenshots/journey/44ia-original-ink-5c3b10f59b3a.png)
 
-*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
+*Fresh Rust/NVIDIA raw-DPR4 presentation, personally reviewed at 2560 × 1920. Inherited original-boundary scene has no triangulation diagonals across filled faces. New original-ink source-key behavior and interactive highlights need separate state checks; raster/close-edge/grid-axis limitations retained. Fixed-resolution pixel checks and browser controls require separate acceptance.*
 
-This reference image is shared with [6.3.8 · Draw original boundary edges consistently](44g-edge-ink.md). It does not demonstrate a new feature by itself.
+This scene continues [6.3.8 · Draw original boundary edges consistently](44g-edge-ink.md). This checkpoint was captured independently; its new source behavior requires separate state checks.
 
 <details>
 <summary>Code explanation and diagram</summary>

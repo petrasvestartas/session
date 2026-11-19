@@ -82,15 +82,15 @@ Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving reb
 
 ### Recorded visual result
 
-**Previous native render — current verification pending.**
+**Source31 native image reviewed.**
 
 The blue parametric roof and black domain boundaries remain visible.
 
-![Native renderer output for mesh incident faces with shared boundary constraints.](../screenshots/journey/55zc-follow-original-constrained-trim-labels.png)
+![Native presentation at this checkpoint.](../screenshots/journey/56a-shared-2336125cd76e.png)
 
-*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
+*Fresh Rust/NVIDIA raw-DPR4 presentation, personally reviewed at 2560 × 1920. Native presentation of the inherited parametric roof with visible boundary segments and correct far-boundary occlusion. Constructor and image presentation only; shared CAD meshing, canonical pixel validation and browser interactions remain separate. Fixed-resolution pixel checks and browser controls require separate acceptance.*
 
-This reference image is shared with [9.1.9 · Read original edge-use samples](55za-read-original-edge-use-samples.md). It does not demonstrate a new feature by itself.
+This scene continues [9.1.9 · Read original edge-use samples](55za-read-original-edge-use-samples.md). This checkpoint was captured independently; its new source behavior requires separate state checks.
 
 <details>
 <summary>Code explanation and diagram</summary>

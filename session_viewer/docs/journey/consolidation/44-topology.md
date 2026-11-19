@@ -4,6 +4,8 @@
 
 ## <a id="checkpoint-44-topology"></a>1. Preserve source faces and edges
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/44-topology-bd5d16840cff.png). The inherited RGB grid frame remains unchanged. Original topology conservation and source face/edge identity require separate checks; interactive part modes and highlights arrive at44l.
+
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="214" viewBox="0 0 1120 214" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
   <defs>
@@ -313,6 +315,8 @@ mod mesh_parts_tests;
 
 ## <a id="checkpoint-44a-tags"></a>2. Tag the kind of a picked part
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/44a-tags-bd5d16840cff.png). The inherited RGB grid frame remains unchanged. Source part-kind tags and integer decoding need separate checks; interactive part modes and highlights arrive at44l.
+
 ### 1. `src/sub_id.rs`
 
 Create the file and type:
@@ -484,6 +488,8 @@ fn tagged_zero_addresses_and_largest_addresses_roundtrip_without_kind_collisions
 
 ## <a id="checkpoint-44b-sources"></a>3. Map visible ink back to sources
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/44b-sources-bd5d16840cff.png). The inherited RGB grid frame remains unchanged. Original ink-source and part mapping require separate decoding checks; interactive part modes and highlights arrive at44l.
+
 ### 1. `src/pick_sources.rs`
 
 **Locate this existing block:**
@@ -635,6 +641,8 @@ impl Sources {
 ```
 
 ## <a id="checkpoint-44c-resolve"></a>4. Validate a part against the current source
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/44c-resolve-bd5d16840cff.png). Inherited selected solids, connected stroke, blue point and grid; source-part validation needs separate state checks. No triangulation wires on filled faces; raster/grid-axis limitations retained.
 
 ### 1. `src/selection.rs`
 
@@ -859,6 +867,8 @@ mod pick_sources_tests;
 ```
 
 ## <a id="checkpoint-44d-pulling"></a>5. Reuse visible geometry for face identities
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/44d-pulling-bd5d16840cff.png). Inherited solids, connected stroke, blue point and grid; vertex-pulled source-face identity requires separate state checks. No face triangulation wires; raster/grid-axis limitations retained.
 
 
 
@@ -1094,6 +1104,8 @@ fn vertex(@location(0) position: vec3<f32>, @location(1) colour: vec3<f32>, @loc
 
 ## <a id="checkpoint-44e-pipeline"></a>6. Create the integer source-face pipeline
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/44e-pipeline-bd5d16840cff.png). Inherited selected solids, connected stroke, point and grid; integer source-face pipeline and picking readback need separate state checks. No triangulation wires on filled faces; raster/grid-axis limitations retained.
+
 ### 1. `src/face_pick.rs`
 
 Create the file and type:
@@ -1212,6 +1224,8 @@ pub mod face_pick;
 
 ## <a id="checkpoint-44f-metadata"></a>7. Upload only original-face metadata
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/44f-metadata-bd5d16840cff.png). Inherited solids, connected stroke, point and grid; original-face metadata upload and saved identities require separate state checks. No triangulation wires on filled faces; raster/grid-axis limitations retained.
+
 See the [typed CPU buffers and GPU uploads diagram in Lesson 3.6](31-settings.md).
 
 ### 1. `src/face_pick.rs`
@@ -1329,6 +1343,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-44g-edge-ink"></a>8. Draw boundary edges consistently
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/44g-edge-ink-5c3b10f59b3a.png). Original source boundaries and source-face joins are now drawn with black ink, while filled faces remain free of triangulation diagonals. Raster/close-edge/grid-axis limitations remain. Apparent contours and interactive part highlights belong to later stages.
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -2493,6 +2509,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-44h-mode-gpu"></a>9. Pick source parts with visible coverage
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/44h-mode-gpu-5c3b10f59b3a.png). Original source boundaries and face joins remain visible without triangulation diagonals. Integer source-part picking and interactive highlights need separate state checks; raster/close-edge/grid-axis limitations retained.
+
 See the [command encoding and render passes diagram in Lesson 1.2](02-clear.md).
 
 ### 1. `src/pick_gpu.rs`
@@ -3302,6 +3320,8 @@ Replace it with:
 
 ## <a id="checkpoint-44i-ink-highlight"></a>10. Highlight edges and controls
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/44i-ink-highlight-5c3b10f59b3a.png). Inherited original-boundary ink remains visible without triangulation diagonals. A newly selected local edge and interactive ink highlighting require separate state checks; raster/close-edge/grid-axis limitations retained.
+
 ### 1. `src/highlight.rs`
 
 Create the file and type:
@@ -3385,6 +3405,8 @@ pub mod highlight;
 ```
 
 ## <a id="checkpoint-44ia-original-ink"></a>11. Build highlights from ink targets
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/44ia-original-ink-5c3b10f59b3a.png). Inherited original-boundary scene has no triangulation diagonals across filled faces. New original-ink source-key behavior and interactive highlights need separate state checks; raster/close-edge/grid-axis limitations retained.
 
 ### 1. `src/highlight.rs`
 
@@ -3511,6 +3533,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-44j-face-highlight"></a>12. Highlight one face without recolouring its parent
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/44j-face-highlight-5c3b10f59b3a.png). Inherited original-boundary scene remains free of face triangulation diagonals. A newly selected local face is not shown here; the highlighted-face fixture begins44l. Raster/close-edge/grid-axis limitations retained.
 
 ### 1. `src/highlight.rs`
 
@@ -4059,6 +4083,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-44k-selection"></a>13. Keep part selection outside document history
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/44k-selection-5c3b10f59b3a.png). Inherited selected-object and original-boundary scene has no triangulation diagonals. Local face/control selection and selection-table persistence require separate state checks; dedicated face-highlight fixture begins44l. Raster/close-edge/grid-axis limitations retained.
 
 ### 1. `src/selection.rs`
 
@@ -5044,6 +5070,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-44l-input"></a>14. Select and inspect faces, edges and controls
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/44l-input-7dada61886fe.png). Dedicated original Face(1) selection is rendered gold on the box, with gray neighboring faces and dark original boundaries; no triangulation diagonals. Boundary raster stepping remains. Programmatic fixture selection does not establish actual pointer or browser interaction; earlier-fixture GPU probes are not transferred.
 
 ### 1. `src/browser.rs`
 

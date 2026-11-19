@@ -90,7 +90,7 @@ Named net matrices select a square-pattern representation above 14 rows or colum
 
 ### Clock, actions and drawing
 
-Copy [tween.rs](../lessons/03a-math/src/app/stage/tween.rs), [actions.rs](../lessons/03a-math/src/app/stage/actions.rs) and [draw.rs](../lessons/03a-math/src/app/stage/draw.rs). Sample motion from time and endpoints rather than repeatedly adding a distance per frame.
+Copy [tween.rs](../lessons/03a-math/src/app/stage/tween.rs), [actions.rs](../lessons/03a-math/src/app/stage/actions.rs), [draw.rs](../lessons/03a-math/src/app/stage/draw.rs) and [flat.rs](../lessons/03a-math/src/app/stage/flat.rs). Sample motion from time and endpoints rather than repeatedly adding a distance per frame. Flat construction drawings use the same slide coordinates, colours, dashed strokes, open nodes and elongated arrowheads as the spatial figures.
 
 ```rust
 --8<-- "lessons/03a-math/src/app/stage/tween.rs:clock"
@@ -136,7 +136,7 @@ Copy [deck.rs](../lessons/03a-math/src/app/stage/deck.rs), [eval.rs](../lessons/
 
 An index names chapter files. The chapter parser expands short keys and author blocks into actions. It carries the chapter name into errors; playback adds the step context. Unknown names and unsupported TeX must be reported rather than silently dropping the requested content. The overlap check uses laid-out ink bounds, not string lengths.
 
-Type the lesson's [example.yaml](../lessons/03a-math/example.yaml). Its two slides exercise equals alignment, matching, a matrix and a row address.
+Type the lesson's [example.yaml](../lessons/03a-math/example.yaml). Its slides exercise equals alignment, matching, a matrix, a row address and an orthographic construction.
 
 ```yaml
 --8<-- "lessons/03a-math/example.yaml:deck"
@@ -148,9 +148,9 @@ The next scene subject uses the same schema and runtime. It adds the adapter tha
 
 From `docs/lessons/03a-math`, run `CARGO_TARGET_DIR=../../../target/course-cargo CARGO_BUILD_JOBS=8 trunk serve --port 8780` through the workspace build guard. Open `http://127.0.0.1:8780/`.
 
-The first step aligns two equations. Right arrow advances to a matching rewrite, then a matrix and its coloured first row. Left arrow rebuilds the previous state. `T` changes the stage theme. The left scene region stays empty because this subject does not allocate 3D scene rows. Reload after changing the viewport size; the supplied browser harness has no resize integration yet.
+The first step aligns two equations. Right arrow advances to a matching rewrite, a matrix and its coloured first row, then an orthographic force construction. Left arrow rebuilds the previous state. `T` changes the stage theme. The 3D scene region stays empty because this subject does not allocate scene rows; the final construction is flat ink. Reload after changing the viewport size; the supplied browser harness has no resize integration yet.
 
-Run native checks with `cargo test --lib --target x86_64-pc-windows-msvc --target-dir ../../../target/course-cargo -j8`, also through the guard. Use your native host target on another platform. Tests include parser and layout facts, the lesson deck, replay, and the production suite that plays all five shipped decks.
+Run native checks with `cargo test --lib --target x86_64-pc-windows-msvc --target-dir ../../../target/course-cargo -j8`, also through the guard. Use your native host target on another platform. Tests include parser and layout facts, the lesson deck, replay, and the production suite that plays all six shipped decks.
 
 ## Predict and try
 
@@ -166,4 +166,4 @@ The action stream already describes how to construct every state. Replaying that
 
 ## Validation
 
-The source-parity test passes for all 17 stage-core modules, comparing exact nonblank lines after removing teaching markers and normalizing shared logo paths. Current native and browser verification is pending: the storage guard stopped the native build at the workspace's generated-file limit. The previous formula-only captures do not validate this source revision. Cumulative course integration remains unfinished. The browser harness is a subject test host, not a replacement for the production application's event loop.
+The source-parity test covers all 18 stage-core modules, comparing exact nonblank lines after removing teaching markers and normalizing shared logo paths; it passes. All 25 native tests pass. The optimized desktop browser lesson reaches slide 5/5 and settles without page errors. Resize the viewport only before reloading: the supplied harness does not integrate live resize events. Cumulative course integration remains unfinished; the browser harness is a subject test host, not a replacement for the production application's event loop.

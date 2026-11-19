@@ -1,5 +1,3 @@
-use super::buffers::GpuCtx;
-
 /// Draws the egui interface over the frame.
 pub struct Ui {
     renderer: egui_wgpu::Renderer,       // egui's wgpu renderer
@@ -11,10 +9,10 @@ pub struct Ui {
 
 impl Ui {
     /// Create the renderer for the canvas format.
-    pub fn new(ctx: &GpuCtx, format: wgpu::TextureFormat) -> Self {
+    pub fn new(device: &wgpu::Device, format: wgpu::TextureFormat) -> Self {
         Self {
             renderer: egui_wgpu::Renderer::new(
-                &ctx.device,
+                device,
                 format,
                 egui_wgpu::RendererOptions::default(),
             ),
@@ -31,7 +29,8 @@ impl Ui {
     /// Upload this frame's egui output: textures, then triangles.
     pub fn prepare(
         &mut self,
-        ctx: &GpuCtx,
+        device: &wgpu::Device,
+        queue: &wgpu::Queue,
         context: &egui::Context, // the egui frame
         output: egui::FullOutput,
         size: [u32; 2],
@@ -45,8 +44,7 @@ impl Ui {
         // upload new or changed textures
         for (id, delta) in &output.textures_delta.set {
             self.textures.insert(*id);
-            self.renderer
-                .update_texture(&ctx.device, &ctx.queue, *id, delta);
+            self.renderer.update_texture(device, queue, *id, delta);
         }
 
         self.free = output.textures_delta.free;
@@ -62,20 +60,14 @@ impl Ui {
             pixels_per_point: output.pixels_per_point,
         };
         // upload the vertex buffers
-        let mut encoder = ctx
-            .device
-            .create_command_encoder(&wgpu::CommandEncoderDescriptor {
-                label: Some("egui upload"),
-            });
-        let mut buffers = self.renderer.update_buffers(
-            &ctx.device,
-            &ctx.queue,
-            &mut encoder,
-            &self.jobs,
-            &self.screen,
-        );
+        let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
+            label: Some("egui upload"),
+        });
+        let mut buffers =
+            self.renderer
+                .update_buffers(device, queue, &mut encoder, &self.jobs, &self.screen);
         buffers.push(encoder.finish());
-        ctx.queue.submit(buffers);
+        queue.submit(buffers);
     }
 
     /// Draw the interface over the frame.

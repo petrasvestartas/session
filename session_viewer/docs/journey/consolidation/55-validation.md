@@ -48,6 +48,8 @@
 
 ## <a id="checkpoint-55-validation"></a>1. Validate surface control storage
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/55-validation-aeab6de33013.png). The actual53u fixture retains two blue Posts, original black boundaries and the unrelated brown beam; canonical validation checks and browser interactions require separate acceptance.
+
 ### 1. `src/surface.rs`
 
 Create the file and type:
@@ -153,6 +155,8 @@ pub mod surface;
 ```
 
 ## <a id="checkpoint-55a-grid"></a>2. Keep UV coordinates beside world samples
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/55a-grid-aeab6de33013.png). The actual53u fixture retains two blue Posts, original black boundaries and the unrelated brown beam; no debug grid is visible, and grid controls require separate state/browser checks.
 
 ### 1. `src/surface.rs`
 
@@ -327,6 +331,8 @@ fn quality_grid(source:&NurbsSurface)->Result<Grid,&'static str> {
 
 ## <a id="checkpoint-55b-normals"></a>3. Use analytic normals and finite singular-point fallbacks
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/55b-normals-aeab6de33013.png). The actual53u fixture retains two blue Posts, original black boundaries and the unrelated brown beam; no normal arrows are visible, and normal controls require separate state/browser checks.
+
 ### 1. `src/surface.rs`
 
 **Locate this existing block:**
@@ -400,6 +406,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-55c-display"></a>4. Prepare derived surface display without losing its source
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/55c-display-aeab6de33013.png). The actual53u fixture retains two blue Posts, original black boundaries and the unrelated brown beam; display controls require separate state/browser checks.
 
 ### 1. `src/surface.rs`
 
@@ -529,6 +537,8 @@ pub fn example() -> NurbsSurface {
 ```
 
 ## <a id="checkpoint-55d-source-row"></a>5. Attach surface ownership to existing scene rows
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/55d-source-row-aeab6de33013.png). The actual53u fixture retains two blue Posts, original black boundaries and the unrelated brown beam; source-row UI requires separate state/browser checks.
 
 ### 1. `src/scene.rs`
 
@@ -966,6 +976,8 @@ impl Presentation {
 
 ## <a id="checkpoint-55e-identities"></a>6. Resolve surface face and domain edges
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/55e-identities-aeab6de33013.png). The actual53u fixture retains two blue Posts, original black boundaries and the unrelated brown beam; source identity behavior requires separate state/browser checks.
+
 ### 1. `src/pick_sources.rs`
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
@@ -1146,6 +1158,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-55f-ownership"></a>7. Account for shared source and UV cache owners
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/55f-ownership-aeab6de33013.png). The actual53u fixture retains two blue Posts, original black boundaries and the unrelated brown beam; source ownership behavior requires separate state/browser checks.
+
 ### 1. `src/memory.rs`
 
 **Locate this existing block:**
@@ -1234,6 +1248,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-55g-surface"></a>8. Draw and pick the parametric roof
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/55g-surface-2336125cd76e.png). The actual AddSurface/Fit/Isometric constructor shows a smooth blue parametric roof with visible original black boundaries and no triangulation wires; its central far boundary is correctly occluded. Apparent contours arrive at63f/63g/63h. Canonical fixed-pixel and browser checks remain separate.
 
 ### 1. `src/editor.rs`
 
@@ -1639,6 +1655,8 @@ fn actual_surface_pick_keeps_one_cad_face_and_four_domain_edge_ids() {
 
 ## <a id="checkpoint-55za-read-original-edge-use-samples"></a>9. Read edge-use samples
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/55za-read-original-edge-use-samples-2336125cd76e.png). Native presentation of the inherited parametric roof: original visible boundaries, smooth surface and correctly occluded far boundary. Constructor and image presentation only; source-sampling algorithms, canonical pixel validation and browser interaction remain separate.
+
 ### 1. `src/cad_edges.rs`
 
 Create the file and type:
@@ -1755,6 +1773,8 @@ pub mod cad_edges;
 
 ## <a id="checkpoint-55zb-follow-original-isoparametric-boundaries"></a>10. Follow isoparametric boundaries
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/55zb-follow-original-isoparametric-boundaries-2336125cd76e.png). Native presentation of the inherited parametric roof with original visible boundaries and correct far-boundary occlusion. Constructor and image presentation only; isoparametric boundary algorithms, canonical pixel validation and browser interaction remain separate.
+
 ### 1. `src/cad_edges.rs`
 
 **Locate this existing block:**
@@ -1859,6 +1879,8 @@ pub struct EdgeChain {
 ```
 
 ## <a id="checkpoint-55zc-follow-original-constrained-trim-labels"></a>11. Follow constrained trim labels
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/55zc-follow-original-constrained-trim-labels-2336125cd76e.png). Native presentation of the inherited parametric roof with original visible boundaries and correct far-boundary occlusion. Constructor and image presentation only; constrained trim-label algorithms, canonical pixel validation and browser interaction remain separate.
 
 ### 1. `src/cad_edges.rs`
 

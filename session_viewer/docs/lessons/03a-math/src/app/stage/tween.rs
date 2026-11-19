@@ -1,4 +1,3 @@
-// --8<-- [start:clock]
 use super::tex::Rgba;
 
 /// Smootherstep easing of `t` in 0..1.
@@ -126,4 +125,3 @@ impl<T: Lerp> Tween<T> {
         self.dur > 0.0 && now < self.t0 + self.dur
     }
 }
-// --8<-- [end:clock]

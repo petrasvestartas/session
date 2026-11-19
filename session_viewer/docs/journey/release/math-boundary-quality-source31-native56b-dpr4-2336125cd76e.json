@@ -1,0 +1,76 @@
+{
+  "preexistingImageReused": false,
+  "publisher": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-native56b57-two-growth2g-case-56b-01\\publish.mjs",
+    "sha256": "54263c87df4ffa99623f68ff30add78646c273ecd7bb33a7e3b0ddc7a8079038"
+  },
+  "originalPublisher": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-native56b57-two-growth2g-case-56b-01\\publish-original-template.mjs",
+    "sha256": "05ff6f4a9685265729aa09b58339812e077f199aa95359fa253a6ece046b733b"
+  },
+  "batchCaptureReady": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-native56b57-two-growth2g-case-56b-01\\capture-ready.json",
+    "sha256": "ff50afa7a7197694ecde35fa5e76f5f4c62ee1f8b8befd83ef77c2ef663e6216"
+  },
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-16T06:50:23.394Z",
+  "id": "56b-boundaries",
+  "lane": "native",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-56b-boundaries-2b338a0df1572a5fceeb\\capture.json.gz",
+    "sha256": "232babadc56911c723090c40946dd2173cbc22c4e657bfa6e56d0735a1353629",
+    "bytes": 110414
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-native56b57-two-growth2g-case-56b-01\\capture-result.json",
+    "sha256": "943c4d4340bc2fc8fa00fafc021bcd78d4340ce00ee69a8dbc539fce7c78c06d"
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-native56b57-two-growth2g-56b-01-execution.json",
+    "sha256": "f8fb6558088c37e6047c6b5c3e6de4673f3224c2a574684d1ea4cdbf97da47a3"
+  },
+  "boundedTerminal": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-native56b57-two-growth2g-case-56b-01\\bounded-terminal.json",
+    "sha256": "257a5fea23503090b47deee171449afe679950a13d70fdff193fd373f2701e95"
+  },
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-31-stage-aware-native-density.json",
+    "sha256": "7e9980c097467f8f4a60519e63aef9bfdd87122e72179d1f35f1849391ade57a"
+  },
+  "sourceFreezeCoverage": {
+    "matchedFiles": 555,
+    "basis": "Pinned Native wrapper preflight and postflight; live hashes rechecked"
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\56b-boundaries-2336125cd76e.png",
+    "sha256": "2336125cd76efe41a0418b87dbf27dda53d4f1b922926dea89b31cd62f877a3e"
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\55zc-follow-original-constrained-trim-labels.png",
+    "sha256": "56f6f5a4bf1ac72b0a8d31a78e80b8b4b71881310dca4530ea0dcfcc7a3a3915"
+  },
+  "aliasManifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\image-aliases.json",
+    "sha256": "59a41176fb5daa71125bf02fc487c3fb2edbef2e4a35f20487a21999268affae"
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root personally inspected this original 2560x1920 raw DPR4 PNG after its fresh Rust compile and GPU draw. The blue parametric roof fill and visible black boundary segments remain readable on white; the central far boundary is correctly occluded. This 56b boundary step still renders the inherited 55g surface fixture: its image does not independently demonstrate shared CAD boundary constraints or a BRep row. Four boundary curves and 64 edge entries are constructor checks, not a requirement that hidden borders be visible. No forced line or early apparent contour was added; 63f/63g/63h contour behavior remains later. Canonical 640-pixel, CAD algorithms and browser interactions stay separate. Preserve old aliases and prior pixel bytes.",
+  "canonicalBehaviorExecuted": false,
+  "scope": "Source31 56b-boundaries rawDPR4 image presentation. Actual fixture scope is stated in Rootreview; canonical640pixel/full-unit/browser acceptance remains separate. Original fixedpixel function bodies and oldaliases/pixels retained.",
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-native56b57-two-growth2g-case-56b-01\\publication.json",
+    "sha256": "407c9d7bb9e30b6cdcf909fb20135e9b47b51026b6838993057020584d3f6673"
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-56b-boundaries-2b338a0df1572a5fceeb\\publication.json",
+    "sha256": "aabc91cda069763d12b3365b0ce668284ac2cbf5a13f2450075c30f61cc76fce"
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-56b-boundaries-2b338a0df1572a5fceeb\\retirement.json.gz",
+    "sha256": "952f148b02c4905cb5105008e9572fe801bee0f0bd392be676da688daade524e"
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-56b-boundaries-2b338a0df1572a5fceeb\\retired.json",
+    "sha256": "cb349b2090f9a6d93e72fa84ce7d16c26d0910fe4f0bcd37fd0866e1247e8b08"
+  }
+}

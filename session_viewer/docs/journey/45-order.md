@@ -119,15 +119,15 @@ Run the copied ordering checks. The original face-selection exercise is unchange
 
 ### Recorded visual result
 
-**Previous native render — current verification pending.**
+**Source31 native image reviewed.**
 
 The earlier box has one original face highlighted. This preparation adds selection or batch-edit infrastructure without changing that exercise.
 
-![Native renderer output for preserve unique selections in pick order.](../screenshots/journey/44l-input.png)
+![Native presentation at this checkpoint.](../screenshots/journey/45-order-7dada61886fe.png)
 
-*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
+*Fresh Rust/NVIDIA raw-DPR4 presentation, personally reviewed at 2560 × 1920. Original selected Face(1) remains gold while neighboring box faces stay gray, with dark boundaries and no triangulation diagonals. The inherited single-box image does not demonstrate multi-object draw ordering or pointer/browser interaction. Boundary raster stepping retained. Fixed-resolution pixel checks and browser controls require separate acceptance.*
 
-This reference image is shared with [6.3.14 · Select and inspect original faces, edges and controls](44l-input.md). It does not demonstrate a new feature by itself.
+This scene continues [6.3.14 · Select and inspect original faces, edges and controls](44l-input.md). This checkpoint was captured independently; its new source behavior requires separate state checks.
 
 <details>
 <summary>Code explanation and diagram</summary>

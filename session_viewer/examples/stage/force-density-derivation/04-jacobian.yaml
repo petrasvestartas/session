@@ -1,0 +1,63 @@
+# cd /home/pv/brg/code_cpp/wood_research/session/session_viewer && aws s3 sync examples/stage s3://session-viewer-data/stage/ --delete --exclude '*' --include '*.yaml' --content-type application/yaml --cache-control no-cache --profile r2 --endpoint-url https://0520459c6817bd96c1e25fcb49461c4e.r2.cloudflarestorage.com
+# Open local: http://127.0.0.1:8770/?stage=decks/force-density-derivation/index.yaml&data=off&chapter=4&step=1
+# Open live: https://petrasvestartas.github.io/session/?stage=force-density-derivation&chapter=4&step=1
+
+# Chapter 4: collecting length derivatives into the Jacobian C_N^T U L^-1 to project 3D forces.
+title: JACOBIAN MATRIX
+grid: {center: [3.5, 3.5], size: 9, step: 1}
+camera: {yaw: -58, pitch: 26}
+palette: {free: ink}
+net:
+  fixed: {n1: [0, 0, 0], n2: [5, 0, 3], n3: [0, 7, 3], n4: [7, 5, 0]}
+  free: {n0: [3, 3, 0.25]}
+  cables: {e0: [n0, n1], e1: [n0, n2], e2: [n0, n3], e3: [n0, n4]}
+  q: 1
+  load: {n0: [0, 0, -5]}
+slides:
+  - title: JACOBIAN MATRIX
+    steps:
+      - say: 'Collecting $\partial l_k / \partial x_0$ forms $\mathbf{C}_N^{T}\mathbf{U}\mathbf{L}^{-1}$ of direction cosines.'
+        show: net
+        do:
+          - row:
+              - '\mathbf{J} = \frac{\partial \mathbf{l}}{\partial x_0} ='
+              - {id: Jcol, matrix: {rows: [['\tfrac{\partial l_1}{\partial x_0}'], ['\tfrac{\partial l_2}{\partial x_0}'], ['\tfrac{\partial l_3}{\partial x_0}'], ['\tfrac{\partial l_4}{\partial x_0}']], rowlabels: [e_0, e_1, e_2, e_3], signs: false}}
+              - '='
+              - {id: Jrat, matrix: {rows: [['\tfrac{u_1}{l_1}'], ['\tfrac{u_2}{l_2}'], ['\tfrac{u_3}{l_3}'], ['\tfrac{u_4}{l_4}']], signs: false}}
+              - '='
+              - {id: Jnum, matrix: {rows: [['0.706'], ['-0.441'], ['0.526'], ['-0.893']]}}
+            size: 15
+      - say: 'Collecting $\partial l_k / \partial x_0$ forms $\mathbf{C}_N^{T}\mathbf{U}\mathbf{L}^{-1}$ of direction cosines.'
+        do:
+          - row:
+              - '\mathbf{U} ='
+              - {id: Umat, matrix: {rows: [[3, 0, 0, 0], [0, -2, 0, 0], [0, 0, 3, 0], [0, 0, 0, -4]]}}
+              - '\;\mathbf{L}^{-1} ='
+              - {id: Linv, matrix: {rows: [['\tfrac{1}{4.250}', 0, 0, 0], [0, '\tfrac{1}{4.535}', 0, 0], [0, 0, '\tfrac{1}{5.706}', 0], [0, 0, 0, '\tfrac{1}{4.479}']], signs: false}}
+            size: 13
+            gap: 8
+      - say: 'Collecting $\partial l_k / \partial x_0$ forms $\mathbf{C}_N^{T}\mathbf{U}\mathbf{L}^{-1}$ of direction cosines.'
+        do:
+          - row:
+              - '\mathbf{C}_N^{T}\mathbf{U}\mathbf{L}^{-1} ='
+              - {id: CNTj, matrix: {rows: [[1, 1, 1, 1]]}}
+              - {id: ULj, matrix: {rows: [['0.706', 0, 0, 0], [0, '-0.441', 0, 0], [0, 0, '0.526', 0], [0, 0, 0, '-0.893']]}}
+              - '='
+              - {id: JT, matrix: {rows: [['0.706', '-0.441', '0.526', '-0.893']], empty: true}}
+            size: 13
+            gap: 8
+          - color: {target: 'CNTj[0,:]', color: yellow}
+          - color: {target: 'ULj[0,0]', color: yellow, with: true}
+          - fly: {from: 'ULj[0,0]', to: 'JT[0,0]'}
+          - color: {target: 'ULj[0,0]', color: reset}
+          - color: {target: 'ULj[1,1]', color: yellow, with: true}
+          - fly: {from: 'ULj[1,1]', to: 'JT[0,1]'}
+          - color: {target: 'ULj[1,1]', color: reset}
+          - color: {target: 'ULj[2,2]', color: yellow, with: true}
+          - fly: {from: 'ULj[2,2]', to: 'JT[0,2]'}
+          - color: {target: 'ULj[2,2]', color: reset}
+          - color: {target: 'ULj[3,3]', color: yellow, with: true}
+          - fly: {from: 'ULj[3,3]', to: 'JT[0,3]'}
+          - color: {target: 'CNTj[0,:]', color: reset}
+          - color: {target: 'ULj[3,3]', color: reset, with: true}
+          - {tex: '\mathbf{J}^{T} = \mathbf{C}_N^{T}\,\mathbf{U}\,\mathbf{L}^{-1} \;\Longrightarrow\; \mathbf{C}_N^{T}\,\mathbf{U}\,\mathbf{L}^{-1}\,\mathbf{f} = \mathbf{p}_x', size: 18, gap: 8, color: accent}

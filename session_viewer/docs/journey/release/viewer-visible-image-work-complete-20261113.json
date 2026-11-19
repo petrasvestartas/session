@@ -1,0 +1,104 @@
+{
+  "schema": 1,
+  "status": "COMPLETE_AUTHORIZED_VISIBLE_TUTORIAL_IMAGE_WORK",
+  "recordedUtc": "2026-11-13T09:28:25.131035+00:00",
+  "scope": "Regenerate the remaining visible tutorial figures, provide the four topic illustrations, qualify the cap image profile with actual Rust/WASM/NVIDIA execution and original-pixel review, preserve historical evidence in a separate truthful ledger, and finish the actual existing Vue website build/browser/layout review.",
+  "scopeEvidence": {
+    "directHumanClarificationUtc": "2026-11-06T08:42:54Z",
+    "summary": "The user clarified that the tutorials were mostly present and the required work was image regeneration. The Nov13 saved instructions require all remaining visible figures, a separate truthful historical validation ledger, actual cap runtime qualification and final website QA. The historical full-source validation denominator is not an additional visible-image replacement list."
+  },
+  "visibleFigures": {
+    "planned": 42,
+    "complete": 42,
+    "remaining": 0,
+    "ordinaryNativeGroups": 33,
+    "denseRgbSupplement": 1,
+    "twoMmMeasurement": 1,
+    "cadTopicIllustrations": 2,
+    "worldLabelIllustrations": 1,
+    "unfinishedLinePreviewIllustrations": 1,
+    "capFigures": 3
+  },
+  "capImageProfiles": [
+    {
+      "id": "96zzc-share-section-addresses-with-outlines-and-ambient",
+      "receipt": "docs/journey/release/math-boundary-quality-source30-browser-96zzc-share-section-addresses-with-outlines-and-ambient-7998d3f44486.json",
+      "receiptSha256": "830b18539137428daf14299a0d5dae5930ec3805250a0bf9de62c79a6a4d1e24",
+      "image": "docs/screenshots/journey/96zzc-share-section-addresses-with-outlines-and-ambient-7998d3f44486.png",
+      "imageSha256": "7998d3f4448657563dfabaf8196fe6d0ce239f671bcf642f572d5a06a0513e5e",
+      "shaderSamples": 4,
+      "renderScale": 2,
+      "rootOriginalPixelReviewed": true,
+      "normallyRetired": true,
+      "httpBytesAndChromeDecodeVerified": true
+    },
+    {
+      "id": "96zza-connect-section-primitive-images",
+      "receipt": "docs/journey/release/math-boundary-quality-source30-browser-96zza-connect-section-primitive-images-1d91f844b3b8.json",
+      "receiptSha256": "20a6820e59fac4c8db4c48f970a475dc06a7dae1180f038815b5bade97f1b64f",
+      "image": "docs/screenshots/journey/96zza-connect-section-primitive-images-1d91f844b3b8.png",
+      "imageSha256": "1d91f844b3b888a6ea6a8e705ef64eae33fb4b666d40c0db78a5ea3bb30f373e",
+      "shaderSamples": 1,
+      "renderScale": 2,
+      "rootOriginalPixelReviewed": true,
+      "normallyRetired": true,
+      "httpBytesAndChromeDecodeVerified": true
+    },
+    {
+      "id": "96zzd-pack-surface-position-normal-and-color",
+      "receipt": "docs/journey/release/math-boundary-quality-source30-browser-96zzd-pack-surface-position-normal-and-color-1d91f844b3b8.json",
+      "receiptSha256": "fb1e13bae420517127cc1efd55f49934b6efef5d227e3cd14ae771f43e4f6e71",
+      "image": "docs/screenshots/journey/96zzd-pack-surface-position-normal-and-color-1d91f844b3b8.png",
+      "imageSha256": "1d91f844b3b888a6ea6a8e705ef64eae33fb4b666d40c0db78a5ea3bb30f373e",
+      "shaderSamples": 1,
+      "renderScale": 2,
+      "rootOriginalPixelReviewed": true,
+      "normallyRetired": true,
+      "httpBytesAndChromeDecodeVerified": true
+    }
+  ],
+  "finalWebsite": {
+    "status": "PASS_FINAL_SOURCE30_SITE_BUILD_BROWSER_AND_ROOT_LAYOUT_REVIEW",
+    "receipt": "docs/journey/release/viewer-site-20261113-source30.json",
+    "sha256": "6a2f77782d7eb00a3f7509e8eec558238fd11e66fc9eefb2a05120128bcf5885",
+    "browser": "157.0.8103.51",
+    "pages": 115,
+    "chapterRoutes": 22,
+    "primaryReaderSourcePins": 111,
+    "siteSourcePins": 808,
+    "plaintextSourcePairs": 13,
+    "otherSourcePreviews": 85,
+    "decodedImageOccurrences": 88,
+    "requiredCurrentFigureOccurrences": 61,
+    "uniqueRequiredCurrentFigures": 55,
+    "uniqueRequiredPixelDigests": 53,
+    "rootReviewedLayoutScreenshots": 7,
+    "generatorDownloads": 1,
+    "errors": 0,
+    "verificationRecordedUtc": "2026-11-13T09:16:02.134495+00:00",
+    "noGpuOrWasmRuntimeAcceptanceClaim": true,
+    "rootPersonallyReviewedLayouts": true
+  },
+  "separateHistoricalValidationLedger": {
+    "path": "docs/journey/release/math-boundary-validation-ledger-20261113-03.json",
+    "sha256": "1f156ab90bd1502531e68e737c824c65dcdec68d63c5a7b3c38a6599a794d535"
+  },
+  "historicalValidationScope": {
+    "historicalPrimaryCases": 94,
+    "lineageDestinationsWithoutNewPrimaryAcceptance": 1232,
+    "currentSource30PrimaryCases": 0,
+    "currentSource30PrimaryDenominator": 1326,
+    "currentSource30SupportingCapProfiles": 3,
+    "countsChangedByCompletionRecord": false,
+    "blanketCanonicalAcceptanceClaim": false
+  },
+  "publishedSourceCheckpoint": "deb1ae2b588d66127880416f6a55bb096ab70b60",
+  "preserved": [
+    "Gemini/Vue/CSS/site structure",
+    "old still-used PNGs and aliases",
+    "historical immutable receipts",
+    "foreign source edits and shared Git pointers/indexes"
+  ],
+  "completionCreatesNewRuntimeAcceptance": false,
+  "additionalHistoricalMatrixRunStarted": false
+}

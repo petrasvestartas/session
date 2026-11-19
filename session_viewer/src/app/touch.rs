@@ -85,6 +85,7 @@ impl Touches {
         }
     }
 
+// --8<-- [start:input-touch-camera]
     /// One finger orbits; two pan by their midpoint and zoom by their distance.
     fn moved(&mut self, cam: &mut Camera, id: u64, p: (f64, f64), vp: (f64, f64), dpr: f64) -> Act {
         let Some(i) = self.finger_index(id) else {
@@ -123,6 +124,7 @@ impl Touches {
         Act::Moved
     }
 
+// --8<-- [end:input-touch-camera]
     /// A finger lifted; the last one up may be a tap.
     fn lifted(&mut self, id: u64, p: (f64, f64), dpr: f64) -> Act {
         let Some(f) = self.drop_finger(id) else {

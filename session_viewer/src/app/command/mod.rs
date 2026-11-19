@@ -6,6 +6,7 @@ pub use verbs::REGISTRY;
 use crate::State;
 use crate::app::coords;
 
+// --8<-- [start:command-contract]
 /// What a parsed command does.
 pub trait Action: std::fmt::Debug {
     /// Carry it out; the answer is what to show the person.
@@ -59,6 +60,7 @@ impl Spec {
     }
 }
 
+// --8<-- [end:command-contract]
 /// A registry entry: a Spec, or a verb that carries one.
 pub trait Verb {
     /// How it is typed, completed and parsed.

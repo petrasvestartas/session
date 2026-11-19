@@ -1,4 +1,3 @@
-// --8<-- [start:implementation]
 use super::deck::{Pos, Scalar};
 
 /// A scalar or a 3D vector.
@@ -277,4 +276,3 @@ pub fn fill<T: Points>(tex: &str, pts: &T) -> String {
     out.push_str(rest);
     out
 }
-// --8<-- [end:implementation]

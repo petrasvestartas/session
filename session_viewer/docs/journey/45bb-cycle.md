@@ -87,15 +87,15 @@ Close; Example Line; Select Next; Selection. The original line can now be select
 
 ### Recorded visual result
 
-**Previous native render — current verification pending.**
+**Source31 native image reviewed.**
 
 The earlier box has one original face highlighted. This preparation adds selection or batch-edit infrastructure without changing that exercise.
 
-![Native renderer output for cycle every eligible original geometry owner.](../screenshots/journey/44l-input.png)
+![Native presentation at this checkpoint.](../screenshots/journey/45bb-cycle-7dada61886fe.png)
 
-*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
+*Fresh Rust/NVIDIA raw-DPR4 presentation, personally reviewed at 2560 × 1920. Inherited gold Face(1), gray neighbors and original boundaries remain free of triangulation diagonals. Cycling selected owners or their order requires separate state/interaction checks; diagonal boundary raster stepping retained. Fixed-resolution pixel checks and browser controls require separate acceptance.*
 
-This reference image is shared with [6.3.14 · Select and inspect original faces, edges and controls](44l-input.md). It does not demonstrate a new feature by itself.
+This scene continues [6.3.14 · Select and inspect original faces, edges and controls](44l-input.md). This checkpoint was captured independently; its new source behavior requires separate state checks.
 
 <details>
 <summary>Code explanation and diagram</summary>

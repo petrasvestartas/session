@@ -19,6 +19,7 @@ pub enum PickMode {
     },
 }
 
+// --8<-- [start:render-lane]
 /// The lifecycle every drawing lane shares; a new lane impls this and is named once in `lane_list!` or `REGISTRY`.
 pub trait Lane {
     /// Rebuild pipelines for a new color format or sample count.
@@ -62,6 +63,7 @@ pub trait Lane {
     }
 }
 
+// --8<-- [end:render-lane]
 /// A registered lane's rows: an edited object overwrites or kills them in place.
 pub trait RowLane: Lane {
     /// Overwrite this lane's rows of `up`, starting at row `first`.

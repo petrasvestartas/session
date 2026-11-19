@@ -1,7 +1,9 @@
-# Force density method, presentation 4 of 5: materialization (Linkwitz 6.5), elongations and unstretched lengths,
-# and a résumé of the method. A session_viewer stage deck.
-# Open: https://petrasvestartas.github.io/session/?stage=force-density-materialization
-name: Force density 4 · materialization
+# cd /home/pv/brg/code_cpp/wood_research/session/session_viewer && aws s3 sync examples/stage s3://session-viewer-data/stage/ --delete --exclude '*' --include '*.yaml' --content-type application/yaml --cache-control no-cache --profile r2 --endpoint-url https://0520459c6817bd96c1e25fcb49461c4e.r2.cloudflarestorage.com
+# Open local: http://127.0.0.1:8770/?stage=decks/force-density-materialization/index.yaml&data=off
+# Open live: https://petrasvestartas.github.io/session/?stage=force-density-materialization
+
+# Force density method, presentation 4: materialization, cable forces, and factory cut lengths.
+name: Force density materialization
 chapters:
   - 01-materialization.yaml
   - 02-resume.yaml

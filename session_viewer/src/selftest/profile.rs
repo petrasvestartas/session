@@ -102,6 +102,7 @@ pub fn document(session: &Session) {
             row: kind.objects as u32,
             interactions: true,
             attributes: true,
+            arrowhead_pens: 0.0,
         };
         let t = Instant::now();
         let row = walk_geometry(&mut Walk::of(&mut up), &cx, geom);

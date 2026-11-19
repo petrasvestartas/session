@@ -1,3 +1,7 @@
+# cd /home/pv/brg/code_cpp/wood_research/session/session_viewer && aws s3 sync examples/stage s3://session-viewer-data/stage/ --delete --exclude '*' --include '*.yaml' --content-type application/yaml --cache-control no-cache --profile r2 --endpoint-url https://0520459c6817bd96c1e25fcb49461c4e.r2.cloudflarestorage.com
+# Open local: http://127.0.0.1:8770/?stage=decks/force-density/index.yaml&data=off
+# Open live: https://petrasvestartas.github.io/session/?stage=force-density
+
 # Force density method, presentation 1 of 5: the equations of five nodes (Linkwitz 6.2.2), no matrices. A session_viewer stage deck.
 # Open: https://petrasvestartas.github.io/session/?stage=force-density
 # Before it, presentation 0, the equilibrium of a node: ?stage=equilibrium

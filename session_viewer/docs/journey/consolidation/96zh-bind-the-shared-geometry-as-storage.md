@@ -3964,6 +3964,10 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-96zza-connect-section-primitive-images"></a>20. Connect section primitives to color and first picking
 
+![Closed section cap with original primitive addresses](../../screenshots/journey/96zza-connect-section-primitive-images-1d91f844b3b8.png)
+
+The section cap fills the cut solid while retaining the original primitive addresses used by the image passes.
+
 
 
 ### 1. `src/physical.wgsl`

@@ -700,6 +700,7 @@ mod tests {
                 row: 4,
                 interactions: false,
                 attributes: false,
+                arrowhead_pens: 0.0,
             };
             let mut ink = Ink {
                 seg: &mut self.seg,

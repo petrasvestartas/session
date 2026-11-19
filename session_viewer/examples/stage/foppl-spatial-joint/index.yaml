@@ -1,0 +1,8 @@
+name: Föppl · Spatial joint equilibrium
+theme: light
+chapters:
+  - 01-spatial-joint.yaml
+  - 02-auxiliary-planes.yaml
+  - 03-force-polygon.yaml
+  - 04-projections.yaml
+  - 02-simple-truss.yaml

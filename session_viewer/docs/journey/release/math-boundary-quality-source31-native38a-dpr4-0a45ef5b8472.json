@@ -1,0 +1,63 @@
+{
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-13T20:01:25.753Z",
+  "id": "38a-samples",
+  "lane": "native",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-38a-samples-49d700ba12f30b8dfc19\\capture.json.gz",
+    "sha256": "ec3fde7aa18db2106007b23c6f809d4f6a3ff059c4deec294f2163cafea42778",
+    "bytes": 79896
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\full-goal-source31-native38a-02\\capture-result.json",
+    "sha256": "94469f6de029e39ea48ee0f70489e73b42a2573eb9a9aae33dcf2923579215ad"
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-full-native38a-02-execution.json",
+    "sha256": "df3c91e189e38c6b4304ec52aa0c26f0ffdca3829c3b1bb21edad3f38a50af2a"
+  },
+  "boundedTerminal": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\full-goal-source31-native38a-02\\bounded-terminal.json",
+    "sha256": "0c4a6341379b6b24ec154b1e255585b70be2ec8ad6f5668fa37aa601cc1d24c6"
+  },
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-31-stage-aware-native-density.json",
+    "sha256": "7e9980c097467f8f4a60519e63aef9bfdd87122e72179d1f35f1849391ade57a"
+  },
+  "sourceFreezeCoverage": {
+    "matchedFiles": 555,
+    "basis": "Pinned Native wrapper preflight and postflight; live hashes rechecked"
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\38a-samples-0a45ef5b8472.png",
+    "sha256": "0a45ef5b84726e01fc0721c736fd209fd8ab1269fe24a73910d2839ce8e88711"
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\37d-render.png",
+    "sha256": "03ef29f4b2921ac06059b2523f38fbdb26c53307219ecb333b5f2e936f74991f"
+  },
+  "aliasManifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\image-aliases.json",
+    "sha256": "59a41176fb5daa71125bf02fc487c3fb2edbef2e4a35f20487a21999268affae"
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root personally inspected the original2560x1920 PNG at original resolution. The early sampling lesson retains its inherited native comparison fixture: a fully framed selected yellow block on the left, a taller brown source object on the right, black connected/line strokes and one blue point marker between them. Visible flat faces have no triangulation-edge strokes. Black strokes are actual staged line/path geometry, partly occluded by the right object. No curve-control or later mathematical display drain is pictured or claimed at38a. Small raster edge steps remain visible at original resolution. This accepts the rawDPR4 NVIDIA image presentation and executed constructor/draw checks; canonical640 pixel verification is separate. Original draw/pixel function bodies, old alias mappings and prior pixels remain preserved.",
+  "canonicalBehaviorExecuted": false,
+  "scope": "Native38a early sampling checkpoint rawDPR4 presentation. Inherited comparison scene has selected yellow and brown source objects, real line/path strokes and blue point marker. No mathematical refinement stage is present in this fixture. Constructor/draw checks and physical readback passed; original fixed640 pixel function bodies preserved without claiming canonical execution. No later curve-control, smooth mathematical display, browser or whole-suite acceptance. Existing aliases and old pixels retained.",
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\full-goal-source31-native38a-02\\publication.json",
+    "sha256": "0e2f9f8a6e1a277b118bc38c9d33f30b216aa3889a25d2b07a19ac10c84297e0"
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-38a-samples-49d700ba12f30b8dfc19\\publication.json",
+    "sha256": "677c3c3fba70f20bff56e09e4916cdd8c263790122e544b919982d838bfb105c"
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-38a-samples-49d700ba12f30b8dfc19\\retirement.json.gz",
+    "sha256": "4d2db75a9a066ff877b9c42062994d06ba791bc96ce6d120ccd23bb71e9cc6e7"
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-38a-samples-49d700ba12f30b8dfc19\\retired.json",
+    "sha256": "d342bf1b0a75ce99eee4dace9ae644f284de4e82af3cfe974f2aa44dd61a952b"
+  }
+}

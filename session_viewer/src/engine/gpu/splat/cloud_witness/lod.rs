@@ -25,6 +25,7 @@ impl Prepared {
                 row: 0,
                 interactions: false,
                 attributes: false,
+                arrowhead_pens: 0.0,
             },
         );
         let draw = &rows.draws[0];

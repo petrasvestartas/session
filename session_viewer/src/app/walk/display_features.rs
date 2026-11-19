@@ -182,6 +182,7 @@ mod tests {
                 row: 37,
                 interactions,
                 attributes: true,
+                arrowhead_pens: 0.0,
             };
             walk_features(
                 &mut Walk::of(&mut up),
@@ -237,6 +238,7 @@ mod tests {
                 row: 1,
                 interactions: true,
                 attributes: true,
+                arrowhead_pens: 0.0,
             };
             walk_features(
                 &mut Walk::of(&mut up),

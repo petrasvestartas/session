@@ -1,0 +1,67 @@
+title: 3 · The force quadrilateral
+split: 0.54
+camera: {fit: [V0, V1, V2, V3], yaw: -40, pitch: 24}
+points:
+  V0: [0, 0, 0]
+  V1: [5, -1, -4]
+  V2: [3, 0, -6]
+  V3: [4, 2, -4]
+  D0: [-0.75, 0, 1.5]
+  D1: [3.9, 0, -7.8]
+  CE: [2.1, 0.45, -6.9]
+slides:
+  - title: First triangle · c and P
+    steps:
+      - say: 'Start with the known load $\mathbf{P}$. Its endpoints are the first two corners of the force polygon.'
+        add:
+          - {id: P, arrow: [V0, V1], color: load, label: '\mathbf{P}'}
+          - {id: v0, point: V0, color: ink}
+          - {id: v1, point: V1, color: ink}
+          - {id: construction, drawing: [{arrow: [[1270, 175], [1098.2, 523.8]], color: load}], at: [0, 0]}
+          - {id: flat_P, tex: '\mathbf{P}', at: [1125, 330], size: 26, color: load}
+          - {id: flat_v0, tex: 'v_0', at: [1225, 155], size: 22}
+          - {id: flat_v1, tex: 'v_1', at: [1050, 515], size: 22}
+          - {id: flat_title, tex: '\text{Force polygon · true-length triangles}', at: [1000, 130], size: 24, color: accent}
+        eq: {tex: '\mathbf{P}=(5,-1,-4)', at: [980, 640], size: 32}
+      - say: 'From the end of $\mathbf{P}$, draw a parallel to $c$; from its start, a parallel to $d$. Their intersection closes the triangle.'
+        add:
+          - {id: ray_c, line: [V1, CE], color: pink, width: 1.7, dash: true}
+          - {id: ray_d, line: [D0, D1], color: orange, width: 1.7, dash: true}
+          - {id: triangle_cp, mesh: [V0, V1, V2], color: pink, opacity: 0.18}
+          - {id: C, arrow: [V1, V2], color: pink, label: '\mathbf{F}_c'}
+          - {id: R, arrow: [V0, V2], color: orange, width: 2.4, dash: true, label: '\mathbf{R}_{cP}'}
+          - {id: v2, point: V2, color: ink}
+          - {id: flat_rays, drawing: [{line: [[1270, 145], [1270, 610]], color: orange, width: 1.4, dash: true}, {line: [[1072.4, 515.8], [1330.1, 596.3]], color: pink, width: 1.4, dash: true}], at: [0, 0]}
+          - {id: flat_triangle, drawing: [{polygon: [[1270, 175], [1098.2, 523.8], [1270, 577.5]], fill: pink_band, opacity: 0.14, width: 0}, {arrow: [[1098.2, 523.8], [1270, 577.5]], color: pink}, {arrow: [[1270, 175], [1270, 577.5]], color: orange, width: 2.2}, {point: [1270, 175], color: ink}, {point: [1098.2, 523.8], color: ink}, {point: [1270, 577.5], color: ink}], at: [0, 0]}
+          - {id: flat_C, tex: '\mathbf{F}_c', at: [1050, 548], size: 26, color: pink}
+          - {id: flat_R, tex: '\mathbf{R}_{cP}', at: [1300, 360], size: 24, color: orange}
+          - {id: flat_v2, tex: 'v_2', at: [1210, 584], size: 22}
+          - {id: flat_c, tex: '\parallel\,\mathbf{c}', at: [1300, 600], size: 22, color: pink}
+          - {id: flat_d, tex: '\parallel\,\mathbf{d}', at: [1290, 175], size: 22, color: orange}
+        remove: [eq1]
+        eq: {tex: '\mathbf{P}+\mathbf{F}_c=\mathbf{R}_{cP}', at: [980, 620], size: 32}
+        do:
+          - add: {id: first_values, tex: 'C=+3\ \text{(tension)},\quad \mathbf{F}_c=3\mathbf{c}=(-2,1,-2)', at: [950, 690], size: 25}
+  - title: Second triangle · a and b
+    keep: true
+    steps:
+      - say: 'Unfold the second triangle along the shared resultant. Parallels to $a,b$ determine its fourth corner.'
+        remove: [eq2, first_values, flat_c, flat_d]
+        add:
+          - {id: triangle_ab, mesh: [V0, V2, V3], color: blue, opacity: 0.18}
+          - {id: B, arrow: [V2, V3], color: blue, label: '\mathbf{F}_b'}
+          - {id: A, arrow: [V3, V0], color: blue, label: '\mathbf{F}_a'}
+          - {id: v3, point: V3, color: ink}
+          - {id: flat_quad, drawing: [{polygon: [[1270, 175], [1270, 577.5], [1431.0, 497.0]], fill: blue_band, opacity: 0.14, width: 0}, {arrow: [[1270, 577.5], [1431.0, 497.0]], color: blue}, {arrow: [[1431.0, 497.0], [1270, 175]], color: blue}, {point: [1431.0, 497.0], color: ink}], at: [0, 0]}
+          - {id: flat_B, tex: '\mathbf{F}_b', at: [1390, 558], size: 26, color: blue}
+          - {id: flat_A, tex: '\mathbf{F}_a', at: [1410, 310], size: 26, color: blue}
+          - {id: flat_v3, tex: 'v_3', at: [1440, 490], size: 22}
+        eq: {tex: '\mathbf{F}_b+\mathbf{F}_a=-\mathbf{R}_{cP}', at: [980, 620], size: 32}
+        do:
+          - add: {id: second_values, tex: 'B=-3,\quad A=-6\quad\text{(both compression)}', at: [980, 690], size: 25}
+      - say: 'The closed quadrilateral gives all three bar forces and the two opposite resultants.'
+        remove: [ray_c, ray_d, flat_rays, second_values, eq3]
+        eq: {tex: '\mathbf{F}_a+\mathbf{F}_b+\mathbf{F}_c+\mathbf{P}=\mathbf{0}', at: [960, 610], size: 30}
+        add:
+          - {id: resultant_values, tex: '\mathbf{R}_{ab}=-\mathbf{R}_{cP}=(-3,0,6)', at: [1000, 670], size: 27}
+          - {id: magnitudes, tex: '|\mathbf{F}_a|=6,\qquad |\mathbf{F}_b|=3,\qquad |\mathbf{F}_c|=3', at: [980, 730], size: 30}

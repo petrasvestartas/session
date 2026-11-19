@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "status": "ACTIVE_FULL_1334_IMAGE_GOAL_SCOPE_RESTORED",
+  "recordedUtc": "2026-11-13T19:47:50.020152+00:00",
+  "objective": "Smooth exact NURBS/BRep presentation without triangulation-edge strokes; synchronize live lesson code preserving Gemini prose and Vue structure/style; regenerate and review1334 affected images from1763 inventory, retain429 explicitly unchanged; verify served tutorials and push coordinated source-bound checkpoints; physical chair/Boolean/private-floor validation excluded.",
+  "scopeCorrection": "The42 visible replacements and115-page website check are completed milestones. They do not complete the full1334-image regeneration. The earlier visible-image completion receipt does not establish full-goal completion.",
+  "supersededOverallCompletionClaim": {
+    "receipt": "docs/journey/release/viewer-visible-image-work-complete-20261113.json",
+    "sha256": "803c625357fe16902966b8b9d5d52ac7c6e6178dc805976b1ea6a010ce96def2",
+    "scope": "All42 visible replacements and final static website QA complete. Historical/current full-source callback counts remain separate; no new full matrix run is required by this image-regeneration task."
+  },
+  "baselineInventory": {
+    "manifest": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact-batches\\89ff9a30395c79f77a985ad578624bb108dde6c7e6035b2fb3f70036bf1eacdd\\manifest.json",
+    "sha256": "a7cb3753490776248bcf26a2c5b50d92a9b8efc166fe06311845bd2835079f97",
+    "total": 1763,
+    "affected": 1334,
+    "standard": 1313,
+    "special": 21,
+    "explicitlyUnchanged": 429
+  },
+  "historicalCountsStillRequireDestinationReconciliation": {
+    "recordedPrimaryCases": 94,
+    "previousReducedPrimaryDenominator": 1326,
+    "eightPreviouslyRetiredOrExcludedDestinationsMustBeExplicitlyReconciled": 8
+  },
+  "newAcceptancesCreatedByResumption": 0,
+  "previousGoalTurnClassification": "progress",
+  "classificationScope": "Actual figure and website work progressed, but overall completion was incorrectly narrowed; this record restores the full objective."
+}

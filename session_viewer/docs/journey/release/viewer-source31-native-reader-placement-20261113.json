@@ -1,0 +1,60 @@
+{
+  "schema": 1,
+  "status": "SOURCE_LINK_PLACEMENT_VERIFIED_BROWSER_BUILD_PENDING",
+  "recordedUtc": "2026-11-13T20:36:02.971840+00:00",
+  "sourceFreeze": "source-freeze-31-stage-aware-native-density.json",
+  "primaryReader": {
+    "path": "docs/journey/consolidation/38-layout.md",
+    "beforeSha256": "aa6b74c6bfd987e4b218ca9f0466264a48e9c82ae5d5cf967ac8d1ce4f2a8a92",
+    "afterSha256": "dfed19ef1fa17865c587e2490234b955586530de1472952d182cfabe8383d168"
+  },
+  "headingsPreserved": true,
+  "allFencedCodeBytesPreserved": true,
+  "allSvgBytesPreserved": true,
+  "originalGeminiProsePreserved": true,
+  "exactInsertionReversalRestoresOriginalBytes": true,
+  "images": [
+    {
+      "id": "38a-samples",
+      "route": "journey/consolidation/38-layout",
+      "anchor": "checkpoint-38a-samples",
+      "markdownUrl": "../../screenshots/journey/38a-samples-0a45ef5b8472.png",
+      "image": {
+        "path": "docs/screenshots/journey/38a-samples-0a45ef5b8472.png",
+        "sha256": "0a45ef5b84726e01fc0721c736fd209fd8ab1269fe24a73910d2839ce8e88711",
+        "dimensions": [
+          2560,
+          1920
+        ]
+      },
+      "legacyReader": {
+        "path": "docs/journey/38a-samples.md",
+        "beforeSha256": "d0f8921cbf69f553f28bf02ef4a8f200d472155c1aa74081ebe221921d4b3842",
+        "afterSha256": "cb133d6c9a6d6ed27d5d210d6707e378ca372c9ddeadda129c3d5f1065f35b35"
+      },
+      "placement": "Recorded native sampling frame: [open the reviewed 2560 \u00d7 1920 image](../../screenshots/journey/38a-samples-0a45ef5b8472.png). The inherited blocks, strokes and point marker remain the visible scene; the new curve behavior requires separate state checks."
+    },
+    {
+      "id": "38b-source",
+      "route": "journey/consolidation/38-layout",
+      "anchor": "checkpoint-38b-source",
+      "markdownUrl": "../../screenshots/journey/38b-source-0a45ef5b8472.png",
+      "image": {
+        "path": "docs/screenshots/journey/38b-source-0a45ef5b8472.png",
+        "sha256": "0a45ef5b84726e01fc0721c736fd209fd8ab1269fe24a73910d2839ce8e88711",
+        "dimensions": [
+          2560,
+          1920
+        ]
+      },
+      "legacyReader": {
+        "path": "docs/journey/38b-source.md",
+        "beforeSha256": "f20d4bd5bbb96a670c1094c45d7d360f624d825b05d783c339ec2cea5ac34f40",
+        "afterSha256": "2dd300b8d1260888f6b0e8bda31d27b1a976518f534f16e2360da90ffed81d20"
+      },
+      "placement": "Recorded native source-retention frame: [open the reviewed 2560 \u00d7 1920 image](../../screenshots/journey/38b-source-0a45ef5b8472.png). The inherited blocks, strokes and point marker remain the visible scene; the new curve behavior requires separate state checks."
+    }
+  ],
+  "servedBrowserVerification": "PENDING_FRESH_REAL_BUILD_AND_BROWSER_QA",
+  "scope": "The real Vue reading route redirects legacy checkpoint pages into the consolidated chapter. Only two source-bound PNG links are inserted beside existing checkpoint headings. Existing prose/code/SVG/style/site structure and the later representative chapter image remain unchanged. Filename hashes provide source identity; the site plugin adds its own query revision."
+}

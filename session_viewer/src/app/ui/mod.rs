@@ -11,6 +11,7 @@ mod phone; // register:phone
 mod pointer; // register:pointer
 mod theme; // register:theme
 
+// --8<-- [start:application-panels]
 /// Declare each panel's module and list it in PANELS, so a panel is one file plus one line.
 macro_rules! panels {
     ($($name:ident),* $(,)?) => {
@@ -27,6 +28,7 @@ panels! {
     layers,       // register:layers
 }
 
+// --8<-- [end:application-panels]
 /// One panel. Its state lives in its own file; these hooks are all the frame needs from it.
 trait Panel {
     /// Copy what it shows from the viewer, before the frame.
@@ -325,7 +327,8 @@ impl Ui {
 
         if let Some(ui) = state.gpu.ui.as_mut() {
             ui.prepare(
-                &state.gpu.ctx,
+                &state.gpu.ctx.device,
+                &state.gpu.ctx.queue,
                 &self.context,
                 output,
                 [state.gpu.config.width, state.gpu.config.height],
@@ -335,8 +338,9 @@ impl Ui {
         repaint
     }
 
-    /// Paint a stage deck over the whole canvas instead of the panels; true while it animates.
-    pub fn stage_frame(&mut self, state: &mut State) -> bool {
+    // --8<-- [start:mode-frame-order]
+    /// Run the active canvas mode, then upload its UI output.
+    pub fn mode_frame(&mut self, state: &mut State) -> bool {
         let mut input = self.input.take_egui_input(&state.window);
         input.events.clear();
         let logical = state.logical_size();
@@ -347,39 +351,19 @@ impl Ui {
         input.screen_rect = Some(screen);
         let ppp = state.gpu.config.width as f32 / logical[0].max(1.0) as f32;
         let now = crate::engine::performance::now_ms();
-        let mut more = false;
-        let Some(mut stage) = state.stage.take() else {
+        let Some(mut mode) = state.mode.take() else {
             return false;
         };
-        // the scene draws the 3D objects; its camera gives the labels their projection
-        let canvas = [logical[0], logical[1]];
-        let f = crate::app::stage::paint::Frame::new(screen, ppp)
-            .stacked(screen, stage.stage.split)
-            .side(0.0);
-        stage.stage.tick(now);
-        // a deck on a light ground gets the viewer's white backdrop, a dark one the black clear
-        let ground = stage.stage.palette("bg");
-        state.gpu.view.dark = ground[0] + ground[1] + ground[2] < 1.5;
-        state.gpu.view.show_grid = false; // the deck draws its own floor grid as kernel lines
-        let (cam, busy) = stage.stage.camera(now);
-        let (serial, origin) = (stage.stage.cam_serial, stage.stage.origin());
-        stage.scene3.camera(state, cam, busy, serial, origin, &f, canvas);
-        stage.stage.lens = Some(crate::app::stage::spatial::Scene3::lens(state, &f, canvas));
-        let mut output = self.context.run_ui(input, &mut |root: &mut egui::Ui| {
-            let painter = root.painter().with_clip_rect(screen);
-            more = stage.paint(&painter, screen, ppp, now);
-        });
-        let bg = stage.stage.palette("bg");
-        let (list, epoch) = (std::mem::take(&mut stage.stage.objects3), stage.stage.epoch);
-        stage.scene3.sync(state, &list, epoch, bg, f.k as f64);
-        stage.stage.objects3 = list;
-        state.stage = Some(stage);
+        let frame = crate::app::mode::Frame { screen, logical, pixels_per_point: ppp, now };
+        let (mut output, more) = mode.frame(state, &self.context, input, frame);
+        state.mode = Some(mode);
         self.input
             .handle_platform_output(&state.window, std::mem::take(&mut output.platform_output));
         output.pixels_per_point = ppp;
         if let Some(ui) = state.gpu.ui.as_mut() {
             ui.prepare(
-                &state.gpu.ctx,
+                &state.gpu.ctx.device,
+                &state.gpu.ctx.queue,
                 &self.context,
                 output,
                 [state.gpu.config.width, state.gpu.config.height],
@@ -390,6 +374,7 @@ impl Ui {
         more
     }
 
+    // --8<-- [end:mode-frame-order]
     /// Write the panel state onto the canvas for browser tests.
     fn publish(&self) {
         if self.controls.is_some()

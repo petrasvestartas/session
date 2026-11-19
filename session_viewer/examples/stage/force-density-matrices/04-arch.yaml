@@ -1,0 +1,27 @@
+# cd /home/pv/brg/code_cpp/wood_research/session/session_viewer && aws s3 sync examples/stage s3://session-viewer-data/stage/ --delete --exclude '*' --include '*.yaml' --content-type application/yaml --cache-control no-cache --profile r2 --endpoint-url https://0520459c6817bd96c1e25fcb49461c4e.r2.cloudflarestorage.com
+# Open local: http://127.0.0.1:8770/?stage=decks/force-density-matrices/index.yaml&data=off&chapter=4&step=1
+# Open live: https://petrasvestartas.github.io/session/?stage=force-density-matrices&chapter=4&step=1
+
+# Chapter 4: a 2D funicular arch of 5 free nodes between 2 fixed supports.
+title: 2D ARCH
+grid: {center: [3, 1], size: 8, step: 1}
+camera: {view: top}
+palette: {free: ink}
+net:
+  fixed: {n0: [0, 0, 0], n6: [6, 0, 0]}
+  free: {n1: [1, 0, 0], n2: [2, 0, 0], n3: [3, 0, 0], n4: [4, 0, 0], n5: [5, 0, 0]}
+  cables: {e0: [n0, n1], e1: [n1, n2], e2: [n2, n3], e3: [n3, n4], e4: [n4, n5], e5: [n5, n6]}
+  q: 1
+  load: [0, 0.5, 0]
+slides:
+  - title: '2D ARCH'
+    steps:
+      - say: 'Five free nodes between two supports solve to a 2D arch.'
+        show: net
+        row:
+          - {id: CN, matrix: CN}
+          - '\quad'
+          - {id: CF, matrix: CF}
+        size: 25
+      - say: 'Five free nodes between two supports solve to a 2D arch.'
+        solve: true

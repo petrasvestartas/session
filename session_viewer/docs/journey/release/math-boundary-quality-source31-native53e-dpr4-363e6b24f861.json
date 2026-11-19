@@ -1,0 +1,76 @@
+{
+  "preexistingImageReused": false,
+  "publisher": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-flags-tail03-case-53e-01\\publish.mjs",
+    "sha256": "8b9929f6453a695d62d4bc5d7a422d7f3a1278a266f343ed04ad1b8f960c50b6"
+  },
+  "originalPublisher": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-flags-tail03-case-53e-01\\publish-original-template.mjs",
+    "sha256": "2536f7267ac4472e3cd8df636f007509d93fc937965bfa8d491dca31d70d1817"
+  },
+  "batchCaptureReady": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-flags-tail03-case-53e-01\\capture-ready.json",
+    "sha256": "f4a66fb8bc10f4ea73e2fa4bc09e19aa659db48d3d7f8feb45b0258b68d213fb"
+  },
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-14T12:17:45.751Z",
+  "id": "53e-properties",
+  "lane": "native",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-53e-properties-04f5962b7a8b69eec1fc\\capture.json.gz",
+    "sha256": "ae32541e1991c2d12035c3eb804cb49bf029fe7cff01bdc1f70eb0ae5ae241a8",
+    "bytes": 105484
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-flags-tail03-case-53e-01\\capture-result.json",
+    "sha256": "fe0ec7dc757001cd1138bb5612829a2fd3c90a3023fb7606893b3c9ae5fafbd5"
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-flags-tail03-53e-01-execution.json",
+    "sha256": "f71827236e12086e4bcde768adc84e5afcf051b75a60f45eff211accbb1d33aa"
+  },
+  "boundedTerminal": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-flags-tail03-case-53e-01\\bounded-terminal.json",
+    "sha256": "1c3769d2c6283e08d828a438a2bba39ca5bd0fbe4b80b3679d7808260d05d6bc"
+  },
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-31-stage-aware-native-density.json",
+    "sha256": "7e9980c097467f8f4a60519e63aef9bfdd87122e72179d1f35f1849391ade57a"
+  },
+  "sourceFreezeCoverage": {
+    "matchedFiles": 555,
+    "basis": "Pinned Native wrapper preflight and postflight; live hashes rechecked"
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\53e-properties-363e6b24f861.png",
+    "sha256": "363e6b24f861d845612d9f171a0a8dfb1e52491e0643c1c8ec207b012215ceb2"
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\52k-tree.png",
+    "sha256": "67756c3364a5685e12e6b9f005aa34c7a1bcb11038f76b65d1bf310a9cf89c80"
+  },
+  "aliasManifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\image-aliases.json",
+    "sha256": "59a41176fb5daa71125bf02fc487c3fb2edbef2e4a35f20487a21999268affae"
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Original PNG opened; tool returned duplicate placeholder. Exact SHA/bytes equal the personally viewed original53a and53c2560x1920 PNGs: selected gold left parent, brown topbeam/right upright, clean black source boundaries, RGB arrow shafts/grips, white pivot and smooth arcs without triangulation strokes. Actual inherited52k nested-source fixture and its constructor readonly visibility/pick exclusion assertions only; property GUI/full-unit/canonical640pixel/browser/currentMain acceptance remains separate. This fresh singleTail03 separately compiled/drew53e; prior02 never Native-prepared53e and was not restarted or extended.",
+  "canonicalBehaviorExecuted": false,
+  "scope": "Source31 53e-properties rawDPR4 image presentation. Actual fixture scope is stated in Rootreview; canonical640pixel/full-unit/browser acceptance remains separate. Original fixedpixel function bodies and oldaliases/pixels retained.",
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-flags-tail03-case-53e-01\\publication.json",
+    "sha256": "e49c983af4653a4fdcfd50129aa4d38026473b69488e8a915c4d7629b1ca1d78"
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-53e-properties-04f5962b7a8b69eec1fc\\publication.json",
+    "sha256": "8f9a39aedf7d4f5f2a510ecd94cce14b1b1bfb5fd971809ea7c684627a667f19"
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-53e-properties-04f5962b7a8b69eec1fc\\retirement.json.gz",
+    "sha256": "835f662f90a248a1d3a3424abb40f2bef63cb50d5e2e8549076525d17e6357a4"
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-53e-properties-04f5962b7a8b69eec1fc\\retired.json",
+    "sha256": "66180c7a6d05c3b1964473cad3e18cac43a26dbffb06e51559db4957f0afdb93"
+  }
+}

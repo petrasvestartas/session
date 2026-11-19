@@ -4594,6 +4594,10 @@ Replace it with:
 
 ## <a id="checkpoint-62o-labels"></a>37. Create pick move and delete the scene labels
 
+![Selected world label Original CAD · Ø25 · Ω on its yellow plate](../../screenshots/reader-illustrations/62o-labels/world-label-selected-5d17764a4e31.png)
+
+The original world-sized label is selected on its yellow plate. Its text and font glyphs remain unchanged while the label moves independently of the CAD source.
+
 ### 1. `src/editor.rs`
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
@@ -5205,7 +5209,7 @@ fn actual_world_text_clip_uses_canvas_coordinates_in_the_small_integer_pick_wind
 
 ## Build & Run
 
-![Recorded visual output for Lesson 10.4 (62o-labels)](../../screenshots/journey/62o-labels-browser.png)
+![Recorded visual output for Lesson 10.4 (62o-labels)](../../screenshots/journey/62o-labels-5d17764a4e31.png)
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 10.4

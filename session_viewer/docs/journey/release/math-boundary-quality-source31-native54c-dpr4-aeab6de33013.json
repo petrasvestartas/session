@@ -1,0 +1,76 @@
+{
+  "preexistingImageReused": false,
+  "publisher": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-camera-input-six-case-54c-01\\publish.mjs",
+    "sha256": "19a09a040ee9f321bf5e83d8de5d17697df64f4a8dba4729cbd536cc42991891"
+  },
+  "originalPublisher": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-camera-input-six-case-54c-01\\publish-original-template.mjs",
+    "sha256": "633e60daee7b77d5a8ef3207826b5ef3033e3f5fb781ec0255eed858559f0157"
+  },
+  "batchCaptureReady": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-camera-input-six-case-54c-01\\capture-ready.json",
+    "sha256": "d545d875985d6075f8e1adbea7bf9864263310d448af4bbe3b8ca9422a60ffb9"
+  },
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-14T15:27:56.868Z",
+  "id": "54c-rectangle",
+  "lane": "native",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-54c-rectangle-09fc71f93208104b6075\\capture.json.gz",
+    "sha256": "a527641762d7e8aebf8d62c3e91f56c6d866f4073aec7b29a9497e34854d3629",
+    "bytes": 107231
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-camera-input-six-case-54c-01\\capture-result.json",
+    "sha256": "40b367e9d802db1dda2f6e0124a35b6c98a9135f66cb728cfc0e09b7d252e2b3"
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-camera-input-six-54c-01-execution.json",
+    "sha256": "a8adc3f6758a6d5987d1988a0ce59d1330731761783bd17fd319181bd48bfc1d"
+  },
+  "boundedTerminal": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-camera-input-six-case-54c-01\\bounded-terminal.json",
+    "sha256": "3a63f498022a32dba20e1a28a08a9630a908498223f599a7620700a689a955cc"
+  },
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-31-stage-aware-native-density.json",
+    "sha256": "7e9980c097467f8f4a60519e63aef9bfdd87122e72179d1f35f1849391ade57a"
+  },
+  "sourceFreezeCoverage": {
+    "matchedFiles": 555,
+    "basis": "Pinned Native wrapper preflight and postflight; live hashes rechecked"
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\54c-rectangle-aeab6de33013.png",
+    "sha256": "aeab6de3301305b4cd9f51b8d4cdb4d705b40e3b1b7c62a2411aaa1e2145eae1"
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\53u-layers.png",
+    "sha256": "c5e76ea8992ae69a7682aa4e2cea4af082cc1f8bad6a41fd0300c196df07b7e9"
+  },
+  "aliasManifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\image-aliases.json",
+    "sha256": "59a41176fb5daa71125bf02fc487c3fb2edbef2e4a35f20487a21999268affae"
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Original-detail view returned duplicate placeholder; originalPNG bytes independently equal the full2560x1920 54a image personally viewed this admission. Blue Posts and unrelated brown source beam have clear original black boundaries with no triangulation strokes. Actual inherited53u constructor colour/pick checks only. Rectangle ownership and drag/camera gestures, canonical640 pixel validation, browser and fullMain acceptance remain separate.",
+  "canonicalBehaviorExecuted": false,
+  "scope": "Source31 54c-rectangle rawDPR4 image presentation. Actual fixture scope is stated in Rootreview; canonical640pixel/full-unit/browser acceptance remains separate. Original fixedpixel function bodies and oldaliases/pixels retained.",
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-camera-input-six-case-54c-01\\publication.json",
+    "sha256": "98774be560e71a3d4b12c48150d837be1c1a37ed43f9688552c931c12aa1edea"
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-54c-rectangle-09fc71f93208104b6075\\publication.json",
+    "sha256": "4d3c0467abb52b3900b35432d3079d63f7e7ff07afc8a00068226d5c9dfd6c17"
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-54c-rectangle-09fc71f93208104b6075\\retirement.json.gz",
+    "sha256": "c4a02f64d5ce1d0cca0d7d2d5939aab51c9b78eee16ada37a1f3f7c5bfd9634c"
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-54c-rectangle-09fc71f93208104b6075\\retired.json",
+    "sha256": "a0513f6018751c66a81cae43d039dc7f8fc2030da98d04b91d7ab9701b2c6712"
+  }
+}

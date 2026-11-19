@@ -1,0 +1,67 @@
+{
+  "batchCaptureReady": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-handle-draw-eight-case-51q-01\\capture-ready.json",
+    "sha256": "6fc1520bc1fee50362f8aa0151f1907975bbf258b30316c4808e4623ea671321"
+  },
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-14T04:59:10.926Z",
+  "id": "51q-deform",
+  "lane": "native",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-51q-deform-6951b7d442ab28b0f623\\capture.json.gz",
+    "sha256": "7156415d7a327379310f35f2ed15477092de9ff516c7458cd3959d8f1e5e3694",
+    "bytes": 102366
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-handle-draw-eight-case-51q-01\\capture-result.json",
+    "sha256": "a62c63f724c0911027e5c0a5e7465beb10572039c99eb23b9324b1d47148dd4b"
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-handle-draw-eight-51q-01-execution.json",
+    "sha256": "70a74f94eaf88705e510cab82f0973cf9706e7101df56a0860025484d966a59e"
+  },
+  "boundedTerminal": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-handle-draw-eight-case-51q-01\\bounded-terminal.json",
+    "sha256": "7bcc21e4153686ec9751b5f97f247f5f0ab698d7ea322ab50f3ec0d40d43dfa9"
+  },
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-31-stage-aware-native-density.json",
+    "sha256": "7e9980c097467f8f4a60519e63aef9bfdd87122e72179d1f35f1849391ade57a"
+  },
+  "sourceFreezeCoverage": {
+    "matchedFiles": 555,
+    "basis": "Pinned Native wrapper preflight and postflight; live hashes rechecked"
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\51q-deform-deb4457c6d33.png",
+    "sha256": "deb4457c6d332860e5262a8cc4b53ad80e18bf9ee12aa74e56d0a676a960da68"
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\50d-ownership.png",
+    "sha256": "7229782badb63f944c0e0921f6fd70b0f706185b081c64db27749e1fb266bb7a"
+  },
+  "aliasManifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\image-aliases.json",
+    "sha256": "59a41176fb5daa71125bf02fc487c3fb2edbef2e4a35f20487a21999268affae"
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root personally inspected the original2560x1920 PNG: two separated selected gold boxes with shaded sides and black face boundaries, short yellow Move band and circular endpoint on white, without triangulation wires. Actual inherited50d checks preserve saved models, offset display models and reuse mesh/settings. Part deformation, GUI, browser, canonical640 and full-unit acceptance are not established by this image.",
+  "canonicalBehaviorExecuted": false,
+  "scope": "Source31 51q-deform rawDPR4 image presentation. Actual fixture scope is stated in Rootreview; canonical640pixel/full-unit/browser acceptance remains separate. Original fixedpixel function bodies and oldaliases/pixels retained.",
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-handle-draw-eight-case-51q-01\\publication.json",
+    "sha256": "f13b91979e340781a34fd04f49d0b666cc765bbd40af44a1f9701aa2a93739e8"
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-51q-deform-6951b7d442ab28b0f623\\publication.json",
+    "sha256": "56a765b630fd71b1c7790c41b25d2cae81ba8921b3c0c8a1745f53f6fc7430b0"
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-51q-deform-6951b7d442ab28b0f623\\retirement.json.gz",
+    "sha256": "62792b65ad4a28a98d291f7d0389e81d7874865081a1c5306ae8d271f8b917e8"
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-51q-deform-6951b7d442ab28b0f623\\retired.json",
+    "sha256": "a37c60fb28ea4328b90a9e68160b7c94a7ce30b11a69088250b08f222f92f27d"
+  }
+}

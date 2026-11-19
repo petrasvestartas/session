@@ -5,7 +5,7 @@
 // One object row, 112 bytes; matches Instance in Rust.
 struct Instance {
     model: mat4x4<f32>, // rotation and scale; translation is separate
-    color: vec4<f32>, // rgba tint
+    color: vec4<f32>, // rgb tint, alpha of an unlit fill mesh
     flags: u32, // FLAG_* bits
     ao_radius: f32, // SSAO contact radius, world units
     spacing: f32, // vertex spacing, world units

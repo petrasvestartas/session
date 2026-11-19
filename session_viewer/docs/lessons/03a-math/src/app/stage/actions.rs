@@ -1,11 +1,26 @@
-// --8<-- [start:implementation]
 use super::deck::{Action, Content, Kind, MatrixSpec, Pos, plain};
 use super::eval;
 use super::morph::match_prims;
 use super::run::{Anim, Draw, Fx, Stage, Style};
-use super::tex::{Prim, Shape};
+use super::tex::{self, Prim, Rgba, Shape};
 use super::tween::{Tween, with_alpha};
 use std::collections::{HashMap, HashSet};
+
+pub(super) fn matrix_name_key(content: &Content, symbol: &str) -> Option<String> {
+    let matches = |name: &Option<String>| {
+        name.as_deref().map(tex::normalize_key) == Some(tex::normalize_key(symbol))
+    };
+    match content {
+        Content::Matrix(m) if matches(&m.name) => Some("name".into()),
+        Content::Row(items) => items.iter().find_map(|item| {
+            let (Some(id), Content::Matrix(m)) = (&item.id, &item.content) else {
+                return None;
+            };
+            matches(&m.name).then(|| format!("{id}/name"))
+        }),
+        _ => None,
+    }
+}
 
 impl Stage {
     /// Run one action at time `now`, animated or applied at once.
@@ -28,6 +43,7 @@ impl Stage {
                         Some("pop") => Style::Pop,
                         Some("none") => Style::None,
                         Some("write") => Style::Write,
+                        _ if obj.drawing() => Style::Fade,
                         _ if obj.geo() => {
                             if matches!(obj.content, Content::Point(_)) {
                                 Style::Pop
@@ -313,11 +329,11 @@ impl Stage {
                     return;
                 }
                 let mut spec = plain(id.clone(), Content::Tex(String::new()));
-                spec.width = Some(2.4);
+                spec.width = Some(1.6);
                 let mut o = self.make(&spec);
                 o.color = c;
-                o.width = 2.4;
-                o.boxed = Some((target.clone(), 7.0));
+                o.width = 1.6;
+                o.boxed = Some((target.clone(), -1.2));
                 self.insert(o);
                 push(
                     self,
@@ -334,41 +350,95 @@ impl Stage {
                     self.errors.push(format!("color: no {target}"));
                     return;
                 };
-                let reset = color == "reset" || color == "default";
-                let c = self.color(Some(color), "ink");
-                let o = &mut self.objs[i];
-                let set: Vec<usize> = subset.unwrap_or_else(|| (0..o.expr.prims.len()).collect());
-                if o.geo() {
-                    let cur = o.colors.get(&usize::MAX).map_or(o.color, |t| t.at(now));
-                    let to = if reset { o.color } else { c };
-                    let mut tw = Tween::fixed(cur);
-                    tw.retarget(to, now, dur, animate);
-                    o.colors.insert(usize::MAX, tw);
-                    return;
+                let symbol = target
+                    .strip_prefix("balance{")
+                    .and_then(|s| s.strip_suffix('}'))
+                    .map(tex::normalize_key);
+                let mut targets = vec![(i, subset)];
+                if let Some(symbol) = symbol {
+                    for (oi, o) in self.objs.iter().enumerate() {
+                        if oi == i {
+                            continue;
+                        }
+                        let key = matrix_name_key(&o.content, &symbol);
+                        if let Some(key) = key
+                            && let Some(group) = o.groups.get(&key)
+                        {
+                            targets.push((oi, Some(group.clone())));
+                        }
+                    }
                 }
-                if o.label() && set.len() == o.expr.prims.len() && !reset {
-                    o.color = c;
-                }
-                let cell = |p: &Prim| matches!(p.shape, Shape::Rect { fill, .. } if fill > 0.0);
-                let cells = set.iter().any(|&j| cell(&o.expr.prims[j]));
-                let bright = 0.3 * c[0] + 0.6 * c[1] + 0.1 * c[2] > 0.6;
-                let entry = if bright {
-                    self.palette["bg"]
+                let own_key = if target.starts_with("balance{") {
+                    None
+                } else if let Some((base, _)) = target.split_once('[') {
+                    Some(format!("{base}/name"))
                 } else {
-                    self.palette["ink"]
+                    Some("name".to_string())
                 };
-                for j in set {
-                    let c = if cells && !cell(&o.expr.prims[j]) {
-                        entry
-                    } else {
-                        c
-                    };
-                    let base = o.expr.prims[j].color.unwrap_or(o.color);
-                    let cur = o.colors.get(&j).map(|t| t.at(now)).unwrap_or(base);
-                    let to = if reset { base } else { with_alpha(c, base[3]) };
-                    let mut tw = Tween::fixed(cur);
-                    tw.retarget(to, now, dur, animate);
-                    o.colors.insert(j, tw);
+                if let Some(key) = own_key
+                    && let Some(group) = self.objs[i].groups.get(&key)
+                {
+                    targets.push((i, Some(group.clone())));
+                }
+                let reset = color == "reset" || color == "default";
+                let color = if target.starts_with("balance{") && color == "yellow" {
+                    "accent".to_string()
+                } else {
+                    color.clone()
+                };
+                let c = self.color(Some(&color), "ink");
+                let cell = |p: &Prim| matches!(p.shape, Shape::Rect { fill, .. } if fill > 0.0);
+                let light = |color: Rgba| 0.299 * color[0] + 0.587 * color[1] + 0.114 * color[2];
+                let (ink, ground) = (self.palette["ink"], self.palette["bg"]);
+                let accent_text = matches!(color.as_str(), "yellow" | "accent");
+                let entry = if accent_text {
+                    self.palette["accent"]
+                } else if (light(ink) - light(c)).abs() >= (light(ground) - light(c)).abs() {
+                    ink
+                } else {
+                    ground
+                };
+                for (i, subset) in targets {
+                    let o = &mut self.objs[i];
+                    let set: Vec<usize> =
+                        subset.unwrap_or_else(|| (0..o.expr.prims.len()).collect());
+                    if o.geo() {
+                        let cur = o.colors.get(&usize::MAX).map_or(o.color, |t| t.at(now));
+                        let to = if reset { o.color } else { c };
+                        let mut tw = Tween::fixed(cur);
+                        tw.retarget(to, now, dur, animate);
+                        o.colors.insert(usize::MAX, tw);
+                        continue;
+                    }
+                    if o.drawing() {
+                        let cur = o.colors.get(&usize::MAX).map_or(o.color, |t| t.at(now));
+                        let mut tw = Tween::fixed(cur);
+                        tw.retarget(if reset { o.color } else { c }, now, dur, animate);
+                        o.colors.insert(usize::MAX, tw);
+                        continue;
+                    }
+                    if o.label() && set.len() == o.expr.prims.len() && !reset {
+                        o.color = c;
+                    }
+                    let cells = set.iter().any(|&j| cell(&o.expr.prims[j]));
+                    for j in set {
+                        let numeric = o.groups.iter().any(|(key, ids)| {
+                            (key == "entries" || key.ends_with("/entries")) && ids.contains(&j)
+                        });
+                        let c = if numeric {
+                            self.palette["ink"]
+                        } else if (cells || accent_text) && !cell(&o.expr.prims[j]) {
+                            entry
+                        } else {
+                            c
+                        };
+                        let base = o.expr.prims[j].color.unwrap_or(o.color);
+                        let cur = o.colors.get(&j).map(|t| t.at(now)).unwrap_or(base);
+                        let to = if reset { base } else { with_alpha(c, base[3]) };
+                        let mut tw = Tween::fixed(cur);
+                        tw.retarget(to, now, dur, animate);
+                        o.colors.insert(j, tw);
+                    }
                 }
             }
             Kind::Move { point, to } => {
@@ -450,4 +520,3 @@ impl Stage {
         self.changed = true;
     }
 }
-// --8<-- [end:implementation]

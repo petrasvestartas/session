@@ -1,4 +1,3 @@
-// --8<-- [start:implementation]
 use super::deck::{Action, Chapter, Content, Index, Kind, Theme, chapter_palette};
 use super::draw::fade;
 use super::font::Fonts;
@@ -43,6 +42,8 @@ pub enum Draw {
         closed: bool,
         width: f32,
         color: Rgba,
+        dash: bool,
+        fill: Option<Rgba>,
     },
 }
 
@@ -255,7 +256,6 @@ impl Stage {
         self.changed = true;
     }
 
-// --8<-- [start:navigation]
     /// Advance: finish a running step first, then play the next.
     pub fn next(&mut self, now: f64) {
         self.now = now;
@@ -286,7 +286,6 @@ impl Stage {
         }
     }
 
-// --8<-- [end:navigation]
     /// Jump to the first step of the next or previous slide and play it.
     pub fn slide(&mut self, delta: i32, now: f64) {
         self.now = now;
@@ -479,7 +478,6 @@ impl Stage {
             }
     }
 
-// --8<-- [start:clock]
     /// Advance the clock: run actions whose time has come and drop finished animations.
     pub fn tick(&mut self, now: f64) {
         self.now = now;
@@ -496,7 +494,6 @@ impl Stage {
         }
     }
 
-// --8<-- [end:clock]
     /// Everything to paint this frame, back to front.
     pub fn frame(&mut self, now: f64) -> Vec<Draw> {
         self.now = now;
@@ -588,6 +585,15 @@ impl Stage {
                     Some((_, p, ..)) => (smooth(*p) as f32, if *p > 0.0 { 1.0 } else { 0.0 }),
                 };
                 objects3.extend(self.geo_spatial(o, now, grow, alpha));
+                continue;
+            }
+            if o.drawing() {
+                let (grow, alpha) = match ap {
+                    Some((Style::Fade, p, ..)) => (1.0, smooth(*p) as f32),
+                    Some((Style::None, ..)) | None => (1.0, 1.0),
+                    Some((_, p, ..)) => (smooth(*p) as f32, if *p > 0.0 { 1.0 } else { 0.0 }),
+                };
+                texts.extend(self.flat_draws(i, now, grow, alpha));
                 continue;
             }
             if o.boxed.is_some() {
@@ -753,4 +759,3 @@ impl Stage {
         out
     }
 }
-// --8<-- [end:implementation]

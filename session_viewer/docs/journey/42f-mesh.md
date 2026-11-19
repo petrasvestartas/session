@@ -67,15 +67,15 @@ Run the viewer and check existing mesh colors and normals. The mesh ID pipeline 
 
 ### Recorded visual result
 
-**Previous native render — current verification pending.**
+**Source31 native image reviewed.**
 
 The inherited grid and geometry remain visible; copied integer readback checks verify the new picking behavior.
 
-![Native renderer output for draw depth-tested mesh owners into an integer attachment.](../screenshots/journey/42k-input.png)
+![Native presentation at this checkpoint.](../screenshots/journey/42f-mesh-bd5d16840cff.png)
 
-*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
+*Fresh Rust/NVIDIA raw-DPR4 presentation, personally reviewed at 2560 × 1920. The inherited RGB grid frame remains unchanged. This stage creates the depth-tested mesh-owner integer pipeline; integer readback and actual canvas selection require separate checks. Fixed-resolution pixel checks and browser controls require separate acceptance.*
 
-This reference image is shared with [5.7.8 · Inspect the ground grid through actual commands](41f-input.md). It does not demonstrate a new feature by itself.
+This scene continues [5.7.8 · Inspect the ground grid through actual commands](41f-input.md). This checkpoint was captured independently; its new source behavior requires separate state checks.
 
 <details>
 <summary>Code explanation and diagram</summary>

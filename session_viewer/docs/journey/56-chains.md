@@ -114,15 +114,15 @@ The boundary lookup helpers are assembled for original BRep chains. The existing
 
 ### Recorded visual result
 
-**Previous native render — current verification pending.**
+**Source31 native image reviewed.**
 
 The blue parametric roof and black domain boundaries remain visible.
 
-![Native renderer output for connect original cad edge chains.](../screenshots/journey/55zc-follow-original-constrained-trim-labels.png)
+![Native presentation at this checkpoint.](../screenshots/journey/56-chains-2336125cd76e.png)
 
-*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
+*Fresh Rust/NVIDIA raw-DPR4 presentation, personally reviewed at 2560 × 1920. Native presentation of the inherited parametric roof with original visible boundaries and correct far-boundary occlusion. Constructor and image presentation only; CAD edge-chain algorithms, canonical pixel validation and browser interaction remain separate. Fixed-resolution pixel checks and browser controls require separate acceptance.*
 
-This reference image is shared with [9.1.9 · Read original edge-use samples](55za-read-original-edge-use-samples.md). It does not demonstrate a new feature by itself.
+This scene continues [9.1.9 · Read original edge-use samples](55za-read-original-edge-use-samples.md). This checkpoint was captured independently; its new source behavior requires separate state checks.
 
 <details>
 <summary>Code explanation and diagram</summary>

@@ -911,13 +911,13 @@ Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving reb
 
 ### Recorded visual result
 
-**Previous native render — current verification pending.**
+**Source31 native image reviewed.**
 
 The earlier two selected boxes and temporary Move band remain.
 
-![Native renderer output for apply precise typed handle values once.](../screenshots/journey/50d-ownership.png)
+![Native presentation at this checkpoint.](../screenshots/journey/51z-number-submit-deb4457c6d33.png)
 
-*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
+*Fresh Rust/NVIDIA raw-DPR4 presentation, personally reviewed at 2560 × 1920. Inherited 50d two-box Move display at raw DPR4; numeric submission and transform commit remain separately unverified. Fixed-resolution pixel checks and browser controls require separate acceptance.*
 
 <details>
 <summary>Code explanation and diagram</summary>

@@ -1370,15 +1370,15 @@ Close, type Example Face Colors. Compare Example Point Colors and Example Object
 
 ### Recorded visual result
 
-**Previous native render — current verification pending.**
+**Source31 native image reviewed.**
 
 This checkpoint was rendered independently and has the same native comparison frame as [Carry the original mesh colour mode into display data](40-colour.md). Use its state checks and browser exercise to assess the changed behavior.
 
-![Native renderer output for compare original colour modes through actual input.](../screenshots/journey/37d-render.png)
+![Native presentation at this checkpoint.](../screenshots/journey/40a-input-0a45ef5b8472.png)
 
-*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
+*Fresh Rust/NVIDIA raw-DPR4 presentation, personally reviewed at 2560 × 1920. The comparison scene is unchanged; keyboard and pointer interactions require separate browser checks. Fixed-resolution pixel checks and browser controls require separate acceptance.*
 
-This reference image is shared with [5.3.5 · Draw original point rows and count their resources](37d-render.md). It does not demonstrate a new feature by itself.
+This scene continues [5.3.5 · Draw original point rows and count their resources](37d-render.md). This checkpoint was captured independently; its new source behavior requires separate state checks.
 
 <details>
 <summary>Code explanation and diagram</summary>

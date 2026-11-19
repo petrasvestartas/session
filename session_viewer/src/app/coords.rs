@@ -17,6 +17,7 @@ pub fn plane() -> Option<CPlane> {
     PLANE.with(Cell::get)
 }
 
+// --8<-- [start:modeling-coordinates]
 /// A typed coordinate, not yet placed in the world.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Typed {
@@ -25,6 +26,8 @@ pub enum Typed {
     Polar { distance: f64, degrees: f64 },       // `5<45` in the plane
     Distance(f64),                               // `5` along the current direction
 }
+
+// --8<-- [end:modeling-coordinates]
 
 /// How the prompt names typed points: `x,y,z`, or plane coordinates while a construction plane is fixed.
 pub fn hint() -> &'static str {

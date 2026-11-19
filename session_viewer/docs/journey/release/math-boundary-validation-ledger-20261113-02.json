@@ -1,0 +1,189 @@
+{
+  "schema": 1,
+  "status": "POINT_IN_TIME_SOURCE_SCOPED_VALIDATION_SNAPSHOT",
+  "recordedUtc": "2026-11-13T08:05:17.642920+00:00",
+  "scope": "Focused topic illustrations separated from original full-callback/canonical validation. No acceptance created by ledger.",
+  "previousSnapshot": {
+    "path": "docs/journey/release/math-boundary-validation-ledger-20261113-01.json",
+    "sha256": "80594c0bbebda1c5b686247b52597ab08d6931911de14a84bd251fc995cb1437"
+  },
+  "currentMaintainedSource": {
+    "freeze": "source-freeze-29-focused-topic-routes.json",
+    "sha256": "73d30772ff51d507a87bf72e20385cdabbde35118dea1335f486644404247ee8",
+    "files": 550,
+    "previous549InputManifest": {
+      "path": "docs/journey/release/math-boundary-validation-ledger-20261113-01.json",
+      "sha256": "80594c0bbebda1c5b686247b52597ab08d6931911de14a84bd251fc995cb1437"
+    },
+    "allPrevious549InputHashesStillMatch": true,
+    "addedImageOnlyHelperPin": {
+      "path": "session/session_tests/scripts/course/exported-browser-image-recipes.ts",
+      "sha256": "1ebb3903ef4b1616000a64c01f27cc39b476b5cf992072b9d24f7aa58abb37bc",
+      "source28BeforeSha256": "ee8825f8772b25d39592180b5cb5130450df2a79c896d2db73dc20ac02636d7e"
+    },
+    "recordedByteScope": "Exact Windows working-tree bytes; repository text normalization and another platform do not inherit this runtime qualification.",
+    "rendererKernelAndCanonicalCallbackFilesChanged": 0
+  },
+  "historicalPrimaryCaseAcceptances": 94,
+  "currentSourcePrimaryCaseAcceptances": 0,
+  "currentSourceSupportingTopicRecipes": [
+    {
+      "id": "62o-labels",
+      "receipt": {
+        "path": "docs/journey/release/reader-topic-source29-62o-labels-5d17764a4e31.json",
+        "sha256": "5295c4f77041af6fa2989408c0529d8318cb27e07afe5b9b2d6c8fa83ffae99d"
+      },
+      "ownDpr1AndDpr2AssertionsComplete": true,
+      "fullDefaultCallbackExecuted": false,
+      "canonicalValidationProfile": false,
+      "rootOriginalPixelReview": true,
+      "normalPublicationAndRetirement": true,
+      "images": [
+        {
+          "path": "docs/screenshots/journey/62o-labels-5d17764a4e31.png",
+          "sha256": "5d17764a4e31ef507a1b3bff976a47b9446d5e57fc50f09503c6c7afde5313f1"
+        },
+        {
+          "path": "docs/screenshots/reader-illustrations/62o-labels/world-label-selected-5d17764a4e31.png",
+          "sha256": "5d17764a4e31ef507a1b3bff976a47b9446d5e57fc50f09503c6c7afde5313f1"
+        }
+      ]
+    },
+    {
+      "id": "48d-input",
+      "receipt": {
+        "path": "docs/journey/release/reader-topic-source29-48d-input-5d9f055b37a6.json",
+        "sha256": "cd3c979773c0f8d7746c7c2f262683553151580fb265dfbd6973429520f1fde7"
+      },
+      "ownDpr1AndDpr2AssertionsComplete": true,
+      "fullDefaultCallbackExecuted": false,
+      "canonicalValidationProfile": false,
+      "rootOriginalPixelReview": true,
+      "normalPublicationAndRetirement": true,
+      "images": [
+        {
+          "path": "docs/screenshots/journey/48d-input-5d9f055b37a6.png",
+          "sha256": "5d9f055b37a6404f11e348e2db9a7ab85b499808f3d93a2645722d052a53abb3"
+        },
+        {
+          "path": "docs/screenshots/reader-illustrations/48d-input/unfinished-line-preview-32e9793e694b.png",
+          "sha256": "32e9793e694b1cbaec81da175361870848c4dcad3a2fa41aa9642481a2e6865f"
+        }
+      ]
+    }
+  ],
+  "counts": {
+    "plannedPrimaryCases": 1326,
+    "currentSourcePrimaryCases": 0,
+    "currentSourceRemaining": 1326,
+    "historicalPrimaryCases": 94,
+    "lineageRemaining": 1232,
+    "supportingTopicIllustrationsCurrentSource": 2,
+    "visibleFiguresPublished": 39,
+    "visibleFiguresRemaining": 3,
+    "remainingTopics": 0,
+    "remainingCaps": 3
+  },
+  "imageHelperQualification": {
+    "sourceScaleTests": 22,
+    "sourceTestResources": {
+      "sha256": "23f7d2ee748ef3e2f4cd9300866bade48c17a99c92ba6f659e9151dfc062fdce",
+      "processors": 2,
+      "memoryLimitBytes": 2147483648,
+      "exitCode": 0
+    },
+    "sourceTestLogSha256": "29d343cd622a51fb55abd9d7c44279bf2be2c4fddb6422741c02504bc0b5f746",
+    "compileDispatchGuardTests": {
+      "passed": 3,
+      "observedInToolOutput": true,
+      "persistedLog": false
+    },
+    "actualGpuBacking": [
+      {
+        "id": "62o-labels",
+        "receipt": {
+          "path": "docs/journey/release/reader-topic-source29-62o-labels-5d17764a4e31.json",
+          "sha256": "5295c4f77041af6fa2989408c0529d8318cb27e07afe5b9b2d6c8fa83ffae99d"
+        },
+        "ownDpr1AndDpr2AssertionsComplete": true,
+        "fullDefaultCallbackExecuted": false,
+        "canonicalValidationProfile": false,
+        "rootOriginalPixelReview": true,
+        "normalPublicationAndRetirement": true,
+        "images": [
+          {
+            "path": "docs/screenshots/journey/62o-labels-5d17764a4e31.png",
+            "sha256": "5d17764a4e31ef507a1b3bff976a47b9446d5e57fc50f09503c6c7afde5313f1"
+          },
+          {
+            "path": "docs/screenshots/reader-illustrations/62o-labels/world-label-selected-5d17764a4e31.png",
+            "sha256": "5d17764a4e31ef507a1b3bff976a47b9446d5e57fc50f09503c6c7afde5313f1"
+          }
+        ]
+      },
+      {
+        "id": "48d-input",
+        "receipt": {
+          "path": "docs/journey/release/reader-topic-source29-48d-input-5d9f055b37a6.json",
+          "sha256": "cd3c979773c0f8d7746c7c2f262683553151580fb265dfbd6973429520f1fde7"
+        },
+        "ownDpr1AndDpr2AssertionsComplete": true,
+        "fullDefaultCallbackExecuted": false,
+        "canonicalValidationProfile": false,
+        "rootOriginalPixelReview": true,
+        "normalPublicationAndRetirement": true,
+        "images": [
+          {
+            "path": "docs/screenshots/journey/48d-input-5d9f055b37a6.png",
+            "sha256": "5d9f055b37a6404f11e348e2db9a7ab85b499808f3d93a2645722d052a53abb3"
+          },
+          {
+            "path": "docs/screenshots/reader-illustrations/48d-input/unfinished-line-preview-32e9793e694b.png",
+            "sha256": "32e9793e694b1cbaec81da175361870848c4dcad3a2fa41aa9642481a2e6865f"
+          }
+        ]
+      }
+    ],
+    "qualificationBoundary": "Only changed image export routes and their own assertions; no inherited full callback or cap pipeline acceptance."
+  },
+  "retainedFailure": {
+    "id": "62o-labels",
+    "sourceFreeze": "source-freeze-28-post-pull-cloud-handoff.json",
+    "result": "600second total deadline reached; callback incomplete; no PNG/result/ledger accepted",
+    "boundedTerminalSha256": "a16738c4543e36f3080feb5efe6950e461cf3a06e8bc99f0e0c4c0b4c0b3cad4"
+  },
+  "websiteQualification": {
+    "latestActualHistoricalSite": {
+      "latestActualHistoricalSite": {
+        "latestContentRebuilt": false,
+        "lastDatedSnapshot": {
+          "status": "PASS_ACTUAL_SITE_BUILD_AND_BROWSER_QA",
+          "pages": 38,
+          "chapterRoutes": 22,
+          "sourceReaderPins": 111,
+          "plaintextSourcePairs": 13,
+          "otherRustSourcePreviews": 63,
+          "decodedImageOccurrences": 26,
+          "freshReplacementFigures": 4,
+          "denseRgbFigures": 1,
+          "generatorDownloads": 1,
+          "errors": 0,
+          "receipt": "session\\session_viewer\\docs\\journey\\release\\viewer-site-20261106-06.json",
+          "sha256": "2d4294f43d47934763656b6b212be95ad072ccd17fa21965700969f1a0db9376",
+          "browser": "157.0.8103.38"
+        },
+        "finalBuildBrowserQaPending": true
+      },
+      "currentFinalSite": "PENDING_ALL_UPDATED_FIGURES_PLAINTEXT_SOURCES_DENSE_CLOUD"
+    },
+    "currentFinalSite": "PENDING_ALL_LATEST_FIGURES_PLAINTEXT_SOURCES_DENSE_CLOUD"
+  },
+  "excludedAcceptances": [
+    "Full labels callback timed out; focused route is not a substitute full callback pass",
+    "Inherited commands callback not executed for preview image",
+    "Cap MSAA4 source checks are not Rust/pipeline/image runtime acceptance",
+    "Current ongoing cap runtime is not accepted before Root review and normal retirement"
+  ],
+  "immutableHistoricalEvidenceModified": false,
+  "newAcceptancesCreatedByLedger": 0
+}

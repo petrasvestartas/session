@@ -14,4 +14,10 @@ slides:
         matrix: {id: M, rows: [[2, -1], [-1, 2]]}
       - say: 'The first row contains both addressed entries.'
         color: {target: 'M[0,:]', color: accent}
+  - title: Orthographic construction
+    steps:
+      - say: 'Flat construction ink shares the slide coordinates and the same elongated arrowheads.'
+        add:
+          - {id: diagram, drawing: [{line: [[0, 0], [280, 160]], color: grey, width: 1.6, dash: true}, {arrow: [[0, 160], [280, 0]], color: load}, {point: [280, 0], color: ink}, {point: [0, 160], color: ink}], at: [160, 230]}
+          - {id: load_label, tex: '\mathbf{P}', at: [330, 210], size: 28, color: accent}
 # --8<-- [end:deck]

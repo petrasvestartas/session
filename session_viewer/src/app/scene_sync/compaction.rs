@@ -144,6 +144,7 @@ impl Scene {
                 row,
                 interactions: self.interactions,
                 attributes: self.attributes,
+                arrowhead_pens: self.arrowhead_pens,
             };
             let walked = walk_geometry(&mut Walk::of(&mut self.tables), &cx, geometry);
             let end = self.uploaded.plus(Counts::of(&self.tables));

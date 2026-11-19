@@ -5,17 +5,17 @@ use super::view::{Cam, Lens};
 use crate::State;
 use crate::app::scene::FileDoc;
 use session_rust::{
-    Arrowhead, Color, Geometry, Line, Point, Polyline, Quaternion, Session, Vector, Xform,
+    Arrowhead, Color, Geometry, Line, Mesh, Point, Polyline, Quaternion, Session, Vector, Xform,
 };
 use std::collections::HashMap;
 use std::rc::Rc;
 
 /// The scene row of one stage object.
 struct Entry {
-    row: u32,            // Scene row holding the object.
-    base: Vec<[f64; 3]>, // Points the row was baked with.
-    last: Spatial,       // State last applied.
-    hidden: bool,        // Whether the row is hidden now.
+    rows: Vec<u32>, // Scene rows holding the object and, for open nodes, its paper centre.
+    base: Vec<[f64; 3]>, // Points the rows were baked with.
+    last: Spatial,  // State last applied.
+    hidden: bool,   // Whether the rows are hidden now.
 }
 
 /// Scene rows of the stage objects and the camera state last applied.
@@ -40,6 +40,7 @@ fn over(c: Rgba, bg: Rgba) -> Color {
     )
 }
 
+// --8<-- [start:stage-kernel-geometry]
 /// The kernel geometry of a stage object, with its pen.
 /// Kernel geometry of one object; `scale` is the slide scale, so widths shrink with the slide.
 fn geometry(s: &Spatial, bg: Rgba, px: f64, dpr: f64, scale: f64) -> Option<Geometry> {
@@ -84,9 +85,23 @@ fn geometry(s: &Spatial, bg: Rgba, px: f64, dpr: f64, scale: f64) -> Option<Geom
             poly.dash = dash;
             Some(Geometry::Polyline(Rc::new(poly)))
         }
+        SpatialKind::Mesh => {
+            if s.pts.len() < 3 {
+                return None;
+            }
+            let points = s.pts.iter().map(|p| Point::new(p[0], p[1], p[2])).collect();
+            let mut mesh = Mesh::from_vertices_and_faces(
+                points,
+                vec![(0..s.pts.len()).collect::<Vec<usize>>()],
+            );
+            mesh.set_objectcolor(Color::new(s.color[0], s.color[1], s.color[2], 1.0));
+            mesh.set_linecolors(Vec::new(), vec![0.0]);
+            Some(Geometry::Mesh(Rc::new(mesh)))
+        }
     }
 }
 
+// --8<-- [end:stage-kernel-geometry]
 /// Distance between two points.
 fn dist(a: [f64; 3], b: [f64; 3]) -> f64 {
     ((a[0] - b[0]).powi(2) + (a[1] - b[1]).powi(2) + (a[2] - b[2]).powi(2)).sqrt()
@@ -148,6 +163,7 @@ impl Scene3 {
         self.count = 0;
     }
 
+    // --8<-- [start:stage-scene-rows]
     /// Make the scene show `list`: append new objects, update changed ones, hide missing ones.
     pub fn sync(&mut self, state: &mut State, list: &[Spatial], epoch: u64, bg: Rgba, scale: f64) {
         let logical = state.logical_size();
@@ -160,6 +176,7 @@ impl Scene3 {
             self.epoch = epoch;
             self.scale = scale;
         }
+        state.scene.arrowhead_pens = 24.0;
         state.gpu.view.thickness_px = scale as f32;
         let mut seen: Vec<&str> = Vec::with_capacity(list.len());
         for s in list {
@@ -170,12 +187,15 @@ impl Scene3 {
             } else {
                 1.0
             };
-            // a polyline that changes shape, or any object whose pen changes, gets a fresh row
+            // geometry that changes shape, or any object whose pen changes, gets a fresh row
             if let Some(e) = self.rows.get(&s.id) {
-                let reshaped = s.kind == SpatialKind::Polyline && e.last.pts != s.pts;
+                let reshaped = matches!(s.kind, SpatialKind::Polyline | SpatialKind::Mesh)
+                    && e.last.pts != s.pts;
                 let repen = e.last.width != s.width || e.last.dash != s.dash;
                 if reshaped || repen || e.last.kind != s.kind {
-                    state.gpu.set_hidden(e.row, true);
+                    for &row in &e.rows {
+                        state.gpu.set_hidden(row, true);
+                    }
                     self.rows.remove(&s.id);
                 }
             }
@@ -184,25 +204,47 @@ impl Scene3 {
                     if e.last.pts != s.pts
                         && let Some(m) = placement(&e.base, &s.pts)
                     {
-                        // motion is a placement of the row: nothing is re-walked
-                        state.gpu.set_placement(e.row, &m);
-                        state.gpu.grew_bounds(e.row);
+                        for &row in &e.rows {
+                            state.gpu.set_placement(row, &m);
+                            state.gpu.grew_bounds(row);
+                        }
                     }
                     if e.last.color != s.color {
-                        let c = over(s.color, bg);
-                        let rgb = Some([
-                            (c.r * 255.0) as u8,
-                            (c.g * 255.0) as u8,
-                            (c.b * 255.0) as u8,
-                        ]);
-                        state.gpu.set_object_color(e.row, true, rgb);
-                        state.gpu.set_object_color(e.row, false, rgb);
+                        let color = if s.kind == SpatialKind::Mesh {
+                            Color::new(s.color[0], s.color[1], s.color[2], 1.0)
+                        } else {
+                            over(s.color, bg)
+                        };
+                        let ground = Color::new(bg[0], bg[1], bg[2], 1.0);
+                        for (i, &row) in e.rows.iter().enumerate() {
+                            let c = if i > 0 && s.kind == SpatialKind::Point {
+                                ground.clone()
+                            } else {
+                                color.clone()
+                            };
+                            let rgb = Some([
+                                (c.r * 255.0) as u8,
+                                (c.g * 255.0) as u8,
+                                (c.b * 255.0) as u8,
+                            ]);
+                            state.gpu.set_object_color(row, true, rgb);
+                            state.gpu.set_object_color(row, false, rgb);
+                        }
+                    }
+                    if s.kind == SpatialKind::Mesh && e.last.color[3] != s.color[3] {
+                        for &row in &e.rows {
+                            state.gpu.set_face_opacity(row, s.color[3]);
+                        }
                     }
                     if e.last.reveal != s.reveal {
-                        state.gpu.set_reveal(e.row, s.reveal, dot_reveal);
+                        for &row in &e.rows {
+                            state.gpu.set_reveal(row, s.reveal, dot_reveal);
+                        }
                     }
                     if e.hidden == visible {
-                        state.gpu.set_hidden(e.row, !visible);
+                        for &row in &e.rows {
+                            state.gpu.set_hidden(row, !visible);
+                        }
                         e.hidden = !visible;
                     }
                     e.last = s.clone();
@@ -221,12 +263,19 @@ impl Scene3 {
                     match &g {
                         Geometry::Point(p) => {
                             session.add_point((**p).clone(), None);
+                            let mut centre = (**p).clone();
+                            centre.width *= 0.58;
+                            centre.pointcolor = Color::new(bg[0], bg[1], bg[2], 1.0);
+                            session.add_point(centre, None);
                         }
                         Geometry::Line(l) => {
                             session.add_line((**l).clone(), None);
                         }
                         Geometry::Polyline(p) => {
                             session.add_polyline((**p).clone(), None);
+                        }
+                        Geometry::Mesh(m) => {
+                            session.add_mesh((**m).clone(), None);
                         }
                         _ => continue,
                     }
@@ -242,21 +291,25 @@ impl Scene3 {
                         },
                         None,
                     );
-                    // one object per document: its row is the first one the append made
-                    if state.scene.row_count() <= first {
+                    let rows: Vec<u32> = (first as u32..state.scene.row_count() as u32).collect();
+                    if rows.is_empty() {
                         continue;
                     }
-                    let row = first as u32;
-                    state.gpu.set_non_pickable(row, true);
-                    state.gpu.set_reveal(row, s.reveal, dot_reveal);
-                    state.gpu.set_hidden(row, !visible);
-                    if baked.pts != s.pts
-                        && let Some(m) = placement(&baked.pts, &s.pts)
-                    {
-                        state.gpu.set_placement(row, &m);
+                    for &row in &rows {
+                        state.gpu.set_non_pickable(row, true);
+                        if s.kind == SpatialKind::Mesh {
+                            state.gpu.set_face_opacity(row, s.color[3]);
+                        }
+                        state.gpu.set_reveal(row, s.reveal, dot_reveal);
+                        state.gpu.set_hidden(row, !visible);
+                        if baked.pts != s.pts
+                            && let Some(m) = placement(&baked.pts, &s.pts)
+                        {
+                            state.gpu.set_placement(row, &m);
+                        }
                     }
                     let entry = Entry {
-                        row,
+                        rows,
                         base: baked.pts,
                         last: s.clone(),
                         hidden: !visible,
@@ -267,12 +320,16 @@ impl Scene3 {
         }
         for (id, e) in self.rows.iter_mut() {
             if !e.hidden && !seen.contains(&id.as_str()) {
-                state.gpu.set_hidden(e.row, true);
+                for &row in &e.rows {
+                    state.gpu.set_hidden(row, true);
+                }
                 e.hidden = true;
             }
         }
     }
 
+    // --8<-- [end:stage-scene-rows]
+    // --8<-- [start:stage-camera-projection]
     /// Put the real camera on the authored view while it moves or after it changes.
     pub fn camera(
         &mut self,
@@ -343,4 +400,5 @@ impl Scene3 {
             ],
         }
     }
+    // --8<-- [end:stage-camera-projection]
 }

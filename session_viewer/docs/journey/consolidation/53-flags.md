@@ -51,6 +51,8 @@
 
 ## <a id="checkpoint-53-flags"></a>1. Separate layer presentation from sources
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/53-flags-363e6b24f861.png). The actual52k fixture shows an editable selected parent and visible readonly source attributes; attribute pick exclusion is a constructor assertion. Tree GUI and full interaction behavior require separate acceptance.
+
 The `Layers On`, `Layers Off` and `Layers All` commands control the panel and its expanded rows. Use the row visibility controls, `Hide` or `Show` to change object visibility. Closing the panel preserves the scene's visibility state.
 
 ### 1. `src/view_flags.rs`
@@ -148,6 +150,8 @@ pub mod view_flags;
 ```
 
 ## <a id="checkpoint-53a-ids"></a>2. Index live identities and initialise view flags
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/53a-ids-363e6b24f861.png). The inherited52k fixture shows a selected editable gold parent and visible brown readonly sources. Attribute pick exclusion is a constructor assertion; IDs, visibility, properties and GUI interaction require separate acceptance.
 
 ### 1. `src/scene.rs`
 
@@ -482,6 +486,8 @@ impl Forest {
 ```
 
 ## <a id="checkpoint-53b-uniform"></a>3. Update surface colour and pickability in small GPU records
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/53b-uniform-363e6b24f861.png). The inherited52k fixture shows a selected editable gold parent and visible brown readonly sources. Attribute pick exclusion is a constructor assertion; IDs, visibility, properties and GUI interaction require separate acceptance.
 
 
 
@@ -2111,6 +2117,8 @@ fn rgba(rgb: [u8; 3]) -> [f32; 4] {
 
 ## <a id="checkpoint-53bb-eligibility"></a>4. Resolve live visibility and selection eligibility
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/53bb-eligibility-363e6b24f861.png). The inherited52k fixture shows a selected editable gold parent and visible brown readonly sources. Attribute pick exclusion is a constructor assertion; IDs, visibility, properties and GUI interaction require separate acceptance.
+
 ### 1. `src/scene.rs`
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
@@ -2398,6 +2406,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-53c-presentation"></a>5. Use current visibility and colours in every derived pass
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/53c-presentation-363e6b24f861.png). The inherited52k fixture shows a selected editable gold parent and visible brown readonly sources. Attribute pick exclusion is a constructor assertion; IDs, visibility, properties and GUI interaction require separate acceptance.
 
 ### 1. `src/renderer.rs`
 
@@ -2909,6 +2919,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-53d-hide-show"></a>6. Connect Hide Show and canvas Delete shortcuts
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/53d-hide-show-363e6b24f861.png). The inherited52k fixture shows a selected editable gold parent and visible brown readonly sources. Attribute pick exclusion is a constructor assertion; IDs, visibility, properties and GUI interaction require separate acceptance.
+
 ### 1. `src/editor.rs`
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
@@ -3158,6 +3170,8 @@ fn canvas_delete_hide_show_keep_focused_text_and_modifiers_owned_by_the_field() 
 
 ## <a id="checkpoint-53e-properties"></a>7. Apply eye lock and independent colour properties
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/53e-properties-363e6b24f861.png). The inherited52k fixture shows a selected editable gold parent and visible brown readonly sources. Attribute pick exclusion is a constructor assertion; property controls and GUI interaction require separate acceptance.
+
 ### 1. `src/layer_properties.rs`
 
 Create the file and type:
@@ -3387,6 +3401,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-53f-portable"></a>8. Keep tree identities stable across edits and saves
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/53f-portable-363e6b24f861.png). The staged52k scene retains the selected editable parent and visible readonly attributes. Portable UUID persistence requires separate state checks.
+
 ### 1. `src/hierarchy.rs`
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
@@ -3517,6 +3533,8 @@ pub struct Node {
 
 ## <a id="checkpoint-53g-branches"></a>9. Represent group edits with temporary branches
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/53g-branches-363e6b24f861.png). The inherited52k scene retains editable-parent selection and visible readonly attributes. Branch editing and flattening require separate state checks.
+
 ### 1. `src/layer_edit.rs`
 
 Create the file and type:
@@ -3601,6 +3619,8 @@ pub mod layer_edit;
 ```
 
 ## <a id="checkpoint-53h-layer-targets"></a>10. Validate current layers and protected ancestors
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/53h-layer-targets-363e6b24f861.png). The staged52k scene retains editable-parent selection and visible readonly attributes. Current-layer targeting and protected ancestors require separate state checks.
 
 ### 1. `src/scene.rs`
 
@@ -3795,6 +3815,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-53i-copy-records"></a>11. Copy row identities while sharing source allocations
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/53i-copy-records-363e6b24f861.png). The inherited52k scene retains editable-parent selection and visible readonly attributes. Immutable record copying requires separate state checks.
+
 ### 1. `src/scene.rs`
 
 **Locate this existing block:**
@@ -3895,6 +3917,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-53j-transfers"></a>12. Move and copy objects between layer trees
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/53j-transfers-363e6b24f861.png). The inherited52k scene retains editable-parent selection and visible readonly attributes. Tree transfer and move semantics require separate state checks.
 
 ### 1. `src/layer_edit.rs`
 
@@ -4059,6 +4083,8 @@ fn transfer(
 
 ## <a id="checkpoint-53k-new-rename"></a>13. Create and rename uniquely named layers
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/53k-new-rename-363e6b24f861.png). The staged52k scene retains editable-parent selection and visible readonly attributes. Creating and renaming tree entries require separate state checks.
+
 ### 1. `src/layer_edit.rs`
 
 **Locate this existing block:**
@@ -4158,6 +4184,8 @@ fn rename(scene: &mut Scene, key: &str, label: &str) -> Result<(), &'static str>
 
 ## <a id="checkpoint-53l-delete-duplicate"></a>14. Delete and duplicate complete layer contents
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/53l-delete-duplicate-363e6b24f861.png). The inherited52k scene retains editable-parent selection and visible readonly attributes. Layer deletion and duplication require separate state checks.
+
 ### 1. `src/layer_edit.rs`
 
 **Locate this existing block:**
@@ -4237,6 +4265,8 @@ fn duplicate(scene: &mut Scene, key: &str) -> Result<(), &'static str> {
 ```
 
 ## <a id="checkpoint-53m-actions"></a>15. Commit group edits through one history boundary
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/53m-actions-363e6b24f861.png). The inherited52k scene retains editable-parent selection and visible readonly attributes. Group edits and their history boundary require separate state checks.
 
 ### 1. `src/layer_edit.rs`
 
@@ -4330,6 +4360,8 @@ pub enum Action {
 ```
 
 ## <a id="checkpoint-53n-routing"></a>16. Create geometry on the current layer or Created
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/53n-routing-363e6b24f861.png). The inherited52k scene retains editable-parent selection and visible readonly attributes. Routing new geometry to current layers or Created requires separate state checks.
 
 ### 1. `src/layer_edit.rs`
 
@@ -4621,6 +4653,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-53o-palette"></a>17. Supply nine colour swatches and RGB sliders
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/53o-palette-363e6b24f861.png). The inherited52k scene retains editable-parent selection and visible readonly attributes. Palette swatches and RGB slider interaction require separate GUI checks.
+
 ### 1. `src/layer_palette.rs`
 
 Create the file and type:
@@ -4721,6 +4755,8 @@ pub mod layer_palette;
 ```
 
 ## <a id="checkpoint-53p-panel-state"></a>18. Resolve layer presentation for real tree controls
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/53p-panel-state-363e6b24f861.png). The inherited52k scene retains editable-parent selection and visible readonly attributes. Layer panel presentation requires separate GUI checks.
 
 ### 1. `src/tree_panel.rs`
 
@@ -4861,6 +4897,8 @@ pub struct TreePanel {
 ```
 
 ## <a id="checkpoint-53q-properties-ui"></a>19. Draw eye lock and independent colour menus
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/53q-properties-ui-363e6b24f861.png). The inherited52k scene retains selected editable-parent geometry and visible readonly attributes. Properties and menu GUI behavior require separate interaction checks.
 
 ### 1. `src/tree_panel.rs`
 
@@ -5003,6 +5041,8 @@ fn properties(
 
 ## <a id="checkpoint-53r-name"></a>20. Own rename text and populated deletion confirmation
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/53r-name-363e6b24f861.png). The inherited52k selected editable-parent scene remains visible. Name-field focus, rename errors and populated deletion confirmation require separate GUI checks.
+
 ### 1. `src/tree_panel.rs`
 
 **Locate this existing block:**
@@ -5100,6 +5140,8 @@ fn dialogs(
 
 ## <a id="checkpoint-53s-tree-controls"></a>21. Connect group menus to the wider tree panel
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/53s-tree-controls-363e6b24f861.png). The inherited52k selected editable-parent scene remains visible. Wider tree controls and group context-menu interactions require separate GUI checks.
+
 ### 1. `src/tree_panel.rs`
 
 **Locate this existing block:**
@@ -5190,6 +5232,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-53t-input"></a>22. Route layer controls before handles and canvas input
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/53t-input-363e6b24f861.png). The inherited52k selected editable-parent scene remains visible. Popup ownership and layer-control input routing require separate GUI checks.
 
 ### 1. `src/panel.rs`
 
@@ -5409,6 +5453,8 @@ Replace it with:
 ```
 
 ## <a id="checkpoint-53u-layers"></a>23. Exercise layers shortcuts colours and exact source ownership
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/53u-layers-aeab6de33013.png). The actual53u constructor presents blue Posts faces with original black boundaries while the unrelated top beam retains its original brown source colour. Layer control GUI interactions require separate checks.
 
 ### 1. `src/shortcuts.rs`
 

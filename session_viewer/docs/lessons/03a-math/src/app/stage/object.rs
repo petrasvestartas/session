@@ -1,4 +1,3 @@
-// --8<-- [start:implementation]
 use super::deck::{Content, ObjSpec, Pos};
 use super::eval::{self, Points};
 use super::run::Stage;
@@ -50,6 +49,7 @@ fn is_geo(content: &Content) -> bool {
         Content::Point(_)
             | Content::Line { .. }
             | Content::Polyline { .. }
+            | Content::Mesh(_)
             | Content::Cuboid { .. }
     )
 }
@@ -68,7 +68,7 @@ impl Obj {
         ) && self.boxed.is_none()
     }
 
-    /// A point, line, polyline or cuboid.
+    /// A point, line, polyline, mesh or cuboid.
     pub(super) fn geo(&self) -> bool {
         is_geo(&self.content)
     }
@@ -76,6 +76,11 @@ impl Obj {
     /// A 3D label.
     pub(super) fn label(&self) -> bool {
         matches!(self.content, Content::Label { .. })
+    }
+
+    /// A group of orthographic construction shapes.
+    pub(super) fn drawing(&self) -> bool {
+        matches!(self.content, Content::Drawing(_))
     }
 
     /// Pixels per em after fitting.
@@ -150,7 +155,10 @@ impl Stage {
             (false, true) => prefix,
             (false, false) => format!("{prefix}/{key}"),
         };
-        o.groups.get(&full).map(|g| (oi, Some(g.clone())))
+        o.groups
+            .get(&full)
+            .map(|g| (oi, Some(g.clone())))
+            .or_else(|| o.drawing().then_some((oi, None)))
     }
 
     /// Build an object from its spec.
@@ -162,6 +170,7 @@ impl Stage {
             Content::Text(_) => 25.0,
             Content::Code(_) => 19.0,
             Content::Matrix(_) | Content::Row(_) => 30.0,
+            Content::Tex(_) => 36.0,
             _ => 34.0,
         });
         let fallback = if geo { "bar" } else { "ink" };
@@ -186,7 +195,7 @@ impl Stage {
         }
         // every point is the same dot, whatever it stands for
         let width = spec.width.map(|w| w as f32).unwrap_or(match spec.content {
-            Content::Cuboid { .. } => 1.6,
+            Content::Cuboid { .. } => 1.2,
             Content::Point(_) => 2.6,
             _ => 3.2,
         });
@@ -213,7 +222,7 @@ impl Stage {
                 .gap
                 .map(|g| g as f32)
                 .unwrap_or(if label { 0.0 } else { 24.0 }),
-            pos: Tween::fixed([0.0, 0.0]),
+            pos: Tween::fixed(spec.at.map_or([0.0, 0.0], |a| [a[0] as f32, a[1] as f32])),
             placed: false,
             fit: 1.0,
             dim: Tween::fixed(0.0),
@@ -275,4 +284,3 @@ impl Stage {
         self.objs.push(obj);
     }
 }
-// --8<-- [end:implementation]

@@ -821,13 +821,13 @@ Use Move with a selected box, accept 0,0,0 and hover. Cancel or press Escape: th
 
 ### Recorded visual result
 
-**Previous native render — current verification pending.**
+**Source31 native image reviewed.**
 
 The actual native frame presents the moved boxes and temporary band while original source placements remain unchanged.
 
-![Native renderer output for cancel previews without consuming document history.](../screenshots/journey/50d-ownership.png)
+![Native presentation at this checkpoint.](../screenshots/journey/50d-ownership-deb4457c6d33.png)
 
-*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
+*Fresh Rust/NVIDIA raw-DPR4 presentation, personally reviewed at 2560 × 1920. Two selected gold boxes and a temporary yellow Move band are displayed; programmatic checks preserve saved model matrices while offsetting the display and reusing mesh/settings allocations. Fixed-resolution pixel checks and browser controls require separate acceptance.*
 
 <details>
 <summary>Code explanation and diagram</summary>

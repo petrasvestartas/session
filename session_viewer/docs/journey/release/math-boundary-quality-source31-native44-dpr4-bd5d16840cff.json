@@ -1,0 +1,67 @@
+{
+  "batchCaptureReady": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-ticket-six-case-44-01\\capture-ready.json",
+    "sha256": "ab1bb146bdb365ec12f553252eb4a12a9addd1348313c1ff64addfd267ce4af2"
+  },
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-14T00:11:13.230Z",
+  "id": "44-topology",
+  "lane": "native",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-44-topology-3e6852ba1fbb21a8f537\\capture.json.gz",
+    "sha256": "108093f0a32bc2460c160332b7e7b31e1c25e216a68ca45f679d459948fb4089",
+    "bytes": 91578
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-ticket-six-case-44-01\\capture-result.json",
+    "sha256": "01306d0d32ae653eb1b3d4e16df94b361f4ba652d082066733cb4bc61f5ccad6"
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-ticket-six-44-01-execution.json",
+    "sha256": "e162151b50d1a2959dfca46468de607a48ba4249479d0263b46ce72ab3015b2c"
+  },
+  "boundedTerminal": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-ticket-six-case-44-01\\bounded-terminal.json",
+    "sha256": "ab6bff5e1f2e070c154a2c155b0850c3ba337cd6d456f74edfe3735d44585695"
+  },
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-31-stage-aware-native-density.json",
+    "sha256": "7e9980c097467f8f4a60519e63aef9bfdd87122e72179d1f35f1849391ade57a"
+  },
+  "sourceFreezeCoverage": {
+    "matchedFiles": 555,
+    "basis": "Pinned Native wrapper preflight and postflight; live hashes rechecked"
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\44-topology-bd5d16840cff.png",
+    "sha256": "bd5d16840cffd615b28eb70df1b4a47fe4b22f199938fd1b9a709160279c5e4b"
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\42-window.png",
+    "sha256": "4d71ed6c07bb50dcbf89e23c7baef3c9a5a5f72d1485fe6310315760119a4d63"
+  },
+  "aliasManifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\image-aliases.json",
+    "sha256": "59a41176fb5daa71125bf02fc487c3fb2edbef2e4a35f20487a21999268affae"
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root opened original2560x1920 PNG, verified exact byte identity with the personally reviewed original41f RGB scene, and inspected its fitted view. Selected yellow solid, brown shaded solid, black connected ink, blue marker, gray grid and BRG axes are unchanged. No triangulation-edge strokes appear on solid faces; raster steps and grid/axis crossings remain. Lesson44 preserves original source faces and edges separately from display triangulation; interactive source-part modes/highlights arrive at44l. This headless fixture does not demonstrate face/edge picking or topology identity conservation. Actual inherited constructor GPU checks are recorded; full unit, canonical640pixel and browser checks remain separate.",
+  "canonicalBehaviorExecuted": false,
+  "scope": "Source31 44-topology rawDPR4 image presentation. Actual fixture scope is stated in Rootreview; canonical640pixel/full-unit/browser acceptance remains separate. Original fixedpixel function bodies and oldaliases/pixels retained.",
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-ticket-six-case-44-01\\publication.json",
+    "sha256": "325c1b1aff5b16b8746e494d95e67202272b2cb5a51e620569f797e305b26b3c"
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-44-topology-3e6852ba1fbb21a8f537\\publication.json",
+    "sha256": "e6ca4b84700d68002bb8d304ef9384f1422355b9599c945ebd9efa1f1f178366"
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-44-topology-3e6852ba1fbb21a8f537\\retirement.json.gz",
+    "sha256": "6b1a11c72e7fe234ff6ccdd0d36773e623c7b7fad632b7d15da0320875e5e3c4"
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-44-topology-3e6852ba1fbb21a8f537\\retired.json",
+    "sha256": "769d3977ca86c0945d68ce64da444864aef95d0f100e2fb93868de95e750262d"
+  }
+}

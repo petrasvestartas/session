@@ -48,6 +48,8 @@
 
 ## <a id="checkpoint-57-parameters"></a>1. Keep the trimmed face connected to its surface
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/57-parameters-2336125cd76e.png). Inherited parametric roof presentation with visible boundary segments and correct far-boundary occlusion. This fixture does not draw a BRep row or independently prove CAD parameter mapping; canonical pixels and browser controls remain separate.
+
 ### 1. `src/cad_samples.rs`
 
 Create the file and type:

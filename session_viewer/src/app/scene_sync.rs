@@ -362,6 +362,7 @@ impl Scene {
             row,
             interactions: self.interactions,
             attributes: self.attributes,
+            arrowhead_pens: self.arrowhead_pens,
         };
         let mut walked = walk_geometry(&mut Walk::of(&mut up), &cx, geometry);
         crate::app::walk::curves::endpoint_clearance(&mut up, &file.session);

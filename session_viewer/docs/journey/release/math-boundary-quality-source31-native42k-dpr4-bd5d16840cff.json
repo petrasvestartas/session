@@ -1,0 +1,67 @@
+{
+  "batchCaptureReady": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-pick-six-case-42k-01\\capture-ready.json",
+    "sha256": "a8e22363a5cce431e5647f0b5c9c24ae479eba94b76b9661bfb77a577c27a903"
+  },
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-13T23:45:03.170Z",
+  "id": "42k-input",
+  "lane": "native",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-42k-input-9039cb59e2ac09b3d370\\capture.json.gz",
+    "sha256": "404f7088496fe0bddcd6519e041c471d62a9c965288e1765383069c40d5f4641",
+    "bytes": 89772
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-pick-six-case-42k-01\\capture-result.json",
+    "sha256": "b3eef6e9e254124ae72efed099318172b9776f4ffd4fee7ed42b1c8c64d808fc"
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-pick-six-42k-01-execution.json",
+    "sha256": "bcc3008a081412b7edc08ca8325055b77c100e8155cb02c650617c296b36a907"
+  },
+  "boundedTerminal": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-pick-six-case-42k-01\\bounded-terminal.json",
+    "sha256": "dff159eeff4330afe0794aeacb054538af06b6eb95326d0d920ebf8b706b7e1b"
+  },
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-31-stage-aware-native-density.json",
+    "sha256": "7e9980c097467f8f4a60519e63aef9bfdd87122e72179d1f35f1849391ade57a"
+  },
+  "sourceFreezeCoverage": {
+    "matchedFiles": 555,
+    "basis": "Pinned Native wrapper preflight and postflight; live hashes rechecked"
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\42k-input-bd5d16840cff.png",
+    "sha256": "bd5d16840cffd615b28eb70df1b4a47fe4b22f199938fd1b9a709160279c5e4b"
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\42k-input.png",
+    "sha256": "618cbc4930c1729c68cbdb2bb40c8e0c49a4e1fd7f10a8e6362152b20728a753"
+  },
+  "aliasManifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\image-aliases.json",
+    "sha256": "59a41176fb5daa71125bf02fc487c3fb2edbef2e4a35f20487a21999268affae"
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root personally viewed original2560x1920 PNG: selected yellow solid left, shaded brown solid right, black connected ink and blue marker, gray grid and BRG axes. Faces have no triangulation-edge strokes; retained raster steps and ground grid/axis crossings remain. Its exact pixels match inherited41f RGB. Lesson42k connects actual canvas clicks to object-level integer GPU picking for meshes and ink; face/edge/control identities and complete stale-view/focus handling belong to later stages. This headless RGB fixture sends no canvas clicks or picking requests and does not execute copied cfg(test) integer readback tests. Actual inherited constructor GPU checks passed as recorded; canonical640pixel, full unit and browser interaction acceptance remains separate.",
+  "canonicalBehaviorExecuted": false,
+  "scope": "Source31 42k-input rawDPR4 image presentation. Actual fixture scope is stated in Rootreview; canonical640pixel/full-unit/browser acceptance remains separate. Original fixedpixel function bodies and oldaliases/pixels retained.",
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-pick-six-case-42k-01\\publication.json",
+    "sha256": "8efc4472a7fdb77cba29481ef2464e278bbbb6bbb9ff6ec24a563a48b1830363"
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-42k-input-9039cb59e2ac09b3d370\\publication.json",
+    "sha256": "dbe70f18b6ff003f105b120d159fd9995a4202711851788b975665232516d236"
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-42k-input-9039cb59e2ac09b3d370\\retirement.json.gz",
+    "sha256": "6d5b5f7c2f460509220f9642b11860d86a5352dbda53cea6d895c20fb3a1a036"
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-42k-input-9039cb59e2ac09b3d370\\retired.json",
+    "sha256": "b313fa4e3f8970d5bdf54ed9e56d9394b80f8889bf2eca77de50fb8596cf5585"
+  }
+}

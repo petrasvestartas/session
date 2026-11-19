@@ -318,15 +318,15 @@ Run the source polygon checks; the drawing remains unchanged.
 
 ### Recorded visual result
 
-**Previous native render — current verification pending.**
+**Source31 native image reviewed.**
 
 The inherited placed boxes, source ink and ground grid remain visible. The image proves drawing; copied tests prove the new metadata.
 
-![Native renderer output for preserve source faces and edges.](../screenshots/journey/42k-input.png)
+![Native presentation at this checkpoint.](../screenshots/journey/44-topology-bd5d16840cff.png)
 
-*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
+*Fresh Rust/NVIDIA raw-DPR4 presentation, personally reviewed at 2560 × 1920. The inherited RGB grid frame remains unchanged. Original topology conservation and source face/edge identity require separate checks; interactive part modes and highlights arrive at44l. Fixed-resolution pixel checks and browser controls require separate acceptance.*
 
-This reference image is shared with [5.7.8 · Inspect the ground grid through actual commands](41f-input.md). It does not demonstrate a new feature by itself.
+This scene continues [5.7.8 · Inspect the ground grid through actual commands](41f-input.md). This checkpoint was captured independently; its new source behavior requires separate state checks.
 
 <details>
 <summary>Code explanation and diagram</summary>

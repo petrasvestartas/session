@@ -21,8 +21,8 @@ const HEAD_START: u32 = 2u; // a head whose tip is `start`
 const HEAD_ONLY: u32 = 4u; // no shaft: `start` only aims the heads
 // Default arrowhead length, in pen widths.
 const HEAD_PENS: f32 = 12.0;
-// Half the arrowhead's base width over its length.
-const HEAD_ASPECT: f32 = 0.55;
+// Half the base width over its length; the full base is 0.50 × length, as in stage drawings.
+const HEAD_ASPECT: f32 = 0.25;
 // Share of the vector the heads may take together.
 const HEAD_SHARE: f32 = 0.6;
 // The longest head of a vector that has no shaft to share with, px.

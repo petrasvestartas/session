@@ -1,120 +1,321 @@
-# Chapter 2: the matrices of the method, built from the five-node example and multiplied step by step.
-title: The matrices we use
+# cd /home/pv/brg/code_cpp/wood_research/session/session_viewer && aws s3 sync examples/stage s3://session-viewer-data/stage/ --delete --exclude '*' --include '*.yaml' --content-type application/yaml --cache-control no-cache --profile r2 --endpoint-url https://0520459c6817bd96c1e25fcb49461c4e.r2.cloudflarestorage.com
+# Open local: http://127.0.0.1:8770/?stage=decks/force-density-matrices/index.yaml&data=off&chapter=2&step=1
+# Open live: https://petrasvestartas.github.io/session/?stage=force-density-matrices&chapter=2&step=1
+
+# Chapter 2: each symbol of the matrix equation explained on its own slide, then multiplied step by step.
+title: MATRICES
 grid: {center: [3.5, 3.5], size: 9, step: 1}
 camera: {yaw: -58, pitch: 26}
-points:
-  n0: [3, 3, 0.25]
-  n1: [0, 0, 0]
-  n2: [5, 0, 3]
-  n3: [0, 7, 3]
-  n4: [7, 5, 0]
+palette: {free: ink}
+net:
+  fixed: {n1: [0, 0, 0], n2: [5, 0, 3], n3: [0, 7, 3], n4: [7, 5, 0]}
+  free: {n0: [3, 3, 0.25]}
+  cables: {e0: [n0, n1], e1: [n0, n2], e2: [n0, n3], e3: [n0, n4]}
+  q: 1
+  load: {n0: [0, 0, -5]}
+blocks:
+  balance:
+    - eq:
+        id: balance
+        tex: '{{\mathbf{x}_N}} = ({{\mathbf{C}_N^{T}}}{{\mathbf{Q}\,}}{{\mathbf{C}_N}})^{ {{-1}} }\,({{\mathbf{p}_x}} - {{\mathbf{C}_N^{T}\,}}{{\mathbf{Q}}}\,{{\mathbf{C}_F}}\,{{\mathbf{x}_F}})'
+        size: 24
+        gap: 4
 slides:
-  - title: The five nodes, solved
+  - title: 'CONNECTIVITY MATRICES'
     steps:
-      - say: 'Number the nodes $n_0,\dots,n_4$ and the cables $e_0,\dots,e_3$. Each cable runs from the free node to an anchor.'
+      - say: 'Split $\mathbf{C}$ into free ($\mathbf{C}_N$) and fixed ($\mathbf{C}_F$) node columns.'
+        show: net
+        balance: true
         do:
-          - add:
-              - {id: n1, point: n1, color: fixed, label: 'n_1'}
-              - {id: n2, point: n2, color: fixed, label: 'n_2'}
-              - {id: n3, point: n3, color: fixed, label: 'n_3'}
-              - {id: n4, point: n4, color: fixed, label: 'n_4'}
-              - {id: e0, arrow: [n0, n1], label: 'e_0'}
-              - {id: e1, arrow: [n0, n2], label: 'e_1'}
-              - {id: e2, arrow: [n0, n3], label: 'e_2'}
-              - {id: e3, arrow: [n0, n4], label: 'e_3'}
-          - add: {id: n0, point: n0, color: free, label: 'n_0'}
-
-  - title: '$\mathbf{C}$ turns coordinates into differences'
-    steps:
-      - say: 'Multiply $\mathbf{C}$ by the $x$-coordinates of all five nodes.'
-        row:
-          - {id: Cm, matrix: {rows: [[1, -1, 0, 0, 0], [1, 0, -1, 0, 0], [1, 0, 0, -1, 0], [1, 0, 0, 0, -1]], rowlabels: [e_0, e_1, e_2, e_3], name: '\mathbf{C}'}}
-          - {id: xv, matrix: {rows: [[3], [0], [5], [0], [7]], rowlabels: [x_0, x_1, x_2, x_3, x_4], name: '\mathbf{x}'}}
-          - '='
-          - {id: uv, matrix: {rows: [[3], [-2], [3], [-4]], name: '\mathbf{u}', empty: true}}
-      - say: 'Row $e_0$ times the column: only two entries survive, $u_1 = x_0 - x_1$.'
-        do:                   # by hand rather than `multiply`: the 3 flies out of the sum into u
-          - color: {target: 'Cm[0,:]', color: accent}
-          - color: {target: 'xv[:,0]', color: accent, with: true}
-          - {tex: 'u_1 = 1\cdot 3 + (-1)\cdot 0 + 0\cdot 5 + 0\cdot 0 + 0\cdot 7 = {{3}}', id: dot}
-          - fly: {from: 'dot{3}', to: 'uv[0,0]'}
-          - color: {target: 'Cm[0,:]', color: reset}
-          - color: {target: 'xv[:,0]', color: reset}
-      - say: 'The other rows give the other cables: $\mathbf{u} = \mathbf{C}\mathbf{x}$ holds every $x_0 - x_k$.'
-        morph: {target: dot, tex: 'u_k = x_0 - x_k'}
-        show: ['uv[1,0]', 'uv[2,0]', 'uv[3,0]']
-      - say: 'In 3D these are the $x$-extents of the cables, from each anchor to $n_0$.'
-        add:
-          - {id: u1, arrow: [n1, '[x(n0), y(n1), z(n1)]'], color: x, width: 3.6}
-          - {id: u2, arrow: [n2, '[x(n0), y(n2), z(n2)]'], color: x, width: 3.6}
-          - {id: u3, arrow: [n3, '[x(n0), y(n3), z(n3)]'], color: x, width: 3.6}
-          - {id: u4, arrow: [n4, '[x(n0), y(n4), z(n4)]'], color: x, width: 3.6}
-        highlight: ['uv[:,0]']
-
-  - title: Free and fixed columns
-    steps:
-      - say: 'Split the columns: $\mathbf{C}_N$ for the free node, $\mathbf{C}_F$ for the anchors. The product splits the same way.'
-        remove: [u1, u2, u3, u4]
-        row:
-          - '\mathbf{u} ='
-          - {id: CN, matrix: {rows: [[1], [1], [1], [1]], name: '\mathbf{C}_N', rowlabels: [e_0, e_1, e_2, e_3]}}
-          - {id: XN, matrix: {rows: [[3]], name: '\mathbf{x}_N'}}
-          - '+'
-          - {id: CF, matrix: {rows: [[-1, 0, 0, 0], [0, -1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]], name: '\mathbf{C}_F'}}
-          - {id: XF, matrix: {rows: [[0], [5], [0], [7]], name: '\mathbf{x}_F'}}
-      - say: 'The unknown sits only in $\mathbf{x}_N$. Everything in $\mathbf{C}_F\mathbf{x}_F$ is known.'
-        do:
-          - {indicate: [XN], color: free}
-          - {indicate: [XF], color: fixed, with: true}
-          - tex: '\mathbf{u} = \mathbf{C}_N\,\mathbf{x}_N + \mathbf{C}_F\,\mathbf{x}_F'
-
-  - title: Three diagonal matrices
-    steps:
-      - say: 'Put one number per cable on a diagonal. A diagonal matrix scales each row by its own factor.'
-        row: ['\mathbf{U} = \operatorname{diag}(\mathbf{u}) =', {matrix: {rows: [[3, 0, 0, 0], [0, -2, 0, 0], [0, 0, 3, 0], [0, 0, 0, -4]], rowlabels: [e_0, e_1, e_2, e_3]}}]
-      - say: 'The cable lengths form $\mathbf{L}$; the prescribed force densities form $\mathbf{Q}$.'
-        row: ['\mathbf{L} =', {matrix: [['4.250', 0, 0, 0], [0, '4.535', 0, 0], [0, 0, '5.706', 0], [0, 0, 0, '4.479']]}, '\qquad\mathbf{Q} =', {id: Qm, matrix: [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]}]
-      - say: '$\mathbf{U}$ and $\mathbf{L}$ change when the shape changes. $\mathbf{Q}$ does not: we choose it.'
-        indicate: [Qm]
-        color: free
-
-  - title: 'Stiffness of the free node $\mathbf{D}_N$'
-    steps:
-      - say: 'First $\mathbf{Q}\,\mathbf{C}_N$: each row of $\mathbf{C}_N$ is scaled by its own $q$.'
-        row: ['\mathbf{Q}\,\mathbf{C}_N =', {matrix: [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]}, {matrix: [[1], [1], [1], [1]]}, '=', {id: QC, matrix: {rows: [[1], [1], [1], [1]], empty: true}}]
-        show: ['QC[:,0]']
-      - say: 'Then $\mathbf{C}_N^T$ times that column: a sum over the four cables.'
-        do:                   # by hand rather than `multiply`: the 4 flies out of the sum into D_N
-          - row: ['\mathbf{D}_N = \mathbf{C}_N^{T}(\mathbf{Q}\,\mathbf{C}_N) =', {id: CT, matrix: [[1, 1, 1, 1]]}, {id: QC2, matrix: [[1], [1], [1], [1]]}, '=', {id: DN, matrix: {rows: [[4]], empty: true}}]
-          - color: {target: 'CT[0,:]', color: accent}
-          - color: {target: 'QC2[:,0]', color: accent, with: true}
-          - {tex: '1\cdot 1 + 1\cdot 1 + 1\cdot 1 + 1\cdot 1 = {{4}}', id: dot}
-          - fly: {from: 'dot{4}', to: 'DN[0,0]'}
-      - say: '$\mathbf{D}_N$ adds up the force densities of all cables at the free node: $q_1 + q_2 + q_3 + q_4 = 4$.'
-        do:
-          - color: {target: 'CT[0,:]', color: reset}
-          - color: {target: 'QC2[:,0]', color: reset}
-          - morph: {target: dot, tex: '\mathbf{D}_N = q_1 + q_2 + q_3 + q_4 = 4'}
-
-  - title: 'Coupling to the anchors $\mathbf{D}_F$'
-    steps:
-      - say: 'The same product with $\mathbf{C}_F$ couples the free node to each anchor. ($\mathbf{Q}$ is the identity here.)'
-        row: ['\mathbf{D}_F = \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F =', {matrix: [[1, 1, 1, 1]]}, {matrix: [[-1, 0, 0, 0], [0, -1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]]}, '=', {id: DF, matrix: {rows: [[-1, -1, -1, -1]], collabels: [n_1, n_2, n_3, n_4], empty: true}}]
-        show: ['DF[0,:]']
-      - say: 'Each entry is $-q$ of the cable from the free node to that anchor.'
-        do:
-          - color: {target: e1, color: accent}
-          - highlight: ['DF[0,1]']
+          - color: {target: 'balance{\mathbf{C}_N}', color: yellow}
+          - color: {target: 'balance{\mathbf{C}_F}', color: yellow, with: true}
+          - row:
+              - {id: Cm, matrix: {rows: [[1, -1, 0, 0, 0], [1, 0, -1, 0, 0], [1, 0, 0, -1, 0], [1, 0, 0, 0, -1]], rowlabels: [e_0, e_1, e_2, e_3], collabels: [n_0, n_1, n_2, n_3, n_4], name: '\mathbf{C}', empty: true}}
+              - '\;\longrightarrow\;'
+              - {id: CNs, matrix: {rows: [[1], [1], [1], [1]], collabels: [n_0], name: '\mathbf{C}_N', empty: true}}
+              - '\quad'
+              - {id: CFs, matrix: {rows: [[-1, 0, 0, 0], [0, -1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]], collabels: [n_1, n_2, n_3, n_4], name: '\mathbf{C}_F', empty: true}}
+            size: 25
+            gap: 22
+          - color: {target: e0, color: yellow}
+          - show: ['Cm[0,:]']
+          - color: {target: e0, color: reset}
+          - color: {target: e1, color: yellow, with: true}
+          - show: ['Cm[1,:]']
           - color: {target: e1, color: reset}
-      - say: 'Times the anchor coordinates, this is the known right-hand side.'
-        do:
-          - {row: ['\mathbf{D}_F\,\mathbf{x}_F =', {matrix: [[-1, -1, -1, -1]]}, {matrix: [[0], [5], [0], [7]]}, '= -12'], gap: 30}
-          - {tex: 'x_0 = \mathbf{D}_N^{-1}(p_x - \mathbf{D}_F\,\mathbf{x}_F) = \tfrac{1}{4}(0 + 12) = 3', color: free}
+          - color: {target: e2, color: yellow, with: true}
+          - show: ['Cm[2,:]']
+          - color: {target: e2, color: reset}
+          - color: {target: e3, color: yellow, with: true}
+          - show: ['Cm[3,:]']
+          - color: {target: e3, color: reset}
+          - fly: {from: 'Cm[:,0]', to: 'CNs[:,0]'}
+          - fly: {from: 'Cm[:,1]', to: 'CFs[:,0]', with: true}
+          - fly: {from: 'Cm[:,2]', to: 'CFs[:,1]', with: true}
+          - fly: {from: 'Cm[:,3]', to: 'CFs[:,2]', with: true}
+          - fly: {from: 'Cm[:,4]', to: 'CFs[:,3]', with: true}
+          - color: {target: 'CNs[:,0]', color: yellow}
+          - color: {target: 'CFs[0,0]', color: yellow, with: true}
+          - color: {target: 'CFs[1,1]', color: yellow, with: true}
+          - color: {target: 'CFs[2,2]', color: yellow, with: true}
+          - color: {target: 'CFs[3,3]', color: yellow, with: true}
+          - {tex: 'C_{e,i} = \textcolor{pos}{+1}\text{ (cable start)}, \qquad \textcolor{neg}{-1}\text{ (cable end)}, \qquad \textcolor{dim}{0}\text{ (not connected)}', size: 21, gap: 18}
 
-  - title: The whole method in three lines
+  - title: 'TRANSPOSE $\mathbf{C}_N^{T}$'
     steps:
-      - say: 'Put the pieces together: one line per coordinate gives every free node. Here it is a tool; presentation 3 derives it.'
+      - say: '$\mathbf{C}_N^{T}$ turns column $\mathbf{C}_N$ into a row to sum all cables.'
+        balance: true
         do:
-          - eq: {tex: '\mathbf{x}_N = (\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N)^{-1}\,(\mathbf{p}_x - \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{x}_F)', color: x}
-          - eq: {tex: '\mathbf{y}_N = (\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N)^{-1}\,(\mathbf{p}_y - \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{y}_F)', color: y}
-          - eq: {tex: '\mathbf{z}_N = (\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N)^{-1}\,(\mathbf{p}_z - \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{z}_F)', color: z}
+          - color: {target: 'balance{\mathbf{C}_N^{T}}', color: yellow}
+          - color: {target: 'balance{\mathbf{C}_N^{T}\,}', color: yellow, with: true}
+          - row:
+              - '\mathbf{C}_N ='
+              - {id: CNcol, matrix: {rows: [[1], [1], [1], [1]], rowlabels: [e_0, e_1, e_2, e_3]}}
+              - '\;\longrightarrow\;\mathbf{C}_N^{T} ='
+              - {id: CNrow, matrix: {rows: [[1, 1, 1, 1]], collabels: [e_0, e_1, e_2, e_3], empty: true}}
+            size: 26
+            gap: 24
+          - fly: {from: 'CNcol[0,0]', to: 'CNrow[0,0]'}
+          - fly: {from: 'CNcol[1,0]', to: 'CNrow[0,1]'}
+          - fly: {from: 'CNcol[2,0]', to: 'CNrow[0,2]'}
+          - fly: {from: 'CNcol[3,0]', to: 'CNrow[0,3]'}
+          - color: {target: 'CNrow[0,:]', color: yellow}
+          - {tex: '(\mathbf{C}_N)_{k,1} = \textcolor{pos}{1}\;\;(4\times 1\text{ column}) \quad\longrightarrow\quad (\mathbf{C}_N^{T})_{1,k} = \textcolor{pos}{1}\;\;(1\times 4\text{ row})', size: 22, gap: 18}
+
+  - title: 'FORCE DENSITY MATRIX $\mathbf{Q}$'
+    steps:
+      - say: 'Place cable force densities $q_k = 1\text{ kN/m}$ on the diagonal of $\mathbf{Q}$.'
+        balance: true
+        do:
+          - color: {target: 'balance{\mathbf{Q}\,}', color: yellow}
+          - color: {target: 'balance{\mathbf{Q}}', color: yellow, with: true}
+          - row:
+              - '\mathbf{q} ='
+              - {id: qcol, matrix: {rows: [[1], [1], [1], [1]], rowlabels: [e_0, e_1, e_2, e_3]}}
+              - '\;\longrightarrow\;\mathbf{Q} = \operatorname{diag}(\mathbf{q}) ='
+              - {id: Qm, matrix: {rows: [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]], empty: true}}
+            size: 26
+            gap: 22
+          - fly: {from: 'qcol[0,0]', to: 'Qm[0,0]'}
+          - fly: {from: 'qcol[1,0]', to: 'Qm[1,1]'}
+          - fly: {from: 'qcol[2,0]', to: 'Qm[2,2]'}
+          - fly: {from: 'qcol[3,0]', to: 'Qm[3,3]'}
+          - show: [Qm]
+          - color: {target: 'Qm[0,0]', color: yellow}
+          - color: {target: 'Qm[1,1]', color: yellow, with: true}
+          - color: {target: 'Qm[2,2]', color: yellow, with: true}
+          - color: {target: 'Qm[3,3]', color: yellow, with: true}
+          - {tex: 'Q_{kk} = q_k = \textcolor{pos}{1}\text{ kN/m (chosen per cable)}, \qquad Q_{ij} = \textcolor{dim}{0}\;\;(i \neq j)', size: 22, gap: 18}
+
+  - title: 'COORDINATE VECTORS'
+    steps:
+      - say: '$\mathbf{x}_N$ is the unknown free node; $\mathbf{x}_F$ holds the fixed anchors.'
+        balance: true
+        do:
+          - color: {target: 'balance{\mathbf{x}_N}', color: yellow}
+          - color: {target: 'balance{\mathbf{x}_F}', color: yellow, with: true}
+          - row:
+              - '\mathbf{x}_N ='
+              - {id: XNv, matrix: {rows: [['x_0']], rowlabels: [n_0]}}
+              - '\qquad\qquad\mathbf{x}_F ='
+              - {id: XFv, matrix: {rows: [[0], [5], [0], [7]], rowlabels: [n_1, n_2, n_3, n_4]}}
+            size: 26
+            gap: 24
+          - color: {target: 'XNv[0,0]', color: yellow}
+          - color: {target: 'XFv[:,0]', color: yellow, with: true}
+          - highlight: [n0, n1, n2, n3, n4]
+          - {tex: 'x_0\text{ is unknown (free node }n_0\text{)}; \qquad n_1(\textcolor{dim}{0},0,0),\; n_2(\textcolor{pos}{5},0,3),\; n_3(\textcolor{dim}{0},7,3),\; n_4(\textcolor{pos}{7},5,0)\text{ are fixed}', size: 21, gap: 18}
+
+  - title: 'EXTERNAL LOAD'
+    steps:
+      - say: '$\mathbf{p}_x$ is the load along $x$; here $5\text{ kN}$ acts downward along $z$.'
+        balance: true
+        do:
+          - color: {target: 'balance{\mathbf{p}_x}', color: yellow}
+          - row:
+              - '\mathbf{p} ='
+              - {id: pall, matrix: {rows: [[0, 0, -5]], rowlabels: [n_0], collabels: [x, y, z]}}
+              - '\;\longrightarrow\;\mathbf{p}_x ='
+              - {id: pxv, matrix: {rows: [[0]], empty: true}}
+              - '\quad\mathbf{p}_y ='
+              - {id: pyv, matrix: {rows: [[0]], empty: true}}
+              - '\quad\mathbf{p}_z ='
+              - {id: pzv, matrix: {rows: [[-5]], empty: true}}
+            size: 26
+            gap: 24
+          - fly: {from: 'pall[0,0]', to: 'pxv[0,0]'}
+          - fly: {from: 'pall[0,1]', to: 'pyv[0,0]', with: true}
+          - fly: {from: 'pall[0,2]', to: 'pzv[0,0]', with: true}
+          - color: {target: 'pxv[0,0]', color: yellow}
+          - highlight: [load_n0]
+          - {tex: 'p_x = \textcolor{dim}{0}\text{ kN}, \qquad p_y = \textcolor{dim}{0}\text{ kN}, \qquad p_z = \textcolor{neg}{-5}\text{ kN}', size: 22, gap: 18}
+
+  - title: 'FIRST BRACKET'
+    steps:
+      - say: 'First bracket: $\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N = 4$, so $(\cdot)^{-1}$ divides by $4$.'
+        balance: true
+        do:
+          - color: {target: 'balance{\mathbf{Q}\,}', color: yellow}
+          - color: {target: 'balance{\mathbf{C}_N}', color: yellow, with: true}
+          - row:
+              - '\mathbf{Q}\,\mathbf{C}_N ='
+              - {id: Qa, matrix: {rows: [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]], name: '\mathbf{Q}'}}
+              - '\quad'
+              - {id: CNa, matrix: {rows: [[1], [1], [1], [1]], name: '\mathbf{C}_N'}}
+              - '='
+              - {id: QC, matrix: {rows: [[1], [1], [1], [1]], name: '\mathbf{Q}\mathbf{C}_N', empty: true}}
+            size: 25
+            gap: 20
+          - color: {target: 'Qa[0,:]', color: yellow}
+          - color: {target: 'CNa[:,0]', color: yellow, with: true}
+          - eq: {id: qc1, tex: '(\mathbf{Q}\mathbf{C}_N)_1 &= \textcolor{pos}{1}\cdot\textcolor{pos}{1} + \textcolor{dim}{0}\cdot\textcolor{pos}{1} + \textcolor{dim}{0}\cdot\textcolor{pos}{1} + \textcolor{dim}{0}\cdot\textcolor{pos}{1} = \textcolor{pos}{ {{1}} }', size: 20, gap: 14}
+          - fly: {from: 'qc1{1}', to: 'QC[0,0]'}
+          - color: {target: 'Qa[0,:]', color: reset}
+          - color: {target: 'Qa[1,:]', color: yellow, with: true}
+          - eq: {id: qc2, tex: '(\mathbf{Q}\mathbf{C}_N)_2 &= \textcolor{dim}{0}\cdot\textcolor{pos}{1} + \textcolor{pos}{1}\cdot\textcolor{pos}{1} + \textcolor{dim}{0}\cdot\textcolor{pos}{1} + \textcolor{dim}{0}\cdot\textcolor{pos}{1} = \textcolor{pos}{ {{1}} }', size: 20, gap: 6}
+          - fly: {from: 'qc2{1}', to: 'QC[1,0]'}
+          - color: {target: 'Qa[1,:]', color: reset}
+          - color: {target: 'Qa[2,:]', color: yellow, with: true}
+          - eq: {id: qc3, tex: '(\mathbf{Q}\mathbf{C}_N)_3 &= \textcolor{dim}{0}\cdot\textcolor{pos}{1} + \textcolor{dim}{0}\cdot\textcolor{pos}{1} + \textcolor{pos}{1}\cdot\textcolor{pos}{1} + \textcolor{dim}{0}\cdot\textcolor{pos}{1} = \textcolor{pos}{ {{1}} }', size: 20, gap: 6}
+          - fly: {from: 'qc3{1}', to: 'QC[2,0]'}
+          - color: {target: 'Qa[2,:]', color: reset}
+          - color: {target: 'Qa[3,:]', color: yellow, with: true}
+          - eq: {id: qc4, tex: '(\mathbf{Q}\mathbf{C}_N)_4 &= \textcolor{dim}{0}\cdot\textcolor{pos}{1} + \textcolor{dim}{0}\cdot\textcolor{pos}{1} + \textcolor{dim}{0}\cdot\textcolor{pos}{1} + \textcolor{pos}{1}\cdot\textcolor{pos}{1} = \textcolor{pos}{ {{1}} }', size: 20, gap: 6}
+          - fly: {from: 'qc4{1}', to: 'QC[3,0]'}
+          - color: {target: 'Qa[3,:]', color: reset}
+          - color: {target: 'CNa[:,0]', color: reset, with: true}
+      - say: 'First bracket: $\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N = 4$, so $(\cdot)^{-1}$ divides by $4$.'
+        do:
+          - color: {target: 'balance{\mathbf{C}_N^{T}}', color: yellow}
+          - color: {target: 'balance{-1}', color: yellow, with: true}
+          - remove: [qc1, qc2, qc3, qc4]
+          - row:
+              - '\mathbf{C}_N^{T}(\mathbf{Q}\,\mathbf{C}_N) ='
+              - {id: CT, matrix: {rows: [[1, 1, 1, 1]], name: '\mathbf{C}_N^{T}'}}
+              - '\quad'
+              - {id: QC2, matrix: {rows: [[1], [1], [1], [1]], name: '\mathbf{Q}\mathbf{C}_N'}}
+              - '='
+              - {id: DN, matrix: {rows: [[4]], name: '\mathbf{C}_N^{T}\mathbf{Q}\mathbf{C}_N', empty: true}}
+            size: 25
+            gap: 18
+          - color: {target: 'CT[0,:]', color: yellow}
+          - color: {target: 'QC2[:,0]', color: yellow, with: true}
+          - {tex: '\textcolor{pos}{1}\cdot\textcolor{pos}{1} + \textcolor{pos}{1}\cdot\textcolor{pos}{1} + \textcolor{pos}{1}\cdot\textcolor{pos}{1} + \textcolor{pos}{1}\cdot\textcolor{pos}{1} = \textcolor{pos}{1} + \textcolor{pos}{1} + \textcolor{pos}{1} + \textcolor{pos}{1} = \textcolor{pos}{ {{4}} }', id: dotA, size: 22, gap: 16}
+          - fly: {from: 'dotA{4}', to: 'DN[0,0]'}
+          - color: {target: 'CT[0,:]', color: reset}
+          - color: {target: 'QC2[:,0]', color: reset, with: true}
+          - {tex: '(\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N)^{-1} = [\textcolor{pos}{4}]^{-1} = \textcolor{pos}{\tfrac{1}{4}}', size: 23, gap: 10}
+
+  - title: 'SECOND BRACKET'
+    steps:
+      - say: 'Second bracket: $\mathbf{p}_x - \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{x}_F$ gives $0 - (-12) = 12$.'
+        balance: true
+        do:
+          - color: {target: 'balance{\mathbf{C}_N^{T}\,}', color: yellow}
+          - color: {target: 'balance{\mathbf{Q}}', color: yellow, with: true}
+          - color: {target: 'balance{\mathbf{C}_F}', color: yellow, with: true}
+          - row:
+              - '\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F ='
+              - {id: CTQ, matrix: {rows: [[1, 1, 1, 1]], name: '\mathbf{C}_N^{T}\mathbf{Q}'}}
+              - '\quad'
+              - {id: CFb, matrix: {rows: [[-1, 0, 0, 0], [0, -1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]], collabels: [n_1, n_2, n_3, n_4], name: '\mathbf{C}_F'}}
+              - '='
+              - {id: DF, matrix: {rows: [[-1, -1, -1, -1]], collabels: [n_1, n_2, n_3, n_4], name: '\mathbf{C}_N^{T}\mathbf{Q}\mathbf{C}_F', empty: true}}
+            size: 25
+            gap: 20
+          - color: {target: 'CTQ[0,:]', color: yellow}
+          - color: {target: 'CFb[:,0]', color: yellow, with: true}
+          - color: {target: e0, color: yellow, with: true}
+          - eq: {id: b1, tex: '(\mathbf{C}_N^{T}\mathbf{Q}\mathbf{C}_F)_{11} &= \textcolor{pos}{1}\cdot\textcolor{neg}{(-1)} + \textcolor{pos}{1}\cdot\textcolor{dim}{0} + \textcolor{pos}{1}\cdot\textcolor{dim}{0} + \textcolor{pos}{1}\cdot\textcolor{dim}{0} = \textcolor{neg}{ {{-1}} }', size: 21, gap: 16}
+          - fly: {from: 'b1{-1}', to: 'DF[0,0]'}
+      - say: 'Second bracket: $\mathbf{p}_x - \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{x}_F$ gives $0 - (-12) = 12$.'
+        do:
+          - color: {target: 'CFb[:,0]', color: reset}
+          - color: {target: e0, color: reset, with: true}
+          - color: {target: 'CFb[:,1]', color: yellow, with: true}
+          - color: {target: e1, color: yellow, with: true}
+          - eq: {id: b2, tex: '(\mathbf{C}_N^{T}\mathbf{Q}\mathbf{C}_F)_{12} &= \textcolor{pos}{1}\cdot\textcolor{dim}{0} + \textcolor{pos}{1}\cdot\textcolor{neg}{(-1)} + \textcolor{pos}{1}\cdot\textcolor{dim}{0} + \textcolor{pos}{1}\cdot\textcolor{dim}{0} = \textcolor{neg}{ {{-1}} }', size: 21, gap: 10}
+          - fly: {from: 'b2{-1}', to: 'DF[0,1]'}
+          - color: {target: 'CFb[:,1]', color: reset}
+          - color: {target: e1, color: reset, with: true}
+          - color: {target: 'CFb[:,2]', color: yellow, with: true}
+          - color: {target: e2, color: yellow, with: true}
+          - eq: {id: b3, tex: '(\mathbf{C}_N^{T}\mathbf{Q}\mathbf{C}_F)_{13} &= \textcolor{pos}{1}\cdot\textcolor{dim}{0} + \textcolor{pos}{1}\cdot\textcolor{dim}{0} + \textcolor{pos}{1}\cdot\textcolor{neg}{(-1)} + \textcolor{pos}{1}\cdot\textcolor{dim}{0} = \textcolor{neg}{ {{-1}} }', size: 21, gap: 10}
+          - fly: {from: 'b3{-1}', to: 'DF[0,2]'}
+          - color: {target: 'CFb[:,2]', color: reset}
+          - color: {target: e2, color: reset, with: true}
+          - color: {target: 'CFb[:,3]', color: yellow, with: true}
+          - color: {target: e3, color: yellow, with: true}
+          - eq: {id: b4, tex: '(\mathbf{C}_N^{T}\mathbf{Q}\mathbf{C}_F)_{14} &= \textcolor{pos}{1}\cdot\textcolor{dim}{0} + \textcolor{pos}{1}\cdot\textcolor{dim}{0} + \textcolor{pos}{1}\cdot\textcolor{dim}{0} + \textcolor{pos}{1}\cdot\textcolor{neg}{(-1)} = \textcolor{neg}{ {{-1}} }', size: 21, gap: 10}
+          - fly: {from: 'b4{-1}', to: 'DF[0,3]'}
+          - color: {target: 'CTQ[0,:]', color: reset}
+          - color: {target: 'CFb[:,3]', color: reset, with: true}
+          - color: {target: e3, color: reset, with: true}
+      - say: 'Second bracket: $\mathbf{p}_x - \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{x}_F$ gives $0 - (-12) = 12$.'
+        do:
+          - color: {target: 'balance{\mathbf{x}_F}', color: yellow}
+          - color: {target: 'balance{\mathbf{p}_x}', color: yellow, with: true}
+          - color: {target: 'balance{\mathbf{x}_N}', color: pos, with: true}
+          - remove: [b1, b2, b3, b4]
+          - row:
+              - '\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{x}_F ='
+              - {id: DF2, matrix: {rows: [[-1, -1, -1, -1]], name: '\mathbf{C}_N^{T}\mathbf{Q}\mathbf{C}_F'}}
+              - '\quad'
+              - {id: XF2, matrix: {rows: [[0], [5], [0], [7]], rowlabels: [x_1, x_2, x_3, x_4], name: '\mathbf{x}_F'}}
+              - '='
+              - {id: PB, matrix: {rows: [[-12]], empty: true}}
+            size: 25
+            gap: 18
+          - color: {target: 'DF2[0,:]', color: yellow}
+          - color: {target: 'XF2[:,0]', color: yellow, with: true}
+          - {tex: '\textcolor{neg}{(-1)}\cdot\textcolor{dim}{0} + \textcolor{neg}{(-1)}\cdot\textcolor{pos}{5} + \textcolor{neg}{(-1)}\cdot\textcolor{dim}{0} + \textcolor{neg}{(-1)}\cdot\textcolor{pos}{7} = \textcolor{dim}{0} \textcolor{neg}{- 5} + \textcolor{dim}{0} \textcolor{neg}{- 7} = \textcolor{neg}{ {{-12}} }', id: pbdot, size: 21, gap: 14}
+          - fly: {from: 'pbdot{-12}', to: 'PB[0,0]'}
+          - color: {target: 'DF2[0,:]', color: reset}
+          - color: {target: 'XF2[:,0]', color: reset, with: true}
+          - {tex: 'x_0 = \textcolor{pos}{\tfrac{1}{4}}\,\bigl(\textcolor{dim}{0} - (\textcolor{neg}{-12})\bigr) = \frac{\textcolor{pos}{12}}{\textcolor{pos}{4}} = \textcolor{pos}{3}', size: 23, gap: 12}
+
+  - title: 'SOLVE $x, y, z$'
+    steps:
+      - say: 'Applying the same equation to $x, y, z$ gives $n_0 = (3,\,3,\,0.25)$.'
+        balance: true
+        do:
+          - color: {target: 'balance{\mathbf{C}_N^{T}\,}', color: yellow}
+          - color: {target: 'balance{\mathbf{Q}}', color: yellow, with: true}
+          - color: {target: 'balance{\mathbf{C}_F}', color: yellow, with: true}
+          - color: {target: 'balance{\mathbf{x}_F}', color: yellow, with: true}
+          - row:
+              - '\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{x}_F ='
+              - {id: DFall, matrix: {rows: [[-1, -1, -1, -1]], name: '\mathbf{C}_N^{T}\mathbf{Q}\mathbf{C}_F'}}
+              - '\quad'
+              - {id: XFall, matrix: {rows: [[0, 0, 0], [5, 0, 3], [0, 7, 3], [7, 5, 0]], rowlabels: [n_1, n_2, n_3, n_4], collabels: [x, y, z], name: '\mathbf{x}_F'}}
+              - '='
+              - {id: PBall, matrix: {rows: [[-12, -12, -6]], collabels: [x, y, z], empty: true}}
+            size: 24
+            gap: 20
+          - color: {target: 'DFall[0,:]', color: yellow}
+          - color: {target: 'XFall[:,0]', color: yellow, with: true}
+          - eq: {id: sx, tex: 'x\text{-col:} &\quad \textcolor{neg}{(-1)}\cdot\textcolor{dim}{0} + \textcolor{neg}{(-1)}\cdot\textcolor{pos}{5} + \textcolor{neg}{(-1)}\cdot\textcolor{dim}{0} + \textcolor{neg}{(-1)}\cdot\textcolor{pos}{7} = \textcolor{neg}{ {{-12}} }', size: 20, gap: 14}
+          - fly: {from: 'sx{-12}', to: 'PBall[0,0]'}
+          - color: {target: 'XFall[:,0]', color: reset}
+          - color: {target: 'XFall[:,1]', color: yellow, with: true}
+          - eq: {id: sy, tex: 'y\text{-col:} &\quad \textcolor{neg}{(-1)}\cdot\textcolor{dim}{0} + \textcolor{neg}{(-1)}\cdot\textcolor{dim}{0} + \textcolor{neg}{(-1)}\cdot\textcolor{pos}{7} + \textcolor{neg}{(-1)}\cdot\textcolor{pos}{5} = \textcolor{neg}{ {{-12}} }', size: 20, gap: 8}
+          - fly: {from: 'sy{-12}', to: 'PBall[0,1]'}
+          - color: {target: 'XFall[:,1]', color: reset}
+          - color: {target: 'XFall[:,2]', color: yellow, with: true}
+          - eq: {id: sz, tex: 'z\text{-col:} &\quad \textcolor{neg}{(-1)}\cdot\textcolor{dim}{0} + \textcolor{neg}{(-1)}\cdot\textcolor{pos}{3} + \textcolor{neg}{(-1)}\cdot\textcolor{pos}{3} + \textcolor{neg}{(-1)}\cdot\textcolor{dim}{0} = \textcolor{neg}{ {{-6}} }', size: 20, gap: 8}
+          - fly: {from: 'sz{-6}', to: 'PBall[0,2]'}
+          - color: {target: 'DFall[0,:]', color: reset}
+          - color: {target: 'XFall[:,2]', color: reset, with: true}
+      - say: 'Applying the same equation to $x, y, z$ gives $n_0 = (3,\,3,\,0.25)$.'
+        do:
+          - color: {target: 'balance{\mathbf{C}_N^{T}}', color: pos}
+          - color: {target: 'balance{\mathbf{Q}\,}', color: pos, with: true}
+          - color: {target: 'balance{\mathbf{C}_N}', color: pos, with: true}
+          - color: {target: 'balance{-1}', color: pos, with: true}
+          - color: {target: 'balance{\mathbf{x}_N}', color: yellow, with: true}
+          - color: {target: 'balance{\mathbf{p}_x}', color: load, with: true}
+          - remove: [sx, sy, sz]
+          - eq: {tex: '\mathbf{x}_N &= (\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N)^{-1}\,(\mathbf{p}_x - \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{x}_F) = \tfrac{1}{\textcolor{pos}{4}}\bigl(\textcolor{dim}{0} - (\textcolor{neg}{-12})\bigr) = \textcolor{pos}{3}', size: 20, gap: 12}
+          - eq: {tex: '\mathbf{y}_N &= (\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N)^{-1}\,(\mathbf{p}_y - \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{y}_F) = \tfrac{1}{\textcolor{pos}{4}}\bigl(\textcolor{dim}{0} - (\textcolor{neg}{-12})\bigr) = \textcolor{pos}{3}', size: 20, gap: 8}
+          - eq: {tex: '\mathbf{z}_N &= (\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N)^{-1}\,(\mathbf{p}_z - \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{z}_F) = \tfrac{1}{\textcolor{pos}{4}}\bigl(\textcolor{load}{-5} - (\textcolor{neg}{-6})\bigr) = \textcolor{pos}{0.25}', size: 20, gap: 8}
+          - highlight: [n0]

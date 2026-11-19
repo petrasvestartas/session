@@ -465,5 +465,4 @@ pub struct ClipUniform {
 
 const _: () = assert!(std::mem::size_of::<ClipUniform>() == 448);
 
-/// Vertical field of view in degrees.
-pub const FOVY_DEG: f64 = 60.0;
+pub use crate::camera::FOVY_DEG;

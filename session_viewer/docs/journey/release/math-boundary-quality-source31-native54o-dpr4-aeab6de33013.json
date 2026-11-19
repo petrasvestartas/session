@@ -1,0 +1,76 @@
+{
+  "preexistingImageReused": false,
+  "publisher": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-camera-finish-six-case-54o-01\\publish.mjs",
+    "sha256": "4280d87bcb0c9d0bd55795b1314c277da1073688705796ba8cd79c26839eb0ce"
+  },
+  "originalPublisher": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-camera-finish-six-case-54o-01\\publish-original-template.mjs",
+    "sha256": "6e886ba95d8338af75a3957d5616ac7fe2e19055491bfc0d5f9bf76dda7845f5"
+  },
+  "batchCaptureReady": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-camera-finish-six-case-54o-01\\capture-ready.json",
+    "sha256": "ce6b8f75dccfa0f3123c653c91fa54c1e76b4002360c2e4991298bdd280badb3"
+  },
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-14T16:49:31.042Z",
+  "id": "54o-frame",
+  "lane": "native",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-54o-frame-6344a8f450a5abad5d91\\capture.json.gz",
+    "sha256": "dfe6930e55473cd015b5a79aeb88f76ee96a2d913b2fff16412ccd97a3b168e0",
+    "bytes": 107935
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-camera-finish-six-case-54o-01\\capture-result.json",
+    "sha256": "f75def6491e40d248d7e803f1d44a908fbe42c7d56528653862bae1cd3509a4b"
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-camera-finish-six-54o-01-execution.json",
+    "sha256": "5a71d42099ef274bb3fed266e1f4278bf437eab7d7c2e3162ab4aef8deb60430"
+  },
+  "boundedTerminal": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-camera-finish-six-case-54o-01\\bounded-terminal.json",
+    "sha256": "721d6e6b5629ed6bb088fd7a8816924e6789a390f162e66d3430064c7aa36137"
+  },
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-31-stage-aware-native-density.json",
+    "sha256": "7e9980c097467f8f4a60519e63aef9bfdd87122e72179d1f35f1849391ade57a"
+  },
+  "sourceFreezeCoverage": {
+    "matchedFiles": 555,
+    "basis": "Pinned Native wrapper preflight and postflight; live hashes rechecked"
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\54o-frame-aeab6de33013.png",
+    "sha256": "aeab6de3301305b4cd9f51b8d4cdb4d705b40e3b1b7c62a2411aaa1e2145eae1"
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\53u-layers.png",
+    "sha256": "c5e76ea8992ae69a7682aa4e2cea4af082cc1f8bad6a41fd0300c196df07b7e9"
+  },
+  "aliasManifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\image-aliases.json",
+    "sha256": "59a41176fb5daa71125bf02fc487c3fb2edbef2e4a35f20487a21999268affae"
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root opened this original PNG at original detail; duplicate display corroborated by exact SHA256 equality to the full original54m image personally viewed. It shows the same53u two blue Posts and unrelated brown beam, clean original black boundaries and no triangulation wires. This is fresh Rust/NVIDIA raw-DPR4 inherited constructor presentation only; camera framing behavior, canonical state checks and browser controls were not executed by this capture.",
+  "canonicalBehaviorExecuted": false,
+  "scope": "Source31 54o-frame rawDPR4 image presentation. Actual fixture scope is stated in Rootreview; canonical640pixel/full-unit/browser acceptance remains separate. Original fixedpixel function bodies and oldaliases/pixels retained.",
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-camera-finish-six-case-54o-01\\publication.json",
+    "sha256": "39c40f564d4799f1db3103b795672cbae519b025a3bfa52936d0aad1a4719c33"
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-54o-frame-6344a8f450a5abad5d91\\publication.json",
+    "sha256": "c466066647444f27d447e63f370adbfcb2ec045fd384f6de0af55dc8a29ba301"
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-54o-frame-6344a8f450a5abad5d91\\retirement.json.gz",
+    "sha256": "c9c4e22f24cd20fd42a288c06664aec4a78db20eccd33b789353c552f962111c"
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-54o-frame-6344a8f450a5abad5d91\\retired.json",
+    "sha256": "73a736dac0e83583379df2a0a5055fab5db93490779f2f6ef780b933ec5575a5"
+  }
+}

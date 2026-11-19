@@ -205,6 +205,7 @@ impl Stage {
                 q.color = q.color.or(Some(dim));
                 let i = push(&mut out, q);
                 groups.entry("labels".into()).or_default().push(i);
+                groups.entry(format!("{r},:")).or_default().push(i);
             }
         }
         for (c, lab) in cl.iter().enumerate() {
@@ -225,6 +226,7 @@ impl Stage {
                 q.color = q.color.or(Some(dim));
                 let i = push(&mut out, q);
                 groups.entry("labels".into()).or_default().push(i);
+                groups.entry(format!(":,{c}")).or_default().push(i);
             }
         }
         if let Some(name) = &spec.name {

@@ -1,4 +1,3 @@
-// --8<-- [start:implementation]
 use std::cell::RefCell;
 use std::collections::HashMap;
 use ttf_parser::{Face, GlyphId};
@@ -199,7 +198,6 @@ impl Fonts {
             .map(|id| (MATH, id.0))
     }
 
-// --8<-- [start:metrics]
     /// Advance, ink box and italic correction of a glyph, em.
     pub fn metrics(&self, font: FontId, gid: u16) -> Metrics {
         if let Some(m) = self.metrics.borrow().get(&(font, gid)) {
@@ -240,7 +238,6 @@ impl Fonts {
         m
     }
 
-// --8<-- [end:metrics]
     /// Top accent attachment of a math glyph, em; None uses the ink center.
     pub fn accent_attach(&self, gid: u16) -> Option<f32> {
         let f = &self.faces[MATH as usize];
@@ -292,4 +289,3 @@ impl Fonts {
         }
     }
 }
-// --8<-- [end:implementation]

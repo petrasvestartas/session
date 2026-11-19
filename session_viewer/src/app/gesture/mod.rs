@@ -5,6 +5,7 @@ mod object; // register:object-drag // register:box-select
 
 use crate::State;
 
+// --8<-- [start:input-gestures]
 /// One left-button tool: which presses it takes, how it follows the pointer, how it ends.
 pub struct Gesture {
     pub name: &'static str, // what tests call it
@@ -38,6 +39,7 @@ pub fn start(state: &mut State, down: (f64, f64), at: (f64, f64)) -> Option<&'st
         .find(|gesture| gesture.start.is_some_and(|take| take(state, down, at)))
 }
 
+// --8<-- [end:input-gestures]
 #[cfg(test)]
 mod tests {
     use super::*;

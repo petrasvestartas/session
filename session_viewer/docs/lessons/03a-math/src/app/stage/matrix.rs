@@ -1,4 +1,3 @@
-// --8<-- [start:implementation]
 use super::deck::MatrixSpec;
 use super::run::Stage;
 use super::tex::{Expr, Prim, Rgba, Shape};
@@ -8,7 +7,6 @@ use std::rc::Rc;
 impl Stage {
     /// A matrix as rounded cells with centered entries, em units.
     pub(super) fn matrix(&mut self, spec: &MatrixSpec) -> (Expr, HashMap<String, Vec<usize>>) {
-// --8<-- [start:cells]
         let e = 0.8f32;
         let blank = Rc::new(Expr::default());
         let entries: Vec<Vec<Rc<Expr>>> = spec
@@ -74,7 +72,6 @@ impl Stage {
             d: mh / 2.0 - axis,
             ..Expr::default()
         };
-// --8<-- [end:cells]
         let mut groups: HashMap<String, Vec<usize>> = HashMap::new();
         let push = |out: &mut Expr, p: Prim| {
             out.prims.push(p);
@@ -208,6 +205,7 @@ impl Stage {
                 q.color = q.color.or(Some(dim));
                 let i = push(&mut out, q);
                 groups.entry("labels".into()).or_default().push(i);
+                groups.entry(format!("{r},:")).or_default().push(i);
             }
         }
         for (c, lab) in cl.iter().enumerate() {
@@ -228,6 +226,7 @@ impl Stage {
                 q.color = q.color.or(Some(dim));
                 let i = push(&mut out, q);
                 groups.entry("labels".into()).or_default().push(i);
+                groups.entry(format!(":,{c}")).or_default().push(i);
             }
         }
         if let Some(name) = &spec.name {
@@ -264,4 +263,3 @@ impl Stage {
         (out, groups)
     }
 }
-// --8<-- [end:implementation]

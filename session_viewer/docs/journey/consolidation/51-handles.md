@@ -48,6 +48,8 @@
 
 ## <a id="checkpoint-51-handles"></a>1. Name move, rotation and scale handles
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/51-handles-deb4457c6d33.png). This inherited two-box Move preview preserves selected gold faces and a temporary yellow band; it does not yet display handle geometry.
+
 ### 1. `src/gizmo.rs`
 
 Create the file and type:
@@ -172,6 +174,8 @@ pub mod gizmo;
 ```
 
 ## <a id="checkpoint-51a-rays"></a>2. Measure handle rays in world coordinates
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/51a-rays-deb4457c6d33.png). The inherited two-box Move preview remains visible; ray construction and live picking need separate validation.
 
 
 
@@ -302,6 +306,8 @@ fn about(pivot: &Point, m: Xform) -> Xform {
 
 ## <a id="checkpoint-51b-pivot"></a>3. Keep handle state at one original-world pivot
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/51b-pivot-deb4457c6d33.png). This inherited two-box Move preview keeps source and display models separate; a pivot gizmo is not part of this recorded fixture.
+
 ### 1. `src/gizmo.rs`
 
 **Locate this existing block:**
@@ -369,6 +375,8 @@ fn typed_factor(value: f64) -> f64 {
 ```
 
 ## <a id="checkpoint-51c-hit"></a>4. Pick handles in a stable priority order
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/51c-hit-deb4457c6d33.png). The inherited two-box Move preview is retained; handle hit geometry and live picking require separate checks.
 
 ### 1. `src/gizmo.rs`
 
@@ -455,6 +463,8 @@ fn typed_factor(value: f64) -> f64 {
 
 ## <a id="checkpoint-51d-grab"></a>5. Capture the handle’s grab
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/51d-grab-deb4457c6d33.png). The inherited two-box Move preview stays unchanged; the grab gesture needs separate runtime validation.
+
 ### 1. `src/gizmo.rs`
 
 **Locate this existing block:**
@@ -531,6 +541,8 @@ fn typed_factor(value: f64) -> f64 {
 ```
 
 ## <a id="checkpoint-51e-transform"></a>6. Derive handle transforms and quarter-turn snapping
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/51e-transform-deb4457c6d33.png). The inherited two-box Move preview shows source and display model separation; this figure does not establish handle transformations.
 
 ### 1. `src/gizmo.rs`
 
@@ -959,6 +971,8 @@ mod gizmo_tests;
 
 ## <a id="checkpoint-51ez-pack-and-sample-local-handle-vertices"></a>7. Pack and sample local handle vertices
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/51ez-pack-and-sample-local-handle-vertices-deb4457c6d33.png). This inherited two-box Move preview does not display the local handle vertices; packing and sampling need separate source and runtime checks.
+
 ### 1. `src/widget_mesh.rs`
 
 Create the file and type:
@@ -1055,6 +1069,8 @@ pub mod widget_mesh;
 ```
 
 ## <a id="checkpoint-51f-mesh"></a>8. Build local arrows balls and rotation arcs
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/51f-mesh-deb4457c6d33.png). The inherited two-box Move preview does not yet display a handle mesh; its gold faces and temporary band remain unchanged.
 
 
 
@@ -1172,6 +1188,8 @@ fn sphere(
 ```
 
 ## <a id="checkpoint-51g-layout"></a>9. Keep handles constant in CSS pixels
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/51g-layout-deb4457c6d33.png). The inherited two-box Move preview remains the recorded scene; handle pipeline layout requires separate validation.
 
 ### 1. `src/widget_layout.rs`
 
@@ -1303,6 +1321,8 @@ pub mod widget_layout;
 
 ## <a id="checkpoint-51h-shader"></a>10. Draw a local handle tile and its canvas rectangle
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/51h-shader-deb4457c6d33.png). The inherited two-box Move preview remains visible; this figure does not display the handle shader output.
+
 ### 1. `src/widget.wgsl`
 
 Create the file and type:
@@ -1373,6 +1393,8 @@ fn fs_composite(in: Composite) -> @location(0) vec4<f32> {
 
 ## <a id="checkpoint-51i-image"></a>11. Bind the widget’s own sampled image
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/51i-image-deb4457c6d33.png). This inherited two-box Move preview does not display handle image sampling; its selected faces and temporary band remain unchanged.
+
 ### 1. `src/widget_pipelines.rs`
 
 Create the file and type:
@@ -1424,6 +1446,8 @@ pub mod widget_pipelines;
 ```
 
 ## <a id="checkpoint-51j-pipelines"></a>12. Separate handle depth from scene depth
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/51j-pipelines-deb4457c6d33.png). The inherited two-box Move preview remains the recorded scene; handle pipeline behavior needs separate validation.
 
 ### 1. `src/widget_pipelines.rs`
 
@@ -1535,6 +1559,8 @@ pub fn composite(
 
 ## <a id="checkpoint-51k-tile"></a>13. Own color, depth and resolve textures together
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/51k-tile-deb4457c6d33.png). This inherited two-box Move preview does not yet show handle tiles; the recorded scene stays unchanged.
+
 
 
 ### 1. `src/widget.rs`
@@ -1642,6 +1668,8 @@ pub mod widget;
 
 ## <a id="checkpoint-51l-upload"></a>14. Upload handle geometry once
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/51l-upload-deb4457c6d33.png). The inherited two-box Move preview is unchanged; handle upload behavior requires separate validation.
+
 See the [typed CPU buffers and GPU uploads diagram in Lesson 3.6](31-settings.md).
 
 ### 1. `src/widget.rs`
@@ -1748,6 +1776,8 @@ struct Tile {
 
 ## <a id="checkpoint-51m-prepare"></a>15. Write only current handle placement
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/51m-prepare-deb4457c6d33.png). This inherited two-box Move preview does not establish handle preparation behavior; that runtime validation remains separate.
+
 ### 1. `src/widget.rs`
 
 **Locate this existing block:**
@@ -1805,6 +1835,8 @@ impl Drop for Widget {
 ```
 
 ## <a id="checkpoint-51n-draw"></a>16. Composite handles after source geometry
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/51n-draw-deb4457c6d33.png). The inherited two-box Move preview remains visible; this recorded fixture does not establish handle drawing.
 
 See the [command encoding and render passes diagram in Lesson 1.2](02-clear.md).
 
@@ -1888,6 +1920,8 @@ impl Drop for Widget {
 ```
 
 ## <a id="checkpoint-51o-renderer"></a>17. Register the widget outside source picking
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/51o-renderer-deb4457c6d33.png). The inherited two-box Move preview remains unchanged; visible handle renderer behavior requires separate validation.
 
 
 
@@ -2306,6 +2340,8 @@ mod widget_tests;
 
 ## <a id="checkpoint-51p-part-points"></a>18. Locate mesh parts and curve controls
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/51p-part-points-deb4457c6d33.png). The inherited two-box Move preview remains the recorded scene; part-point geometry requires separate checks.
+
 ### 1. `src/part_preview.rs`
 
 Create the file and type:
@@ -2423,6 +2459,8 @@ pub mod part_preview;
 ```
 
 ## <a id="checkpoint-51q-deform"></a>19. Deform selected points through their placement
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/51q-deform-deb4457c6d33.png). The inherited two-box Move preview remains visible; part deformation requires separate runtime checks.
 
 ### 1. `src/scene.rs`
 
@@ -2551,6 +2589,8 @@ impl Scene {
 
 ## <a id="checkpoint-51r-part-preview"></a>20. Keep part deformation outside saved geometry
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/51r-part-preview-deb4457c6d33.png). Inherited 50d two-box Move display at raw DPR4; part-preview behavior remains separately unverified.
+
 ### 1. `src/part_preview.rs`
 
 **Locate this existing block:**
@@ -2672,6 +2712,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-51s-edit-owner"></a>21. Share one handle interface across whole and part edits
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/51s-edit-owner-deb4457c6d33.png). Inherited 50d two-box Move display at raw DPR4; edit-ownership behavior remains separately unverified.
+
 ### 1. `src/gizmo_edit.rs`
 
 Create the file and type:
@@ -2759,6 +2801,8 @@ pub mod gizmo_edit;
 ```
 
 ## <a id="checkpoint-51t-capture"></a>22. Keep pointer ownership through click or drag
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/51t-capture-deb4457c6d33.png). Inherited 50d two-box Move display at raw DPR4; interactive capture workflow remains separately unverified.
 
 ### 1. `src/gizmo_edit.rs`
 
@@ -2877,6 +2921,8 @@ pub fn code(handle: Option<Handle>) -> f32 {
 ```
 
 ## <a id="checkpoint-51u-selection"></a>23. Place handles on the current editable selection
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/51u-selection-deb4457c6d33.png). Inherited 50d two-box Move display at raw DPR4; handle selection and pivot behavior remain separately unverified.
 
 ### 1. `src/editor.rs`
 
@@ -3662,6 +3708,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-51v-press"></a>24. Capture a valid handle without editing the document
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/51v-press-deb4457c6d33.png). Inherited 50d two-box Move display at raw DPR4; pointer-press routing remains separately unverified.
+
 ### 1. `src/editor.rs`
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
@@ -3847,6 +3895,8 @@ pub enum Action {
 ```
 
 ## <a id="checkpoint-51w-release"></a>25. Preview captured motion and commit one release
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/51w-release-deb4457c6d33.png). Inherited 50d two-box Move display at raw DPR4; release and commit interaction remains separately unverified.
 
 ### 1. `src/editor.rs`
 
@@ -4056,6 +4106,8 @@ Replace it with:
 
 ## <a id="checkpoint-51x-number-model"></a>26. Own one handle’s number-field state
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/51x-number-model-deb4457c6d33.png). Inherited 50d two-box Move display at raw DPR4; numeric-model and interactive entry behavior remain separately unverified.
+
 ### 1. `src/number_box.rs`
 
 Create the file and type:
@@ -4119,6 +4171,8 @@ pub mod number_box;
 ```
 
 ## <a id="checkpoint-51y-number-field"></a>27. Draw the number field beside its handle
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/51y-number-field-deb4457c6d33.png). Inherited 50d two-box Move display at raw DPR4; numeric-field parsing and focused entry remain separately unverified.
 
 ### 1. `src/number_box.rs`
 
@@ -4224,6 +4278,8 @@ pub fn draw(
 ```
 
 ## <a id="checkpoint-51z-number-submit"></a>28. Apply precise typed handle values once
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/51z-number-submit-deb4457c6d33.png). Inherited 50d two-box Move display at raw DPR4; numeric submission and transform commit remain separately unverified.
 
 ### 1. `src/editor.rs`
 
@@ -4453,6 +4509,8 @@ Replace it with:
 ```
 
 ## <a id="checkpoint-51za-panel"></a>29. Route field input through the shared canvas panel
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/51za-panel-deb4457c6d33.png). Inherited 50d two-box Move display at raw DPR4; numeric-panel rendering and interaction remain separately unverified.
 
 ### 1. `src/panel.rs`
 
@@ -5237,6 +5295,8 @@ impl Panel {
 
 ## <a id="checkpoint-51zb-presentation"></a>30. Update selected handles with the actual camera
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/51zb-presentation-deb4457c6d33.png). Inherited 50d two-box Move display at raw DPR4; rendered handles enter with the later 51zf fixture.
+
 ### 1. `src/browser.rs`
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
@@ -5323,6 +5383,8 @@ Replace it with:
 ```
 
 ## <a id="checkpoint-51zc-pointer"></a>31. Capture actual browser handle drags
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/51zc-pointer-deb4457c6d33.png). Inherited 50d two-box Move display at raw DPR4; handle pointer routing remains separately unverified.
 
 ### 1. `src/browser.rs`
 
@@ -5463,6 +5525,8 @@ Replace it with:
 ```
 
 ## <a id="checkpoint-51zd-interruption"></a>32. Restore previews when input ownership ends
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/51zd-interruption-deb4457c6d33.png). Inherited 50d two-box Move display at raw DPR4; handle interruption and cancellation behavior remain separately unverified.
 
 ### 1. `src/browser.rs`
 
@@ -5687,6 +5751,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-51ze-ledger"></a>33. Count temporary source owners without saving them
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/51ze-ledger-deb4457c6d33.png). Inherited 50d two-box Move display at raw DPR4; gesture history and ledger behavior remain separately unverified.
+
 ### 1. `src/editor.rs`
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
@@ -5776,6 +5842,8 @@ Replace it with:
 ```
 
 ## <a id="checkpoint-51zf-handles"></a>34. Verify complete handle editing and input
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/51zf-handles-205a3b9411c0.png). Actual 51zf fixture: selected isometric boxes with black mathematical boundaries and red, green and blue handle arrows, grips and smooth rotation arcs. GUI gestures require separate acceptance.
 
 ### 1. `src/gizmo_edit_tests.rs`
 

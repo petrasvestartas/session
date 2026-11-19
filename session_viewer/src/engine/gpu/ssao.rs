@@ -790,8 +790,8 @@ fn inverse_projection(matrix: [f32; 16]) -> Option<[f32; 16]> {
     Some(inverse.map(|v| v as f32))
 }
 
-#[cfg(test)]
-mod tests;
+#[cfg(test)] // register:application-tests
+mod tests; // register:application-tests
 
 /// Ambient occlusion over the faces; its pipelines at 1x and 4x stay while it is off.
 pub struct Ambient {

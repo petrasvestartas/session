@@ -55,8 +55,8 @@ fn half_width_px(radius: f32, w: f32) -> f32 {
 const FILTER_REACH: f32 = 0.70711;
 // Default arrowhead length, in pen widths; as in vector.wgsl.
 const HEAD_PENS: f32 = 12.0;
-// Half the arrowhead's base width over its length; as in vector.wgsl.
-const HEAD_ASPECT: f32 = 0.55;
+// Half the base width over its length; the full base is 0.50 × length, as in vector.wgsl.
+const HEAD_ASPECT: f32 = 0.25;
 
 // Arrowhead length in px: `pens` pen widths, seven shaft half widths at least, `most` at most.
 fn head_px(pens: f32, hw: f32, most: f32) -> f32 {

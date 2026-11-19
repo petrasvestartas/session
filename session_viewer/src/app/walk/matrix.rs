@@ -31,6 +31,7 @@ pub fn is_matrix(component: &Component) -> bool {
     component.type_name == TYPE_NAME
 }
 
+// --8<-- [start:kernel-matrix-upload]
 /// A matrix component as one block of words for object row `row`: the shader draws its cells, edges and values.
 pub fn walk(rows_out: &mut MatrixRows, component: &Component, row: u32) -> Row {
     let rows = count(component, "rows");
@@ -108,6 +109,8 @@ pub fn walk(rows_out: &mut MatrixRows, component: &Component, row: u32) -> Row {
     Row::thin(bounds)
 }
 
+// --8<-- [end:kernel-matrix-upload]
+// --8<-- [start:kernel-matrix-title]
 /// The title of a matrix component: its name, its object-space top-left corner, its height and colour.
 pub fn title(component: &Component) -> Option<(String, [f64; 3], f64, [u8; 4])> {
     if component.name.trim().is_empty() {
@@ -131,6 +134,7 @@ pub fn title(component: &Component) -> Option<(String, [f64; 3], f64, [u8; 4])> 
     ))
 }
 
+// --8<-- [end:kernel-matrix-title]
 /// A non-negative integer field.
 fn count(component: &Component, key: &str) -> u32 {
     component

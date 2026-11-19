@@ -23,10 +23,11 @@ struct VsOut {
     @location(6) @interpolate(flat) selected: u32, // nonzero when selected
     @location(7) @interpolate(flat) source_face: u32, // source face id, or none
     @location(8) @interpolate(flat) primitive: u32, // triangle index + 1
-    // closed solids take the opacity; open sheets stay opaque
+    // closed solids take the scene opacity; open sheets stay opaque except authored fill meshes
     @location(9) @interpolate(flat) closed: u32,
     // x-ray drops the faces of multi-face solids only
     @location(10) @interpolate(flat) xray: u32,
+    @location(11) @interpolate(flat) fill_alpha: f32, // opacity of an unlit fill mesh
 }
 
 // A vertex placed off screen, so nothing is drawn.
@@ -77,6 +78,7 @@ fn transform_vertex(in: VsIn) -> VsOut {
     o.source_face = 0xffffffffu;
     o.closed = select(1u, 0u, (inst.flags & FLAG_OPEN) != 0u || contact);
     o.xray = select(0u, 1u, line.opacity <= 0.0 && (inst.flags & (FLAG_PRINT | FLAG_SHEET | FLAG_SINGLE)) == 0u && !contact);
+    o.fill_alpha = inst.color.a;
     return o;
 }
 
@@ -188,7 +190,7 @@ fn shade(in: VsOut, raster_front: bool) -> vec4<f32> {
     let ambient = mix(0.72, 1.0, 0.5 + 0.5 * n.z);
     let lighting = select(lit, ambient, line.lit > 1.5);
     let shaded = select(1.0, lighting, line.lit > 0.5 && in.print <= 0.5);
-    let alpha = select(1.0, line.opacity, in.closed != 0u);
+    let alpha = select(1.0, line.opacity, in.closed != 0u) * select(1.0, in.fill_alpha, in.print > 0.5);
     return vec4<f32>(base * shaded, alpha);
 }
 

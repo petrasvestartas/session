@@ -1,0 +1,76 @@
+{
+  "publisher": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-snap-six-case-49f-01\\publish-existing-exact-image.mjs",
+    "sha256": "505f00d9f9a6b6a7442715fbdaaa71e1e0f65c73aac074155978295b2e95dac6"
+  },
+  "originalPublisher": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-snap-six-case-49f-01\\publish.mjs",
+    "sha256": "78179f78471cd11c75d00b13f5d9c9caf55cce0e056daccae93dd0fbddc3996f"
+  },
+  "preexistingImageReused": true,
+  "batchCaptureReady": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-snap-six-case-49f-01\\capture-ready.json",
+    "sha256": "0bc79d44dfcd2ea1d912efa484b88d704924017bc9c457b73c7899a6c7bfbd4e"
+  },
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-14T02:40:51.660Z",
+  "id": "49f-input",
+  "lane": "native",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-49f-input-5952439068d0d65c79e8\\capture.json.gz",
+    "sha256": "cb6a22308e720ce30a1842b3b1a4500a1460c226f4923a9ffa8d42a4d95dc908",
+    "bytes": 99049
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-snap-six-case-49f-01\\capture-result.json",
+    "sha256": "41eacc6cab0762720b41ec36a2b17850ba7c19cb9bea3fd0b77e46c87e66e232"
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-snap-six-49f-01-execution.json",
+    "sha256": "251a3a85bfb49617f1cc9cd5d8635a2044cda1ef54556f34eef74f164b1426dc"
+  },
+  "boundedTerminal": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-snap-six-case-49f-01\\bounded-terminal.json",
+    "sha256": "34b6a786e94fbbd31de7501240ac23b5b1c16d766dba0fd78808940c7981c594"
+  },
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-31-stage-aware-native-density.json",
+    "sha256": "7e9980c097467f8f4a60519e63aef9bfdd87122e72179d1f35f1849391ade57a"
+  },
+  "sourceFreezeCoverage": {
+    "matchedFiles": 555,
+    "basis": "Pinned Native wrapper preflight and postflight; live hashes rechecked"
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\49f-input-b54a77169648.png",
+    "sha256": "b54a771696487752219b8fcbeaa277439e9fb53f4e0e388b5c36461136b3c624"
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\49f-input.png",
+    "sha256": "0fa8ca71f68a61674dcee0acd0e5ab5bf0158eccd2d2b2aa29ba3b9643ed88a3"
+  },
+  "aliasManifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\image-aliases.json",
+    "sha256": "59a41176fb5daa71125bf02fc487c3fb2edbef2e4a35f20487a21999268affae"
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root personally inspected original2560x1920 PNG: saved black diagonal line rises from lowerleft to upperright endpoint; a separate yellow temporary band slopes from upperleft to the same circular yellow cursor on white. Both bands and cursor are fully visible, black source ink remains visible away from preview, no solids/grid/panels. Actual49f fixture saves one line, begins another and programmatically ToolScreen-snaps to the original endpoint; asserts cursor coordinates, End kind, Snap End prompt, one saved line and76previewbytes; actualGPU pixelcheck samples black source midpoint. This qualifies static programmatic snapped-preview presentation, not live pointer/keyboard/browser or canonical640/fullunit behavior. FreshSHA equals still-used historical49f b54a image; exactreuse preserves its bytes/path and original pinnedpublisher.",
+  "canonicalBehaviorExecuted": false,
+  "scope": "Source31 49f-input rawDPR4 image presentation. Actual fixture scope is stated in Rootreview; canonical640pixel/full-unit/browser acceptance remains separate. Original fixedpixel function bodies and oldaliases/pixels retained.",
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-snap-six-case-49f-01\\publication.json",
+    "sha256": "50db384f00aaebfb77f649207f014335d79f97723c22a62e37f98fe247453958"
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-49f-input-5952439068d0d65c79e8\\publication.json",
+    "sha256": "35eea4afd3f8bb794a3344ce1e979ba5d4837852a3bf97c048bb8f5d6e06d41d"
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-49f-input-5952439068d0d65c79e8\\retirement.json.gz",
+    "sha256": "4a61aa463a4f109afe290fa30744ceb024f75fe27953cd42da10de5a5c42e5ee"
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-49f-input-5952439068d0d65c79e8\\retired.json",
+    "sha256": "538c81019addde43ef79f7ee5b9ea3f48172ff913662661ac9778c44b1bf11b5"
+  }
+}

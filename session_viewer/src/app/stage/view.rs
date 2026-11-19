@@ -107,6 +107,7 @@ impl Stage {
         [self.split * W / 2.0, (TOP - 30.0 + H - 70.0) / 2.0]
     }
 
+    // --8<-- [start:stage-camera-fit]
     /// The camera a spec asks for from `cur`; `fit_all` frames every point by default.
     pub(super) fn camera_for(&self, spec: &CameraSpec, cur: Cam, fit_all: bool) -> Cam {
         let mut cam = cur;
@@ -179,4 +180,5 @@ impl Stage {
         }
         cam
     }
+    // --8<-- [end:stage-camera-fit]
 }

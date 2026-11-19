@@ -1,0 +1,185 @@
+{
+  "schema": 1,
+  "status": "ELEVEN_FRESH_SOURCE31_IMAGE_PRESENTATIONS_PUBLISHED_FULL_1334_SCOPE_ACTIVE",
+  "at": "2026-11-13T21:47:40.029623+00:00",
+  "inventory": 1763,
+  "affected": 1334,
+  "explicitlyUnchanged": 429,
+  "sourceFreeze": {
+    "path": "source-freeze-31-stage-aware-native-density.json",
+    "sha256": "7e9980c097467f8f4a60519e63aef9bfdd87122e72179d1f35f1849391ade57a"
+  },
+  "destinationAudit": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\full-goal-source31-destination-audit-02.json",
+    "sha256": "5763a687c0556d713b3cfffb876f32712bdc1ae241d6a730ad16cc0b01813da8"
+  },
+  "retainedOriginalBytes": {
+    "exactMatches": 429,
+    "mismatches": 0,
+    "recoveryProofSha256": "564d60bceadb1a6d4e5139b09d676ffd245180a7f560934dd0a12f35111300c3"
+  },
+  "freshImagePresentations": [
+    {
+      "baselineIndex": 170,
+      "originalLogicalDestination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\38a-samples.png",
+      "versionedImage": "docs/screenshots/journey/38a-samples-0a45ef5b8472.png",
+      "sha256": "0a45ef5b84726e01fc0721c736fd209fd8ab1269fe24a73910d2839ce8e88711",
+      "receipt": "docs/journey/release/math-boundary-quality-source31-native38a-dpr4-0a45ef5b8472.json",
+      "receiptSha256": "043b7c37213b35ffa9c3fcaf65d83963fbb88f095f2958ed888681e02d6f6d41",
+      "reader": {
+        "path": "docs/journey/consolidation/38-layout.md",
+        "sha256": "250c8b12af6182b5af5ab8c8207e28840976ff089efa440d0f0f3f5763e5e2c7",
+        "anchor": "checkpoint-38a-samples"
+      },
+      "servedBrowserVerification": "PENDING"
+    },
+    {
+      "baselineIndex": 171,
+      "originalLogicalDestination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\38b-source.png",
+      "versionedImage": "docs/screenshots/journey/38b-source-0a45ef5b8472.png",
+      "sha256": "0a45ef5b84726e01fc0721c736fd209fd8ab1269fe24a73910d2839ce8e88711",
+      "receipt": "docs/journey/release/math-boundary-quality-source31-native38b-dpr4-0a45ef5b8472.json",
+      "receiptSha256": "5f344c8990aa7079e15892a71cac24678c7215f32e348ff1c251524c0f469878",
+      "reader": {
+        "path": "docs/journey/consolidation/38-layout.md",
+        "sha256": "250c8b12af6182b5af5ab8c8207e28840976ff089efa440d0f0f3f5763e5e2c7",
+        "anchor": "checkpoint-38b-source"
+      },
+      "servedBrowserVerification": "PENDING"
+    },
+    {
+      "baselineIndex": 172,
+      "originalLogicalDestination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\38c-controls.png",
+      "versionedImage": "docs/screenshots/journey/38c-controls-0a45ef5b8472.png",
+      "sha256": "0a45ef5b84726e01fc0721c736fd209fd8ab1269fe24a73910d2839ce8e88711",
+      "receipt": "docs/journey/release/math-boundary-quality-source31-native38c-dpr4-0a45ef5b8472.json",
+      "receiptSha256": "260f7760a8f89884423e863893a57c8d72356ea3d714cb3eb032cf35e1fbd880",
+      "reader": {
+        "path": "docs/journey/consolidation/38-layout.md",
+        "sha256": "250c8b12af6182b5af5ab8c8207e28840976ff089efa440d0f0f3f5763e5e2c7",
+        "anchor": "checkpoint-38c-controls"
+      },
+      "servedBrowserVerification": "PENDING"
+    },
+    {
+      "baselineIndex": 173,
+      "originalLogicalDestination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\38d-input.png",
+      "versionedImage": "docs/screenshots/journey/38d-input-0a45ef5b8472.png",
+      "sha256": "0a45ef5b84726e01fc0721c736fd209fd8ab1269fe24a73910d2839ce8e88711",
+      "receipt": "docs/journey/release/math-boundary-quality-source31-native38d-dpr4-0a45ef5b8472.json",
+      "receiptSha256": "14452297a4b37983e6cb6d06e23851e780dbbb5606e4f89c99967c8f55636575",
+      "reader": {
+        "path": "docs/journey/consolidation/38-layout.md",
+        "sha256": "250c8b12af6182b5af5ab8c8207e28840976ff089efa440d0f0f3f5763e5e2c7",
+        "anchor": "checkpoint-38d-input"
+      },
+      "servedBrowserVerification": "PENDING"
+    },
+    {
+      "baselineIndex": 174,
+      "originalLogicalDestination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\39-visible.png",
+      "versionedImage": "docs/screenshots/journey/39-visible-0a45ef5b8472.png",
+      "sha256": "0a45ef5b84726e01fc0721c736fd209fd8ab1269fe24a73910d2839ce8e88711",
+      "receipt": "docs/journey/release/math-boundary-quality-source31-native39-dpr4-0a45ef5b8472.json",
+      "receiptSha256": "1aa95175ccb373dd1dee4ec6184568393eee924819f457ba5066f4c205e88850",
+      "reader": {
+        "path": "docs/journey/consolidation/39-visible.md",
+        "sha256": "bb995ed4517be2634ce9c0eebe6b0a078360e10d791752fd2712dd5e2a3199b8",
+        "anchor": "checkpoint-39-visible"
+      },
+      "servedBrowserVerification": "PENDING"
+    },
+    {
+      "baselineIndex": 175,
+      "originalLogicalDestination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\39a-depth.png",
+      "versionedImage": "docs/screenshots/journey/39a-depth-0a45ef5b8472.png",
+      "sha256": "0a45ef5b84726e01fc0721c736fd209fd8ab1269fe24a73910d2839ce8e88711",
+      "receipt": "docs/journey/release/math-boundary-quality-source31-native39a-dpr4-0a45ef5b8472.json",
+      "receiptSha256": "fba85414e863f0fcce272ef84f6542e5f99e659a691e549f2c164c0b069d1289",
+      "reader": {
+        "path": "docs/journey/consolidation/39-visible.md",
+        "sha256": "bb995ed4517be2634ce9c0eebe6b0a078360e10d791752fd2712dd5e2a3199b8",
+        "anchor": "checkpoint-39a-depth"
+      },
+      "servedBrowserVerification": "PENDING"
+    },
+    {
+      "baselineIndex": 176,
+      "originalLogicalDestination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\40-colour.png",
+      "versionedImage": "docs/screenshots/journey/40-colour-0a45ef5b8472.png",
+      "sha256": "0a45ef5b84726e01fc0721c736fd209fd8ab1269fe24a73910d2839ce8e88711",
+      "receipt": "docs/journey/release/math-boundary-quality-source31-native40-dpr4-0a45ef5b8472.json",
+      "receiptSha256": "f40d3210edf14b0ff6ee09482d52f69b5e8f16d6a1ae051abc7f98fbb3dc06c1",
+      "reader": {
+        "path": "docs/journey/consolidation/40-colour.md",
+        "sha256": "a8c9eea1590d7a215d0d1268332de7a660843addac5ac501191c79cdd743058f",
+        "anchor": "checkpoint-40-colour"
+      },
+      "servedBrowserVerification": "PENDING"
+    },
+    {
+      "baselineIndex": 177,
+      "originalLogicalDestination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\40a-input.png",
+      "versionedImage": "docs/screenshots/journey/40a-input-0a45ef5b8472.png",
+      "sha256": "0a45ef5b84726e01fc0721c736fd209fd8ab1269fe24a73910d2839ce8e88711",
+      "receipt": "docs/journey/release/math-boundary-quality-source31-native40a-dpr4-0a45ef5b8472.json",
+      "receiptSha256": "074275e9ecbd7cc781a7253d2500cc9902a34484db677c5a95042b2c8be2f0c2",
+      "reader": {
+        "path": "docs/journey/consolidation/40-colour.md",
+        "sha256": "a8c9eea1590d7a215d0d1268332de7a660843addac5ac501191c79cdd743058f",
+        "anchor": "checkpoint-40a-input"
+      },
+      "servedBrowserVerification": "PENDING"
+    },
+    {
+      "baselineIndex": 178,
+      "originalLogicalDestination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\40b-indices.png",
+      "versionedImage": "docs/screenshots/journey/40b-indices-0a45ef5b8472.png",
+      "sha256": "0a45ef5b84726e01fc0721c736fd209fd8ab1269fe24a73910d2839ce8e88711",
+      "receipt": "docs/journey/release/math-boundary-quality-source31-native40b-dpr4-0a45ef5b8472.json",
+      "receiptSha256": "b46b25e4f3e0a7b1a49d875215de6de399450305bf04495d5512c8e559d70b4a",
+      "reader": {
+        "path": "docs/journey/consolidation/40-colour.md",
+        "sha256": "a8c9eea1590d7a215d0d1268332de7a660843addac5ac501191c79cdd743058f",
+        "anchor": "checkpoint-40b-indices"
+      },
+      "servedBrowserVerification": "PENDING"
+    },
+    {
+      "baselineIndex": 179,
+      "originalLogicalDestination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\41-normals.png",
+      "versionedImage": "docs/screenshots/journey/41-normals-0a45ef5b8472.png",
+      "sha256": "0a45ef5b84726e01fc0721c736fd209fd8ab1269fe24a73910d2839ce8e88711",
+      "receipt": "docs/journey/release/math-boundary-quality-source31-native41-dpr4-0a45ef5b8472.json",
+      "receiptSha256": "ad841c22924b7fd43125c47c2032604f181cc78002417b1ccd123a7c529182e1",
+      "reader": {
+        "path": "docs/journey/consolidation/41-normals.md",
+        "sha256": "b92dcf91e51a606633e0aa27f112c35ce10034c0f4765c4bb57aa829e766b02f",
+        "anchor": "checkpoint-41-normals"
+      },
+      "servedBrowserVerification": "PENDING"
+    },
+    {
+      "baselineIndex": 180,
+      "originalLogicalDestination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\41a-placement.png",
+      "versionedImage": "docs/screenshots/journey/41a-placement-0a45ef5b8472.png",
+      "sha256": "0a45ef5b84726e01fc0721c736fd209fd8ab1269fe24a73910d2839ce8e88711",
+      "receipt": "docs/journey/release/math-boundary-quality-source31-native41a-dpr4-0a45ef5b8472.json",
+      "receiptSha256": "3a3a8dfae5b009f4439cb00e7c4afb91ab5635ce6972d50a213ff94baeb1cc3e",
+      "reader": {
+        "path": "docs/journey/consolidation/41-normals.md",
+        "sha256": "b92dcf91e51a606633e0aa27f112c35ce10034c0f4765c4bb57aa829e766b02f",
+        "anchor": "checkpoint-41a-placement"
+      },
+      "servedBrowserVerification": "PENDING"
+    }
+  ],
+  "currentSourceFreshImagePresentations": 11,
+  "remainingCurrentSourceImagePresentations": 1323,
+  "olderReceipts": "Historical evidence requires exact source/destination reconciliation; no automatic transfer toSource31.",
+  "scope": "Image regeneration and Root original-pixel review only; canonical fixed-resolution validation and final updated served-site browser checks remain separate. Full objective active.",
+  "previousProgressSnapshot": {
+    "path": "docs/journey/release/viewer-full-image-goal-source31-progress-20261113-03.json",
+    "sha256": "3602d6d065780889e54f145468319ee0533344497460e5303638c3cebe11c755"
+  }
+}

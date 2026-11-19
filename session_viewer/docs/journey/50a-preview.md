@@ -57,15 +57,15 @@ Continue the snapping exercise. The preview model is adopted by the editor and b
 
 ### Recorded visual result
 
-**Previous native render — current verification pending.**
+**Source31 native image reviewed.**
 
 The saved line and temporary snapped band remain.
 
-![Native renderer output for keep temporary placements outside the document.](../screenshots/journey/49f-input.png)
+![Native presentation at this checkpoint.](../screenshots/journey/50a-preview-b54a77169648.png)
 
-*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
+*Fresh Rust/NVIDIA raw-DPR4 presentation, personally reviewed at 2560 × 1920. Saved black source line and yellow endpoint-snapped preview; inherited49f fixture, object-placement preview untested. Fixed-resolution pixel checks and browser controls require separate acceptance.*
 
-This reference image is shared with [7.4.8 · Snap actual drawing input through the command dock](49f-input.md). It does not demonstrate a new feature by itself.
+This scene continues [7.4.8 · Snap actual drawing input through the command dock](49f-input.md). This checkpoint was captured independently; its new source behavior requires separate state checks.
 
 <details>
 <summary>Code explanation and diagram</summary>

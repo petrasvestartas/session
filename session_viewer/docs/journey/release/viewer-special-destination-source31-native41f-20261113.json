@@ -1,0 +1,53 @@
+{
+  "schema": 1,
+  "status": "EXPLICIT_SPECIAL_DESTINATION_RECONCILED_WITH_FRESH_SOURCE31_NATIVE_CAPTURE",
+  "recordedUtc": "2026-11-13T22:43:37.806654+00:00",
+  "inventory": {
+    "path": "docs/journey/release/viewer-image-goal-inventory-1763-20261113.json",
+    "sha256": "9625bc0a53699b15fc420d45799da351f7d041a7f9cc386a7cc331c2d3227052"
+  },
+  "baselineIndex": 1325,
+  "originalLogicalDestination": "docs/screenshots/journey/41f-input.png",
+  "checkpoint": "41f-input",
+  "lane": "native",
+  "recipe": {
+    "route": "generic",
+    "rawDpr": 4,
+    "output": [
+      2560,
+      1920
+    ],
+    "fixture": "docs/journey/checks/41f-input.rs",
+    "fixtureSha256": "04353aeb9ca5596966a71f2b7ce58d135b0fdb532765c1f357dc67d8d7a1a378"
+  },
+  "qualification": {
+    "path": "docs/journey/release/math-boundary-quality-source31-native41f-dpr4-bd5d16840cff.json",
+    "sha256": "38ac6ec871dd4ca8620f110d67676058f658cf021b00f28e413c39d3be030447"
+  },
+  "replacementImage": {
+    "path": "docs/screenshots/journey/41f-input-bd5d16840cff.png",
+    "sha256": "bd5d16840cffd615b28eb70df1b4a47fe4b22f199938fd1b9a709160279c5e4b"
+  },
+  "originalPhysicalImage": {
+    "path": "docs/screenshots/journey/42k-input.png",
+    "sha256": "618cbc4930c1729c68cbdb2bb40c8e0c49a4e1fd7f10a8e6362152b20728a753"
+  },
+  "primaryReaderPlacement": {
+    "path": "docs/journey/consolidation/41-normals.md",
+    "anchor": "checkpoint-41f-input",
+    "sourceOnly": true,
+    "servedBrowserVerified": false,
+    "beforeSha256": "df03c90219d3508bd4e8374c418f9534c1574472e83575e7cb2c508bd8465498",
+    "afterSha256": "1986a40446b431c7cf26767caf674aba17e91a22f1a6814deb883fdd8cf29739",
+    "exactInsertionReversalRestoresOriginalBytes": true,
+    "line": "Recorded native frame: [open the reviewed 2560 \u00d7 1920 image](../../screenshots/journey/41f-input-bd5d16840cff.png). The editor grid command now enables the visible ground grid and coloured axes; browser bindings require separate checks."
+  },
+  "basis": "The original special row1325 is the generic Native41f main image, distinguished from browser sibling1324 by its exact logical filename. The fresh Native41f constructor/physical-DPR4 capture, personal Root pixel review, existing publication and normal retirement qualify its versioned replacement. HistoricalSource13 evidence is not transferred. The current final fixture explicitly enables editor grid/BRG axes.",
+  "siblingBrowserDestination": {
+    "baselineIndex": 1324,
+    "status": "PENDING_FRESH_BROWSER_RECIPE"
+  },
+  "oldAliasesAndStillUsedPixelsPreserved": true,
+  "inventoryOrDenominatorChanged": false,
+  "canonicalFinalPixelOrBrowserAcceptanceCreated": false
+}

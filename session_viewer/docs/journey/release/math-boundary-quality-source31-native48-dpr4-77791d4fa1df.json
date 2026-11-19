@@ -1,0 +1,67 @@
+{
+  "batchCaptureReady": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-command-six-case-48-01\\capture-ready.json",
+    "sha256": "f40ac851840bdf2e819536e7c31f89dd0b2801ef603dbbce009af2d4ed0b5ee1"
+  },
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-14T01:59:51.966Z",
+  "id": "48-coordinates",
+  "lane": "native",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-48-coordinates-80ffd6cef4ad13491caf\\capture.json.gz",
+    "sha256": "f25723be5f272da69769c336ebd87ea709fe79db9b041c70e5d39abb417de310",
+    "bytes": 96605
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-command-six-case-48-01\\capture-result.json",
+    "sha256": "aafff8a1f459a6082be0fe3ffde29a020a02f9b7f14b34a53ae670334351dca2"
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-command-six-48-01-execution.json",
+    "sha256": "fe341f504a819c7122874501a725338d55f9ff7be13ea973369118fe00ac63bb"
+  },
+  "boundedTerminal": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-command-six-case-48-01\\bounded-terminal.json",
+    "sha256": "3d5d10c4c701958f4c5581c08b111351b826d12e42df97c76c17069d30a557a6"
+  },
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-31-stage-aware-native-density.json",
+    "sha256": "7e9980c097467f8f4a60519e63aef9bfdd87122e72179d1f35f1849391ade57a"
+  },
+  "sourceFreezeCoverage": {
+    "matchedFiles": 555,
+    "basis": "Pinned Native wrapper preflight and postflight; live hashes rechecked"
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\48-coordinates-77791d4fa1df.png",
+    "sha256": "77791d4fa1dfc00e3a6d285bb084b95b6403d7ff787aaa4a7ffdc975b24fae5e"
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\45c-input.png",
+    "sha256": "11fbd61fc635725e5f20262c2677a291e900f8fbeae4c02f0f4bad92c998b5dc"
+  },
+  "aliasManifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\image-aliases.json",
+    "sha256": "59a41176fb5daa71125bf02fc487c3fb2edbef2e4a35f20487a21999268affae"
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root opened original2560x1920 PNG and inspected fitted rendering after original-detail placeholder. ExactSHA equals47a original personally viewed fullresolution: two entire gold selected boxes, larger left box with narrow left side, black source boundaries, white background, no triangulation diagonals; raster stepping retained. Actual inherited45c fixture selects both owners. Presentation only; coordinate controls, command input, keyboard/pointer/GUI/browser behavior and canonical640/fullunit validation remain separate.",
+  "canonicalBehaviorExecuted": false,
+  "scope": "Source31 48-coordinates rawDPR4 image presentation. Actual fixture scope is stated in Rootreview; canonical640pixel/full-unit/browser acceptance remains separate. Original fixedpixel function bodies and oldaliases/pixels retained.",
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-command-six-case-48-01\\publication.json",
+    "sha256": "ba9900574df73c0990b63c7fd277b9422244d76c610b2b4381dbe4f08dcde593"
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-48-coordinates-80ffd6cef4ad13491caf\\publication.json",
+    "sha256": "decf6f4733c69005b0313dece3845cb668929a3c46c34d714b9325ef49771426"
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-48-coordinates-80ffd6cef4ad13491caf\\retirement.json.gz",
+    "sha256": "c916ea62fc70a17e93dc15273fbbe56432d51719873b1ea94440e8b51dc92a67"
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-48-coordinates-80ffd6cef4ad13491caf\\retired.json",
+    "sha256": "ab86abb3c7dd5c1cd5b3068ac53c7406ac8a29333b8c9aecc988b9c7a83a3838"
+  }
+}

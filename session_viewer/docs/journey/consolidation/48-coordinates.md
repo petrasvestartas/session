@@ -48,6 +48,8 @@
 
 ## <a id="checkpoint-48-coordinates"></a>1. Resolve drawing points on the construction plane
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/48-coordinates-77791d4fa1df.png). Two selected box owners with original boundary ink; inherited45c fixture, coordinate controls untested.
+
 ### 1. `src/tool_coords.rs`
 
 Create the file and type:
@@ -169,6 +171,8 @@ mod tool_coords_tests;
 ```
 
 ## <a id="checkpoint-48a-draft"></a>2. Keep unfinished point tools outside the document
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/48a-draft-77791d4fa1df.png). Two selected box owners with original boundary ink; inherited45c fixture, draft interaction untested.
 
 ### 1. `src/tool.rs`
 
@@ -299,6 +303,12 @@ pub mod tool;
 ```
 
 ## <a id="checkpoint-48b-preview"></a>3. Draw a temporary rubber band and cursor
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/48b-preview-77791d4fa1df.png). Two selected box owners with original boundary ink; inherited45c fixture, draft preview is not yet shown.
+
+![Temporary Line rubber band and endpoint cursor before commit](../../screenshots/reader-illustrations/48d-input/unfinished-line-preview-32e9793e694b.png)
+
+The unfinished Line displays a temporary yellow rubber band and cursor. No original line exists until a valid second point commits it.
 
 ### 1. `src/tool_preview.rs`
 
@@ -625,6 +635,8 @@ fn actual_tool_preview_is_temporary_bounded_and_absent_from_object_picking() {
 ```
 
 ## <a id="checkpoint-48c-commit"></a>4. Commit completed tools in one Undo transaction
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/48c-commit-77791d4fa1df.png). Two selected box owners with original boundary ink; inherited45c fixture, draft commitment is not demonstrated.
 
 ### 1. `src/editor.rs`
 
@@ -1497,6 +1509,12 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-48d-input"></a>5. Draw points and lines through the shared command dock
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/48d-input-9b3b2620591a.png). Yellow unfinished-line band and circular cursor with no saved line; static48d fixture, live interaction untested.
+
+![Command dock waiting for the second Line point](../../screenshots/journey/48d-input-5d9f055b37a6.png)
+
+The browser command dock is waiting for Line point2of2. The diagonal line and endpoint marker are temporary display data; Cancel leaves the document unchanged.
 
 ### 1. `src/panel.rs`
 

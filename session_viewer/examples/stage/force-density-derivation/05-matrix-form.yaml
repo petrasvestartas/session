@@ -1,0 +1,73 @@
+# cd /home/pv/brg/code_cpp/wood_research/session/session_viewer && aws s3 sync examples/stage s3://session-viewer-data/stage/ --delete --exclude '*' --include '*.yaml' --content-type application/yaml --cache-control no-cache --profile r2 --endpoint-url https://0520459c6817bd96c1e25fcb49461c4e.r2.cloudflarestorage.com
+# Open local: http://127.0.0.1:8770/?stage=decks/force-density-derivation/index.yaml&data=off&chapter=5&step=1
+# Open live: https://petrasvestartas.github.io/session/?stage=force-density-derivation&chapter=5&step=1
+
+# Chapter 5: projecting 3D forces with the Jacobian, linearizing with q = L^-1 f, and solving x_N.
+title: MATRIX EQUILIBRIUM
+grid: {center: [3.5, 3.5], size: 9, step: 1}
+camera: {yaw: -58, pitch: 26}
+palette: {free: ink}
+points:
+  n0: [3, 3, 0.25]
+  n1: [0, 0, 0]
+  n2: [5, 0, 3]
+  n3: [0, 7, 3]
+  n4: [7, 5, 0]
+slides:
+  - title: EQUILIBRIUM TO LINEAR SOLVE
+    steps:
+      - say: 'Project 3D tensions with $\mathbf{C}_N^{T}\mathbf{U}\mathbf{L}^{-1}$, set $\mathbf{q} = \mathbf{L}^{-1}\mathbf{f}$, and solve $\mathbf{x}_N$.'
+        do:
+          - add:
+              - {id: n1, point: n1, color: fixed, label: 'n_1'}
+              - {id: n2, point: n2, color: fixed, label: 'n_2'}
+              - {id: n3, point: n3, color: fixed, label: 'n_3'}
+              - {id: n4, point: n4, color: fixed, label: 'n_4'}
+              - {id: e0, line: [n0, n1]}
+              - {id: e1, line: [n0, n2]}
+              - {id: e2, line: [n0, n3]}
+              - {id: e3, line: [n0, n4]}
+              - {id: f1, arrow: [n0, 'n0 + 0.5*(n1 - n0)'], color: fixed, width: 3.2, label: 'f_1'}
+              - {id: f2, arrow: [n0, 'n0 + 0.5*(n2 - n0)'], color: fixed, width: 3.2, label: 'f_2'}
+              - {id: f3, arrow: [n0, 'n0 + 0.5*(n3 - n0)'], color: fixed, width: 3.2, label: 'f_3'}
+              - {id: f4, arrow: [n0, 'n0 + 0.5*(n4 - n0)'], color: fixed, width: 3.2, label: 'f_4'}
+              - {id: p, arrow: [n0, 'n0 + [0, 0, -2.5]'], color: load, width: 3.2, label: 'p'}
+              - {id: n0, point: n0, color: free, label: 'n_0'}
+            dur: 0.6
+          - {tex: '\frac{u_1}{l_1}f_1 + \frac{u_2}{l_2}f_2 + \frac{u_3}{l_3}f_3 + \frac{u_4}{l_4}f_4 = p_x', align: left, size: 18, gap: 4}
+          - {tex: '\mathbf{C}_N^{T}\,\mathbf{U}\,\mathbf{L}^{-1}\,\mathbf{f} = \mathbf{p}_x \qquad \big(\text{Jacobian projects }\mathbf{f}\big)', align: left, size: 18, gap: 8}
+      - say: 'Project 3D tensions with $\mathbf{C}_N^{T}\mathbf{U}\mathbf{L}^{-1}$, set $\mathbf{q} = \mathbf{L}^{-1}\mathbf{f}$, and solve $\mathbf{x}_N$.'
+        do:
+          - {tex: '\mathbf{C}_N^{T}\,\mathbf{U}\,\mathbf{q} = \mathbf{p}_x \qquad \big(\text{set }\mathbf{q} = \mathbf{L}^{-1}\mathbf{f},\; q_k = f_k / l_k\big)', align: left, size: 18, gap: 8}
+          - {tex: '\mathbf{C}_N^{T}\,\mathbf{Q}\,\mathbf{C}\,\mathbf{x} = \mathbf{p}_x \qquad \big(\text{swap }\mathbf{U}\mathbf{q} = \mathbf{Q}\mathbf{u} = \mathbf{Q}\mathbf{C}\mathbf{x}\big)', align: left, size: 18, gap: 8}
+      - say: 'Project 3D tensions with $\mathbf{C}_N^{T}\mathbf{U}\mathbf{L}^{-1}$, set $\mathbf{q} = \mathbf{L}^{-1}\mathbf{f}$, and solve $\mathbf{x}_N$.'
+        do:
+          - {tex: '\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N\,\mathbf{x}_N + \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{x}_F = \mathbf{p}_x \qquad \big(\text{split }\mathbf{x}_N, \mathbf{x}_F\big)', align: left, size: 18, gap: 8}
+          - {tex: '(\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N)\,\mathbf{x}_N = \mathbf{p}_x - \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{x}_F', align: left, size: 18, gap: 8}
+      - say: 'Project 3D tensions with $\mathbf{C}_N^{T}\mathbf{U}\mathbf{L}^{-1}$, set $\mathbf{q} = \mathbf{L}^{-1}\mathbf{f}$, and solve $\mathbf{x}_N$.'
+        do:
+          - {tex: '\mathbf{x}_N = (\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N)^{-1}\,(\mathbf{p}_x - \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{x}_F) \qquad \big(\mathbf{f} = \mathbf{L}\,\mathbf{q}\big)', align: left, size: 18, gap: 10, color: accent}
+
+  - title: WHY $\mathbf{U}\,\mathbf{q} = \mathbf{Q}\,\mathbf{u}$ WORKS
+    steps:
+      - say: 'Swapping diagonal factors pulls unknown $\mathbf{x}$ out of $\mathbf{U}$ as a vector.'
+        do:
+          - row:
+              - '\mathbf{U}\,\mathbf{q} ='
+              - {matrix: {rows: [[u_1, 0, 0, 0], [0, u_2, 0, 0], [0, 0, u_3, 0], [0, 0, 0, u_4]], signs: false}}
+              - {matrix: {rows: [[q_1], [q_2], [q_3], [q_4]], signs: false}}
+              - '='
+              - {id: uq, matrix: {rows: [[u_1 q_1], [u_2 q_2], [u_3 q_3], [u_4 q_4]], signs: false, empty: true}}
+            size: 18
+          - show: ['uq[:,0]']
+          - row:
+              - '\mathbf{Q}\,\mathbf{u} ='
+              - {matrix: {rows: [[q_1, 0, 0, 0], [0, q_2, 0, 0], [0, 0, q_3, 0], [0, 0, 0, q_4]], signs: false}}
+              - {matrix: {rows: [[u_1], [u_2], [u_3], [u_4]], signs: false}}
+              - '='
+              - {id: qu, matrix: {rows: [[q_1 u_1], [q_2 u_2], [q_3 u_3], [q_4 u_4]], signs: false, empty: true}}
+            size: 18
+            gap: 10
+          - show: ['qu[:,0]']
+          - highlight: ['uq[:,0]', 'qu[:,0]']
+          - eq: {tex: '\mathbf{U}\,\mathbf{q} = \mathbf{Q}\,\mathbf{u} = \mathbf{Q}\,\mathbf{C}\,\mathbf{x}', size: 22, gap: 12, color: accent}

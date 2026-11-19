@@ -1156,17 +1156,17 @@ Close; Example Box; Select All; Snap Off; Grid Snap Off; Move; 0,0,0. Hover else
 
 ### Recorded visual result
 
-**Previous native render — current verification pending.**
+**Source31 native image reviewed.**
 
 The saved line and temporary snapped band remain.
 
 This checkpoint was rendered independently and has the same native comparison frame as [Present temporary edits through a separate scene view](50b-display.md). Use its state checks and browser exercise to assess the changed behavior.
 
-![Native renderer output for preview move from a base point to a target.](../screenshots/journey/49f-input.png)
+![Native presentation at this checkpoint.](../screenshots/journey/50c-move-b54a77169648.png)
 
-*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
+*Fresh Rust/NVIDIA raw-DPR4 presentation, personally reviewed at 2560 × 1920. The inherited End-snap line preview is unchanged here; the saved black line and temporary yellow band remain distinct, while object Move behavior requires separate acceptance. Fixed-resolution pixel checks and browser controls require separate acceptance.*
 
-This reference image is shared with [7.4.8 · Snap actual drawing input through the command dock](49f-input.md). It does not demonstrate a new feature by itself.
+This scene continues [7.4.8 · Snap actual drawing input through the command dock](49f-input.md). This checkpoint was captured independently; its new source behavior requires separate state checks.
 
 <details>
 <summary>Code explanation and diagram</summary>

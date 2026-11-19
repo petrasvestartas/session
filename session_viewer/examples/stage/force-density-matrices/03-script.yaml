@@ -1,7 +1,12 @@
-# Chapter 3: the method as a Python script, for the five nodes, with its output.
-title: The script
+# cd /home/pv/brg/code_cpp/wood_research/session/session_viewer && aws s3 sync examples/stage s3://session-viewer-data/stage/ --delete --exclude '*' --include '*.yaml' --content-type application/yaml --cache-control no-cache --profile r2 --endpoint-url https://0520459c6817bd96c1e25fcb49461c4e.r2.cloudflarestorage.com
+# Open local: http://127.0.0.1:8770/?stage=decks/force-density-matrices/index.yaml&data=off&chapter=3&step=1
+# Open live: https://petrasvestartas.github.io/session/?stage=force-density-matrices&chapter=3&step=1
+
+# Chapter 3: complete runnable NumPy script for the five-node star.
+title: PYTHON SCRIPT
 grid: {center: [3.5, 3.5], size: 9, step: 1}
 camera: {yaw: -58, pitch: 26}
+palette: {free: ink}
 net:
   fixed: {n1: [0, 0, 0], n2: [5, 0, 3], n3: [0, 7, 3], n4: [7, 5, 0]}
   free: {n0: [3.6, 3.4, 1.9]}
@@ -9,48 +14,30 @@ net:
   q: 1
   load: {n0: [0, 0, -5]}
 slides:
-  - title: What is given, as arrays
+  - title: 'NUMPY SCRIPT'
     steps:
-      - say: 'The five nodes again, with $n_0$ at a guess. The script builds the connectivity matrix and splits it into free and fixed columns.'
+      - say: 'Complete runnable NumPy script for the five-node cable net.'
         show: net
+        size: 17
         code: |
           import numpy as np
 
-          # connectivity: rows = cables e0..e3, columns = nodes n0..n4
+          # connectivity: 4 cables (rows) x 5 nodes n0..n4 (columns)
           C = np.array([
-              [1, -1,  0,  0,  0],
-              [1,  0, -1,  0,  0],
-              [1,  0,  0, -1,  0],
-              [1,  0,  0,  0, -1],
-          ])
-          free  = [0]            # n0
-          fixed = [1, 2, 3, 4]   # n1..n4
-          C_N = C[:, free]
-          C_F = C[:, fixed]
-      - say: 'Then the fixed coordinates, the force densities on a diagonal, and the load.'
-        code: |
-          x_F = np.array([0, 5, 0, 7])
-          y_F = np.array([0, 0, 7, 5])
-          z_F = np.array([0, 3, 3, 0])
+              [1, -1,  0,  0,  0],   # e0: n0 -> n1
+              [1,  0, -1,  0,  0],   # e1: n0 -> n2
+              [1,  0,  0, -1,  0],   # e2: n0 -> n3
+              [1,  0,  0,  0, -1],   # e3: n0 -> n4
+          ], dtype=float)
 
-          q = np.array([1, 1, 1, 1])
-          Q = np.diag(q)
+          C_N = C[:, [0]]
+          C_F = C[:, [1, 2, 3, 4]]
+          Q   = np.diag([1.0, 1.0, 1.0, 1.0])
+          x_F = np.array([[0, 0, 0], [5, 0, 3], [0, 7, 3], [7, 5, 0]], dtype=float)
+          p   = np.array([[0.0, 0.0, -5.0]])
 
-          p_x, p_y, p_z = np.array([0]), np.array([0]), np.array([-5])
-
-  - title: Three solves
-    steps:
-      - say: 'The three lines of the method, one per coordinate. A is $\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N$.'
-        code: |
-          A = C_N.T @ Q @ C_N
-          x_N = np.linalg.solve(A, p_x - C_N.T @ Q @ C_F @ x_F)
-          y_N = np.linalg.solve(A, p_y - C_N.T @ Q @ C_F @ y_F)
-          z_N = np.linalg.solve(A, p_z - C_N.T @ Q @ C_F @ z_F)
-
-          print(x_N, y_N, z_N)
-      - say: 'The output: the free node rests at $(3,\ 3,\ 0.25)$.'
-        do:
-          - add: {id: out, code: '[3.] [3.] [0.25]', color: free, size: 26}
-          - solve: true
-      - say: 'The script does not know there are five nodes. A larger net only makes the arrays longer.'
-        highlight: [out]
+          A   = C_N.T @ Q @ C_N
+          x_N = np.linalg.solve(A, p - C_N.T @ Q @ C_F @ x_F)
+          print(x_N)   # [[3.   3.   0.25]]
+      - say: 'Complete runnable NumPy script for the five-node cable net.'
+        solve: true

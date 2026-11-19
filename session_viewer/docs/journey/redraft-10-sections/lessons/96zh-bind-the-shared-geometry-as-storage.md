@@ -4134,6 +4134,10 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-96zza-connect-section-primitive-images"></a>20. Connect section primitives to color and first picking
 
+![Closed section cap with original primitive addresses](../../../screenshots/journey/96zza-connect-section-primitive-images-1d91f844b3b8.png)
+
+The section cap fills the cut solid while retaining the original primitive addresses used by the image passes.
+
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
   <defs>

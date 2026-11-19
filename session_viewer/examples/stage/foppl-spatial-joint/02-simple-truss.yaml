@@ -1,0 +1,69 @@
+title: 5 · A simple space truss
+split: 0.55
+grid: {center: [0, 0], size: 6, step: 1, z: 0}
+camera: {fit: [A, B, C, D, E, LE, LD], yaw: 20, pitch: 25}
+points:
+  A: [2, 1, 0]
+  B: [-1, -2, 0]
+  C: [-2, 1, 0]
+  D: [0, 0, 2]
+  E: [2, -1, 2]
+  LD: [0, 0, 1]
+  LE: [2, -1, 0.5]
+  TD: [1.2, -0.6, 2]
+  PD: [0.8, -0.4, 1.2]
+slides:
+  - title: Start at the tip
+    steps:
+      - say: 'Tip joint $E$ has three non-coplanar bars. Solve it before passing the known tie force to $D$.'
+        add:
+          - {id: A, point: A, color: ink, label: 'A'}
+          - {id: B, point: B, color: ink, label: 'B'}
+          - {id: C, point: C, color: ink, label: 'C'}
+          - {id: D, point: D, color: ink, label: 'D'}
+          - {id: E, point: E, color: ink, label: 'E'}
+          - {id: AE, line: [A, E], color: blue, label: 'AE'}
+          - {id: BE, line: [B, E], color: blue, label: 'BE'}
+          - {id: DE, line: [D, E], color: pink, label: 'DE'}
+          - {id: PE, arrow: [E, LE], color: load, label: '\mathbf{P}_E'}
+        eq: '\mathbf{F}_{AE}+\mathbf{F}_{BE}+\mathbf{F}_{DE}+\mathbf{P}_E=\mathbf{0}'
+        text: '$AE=-4.714$, $BE=-4.989$, $DE=+4.472$. Two bars are compressed; the tie is in tension.'
+  - title: Pass the force to D
+    steps:
+      - say: 'Tension in $DE$ pulls joint $D$ toward $E$. Add that known force to the external load at $D$.'
+        add:
+          - {id: A, point: A, color: ink, label: 'A'}
+          - {id: B, point: B, color: ink, label: 'B'}
+          - {id: C, point: C, color: ink, label: 'C'}
+          - {id: D, point: D, color: ink, label: 'D'}
+          - {id: E, point: E, color: ink, label: 'E'}
+          - {id: AD, line: [A, D], color: blue, label: 'AD'}
+          - {id: BD, line: [B, D], color: blue, label: 'BD'}
+          - {id: CD, line: [C, D], color: pink, label: 'CD'}
+          - {id: DE, line: [D, E], color: pink, label: 'DE'}
+          - {id: TD, arrow: [D, TD], color: orange, label: '\mathbf{F}_{DE}'}
+          - {id: PD, arrow: [D, PD], color: load, label: '\mathbf{p}_D^{\mathrm{eff}}'}
+        eq: '\mathbf{p}_D^{\mathrm{eff}}=(0,0,-4)+(4,-2,0)=(4,-2,-4)'
+        text: 'Now $D$ is another three-bar joint: $AD=-5$, $BD=-4$, $CD=+3$.'
+  - title: Local and global equilibrium
+    steps:
+      - say: 'Colour makes the force signs visible across the complete six-bar truss.'
+        add:
+          - {id: A, point: A, color: ink, label: 'A'}
+          - {id: B, point: B, color: ink, label: 'B'}
+          - {id: C, point: C, color: ink, label: 'C'}
+          - {id: D, point: D, color: ink, label: 'D'}
+          - {id: E, point: E, color: ink, label: 'E'}
+          - {id: AD, line: [A, D], color: blue, label: 'AD'}
+          - {id: BD, line: [B, D], color: blue, label: 'BD'}
+          - {id: CD, line: [C, D], color: pink, label: 'CD'}
+          - {id: AE, line: [A, E], color: blue, label: 'AE'}
+          - {id: BE, line: [B, E], color: blue, label: 'BE'}
+          - {id: DE, line: [D, E], color: pink, label: 'DE'}
+          - {id: PD, arrow: [D, LD], color: load, label: '\mathbf{P}_D'}
+          - {id: PE, arrow: [E, LE], color: load, label: '\mathbf{P}_E'}
+        text: 'Blue: compression   ·   Pink: tension   ·   Vivid blue arrow: external load'
+        eq: '\mathbf{f}_{local}=\mathbf{f}_{global}'
+      - say: 'The two sequential joint solutions agree with one global six-by-six equilibrium solve.'
+        eq: '\|\mathbf{A}\mathbf{f}+\mathbf{p}\|_2=6.39\times10^{-16}'
+        text: '$AD=-5$ · $BD=-4$ · $CD=+3$ · $AE=-4.714$ · $BE=-4.989$ · $DE=+4.472$'

@@ -27,6 +27,7 @@ fn blocks(count: u32) -> u32 {
     return (count+255u)/256u;
 }
 
+// --8<-- [start:visibility-prefix]
 // Exclusive prefix sum across the workgroup; saturates at the buffer size.
 fn prefix(lane: u32, value: u32) -> u32 {
     // an overflowing sum sticks at capacity instead of wrapping
@@ -50,6 +51,7 @@ fn prefix(lane: u32, value: u32) -> u32 {
     return select(scan[lane]-bounded, capacity, scan[lane]==capacity);
 }
 
+// --8<-- [end:visibility-prefix]
 @compute @workgroup_size(256)
 // Pass 1: prefix sum of tile counts inside each block of 256 tiles.
 fn scan_tiles(@builtin(global_invocation_id) id: vec3<u32>, @builtin(local_invocation_index) lane: u32, @builtin(workgroup_id) group: vec3<u32>) {

@@ -1,4 +1,3 @@
-// --8<-- [start:implementation]
 use super::deck::Content;
 use super::run::{Anim, DPrim, Fx, Stage};
 use super::tex::{self, Expr, Prim, Rgba, Shape};
@@ -6,7 +5,6 @@ use super::tween::{lerp, mix};
 use std::collections::{HashMap, HashSet};
 
 /// Index pairs of a longest common subsequence.
-// --8<-- [start:matching]
 fn lcs(a: &[u64], b: &[u64]) -> Vec<(usize, usize)> {
     let (n, m) = (a.len(), b.len());
     let mut dp = vec![0u16; (n + 1) * (m + 1)];
@@ -124,7 +122,6 @@ pub(super) fn match_prims(
     (pairs, outs, ins)
 }
 
-// --8<-- [end:matching]
 /// A formula piece in slide pixels: scaled by `k`, moved to (ox, oy), coloured.
 pub(super) fn scaled(p: &Prim, k: f32, ox: f32, oy: f32, color: Rgba) -> DPrim {
     let shape = match p.shape {
@@ -279,4 +276,3 @@ impl Stage {
         }
     }
 }
-// --8<-- [end:implementation]

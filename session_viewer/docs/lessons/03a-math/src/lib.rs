@@ -5,6 +5,7 @@ pub mod app {
         pub mod deck;
         pub mod draw;
         pub mod eval;
+        pub mod flat;
         pub mod geometry;
         pub mod layout;
         pub mod matrix;

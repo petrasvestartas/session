@@ -1,4 +1,3 @@
-// --8<-- [start:implementation]
 use super::font::{BOLD, Construction, FontId, Fonts, MATH, Part, TEXT};
 use std::collections::HashMap;
 
@@ -263,7 +262,6 @@ enum Tok {
 /// Commands whose braced argument is kept as raw text.
 const RAW: [&str; 5] = ["text", "textrm", "textbf", "mbox", "operatorname"];
 
-// --8<-- [start:lexer]
 /// Split TeX source into tokens.
 fn lex(src: &str) -> Vec<Tok> {
     let chars: Vec<char> = src.chars().collect();
@@ -338,7 +336,6 @@ fn lex(src: &str) -> Vec<Tok> {
     out
 }
 
-// --8<-- [end:lexer]
 /// Open `{{` parts not yet closed, so `}}` only closes a part when one is open.
 fn part_depth(toks: &[Tok]) -> i32 {
     let mut depth = 0;
@@ -1884,7 +1881,6 @@ fn parse(src: &str, palette: &HashMap<String, Rgba>) -> (Vec<Node>, Vec<String>,
     (nodes, p.parts, p.unknown)
 }
 
-// --8<-- [start:typeset]
 /// Lay out a TeX formula, display style unless `inline`.
 pub fn typeset(f: &Fonts, src: &str, palette: &HashMap<String, Rgba>, inline: bool) -> Expr {
     let (nodes, parts, unknown) = parse(src, palette);
@@ -1896,7 +1892,6 @@ pub fn typeset(f: &Fonts, src: &str, palette: &HashMap<String, Rgba>, inline: bo
     e
 }
 
-// --8<-- [end:typeset]
 /// Lay out prose with `$math$` and `**bold**`, wrapped at `width` em; `center` centers lines.
 pub fn prose(
     f: &Fonts,
@@ -2042,4 +2037,3 @@ pub fn code(f: &Fonts, src: &str, palette: &HashMap<String, Rgba>) -> Expr {
     e.align = None;
     e
 }
-// --8<-- [end:implementation]

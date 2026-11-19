@@ -48,6 +48,8 @@
 
 ## <a id="checkpoint-46-tool-panel"></a>1. Give active tools ownership of the command panel
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/46-tool-panel-77791d4fa1df.png). Inherited45c scene shows two gold selected box owners, dark original boundaries and no triangulation diagonals. The tool-panel widgets are not shown by this offscreen frame; GUI and browser behavior require separate checks. Perspective and edge raster stepping retained.
+
 ### 1. `src/panel.rs`
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.

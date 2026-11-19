@@ -1,0 +1,67 @@
+{
+  "batchCaptureReady": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-handle-finish-six-case-51ze-01\\capture-ready.json",
+    "sha256": "40e5bf6bd9bb2750cb83ca0d86104525b86808412dfef084aa53bcf134fbc846"
+  },
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-14T05:24:07.465Z",
+  "id": "51ze-ledger",
+  "lane": "native",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-51ze-ledger-86e29295b6f20609efed\\capture.json.gz",
+    "sha256": "1294e8f0b0e7126eeef3c8785cd12f190b351d3354bff948b913e10629427efc",
+    "bytes": 103099
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-handle-finish-six-case-51ze-01\\capture-result.json",
+    "sha256": "b7574390456416e8e81fcd9bdc471a88e3e10a4bf22733ae487a746cbd6c92d4"
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-handle-finish-six-51ze-01-execution.json",
+    "sha256": "2978b9396acd009e99540ff291dd61814b321256bc5b4214cf6609b1ff015c84"
+  },
+  "boundedTerminal": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-handle-finish-six-case-51ze-01\\bounded-terminal.json",
+    "sha256": "d799f09687db038014bcab3565589bfb6ab5dc8fd6b364ed7044d193a1c4875e"
+  },
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-31-stage-aware-native-density.json",
+    "sha256": "7e9980c097467f8f4a60519e63aef9bfdd87122e72179d1f35f1849391ade57a"
+  },
+  "sourceFreezeCoverage": {
+    "matchedFiles": 555,
+    "basis": "Pinned Native wrapper preflight and postflight; live hashes rechecked"
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\51ze-ledger-deb4457c6d33.png",
+    "sha256": "deb4457c6d332860e5262a8cc4b53ad80e18bf9ee12aa74e56d0a676a960da68"
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\50d-ownership.png",
+    "sha256": "7229782badb63f944c0e0921f6fd70b0f706185b081c64db27749e1fb266bb7a"
+  },
+  "aliasManifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\image-aliases.json",
+    "sha256": "59a41176fb5daa71125bf02fc487c3fb2edbef2e4a35f20487a21999268affae"
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root personally inspected the original 2560x1920 PNG: two gold boxes with black face boundaries, shaded narrow sides and a yellow Move preview band with circular endpoint on white; no triangulation strokes. This is the inherited 50d display fixture. No rendered handles or numeric panel appear. Gesture-ledger history, GUI interaction, canonical tests and browser acceptance remain separate.",
+  "canonicalBehaviorExecuted": false,
+  "scope": "Source31 51ze-ledger rawDPR4 image presentation. Actual fixture scope is stated in Rootreview; canonical640pixel/full-unit/browser acceptance remains separate. Original fixedpixel function bodies and oldaliases/pixels retained.",
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-handle-finish-six-case-51ze-01\\publication.json",
+    "sha256": "1040ec23dcbcb08afc47f1f437fa2366c474d853729a0486310fbba5a33e9668"
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-51ze-ledger-86e29295b6f20609efed\\publication.json",
+    "sha256": "0ca3ef3b5598a1e581a9f94a502e4c1071bec680509b1faafadc67b8eb5d9b2a"
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-51ze-ledger-86e29295b6f20609efed\\retirement.json.gz",
+    "sha256": "85ce05d9f636d0ed85107de95522ca9738340639a950756e22279875e3ce63b4"
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-51ze-ledger-86e29295b6f20609efed\\retired.json",
+    "sha256": "e25e15002a3dc4307ed3a3c81cb4bc321bdaf5b04686b50d12af2e6bded818c4"
+  }
+}

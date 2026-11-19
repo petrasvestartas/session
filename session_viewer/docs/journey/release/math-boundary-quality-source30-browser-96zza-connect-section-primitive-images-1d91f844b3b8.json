@@ -1,0 +1,611 @@
+{
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-13T08:54:18.608Z",
+  "id": "96zza-connect-section-primitive-images",
+  "lane": "browser",
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-30-cap-native-lock-graph.json",
+    "sha256": "5086b393591dbd7a0bdccb468b0f6420858f6fcd2f5a8391e10d8cbcd741eb3f"
+  },
+  "sourceFreezeCoverage": {
+    "matchedFiles": 554
+  },
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\browser-96zza-connect-section-primitive-images-2e8b56146aad1bc12c10\\capture.json.gz",
+    "sha256": "3ce014838c767b025475cdba5a615d998d0d2211a062361f6b7c42983b24133b",
+    "bytes": 397709
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\cap-source30-runtime-proposal-01\\96zza-connect-section-primitive-images\\capture-result.json",
+    "sha256": "061327198816ad8b360643410e9171f2ef72574f8d8b921d28937b2cf8494cca"
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source30-cap-96zza--01-execution.json",
+    "sha256": "4e72fe41937e5c7b146ac58691eae521ca373c87b15ce0da19e05dfce78e1391"
+  },
+  "boundedTerminal": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\cap-source30-runtime-proposal-01\\96zza-connect-section-primitive-images\\bounded-terminal.json",
+    "sha256": "f692b6e2ea3233c1423801779fc75412bc3166114d684eb29ee58d9bc4fadb57"
+  },
+  "profile": {
+    "renderScale": 2,
+    "lane": "browser",
+    "recipePins": [
+      {
+        "path": "journey/checks/browser/cap-primitives.cjs",
+        "sha256": "8f6aa6ed7ff902b3a832622b7e8a786753316865eb5fa27165b8c02ed1035f97"
+      }
+    ],
+    "samples": 1,
+    "presentation": "linear-srgb-gpu",
+    "files": [
+      {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\image-render-scale.ts",
+        "sha256": "41921ed40c3ca49b6aedaa410745ba89f35719bb3a79b256d23544ef68ea8ac0"
+      },
+      {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\image-render-scale-scope.json",
+        "sha256": "98cb76d3dea6be78e8a9ebcaf5730e197f3c683d71c048a272485519055598d1"
+      },
+      {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\image-filtered-present.rs",
+        "sha256": "90368fec5751eebcd94960f2b966cbc27416594647c92fac2e61c633fdb23fdb"
+      },
+      {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\image-filtered-present.wgsl",
+        "sha256": "3c356679db03282d7cd8966ce597f07f31d4c00b8119eb00aa874303268047f8"
+      },
+      {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\image-browser-filtered-present.rs",
+        "sha256": "32d279a9272a1f626c27b178ab3d061b64aece3bfa0e32c213a8050434147580"
+      }
+    ]
+  },
+  "renderScale": {
+    "profile": {
+      "renderScale": 2,
+      "lane": "browser",
+      "recipePins": [
+        {
+          "path": "journey/checks/browser/cap-primitives.cjs",
+          "sha256": "8f6aa6ed7ff902b3a832622b7e8a786753316865eb5fa27165b8c02ed1035f97"
+        }
+      ],
+      "samples": 1,
+      "presentation": "linear-srgb-gpu",
+      "files": [
+        {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\image-render-scale.ts",
+          "sha256": "41921ed40c3ca49b6aedaa410745ba89f35719bb3a79b256d23544ef68ea8ac0"
+        },
+        {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\image-render-scale-scope.json",
+          "sha256": "98cb76d3dea6be78e8a9ebcaf5730e197f3c683d71c048a272485519055598d1"
+        },
+        {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\image-filtered-present.rs",
+          "sha256": "90368fec5751eebcd94960f2b966cbc27416594647c92fac2e61c633fdb23fdb"
+        },
+        {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\image-filtered-present.wgsl",
+          "sha256": "3c356679db03282d7cd8966ce597f07f31d4c00b8119eb00aa874303268047f8"
+        },
+        {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\image-browser-filtered-present.rs",
+          "sha256": "32d279a9272a1f626c27b178ab3d061b64aece3bfa0e32c213a8050434147580"
+        }
+      ]
+    },
+    "before": {
+      "css": [
+        900,
+        760
+      ],
+      "internal": [
+        1800,
+        1520
+      ],
+      "dpr": 2,
+      "output": [
+        1800,
+        1520
+      ],
+      "gpuPresent": null,
+      "requestedScale": 1,
+      "camera": [
+        0.4318970011020651,
+        0,
+        0,
+        0,
+        0,
+        0.5114569749892875,
+        1.3181828814871047e-17,
+        0,
+        0,
+        1.1356626194764797e-16,
+        -0.059365679338714915,
+        0,
+        0,
+        0.044736842105263186,
+        0.7010420775719205,
+        1
+      ],
+      "sources": [
+        [
+          {
+            "edges": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14
+            ],
+            "faces": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ],
+            "id": 3,
+            "source": "ed275a5a-596a-4da7-8c17-67f222716e4a",
+            "vertices": 82
+          }
+        ],
+        [],
+        2,
+        {
+          "current": "3/0c7f1750-0b75-4e59-8fe1-bca0d0f08840",
+          "rows": [
+            {
+              "edges": null,
+              "faces": null,
+              "id": 3,
+              "locked": false,
+              "visible": true
+            },
+            {
+              "edges": null,
+              "faces": null,
+              "id": 4,
+              "locked": false,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "lines": [],
+          "points": [],
+          "polylines": []
+        },
+        [
+          0,
+          0
+        ]
+      ],
+      "selected": [
+        3,
+        4
+      ],
+      "ownership": {
+        "instances": [],
+        "curves": [],
+        "residency": [
+          [
+            "ed275a5a-596a-4da7-8c17-67f222716e4a",
+            true,
+            null
+          ],
+          [
+            "54544090-1688-4786-935a-7c7851f32a72",
+            true,
+            null
+          ]
+        ],
+        "metadata": [
+          [
+            "ed275a5a-596a-4da7-8c17-67f222716e4a",
+            "ed275a5a-596a-4da7-8c17-67f222716e4a",
+            "Original CAD bore",
+            true,
+            false
+          ],
+          [
+            "54544090-1688-4786-935a-7c7851f32a72",
+            "54544090-1688-4786-935a-7c7851f32a72",
+            "Clipping Plane",
+            true,
+            false
+          ]
+        ],
+        "origins": [],
+        "placements": [
+          [
+            "ObjectId(3)",
+            [
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              1
+            ]
+          ],
+          [
+            "ObjectId(4)",
+            [
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              1
+            ]
+          ]
+        ]
+      },
+      "clipping": {
+        "usage": [
+          1,
+          1,
+          1
+        ],
+        "rows": [
+          {
+            "id": 4,
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "offset": 0
+          }
+        ],
+        "caps": 1,
+        "error": null,
+        "cap_error": null,
+        "ambient_error": null,
+        "appearance": {
+          "opacity": 1,
+          "outlines": false,
+          "arctic": false
+        }
+      },
+      "rendererProfile": {
+        "renderScale": 1,
+        "density": 2,
+        "internal": [
+          1800,
+          1520
+        ]
+      }
+    },
+    "after": {
+      "css": [
+        900,
+        760
+      ],
+      "internal": [
+        3600,
+        3040
+      ],
+      "dpr": 2,
+      "output": [
+        1800,
+        1520
+      ],
+      "gpuPresent": {
+        "filter": "linear",
+        "format": "Bgra8UnormSrgb",
+        "internal": [
+          3600,
+          3040
+        ],
+        "output": [
+          1800,
+          1520
+        ],
+        "panel": "output-resolution",
+        "presentation": "linear-srgb-gpu",
+        "samples": 1
+      },
+      "requestedScale": 2,
+      "camera": [
+        0.4318970011020651,
+        0,
+        0,
+        0,
+        0,
+        0.5114569749892875,
+        1.3181828814871047e-17,
+        0,
+        0,
+        1.1356626194764797e-16,
+        -0.059365679338714915,
+        0,
+        0,
+        0.044736842105263186,
+        0.7010420775719205,
+        1
+      ],
+      "sources": [
+        [
+          {
+            "edges": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14
+            ],
+            "faces": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ],
+            "id": 3,
+            "source": "ed275a5a-596a-4da7-8c17-67f222716e4a",
+            "vertices": 82
+          }
+        ],
+        [],
+        2,
+        {
+          "current": "3/0c7f1750-0b75-4e59-8fe1-bca0d0f08840",
+          "rows": [
+            {
+              "edges": null,
+              "faces": null,
+              "id": 3,
+              "locked": false,
+              "visible": true
+            },
+            {
+              "edges": null,
+              "faces": null,
+              "id": 4,
+              "locked": false,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "lines": [],
+          "points": [],
+          "polylines": []
+        },
+        [
+          0,
+          0
+        ]
+      ],
+      "selected": [
+        3,
+        4
+      ],
+      "ownership": {
+        "instances": [],
+        "curves": [],
+        "residency": [
+          [
+            "ed275a5a-596a-4da7-8c17-67f222716e4a",
+            true,
+            null
+          ],
+          [
+            "54544090-1688-4786-935a-7c7851f32a72",
+            true,
+            null
+          ]
+        ],
+        "metadata": [
+          [
+            "ed275a5a-596a-4da7-8c17-67f222716e4a",
+            "ed275a5a-596a-4da7-8c17-67f222716e4a",
+            "Original CAD bore",
+            true,
+            false
+          ],
+          [
+            "54544090-1688-4786-935a-7c7851f32a72",
+            "54544090-1688-4786-935a-7c7851f32a72",
+            "Clipping Plane",
+            true,
+            false
+          ]
+        ],
+        "origins": [],
+        "placements": [
+          [
+            "ObjectId(3)",
+            [
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              1
+            ]
+          ],
+          [
+            "ObjectId(4)",
+            [
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              1
+            ]
+          ]
+        ]
+      },
+      "clipping": {
+        "usage": [
+          1,
+          1,
+          1
+        ],
+        "rows": [
+          {
+            "id": 4,
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "offset": 0
+          }
+        ],
+        "caps": 1,
+        "error": null,
+        "cap_error": null,
+        "ambient_error": null,
+        "appearance": {
+          "opacity": 1,
+          "outlines": false,
+          "arctic": false
+        }
+      },
+      "rendererProfile": {
+        "renderScale": 2,
+        "density": 4,
+        "internal": [
+          3600,
+          3040
+        ]
+      }
+    },
+    "settled": {
+      "adaptive": true,
+      "lane": "mesh",
+      "source": "cad",
+      "expectedRows": 2,
+      "path": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "stats": [
+        8,
+        8,
+        3,
+        48
+      ],
+      "usage": [
+        2,
+        26032,
+        2,
+        320
+      ],
+      "quality": {
+        "bytes": 166596,
+        "generations": 2,
+        "limited": null,
+        "pending": false,
+        "qualities": [
+          [
+            3,
+            0.000244140625,
+            0.000244140625,
+            false
+          ]
+        ]
+      }
+    },
+    "canonicalBehaviorRenderScale": 1,
+    "presentation": "linear-srgb-gpu"
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\96zza-connect-section-primitive-images-1d91f844b3b8.png",
+    "sha256": "1d91f844b3b888a6ea6a8e705ef64eae33fb4b666d40c0db78a5ea3bb30f373e"
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\96zy-connect-fitted-surfaces-and-exact-stroke-occlusion.png",
+    "sha256": "a39b4049153ece425486cb9d97a58f58d7937f33d0234be3ce5c9eb8c24d7420"
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root personally inspected all original1800x1520 pixels via four unfiltered/unresampled900x760 tiles. Selected yellow rectangular section and open white circular bore are fully framed; black source borders, central transform controls and two vertical clipping-plane guides are visible. Guides continue to the canvas boundary; command dock remains below the shape without overlap. Circular source-border pixel steps are visible and no pixel-perfect antialiasing claim is made. This is the source30 single-sample, two-times internal-resolution main-page image profile; it is not the four-sample96zzc qualification or full inherited/canonical callback acceptance. Old aliases/pixels preserved.",
+  "canonicalBehaviorExecuted": false,
+  "canonicalValidationProfile": false,
+  "scope": "Actual fresh Rust/WASM compilation and original final-main-page image recipe assertions, real NVIDIA pipelines, bounded resource reuse, and Root original-pixel review. The 96zzc image alone uses four-sample cap coverage with single-sample queries. Original child/prefix matrices excluded; no whole canonical callback acceptance. Existing aliases and pixels preserved.",
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\cap-source30-runtime-proposal-01\\96zza-connect-section-primitive-images\\publication.json",
+    "sha256": "55d1c13d944e478548c59d0d65d9106013186447eb1ae9be1fdc15cdc0a3b937"
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\browser-96zza-connect-section-primitive-images-2e8b56146aad1bc12c10\\retirement.json.gz",
+    "sha256": "65da33480ded392d31dbdc52c411944994bfd64bf34f25dbf5d92bf1fbe7f166"
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\browser-96zza-connect-section-primitive-images-2e8b56146aad1bc12c10\\retired.json",
+    "sha256": "43c789bfde1cc41f4d5c23cc9966ab01ba97a997300512896bb1dfa97e8a4b3e"
+  }
+}

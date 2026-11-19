@@ -1,67 +1,25 @@
-# Chapter 2: the résumé. Every step of presentations 1 and 2 on one slide, then the method as a procedure.
-title: Résumé
+# cd /home/pv/brg/code_cpp/wood_research/session/session_viewer && aws s3 sync examples/stage s3://session-viewer-data/stage/ --delete --exclude '*' --include '*.yaml' --content-type application/yaml --cache-control no-cache --profile r2 --endpoint-url https://0520459c6817bd96c1e25fcb49461c4e.r2.cloudflarestorage.com
+# Open local: http://127.0.0.1:8770/?stage=decks/force-density-materialization/index.yaml&data=off&chapter=2&step=1
+# Open live: https://petrasvestartas.github.io/session/?stage=force-density-materialization&chapter=2&step=1
+
+# Chapter 2: the whole method in three steps.
+title: WORKFLOW
 grid: {center: [3.5, 3.5], size: 9, step: 1}
 camera: {yaw: -58, pitch: 26}
-points:
-  X: [3.6, 3.4, 1.9]      # the free node, at a guess until the solve
-  n0: [3, 3, 0.25]
-  n1: [0, 0, 0]
-  n2: [5, 0, 3]
-  n3: [0, 7, 3]
-  n4: [7, 5, 0]
-blocks:
-  next:                   # dim the line before and write the next one
-    - dim: [$prev]
-    - eq: {id: $id, tex: $tex, size: 28}
+palette: {free: ink}
+net:
+  fixed: {n1: [0, 0, 0], n2: [5, 0, 3], n3: [0, 7, 3], n4: [7, 5, 0]}
+  free: {n0: [3.6, 3.4, 1.9]}
+  cables: {e0: [n0, n1], e1: [n0, n2], e2: [n0, n3], e3: [n0, n4]}
+  q: 1
+  load: {n0: [0, 0, -5]}
 slides:
-  - title: From one cable to one linear solve
+  - title: WHOLE WORKFLOW
     steps:
-      - say: 'Start from geometry: the length of one cable from the free node to an anchor.'
+      - say: 'Choose $\mathbf{q}$, solve linear equilibrium once, then cut each cable.'
+        show: net
         do:
-          - add:
-              - {id: n1, point: n1, color: fixed, label: 'n_1'}
-              - {id: n2, point: n2, color: fixed, label: 'n_2'}
-              - {id: n3, point: n3, color: fixed, label: 'n_3'}
-              - {id: n4, point: n4, color: fixed, label: 'n_4'}
-              - {id: e0, line: [X, n1]}
-              - {id: e1, line: [X, n2]}
-              - {id: e2, line: [X, n3]}
-              - {id: e3, line: [X, n4]}
-              - {id: n0, point: X, color: free, label: 'n_0'}
-              - {id: p, arrow: [X, 'X + [0, 0, -1.6]'], color: load, width: 3.6, label: 'p'}
-            dur: 0.9
-          - eq: {id: r1, tex: 'l_k = \sqrt{(x_k - x_0)^2 + (y_k - y_0)^2 + (z_k - z_0)^2}', size: 28}
-      - say: 'Nudge the node: the length changes at the rate of the negative direction cosine.'
-        next: {prev: r1, id: r2, tex: '\frac{\partial l_k}{\partial x_0} = \frac{-(x_k - x_0)}{l_k}'}
-      - say: 'All cables at once: the transposed Jacobian, written with the branch–node matrix.'
-        next: {prev: r2, id: r3, tex: '\Big(\frac{\partial \mathbf{f}}{\partial \mathbf{x}}\Big)^{T} = \mathbf{C}_N^{T}\mathbf{U}\mathbf{L}^{-1}'}
-      - say: 'Equilibrium of the free node: the projected cable forces balance the load.'
-        next: {prev: r3, id: r4, tex: '\mathbf{C}_N^{T}\mathbf{U}\mathbf{L}^{-1}\mathbf{f} = \mathbf{p}'}
-      - say: 'Prescribe force densities $\mathbf{q} = \mathbf{L}^{-1}\mathbf{f}$. The lengths drop out.'
-        next: {prev: r4, id: r5, tex: '\mathbf{C}_N^{T}\mathbf{U}\mathbf{q} = \mathbf{p}'}
-      - say: 'Swap the factors, $\mathbf{U}\mathbf{q} = \mathbf{Q}\mathbf{C}\mathbf{x}$, and split free from fixed.'
-        next: {prev: r5, id: r6, tex: '\mathbf{D}_N\mathbf{x}_N = \mathbf{p} - \mathbf{D}_F\mathbf{x}_F'}
-      - say: 'One linear solve gives the free coordinates. The node moves to equilibrium.'
-        do:
-          - dim: [r6]
-          - eq: {id: r7, tex: '\mathbf{x}_N = \mathbf{D}_N^{-1}(\mathbf{p} - \mathbf{D}_F\mathbf{x}_F)', size: 28, color: free}
-          - move: {point: X, to: n0, dur: 2.0}
-          - {indicate: [r7], color: free}
-      - say: 'Then the forces and, for a chosen material, the cut lengths.'
-        eq: {tex: '\mathbf{f} = \mathbf{L}\mathbf{q}, \qquad l_0 = \frac{l}{1 + \frac{q\,l}{EA}}', size: 28}
-
-  - title: The method as a procedure
-    steps:
-      - say: 'Four things go in. The designer chooses all of them.'
-        text: '**In.** Fixed points $\mathbf{x}_F$, topology $\mathbf{C}$, force densities $\mathbf{q}$, loads $\mathbf{p}$.'
-        highlight: [n1, n2, n3, n4]
-      - say: 'Two small matrices, and one solve per coordinate direction.'
-        do:
-          - tex: '\mathbf{D}_N = \mathbf{C}_N^{T}\mathbf{Q}\mathbf{C}_N, \qquad \mathbf{D}_F = \mathbf{C}_N^{T}\mathbf{Q}\mathbf{C}_F'
-          - {tex: '\mathbf{x}_N = \mathbf{D}_N^{-1}(\mathbf{p} - \mathbf{D}_F\mathbf{x}_F)', id: s2, color: free}
-      - say: 'Out comes the equilibrium shape, with its forces and cut lengths.'
-        text: '**Out.** Free coordinates $\mathbf{x}_N$, forces $\mathbf{f} = \mathbf{L}\mathbf{q}$, cut lengths $\mathbf{l}_0$.'
-        highlight: [n0]
-      - say: 'Not happy with the shape? Change $\mathbf{q}$, $\mathbf{p}$, the anchors or the topology, and solve again. Each choice gives one equilibrium.'
-        indicate: [s2]
-        color: free
+          - eq: {tex: '\text{1. Shape:} &\quad \mathbf{x}_N = (\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N)^{-1}(\mathbf{p} - \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{x}_F)', size: 22, gap: 18}
+          - solve: true
+          - eq: {tex: '\text{2. Forces:} &\quad l_k = \|\mathbf{x}_{\text{end}} - \mathbf{x}_{\text{start}}\|, \qquad f_k = q_k\,l_k', size: 22, gap: 18}
+          - eq: {tex: '\text{3. Cut list:} &\quad l_{0,k} = \frac{l_k}{1 + \dfrac{f_k}{EA}}', size: 22, gap: 18, color: accent}

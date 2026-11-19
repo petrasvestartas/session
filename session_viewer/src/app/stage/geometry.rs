@@ -26,6 +26,7 @@ pub enum SpatialKind {
     Line,
     Arrow,
     Polyline,
+    Mesh,
 }
 
 /// The twelve edges of the box with opposite corners `a` and `b`.
@@ -49,7 +50,7 @@ fn cuboid_edges(a: [f64; 3], b: [f64; 3]) -> Vec<([f64; 3], [f64; 3])> {
 }
 
 /// Length of the part of segment p-q inside box b.
-fn clip_len(p: [f32; 2], q: [f32; 2], b: [f32; 4]) -> f32 {
+pub(super) fn clip_len(p: [f32; 2], q: [f32; 2], b: [f32; 4]) -> f32 {
     let (dx, dy) = (q[0] - p[0], q[1] - p[1]);
     let (mut t0, mut t1) = (0.0f32, 1.0f32);
     let sides = [
@@ -87,7 +88,7 @@ impl Stage {
         match &o.content {
             Content::Point(a) => vec![p(a)],
             Content::Line { a, b, .. } | Content::Cuboid { a, b } => vec![p(a), p(b)],
-            Content::Polyline { pts, .. } => pts.iter().map(p).collect(),
+            Content::Polyline { pts, .. } | Content::Mesh(pts) => pts.iter().map(p).collect(),
             Content::Label { at, .. } => match &o.attach {
                 Some(id) => self.find(id).map(|i| {
                     let c = self.ctrl(&self.objs[i], now);
@@ -107,7 +108,7 @@ impl Stage {
         }
     }
 
-    /// Control points during a morph, blended by the kernel for points, lines and polylines.
+    /// Control points during a morph, blended by the kernel for points, lines, polylines and meshes.
     pub(super) fn geo_points(&self, o: &Obj, now: f64) -> Vec<[f64; 3]> {
         use session_rust::{Line, Point, Polyline};
         let live = self.ctrl(o, now);
@@ -166,6 +167,7 @@ impl Stage {
                 }
                 vec![one(SpatialKind::Polyline, pts, o.id.clone(), o.dash)]
             }
+            Content::Mesh(_) => vec![one(SpatialKind::Mesh, pts, o.id.clone(), false)],
             Content::Cuboid { .. } => {
                 let mut out = Vec::new();
                 for (k, (p, q)) in cuboid_edges(pts[0], pts[1]).into_iter().enumerate() {
@@ -183,7 +185,7 @@ impl Stage {
         let mut segs: Vec<([f32; 2], [f32; 2])> = Vec::new();
         let mut discs: Vec<[f32; 2]> = Vec::new();
         for o in &self.objs {
-            if !o.geo() {
+            if !o.geo() || o.opacity <= 0.01 {
                 continue;
             }
             let world = self.geo_points(o, now);
@@ -192,6 +194,10 @@ impl Stage {
                 Content::Point(_) => discs.push(pts[0]),
                 Content::Line { .. } => segs.push((pts[0], pts[1])),
                 Content::Polyline { .. } => segs.extend(pts.windows(2).map(|w| (w[0], w[1]))),
+                Content::Mesh(_) if !pts.is_empty() => {
+                    segs.extend(pts.windows(2).map(|w| (w[0], w[1])));
+                    segs.push((pts[pts.len() - 1], pts[0]));
+                }
                 _ => {}
             }
         }
@@ -206,12 +212,40 @@ impl Stage {
             let anchor3 = self.ctrl(o, now).first().copied().unwrap_or([0.0; 3]);
             let a = view.project(anchor3);
             let (w, h) = (o.expr.w * o.size, (o.expr.h + o.expr.d) * o.size);
+            let line_seg = o
+                .attach
+                .as_deref()
+                .and_then(|id| self.find(id))
+                .and_then(|li| {
+                    let lo = &self.objs[li];
+                    if matches!(lo.content, Content::Line { .. }) {
+                        let pts = self.geo_points(lo, now);
+                        Some((view.project(pts[0]), view.project(pts[1])))
+                    } else {
+                        None
+                    }
+                });
             let place = |ang: f32, gap: f32| -> [f32; 4] {
                 let (dx, dy) = (ang.cos(), -ang.sin());
                 // push the box out until its edge, not its center, is `gap` from the anchor
                 let reach = (w / 2.0 / dx.abs().max(1e-3)).min(h / 2.0 / dy.abs().max(1e-3));
-                let cx = a[0] + dx * (gap + reach);
-                let cy = a[1] + dy * (gap + reach);
+                let mut dist = gap + reach;
+                if gap > 0.0
+                    && let Some((p0, p1)) = line_seg
+                {
+                    let (lx, ly) = (p1[0] - p0[0], p1[1] - p0[1]);
+                    let llen = lx.hypot(ly);
+                    if llen > 1.0 {
+                        let (nx, ny) = (-ly / llen, lx / llen);
+                        let un = (dx * nx + dy * ny).abs();
+                        if un >= 0.45 {
+                            let clear = (nx.abs() * w / 2.0 + ny.abs() * h / 2.0 + gap) / un;
+                            dist = dist.max(clear);
+                        }
+                    }
+                }
+                let cx = a[0] + dx * dist;
+                let cy = a[1] + dy * dist;
                 [cx - w / 2.0, cy - h / 2.0, cx + w / 2.0, cy + h / 2.0]
             };
             let score = |b: [f32; 4]| -> f32 {
@@ -268,8 +302,12 @@ impl Stage {
                 self.objs[i].label_dir = best.1;
                 cand(best.1)
             };
-            boxes.push(chosen);
             let o = &self.objs[i];
+            let visible = o.opacity > 0.01
+                && (o.expr.prims.is_empty() || o.hidden.len() < o.expr.prims.len());
+            if visible {
+                boxes.push(chosen);
+            }
             placed.insert(o.id.clone(), [chosen[0], chosen[1] + o.expr.h * o.size]);
         }
         self.labels = placed;

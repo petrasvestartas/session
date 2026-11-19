@@ -48,17 +48,17 @@ Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving reb
 
 ### Recorded visual result
 
-**Previous native render — current verification pending.**
+**Source31 native image reviewed.**
 
 Two selected boxes and their source-independent handles remain.
 
 This checkpoint was rendered independently and has the same native comparison frame as [Keep lightweight tree records outside kernel ownership](52a-records.md). Use its state checks and browser exercise to assess the changed behavior.
 
-![Native renderer output for index descendants and read-only attribute groups.](../screenshots/journey/52-tree.png)
+![Native presentation at this checkpoint.](../screenshots/journey/52b-index-205a3b9411c0.png)
 
-*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
+*Fresh Rust/NVIDIA raw-DPR4 presentation, personally reviewed at 2560 × 1920. The inherited51zf fixture shows selected gold boxes and RGB transform handles; tree records, persistence and interaction require separate state checks. Fixed-resolution pixel checks and browser controls require separate acceptance.*
 
-This reference image is shared with [8.1.1 · Validate and place a nested source tree](52-tree.md). It does not demonstrate a new feature by itself.
+This scene continues [8.1.1 · Validate and place a nested source tree](52-tree.md). This checkpoint was captured independently; its new source behavior requires separate state checks.
 
 <details>
 <summary>Code explanation and diagram</summary>

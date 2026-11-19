@@ -216,6 +216,7 @@ mod tests {
                 row: 0,
                 interactions: false,
                 attributes: false,
+                arrowhead_pens: 0.0,
             },
             &source,
         );
@@ -261,6 +262,7 @@ mod tests {
                 row: 0,
                 interactions: false,
                 attributes: false,
+                arrowhead_pens: 0.0,
             },
             &source,
         );
@@ -308,6 +310,7 @@ mod tests {
             row: 3,
             interactions: false,
             attributes: false,
+            arrowhead_pens: 0.0,
         };
         walk_geometry(&mut Walk::of(&mut upload), &cx, &source);
         let span = Span {

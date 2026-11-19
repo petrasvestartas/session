@@ -125,7 +125,9 @@ pub enum Content {
     Point(Pos),
     Line { a: Pos, b: Pos, arrow: bool },
     Polyline { pts: Vec<Pos>, closed: bool },
+    Mesh(Vec<Pos>),
     Cuboid { a: Pos, b: Pos },
+    Drawing(Vec<FlatSpec>),
     Label { at: Pos, tex: String },
     Tex(String),
     Text(String),
@@ -135,12 +137,35 @@ pub enum Content {
     Row(Vec<RowItem>),
 }
 
+/// One orthographic construction shape in slide pixels.
+#[derive(Clone, Debug)]
+pub struct FlatSpec {
+    pub kind: FlatKind,
+    pub points: Vec<[f64; 2]>,
+    pub color: Option<String>,
+    pub fill: Option<String>,
+    pub width: Option<f64>,
+    pub size: Option<f64>,
+    pub opacity: Option<f64>,
+    pub dash: bool,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum FlatKind {
+    Point,
+    Line,
+    Arrow,
+    Polyline,
+    Polygon,
+}
+
 /// One formula or matrix of a row, optionally named and coloured.
 #[derive(Clone, Debug)]
 pub struct RowItem {
     pub id: Option<String>,
     pub content: Content,
     pub color: Option<String>,
+    pub width: Option<f64>, // Fixed slot width in em; content is centred within it.
 }
 
 /// A matrix of rounded cells.
@@ -377,10 +402,65 @@ fn matrix(v: &Value, at: &str, cx: &Cx) -> Result<MatrixSpec, String> {
 }
 
 /// Keys that make an object, in the order they are looked for.
-const TYPES: [&str; 13] = [
-    "point", "line", "arrow", "polyline", "polygon", "cuboid", "label", "tex", "text", "code",
-    "image", "matrix", "row",
+const TYPES: [&str; 15] = [
+    "point", "line", "arrow", "polyline", "polygon", "mesh", "cuboid", "drawing", "label", "tex",
+    "text", "code", "image", "matrix", "row",
 ];
+
+fn flat(v: &Value, at: &str) -> Result<Content, String> {
+    let mut shapes = Vec::new();
+    for item in list(v) {
+        let Value::Mapping(m) = &item else {
+            return err(at, "each drawing shape is a map");
+        };
+        let key = ["point", "line", "arrow", "polyline", "polygon"]
+            .into_iter()
+            .find(|key| get(m, key).is_some())
+            .ok_or_else(|| {
+                format!("{at}: a drawing shape needs point, line, arrow, polyline or polygon")
+            })?;
+        let kind = match key {
+            "point" => FlatKind::Point,
+            "line" => FlatKind::Line,
+            "arrow" => FlatKind::Arrow,
+            "polyline" => FlatKind::Polyline,
+            _ => FlatKind::Polygon,
+        };
+        let raw = get(m, key).unwrap();
+        let pairs = if key == "point" {
+            vec![raw.clone()]
+        } else {
+            list(raw)
+        };
+        let mut points = Vec::new();
+        for p in pairs {
+            points.push(pair(&p).ok_or_else(|| format!("{at}: drawing positions are [x, y]"))?);
+        }
+        let valid = match kind {
+            FlatKind::Point => points.len() == 1,
+            FlatKind::Line | FlatKind::Arrow => points.len() == 2,
+            FlatKind::Polyline => points.len() >= 2,
+            FlatKind::Polygon => points.len() >= 3,
+        };
+        if !valid {
+            return err(
+                at,
+                "a drawing needs one point, two endpoints, or a polyline",
+            );
+        }
+        shapes.push(FlatSpec {
+            kind,
+            points,
+            color: get(m, "color").and_then(text),
+            fill: get(m, "fill").and_then(text),
+            width: get(m, "width").and_then(num),
+            size: get(m, "size").and_then(num),
+            opacity: get(m, "opacity").and_then(num),
+            dash: get(m, "dash").and_then(Value::as_bool).unwrap_or(false),
+        });
+    }
+    Ok(Content::Drawing(shapes))
+}
 
 /// The geometry or formula of an object map.
 fn content(m: &Mapping, at: &str, cx: &Cx) -> Result<Content, String> {
@@ -407,6 +487,17 @@ fn content(m: &Mapping, at: &str, cx: &Cx) -> Result<Content, String> {
                     .collect::<Result<_, _>>()?,
                 closed: key == "polygon",
             },
+            "mesh" => {
+                let pts = list(v)
+                    .iter()
+                    .map(|p| pos(p, at))
+                    .collect::<Result<Vec<_>, _>>()?;
+                if pts.len() < 3 {
+                    return err(at, "a mesh needs at least three positions");
+                }
+                Content::Mesh(pts)
+            }
+            "drawing" => flat(v, at)?,
             "cuboid" => {
                 let pts = list(v);
                 if pts.len() != 2 {
@@ -449,11 +540,13 @@ fn content(m: &Mapping, at: &str, cx: &Cx) -> Result<Content, String> {
                             id: get(im, "id").and_then(text),
                             content: content(im, at, cx)?,
                             color: get(im, "color").and_then(text),
+                            width: get(im, "width").and_then(num),
                         },
                         other => RowItem {
                             id: None,
                             content: Content::Tex(text(other).unwrap_or_default()),
                             color: None,
+                            width: None,
                         },
                     });
                 }
@@ -742,7 +835,7 @@ fn action(v: &Value, at: &str, cx: &mut Cx) -> Result<Action, String> {
     })
 }
 
-/// The ground of a deck: white or black. Every colour name exists in both.
+/// The ground of a deck: white by default, or black on request. Every colour name exists in both.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum Theme {
     #[default]
@@ -769,61 +862,73 @@ impl Theme {
     }
 }
 
-/// The colours of a theme. The named colours (blue, pink, yellow, ...) follow the BRG figures
-/// and compas.dev: vivid blue, pink and yellow on white or black, grey for what stays behind.
+/// Black members, vivid blue loads and captions, pink and blue sign fills,
+/// dotted construction and pale ruled fills on white or black paper.
 pub fn theme_palette(theme: Theme) -> HashMap<String, Rgba> {
     let colors: &[(&str, &str)] = match theme {
         Theme::Light => &[
             ("ink", "#111111"),
-            ("dim", "#7a808a"),
-            ("faint", "#dde1e6"),
-            ("free", "#4fb3ff"),
-            ("fixed", "#0a7cff"),
-            ("load", "#00c46a"),
+            ("dim", "#666666"),
+            ("faint", "#e4e7e8"),
+            ("free", "#111111"),
+            ("fixed", "#111111"),
+            ("load", "#007bc4"),
             ("x", "#ff2d7a"),
             ("y", "#ff2d7a"),
             ("z", "#ff2d7a"),
-            ("accent", "#0a7cff"),
-            ("bar", "#1a1d22"),
+            ("accent", "#007bc4"),
+            ("bar", "#111111"),
             ("pos", "#ff5c9a"),
             ("neg", "#4c9bff"),
-            ("cell", "#eef1f5"),
+            ("cell", "#e4e7e8"),
             ("bg", "#ffffff"),
-            ("blue", "#0a7cff"),
-            ("lightblue", "#4fb3ff"),
+            ("blue", "#007bc4"),
+            ("navy", "#182c5b"),
+            ("lightblue", "#a9c9ff"),
             ("pink", "#ff2d7a"),
             ("yellow", "#ffc400"),
+            ("yellow_light", "#ffe38a"),
             ("orange", "#ff7a1a"),
             ("green", "#00c46a"),
-            ("grey", "#8a9099"),
+            ("ghost", "#c8d8df"),
+            ("grey", "#888888"),
+            ("zero", "#b9b9bd"),
+            ("pink_band", "#ff8fbd"),
+            ("blue_band", "#a9c9ff"),
             ("black", "#111111"),
             ("white", "#ffffff"),
         ],
         Theme::Dark => &[
-            ("ink", "#f4f6fa"),
-            ("dim", "#8d97a8"),
-            ("faint", "#2b313b"),
-            ("free", "#7cc4ff"),
-            ("fixed", "#2f8bff"),
-            ("load", "#00f5b0"),
+            ("ink", "#f4f4f6"),
+            ("dim", "#c9ccd6"),
+            ("faint", "#3f4548"),
+            ("free", "#f4f4f6"),
+            ("fixed", "#f4f4f6"),
+            ("load", "#2f8bff"),
             ("x", "#ff4fa3"),
             ("y", "#ff4fa3"),
             ("z", "#ff4fa3"),
             ("accent", "#2f8bff"),
-            ("bar", "#dfe3ea"),
-            ("pos", "#ff2d8a"),
-            ("neg", "#1f6bff"),
-            ("cell", "#171c26"),
+            ("bar", "#f4f4f6"),
+            ("pos", "#ff5c9a"),
+            ("neg", "#4c9bff"),
+            ("cell", "#3f4548"),
             ("bg", "#000000"),
             ("blue", "#2f8bff"),
-            ("lightblue", "#7cc4ff"),
+            ("navy", "#bdbfe8"),
+            ("lightblue", "#46616e"),
             ("pink", "#ff4fa3"),
             ("yellow", "#ffd60a"),
+            ("yellow_light", "#766b38"),
             ("orange", "#ff8a1f"),
             ("green", "#00f5b0"),
-            ("grey", "#8d97a8"),
+            ("ghost", "#46616e"),
+            ("grey", "#b9b9bd"),
+            ("zero", "#b9b9bd"),
+            ("pink_band", "#765260"),
+            ("blue_band", "#46616e"),
             ("black", "#000000"),
-            ("white", "#f4f6fa"),
+            ("white", "#f4f4f6"),
         ],
     };
     colors
@@ -891,7 +996,7 @@ pub fn chapter(src: &str, name: &str) -> Result<Chapter, String> {
     let Value::Mapping(m) = &v else {
         return err(name, "expected a map");
     };
-    // `accent: '#ff0000'` for both grounds, or `accent: {light: blue, dark: '#7cc4ff'}`
+    // `accent: '#ff0000'` for both grounds, or `accent: {light: blue, dark: lightblue}`
     let mut overrides = Vec::new();
     if let Some(Value::Mapping(p)) = get(m, "palette") {
         let known = default_palette();
@@ -1173,7 +1278,7 @@ fn solvable(net: &Net, at: &str) -> Result<(), String> {
     }
 }
 
-/// One line per cable of the solved net, coloured from blue to pink and thickened by its force.
+/// One line per cable of the solved net, with the figures' muted force ramp and force-scaled pen.
 fn force_lines(net: &Net) -> Vec<ObjSpec> {
     let rest = net.solve();
     let force = |k: usize| {
@@ -1190,10 +1295,19 @@ fn force_lines(net: &Net) -> Vec<ObjSpec> {
     for (place, &k) in order.iter().enumerate() {
         rank[k] = place as f64 / (forces.len().max(2) - 1) as f64;
     }
-    let (cold, hot) = ([43.0, 111.0, 219.0], [220.0, 75.0, 141.0]);
+    let ramp = [
+        [24.0, 44.0, 91.0],
+        [0.0, 123.0, 196.0],
+        [0.0, 196.0, 106.0],
+        [255.0, 196.0, 0.0],
+        [255.0, 122.0, 26.0],
+        [255.0, 45.0, 122.0],
+    ];
     let mut out = Vec::new();
     for (k, (name, a, b)) in net.cables.iter().enumerate() {
-        let t = rank[k];
+        let at = rank[k] * (ramp.len() - 1) as f64;
+        let (cold, hot) = (ramp[at.floor() as usize], ramp[at.ceil() as usize]);
+        let t = at.fract();
         let mix = |i: usize| (cold[i] + t * (hot[i] - cold[i])).round() as u8;
         let line = Content::Line {
             a: Pos::Name(net.names[*a].clone()),
@@ -1202,7 +1316,7 @@ fn force_lines(net: &Net) -> Vec<ObjSpec> {
         };
         let mut o = plain(format!("force_{name}"), line);
         o.color = Some(format!("#{:02x}{:02x}{:02x}", mix(0), mix(1), mix(2)));
-        o.width = Some(1.2 + 4.8 * (forces[k] / high).sqrt());
+        o.width = Some(1.2 + 2.8 * (forces[k] / high).sqrt());
         out.push(o);
     }
     out
@@ -1267,7 +1381,7 @@ fn net_objects(net: &Net, group: &str) -> Option<Vec<ObjSpec>> {
             };
             let mut o = plain(format!("load_{name}"), arrow);
             o.color = Some("load".into());
-            o.width = Some(if small { 3.6 } else { 1.8 });
+            o.width = Some(if small { 3.2 } else { 1.8 });
             o.label = (loaded.len() == 1).then(|| "p".to_string());
             out.push(o);
         }
@@ -1285,10 +1399,40 @@ fn act(kind: Kind) -> Action {
     }
 }
 
+fn object_with_options(
+    v: &Value,
+    options: &Mapping,
+    at: &str,
+    cx: &mut Cx,
+) -> Result<ObjSpec, String> {
+    let Value::Mapping(nested) = v else {
+        return object(v, at, cx);
+    };
+    let mut merged = nested.clone();
+    for (key, value) in options {
+        if looks(key, value) {
+            merged.insert(key.clone(), value.clone());
+        }
+    }
+    object(&Value::Mapping(merged), at, cx)
+}
+
 /// An equation written by `eq` or `then`: named `eq<n>` and aligned on its equals sign.
 fn equation(v: &Value, at: &str, cx: &mut Cx) -> Result<ObjSpec, String> {
     let mut o = match v {
-        Value::Mapping(_) => object(v, at, cx)?,
+        Value::Mapping(m) => {
+            if let Some(eq) = get(m, "eq").or_else(|| get(m, "then")) {
+                if eq.is_mapping() {
+                    object_with_options(eq, m, at, cx)?
+                } else {
+                    let mut normalized = m.clone();
+                    normalized.insert(Value::String("tex".into()), eq.clone());
+                    object(&Value::Mapping(normalized), at, cx)?
+                }
+            } else {
+                object(v, at, cx)?
+            }
+        }
         _ => plain(cx.auto(), Content::Tex(text(v).unwrap_or_default())),
     };
     if o.id.starts_with("_auto") {
@@ -1377,7 +1521,7 @@ fn project(v: &Value, at: &str, cx: &mut Cx) -> Result<Vec<Action>, String> {
         };
         let mut arrow = plain(format!("{of}.{axis}"), edge);
         arrow.color = Some(axis.clone());
-        arrow.width = Some(3.6);
+        arrow.width = Some(3.2);
         // the first part drops out of the arrow onto its axis; the others are drawn on from there
         out.push(act(if out.len() == 1 {
             Kind::Derive {
@@ -1774,12 +1918,12 @@ fn step(m: &Mapping, at: &str, cx: &mut Cx) -> Result<Vec<Action>, String> {
                 }
             }
             "eq" => {
-                let o = equation(v, at, cx)?;
+                let o = equation(&one, at, cx)?;
                 cx.eq = Some(o.id.clone());
                 out.push(act(Kind::Add(vec![o])));
             }
             "then" => {
-                let obj = equation(v, at, cx)?;
+                let obj = equation(&one, at, cx)?;
                 let from = cx.eq.replace(obj.id.clone());
                 let from = from.ok_or_else(|| format!("{at}: no equation before it"))?;
                 out.push(act(Kind::Derive {
@@ -1797,7 +1941,15 @@ fn step(m: &Mapping, at: &str, cx: &mut Cx) -> Result<Vec<Action>, String> {
                     map: Vec::new(),
                 }));
             }
-            "text" | "code" | "image" | "matrix" | "row" | "tex" => {
+            "tex" => {
+                let o = if v.is_mapping() {
+                    object_with_options(v, m, at, cx)?
+                } else {
+                    object(&one, at, cx)?
+                };
+                out.push(act(Kind::Add(vec![o])));
+            }
+            "text" | "code" | "image" | "matrix" | "row" => {
                 out.push(act(Kind::Add(vec![object(&one, at, cx)?])))
             }
             "highlight" => out.push(act(Kind::Indicate(strings(v), None))),
