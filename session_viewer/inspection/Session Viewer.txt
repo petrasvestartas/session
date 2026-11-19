@@ -1,0 +1,432 @@
+# Session Viewer
+
+High-performance browser-based geometry viewer built with Rust and WebGPU.
+
+**Live application:** https://petrasvestartas.github.io/session/  
+**Documentation:** https://petrasvestartas.github.io/session/docs/
+
+## Mission
+
+Develop and maintain a modular, extremely fast browser-based 3D geometry viewer.
+
+The project has two equally important deliverables:
+
+1. The final production application.
+2. Complete, code-first tutorials that allow developers to reconstruct the final application from scratch.
+
+The tutorials are an implementation manual, NOT a traditional programming course.
+
+**Minimal explanations. Maximum implementation. Complete source code. Exceptional visual diagrams.**
+
+## 1. Non-negotiable requirements
+
+- Browser application only. No native desktop application.
+- Rust and WebGPU/wgpu rendering architecture.
+- Modular core independent of UI.
+- CLI-compatible operations.
+- FastMCP-compatible operations.
+- Complete geometry and scene management.
+- Complete shader and rendering-mode coverage.
+- Point clouds and spatial acceleration structures.
+- Gumball, layers, commands and selection.
+- Efficient CPU/GPU memory management.
+- Extremely responsive camera navigation.
+- Complete technical documentation.
+- No undocumented removal of existing functionality.
+
+## 2. Existing application first
+
+Before implementation, inspect the complete existing application.
+
+Treat the repository as the source of truth.
+
+Inventory every:
+- Module.
+- Feature.
+- Shader.
+- Rendering pipeline.
+- Data structure.
+- Command.
+- UI component.
+- Interaction.
+- File format.
+- Geometry type.
+- GPU resource.
+- Integration.
+- Known issue.
+
+Do not replace existing functionality with simplified demonstrations.
+
+Do not start a major rewrite until the audit and architecture are complete.
+
+## 3. Architecture
+
+Separate the application into independent components.
+
+### Core
+- Scene.
+- Geometry.
+- Object management.
+- Transformations.
+- Materials.
+- Layers.
+- Selection.
+- Camera.
+- Spatial indexing.
+- Serialization.
+
+### Rendering
+- WebGPU initialization.
+- Device and queue.
+- Render pipelines.
+- WGSL shaders.
+- Vertex and index buffers.
+- Storage buffers.
+- Textures.
+- Depth resources.
+- Transparency.
+- Lighting.
+- Display modes.
+- GPU memory management.
+
+### Interaction
+- Camera navigation.
+- Picking.
+- Selection.
+- Hover.
+- Gumball.
+- Transformations.
+- Mouse and keyboard events.
+
+### UI
+- Viewport.
+- Toolbar.
+- Layers panel.
+- Properties.
+- Commands.
+- Selection interface.
+- Display settings.
+
+### Automation
+- CLI.
+- Command registry.
+- FastMCP tools.
+- FastMCP resources.
+- Programmatic API.
+
+The same core operations must be accessible from all interfaces.
+
+## 4. Complete feature coverage
+
+Preserve and document all existing features.
+
+The following categories must be explicitly investigated.
+
+### Geometry
+- Points.
+- Lines.
+- Polylines.
+- Meshes.
+- Vertices.
+- Edges.
+- Faces.
+- Multiple geometry objects.
+- Large geometry datasets.
+- Point clouds.
+- Octrees.
+- Spatial hierarchies.
+- Geometry creation.
+- Geometry deletion.
+- Geometry updates.
+- Transformations.
+
+### Camera and interaction
+- Orbit.
+- Pan.
+- Zoom.
+- Perspective.
+- Orthographic.
+- Picking.
+- Hover.
+- Selection.
+- Gumball.
+- Translation.
+- Rotation.
+- Scaling.
+
+### Scene management
+- Layers.
+- Visibility.
+- Object hierarchy.
+- Properties.
+- Materials.
+- Object IDs.
+- Scene updates.
+
+### Rendering
+- Default shaded view.
+- Wireframe.
+- Edges.
+- Points.
+- Point clouds.
+- Transparency.
+- Lighting.
+- Depth.
+- Culling.
+- Antialiasing.
+- Post-processing.
+- Arctic view.
+- All other existing display modes.
+
+Every shader must be documented with its complete source code and integration.
+
+### Matrix presentation cleanup
+
+Remove the unwanted 3D matrix presentation featuring black outlines and rectangular graphics from:
+- The viewer.
+- The tutorials.
+
+Reference:
+https://petrasvestartas.github.io/session/docs/course/docs/screenshots/active/geometry-four-objects-1280.png?v=2ee546863e22
+
+Retain the 2D matrix presentation with rounded rectangles from recent development.
+
+This removal applies only to the specified matrix visualization. Do not remove ordinary geometry edges, outlines or selection highlighting.
+
+## 5. Performance
+
+Performance is a primary engineering requirement.
+
+The current viewer feels excessively laggy despite its appealing appearance.
+
+Investigate and optimize:
+
+- Camera movement.
+- Pan and zoom.
+- Default shaded rendering.
+- Transparency.
+- Arctic view.
+- Large meshes.
+- Large point clouds.
+- Multiple objects.
+- GPU buffer allocation.
+- Buffer updates.
+- CPU/GPU synchronization.
+- Draw calls.
+- Shader complexity.
+- Fragment overdraw.
+- Culling.
+- LOD.
+- Event handling.
+- Render scheduling.
+- Memory allocations.
+- Unnecessary cloning.
+- Unnecessary UI updates.
+
+Measure before optimizing.
+
+Record:
+- FPS.
+- Frame time.
+- CPU time.
+- GPU time where available.
+- Memory consumption.
+- Draw calls.
+- GPU upload volume.
+- Buffer allocations.
+- Visible geometry.
+- Point and triangle counts.
+
+Maintain reproducible benchmarks.
+
+Do not sacrifice visual correctness for performance.
+
+## 6. Data structures and file formats
+
+Define and document the complete application data model.
+
+Include:
+- Scene.
+- Geometry.
+- Mesh.
+- Point cloud.
+- Spatial hierarchy.
+- Octree.
+- Layer.
+- Material.
+- Texture.
+- Camera.
+- Transform.
+- Selection.
+- GPU resource.
+- Rendering state.
+
+For every structure document:
+- Memory layout.
+- Ownership.
+- Lifetime.
+- CPU representation.
+- GPU representation.
+- Serialization.
+- Update behavior.
+
+Investigate:
+- JSON.
+- Binary formats.
+- OBJ.
+- PLY.
+- glTF.
+- GLB.
+- Other formats justified by actual use cases.
+
+Avoid unnecessary memory copying.
+
+## 7. CLI and FastMCP
+
+Every important operation must have a documented interface.
+
+Examples:
+- Create geometry.
+- Delete geometry.
+- Transform objects.
+- Manage layers.
+- Query objects.
+- Inspect scene.
+- Select objects.
+- Import geometry.
+- Export geometry.
+- Change camera.
+- Change rendering mode.
+- Retrieve performance information.
+
+Document:
+- Operation ID.
+- Parameters.
+- Types.
+- Validation.
+- Return values.
+- Errors.
+- Side effects.
+
+CLI and FastMCP must call the same underlying core operations.
+
+The browser viewer remains the primary application.
+
+## 8. Tutorials
+
+Tutorials must directly build the final application.
+
+Do not create separate toy applications.
+
+Do not repeatedly rewrite basic examples.
+
+Do not spend chapters explaining generic WebGPU concepts that are not immediately needed by the implementation.
+
+Every tutorial should contain:
+
+1. Goal.
+2. Short architecture diagram.
+3. Files modified.
+4. Complete implementation.
+5. Integration.
+6. Verification.
+
+Explanations should be extremely concise.
+
+Prioritize:
+- Complete executable source code.
+- Visual diagrams.
+- Data flow.
+- Memory ownership.
+- GPU pipelines.
+- Shader explanations.
+- Integration details.
+
+Never replace required implementation with pseudocode.
+
+Never omit important source code.
+
+Avoid repeating explanations from previous tutorials.
+
+## 9. Tutorial implementation sequence
+
+1. Project architecture and browser initialization.
+2. WebGPU/wgpu initialization.
+3. Rendering engine and shaders.
+4. Geometry and scene data structures.
+5. Camera and navigation.
+6. Object creation and transformations.
+7. Picking and selection.
+8. Gumball.
+9. Layers and scene management.
+10. All display modes and shaders.
+11. Point clouds and octrees.
+12. Transparency and advanced rendering.
+13. CLI and command system.
+14. FastMCP integration.
+15. File formats and serialization.
+16. Performance optimization.
+17. Complete application reconstruction.
+
+All features must remain integrated into one application.
+
+## 10. Reference material
+
+Use official documentation and relevant video tutorials.
+
+Prioritize:
+- WebGPU Fundamentals.
+- WebGPU specification.
+- MDN WebGPU.
+- wgpu documentation.
+- WGSL specification.
+- WebGPU samples.
+- Rust graphics tutorials.
+- GPU performance documentation.
+
+Verify all API examples against the actual wgpu version in the repository.
+
+Do not blindly copy outdated examples.
+
+Maintain a bibliography with links, subjects and relevant implementation modules.
+
+## 11. Development methodology
+
+For every feature:
+
+1. Audit existing implementation.
+2. Define architecture.
+3. Define data structures.
+4. Implement.
+5. Integrate.
+6. Test.
+7. Benchmark.
+8. Document in the corresponding tutorial.
+
+Keep the application executable after every milestone.
+
+Do not perform broad refactoring without a migration plan.
+
+Do not remove existing features without explicit justification.
+
+## 12. Definition of done
+
+The project is complete when:
+
+- All existing features are inventoried.
+- All retained features are implemented and documented.
+- The viewer remains browser-based.
+- Core operations are independent of UI.
+- CLI and FastMCP share the same core.
+- All rendering modes are covered.
+- Point clouds and octrees are covered.
+- Gumball and layers are covered.
+- All shaders are documented.
+- The unwanted 3D matrix presentation is removed.
+- The 2D rounded-rectangle presentation remains.
+- Performance is benchmarked and improved.
+- Camera interaction is responsive.
+- Memory ownership is documented.
+- Tutorials reconstruct the complete final application.
+
+**Final objective: a fast, modular, complete browser-based geometry viewer that can be rebuilt from scratch using its own implementation documentation.**

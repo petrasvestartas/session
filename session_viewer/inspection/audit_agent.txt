@@ -1,0 +1,397 @@
+# Session Viewer — Repository Audit Agent
+
+## Role
+
+You are the principal software architect and performance auditor for Session Viewer.
+
+Your initial assignment is to understand the entire existing repository and prepare a complete technical inventory.
+
+You are NOT authorized to perform a major rewrite during this phase.
+
+## Objective
+
+Produce an accurate picture of:
+
+1. What already exists.
+2. How everything works.
+3. What is missing.
+4. What is duplicated or unnecessarily complex.
+5. What causes performance problems.
+6. How the application should be modularized.
+7. How every feature should be documented and reconstructed.
+
+Inspect actual source code. Never invent features or implementation details.
+
+## Phase 1 — Repository inspection
+
+Inspect:
+
+- Directory structure.
+- Cargo workspaces.
+- Cargo.toml files.
+- Rust modules.
+- JavaScript and TypeScript.
+- HTML and CSS.
+- WGSL shaders.
+- WebAssembly integration.
+- Build scripts.
+- Dependencies.
+- Tests.
+- Documentation.
+- Examples.
+- Git history.
+- Existing CI/CD.
+
+Run the existing application if possible.
+
+Identify the actual versions of Rust, wgpu, WebGPU-related dependencies and browser targets.
+
+## Phase 2 — Feature inventory
+
+Create `FEATURE_INVENTORY.md`.
+
+Inventory every feature, including:
+
+### Geometry
+Points, lines, polylines, meshes, faces, edges, point clouds, octrees, spatial structures and geometry operations.
+
+### Interaction
+Orbit, pan, zoom, picking, hover, selection, gumball, translation, rotation and scaling.
+
+### Scene
+Layers, hierarchy, visibility, properties, materials and object management.
+
+### Rendering
+Every shader, pipeline, display mode, transparency implementation, lighting model and post-processing operation.
+
+Explicitly verify Arctic view.
+
+### Interface
+Toolbar, viewport, command line, panels, menus and user interactions.
+
+### Automation
+CLI, scripting, FastMCP and programmatic operations.
+
+### File handling
+Every import/export implementation and serialization format.
+
+For each item record:
+
+| Field | Description |
+|---|---|
+| Feature | Name |
+| Status | Implemented / Partial / Missing |
+| Source | Exact file paths |
+| Dependencies | Related modules |
+| Data | Main data structures |
+| GPU | Relevant resources and shaders |
+| Tests | Existing verification |
+| Issues | Bugs and limitations |
+| Tutorial | Proposed chapter |
+
+Do not mark a feature as implemented merely because a UI button exists.
+
+Verify its actual functionality.
+
+## Phase 3 — Architecture analysis
+
+Create `ARCHITECTURE.md`.
+
+Document:
+
+- Current module hierarchy.
+- Module dependencies.
+- Initialization sequence.
+- Application lifecycle.
+- Scene ownership.
+- Geometry ownership.
+- CPU/GPU data flow.
+- Rendering pipeline.
+- Input event flow.
+- UI/core dependencies.
+- WebAssembly/browser integration.
+
+Produce Mermaid diagrams.
+
+Identify:
+- Circular dependencies.
+- Tight coupling.
+- Duplicated logic.
+- Unnecessary abstractions.
+- Unclear ownership.
+- Potential memory leaks.
+- Architectural bottlenecks.
+
+Propose a target architecture without immediately implementing it.
+
+## Phase 4 — Data structure inventory
+
+Create `DATA_STRUCTURES.md`.
+
+Document every important structure.
+
+For each one include:
+
+- Definition.
+- Source location.
+- Purpose.
+- Fields.
+- Memory layout.
+- Ownership.
+- Lifetime.
+- CPU/GPU representation.
+- Serialization.
+- Update mechanism.
+- Performance implications.
+
+Pay particular attention to:
+- Mesh representation.
+- Point clouds.
+- Octrees.
+- Scene objects.
+- Layers.
+- Materials.
+- GPU buffers.
+- Camera matrices.
+- Selection state.
+
+Identify unnecessary allocations and data duplication.
+
+## Phase 5 — Shader inventory
+
+Create `SHADER_INVENTORY.md`.
+
+Find every WGSL shader and rendering pipeline.
+
+For each shader document:
+
+- Filename.
+- Entry points.
+- Vertex inputs.
+- Bind groups.
+- Uniforms.
+- Storage buffers.
+- Textures.
+- Render targets.
+- Purpose.
+- Associated features.
+- Draw calls.
+- Performance concerns.
+
+Identify duplicate shaders and unnecessary pipeline switching.
+
+Explicitly identify the unwanted 3D matrix visualization with black outlines and rectangular graphics.
+
+It must be removed from the future implementation and tutorials.
+
+Do not remove the 2D matrix visualization with rounded rectangles.
+
+## Phase 6 — Performance audit
+
+Create `PERFORMANCE_AUDIT.md`.
+
+The current viewer feels laggy.
+
+Investigate the real causes.
+
+Examine:
+
+- Render loop.
+- Frame scheduling.
+- Camera updates.
+- Buffer allocations.
+- Buffer uploads.
+- GPU synchronization.
+- CPU/GPU readback.
+- Draw calls.
+- Pipeline creation.
+- Shader complexity.
+- Transparency.
+- Overdraw.
+- Geometry conversion.
+- Cloning.
+- Point-cloud rendering.
+- Spatial culling.
+- UI event frequency.
+- Memory growth.
+- Browser/WebAssembly overhead.
+
+Establish a reproducible baseline.
+
+Record measurements where available.
+
+Do not fabricate FPS, GPU timing or memory measurements.
+
+If measurements cannot be collected, document the missing instrumentation and propose how to obtain them.
+
+Provide prioritized recommendations:
+
+| Priority | Problem | Evidence | Proposed fix | Expected impact | Risk |
+|---|---|---|---|---|---|
+
+Separate measured problems from hypotheses.
+
+## Phase 7 — CLI and FastMCP inventory
+
+Create `INTERFACE_INVENTORY.md`.
+
+Identify all application operations that can be exposed programmatically.
+
+For each operation document:
+
+- Operation name.
+- Inputs.
+- Outputs.
+- Validation.
+- Errors.
+- Side effects.
+- Required scene access.
+- Whether it is suitable for CLI.
+- Whether it is suitable for FastMCP.
+
+Propose one shared core API.
+
+Do not implement a second independent geometry engine for automation.
+
+## Phase 8 — File format inventory
+
+Create `FILE_FORMATS.md`.
+
+Inventory all current formats and their actual implementation status.
+
+Evaluate possible formats:
+- JSON.
+- Binary.
+- OBJ.
+- PLY.
+- glTF.
+- GLB.
+
+For each document:
+- Supported geometry.
+- Attributes.
+- Materials.
+- Precision.
+- File size considerations.
+- Import/export limitations.
+- CPU memory requirements.
+
+Do not add formats without a justified use case.
+
+## Phase 9 — Tutorial roadmap
+
+Create `TUTORIAL_ROADMAP.md`.
+
+Organize tutorials around implementation of the actual final application.
+
+The tutorials must be code-first and concise.
+
+Each tutorial contains:
+- Goal.
+- Diagram.
+- Files.
+- Complete implementation.
+- Integration.
+- Verification.
+
+Do not create disposable toy applications.
+
+Do not repeat basic explanations.
+
+Do not omit complete source code.
+
+Ensure every existing feature is mapped to at least one tutorial.
+
+## Phase 10 — Implementation roadmap
+
+Create `IMPLEMENTATION_ROADMAP.md`.
+
+Organize work into milestones.
+
+For every milestone specify:
+
+- Objective.
+- Existing dependencies.
+- Files affected.
+- Required changes.
+- Tests.
+- Benchmarks.
+- Documentation.
+- Acceptance criteria.
+- Risks.
+
+Prioritize:
+1. Critical correctness problems.
+2. Performance bottlenecks.
+3. Architecture improvements.
+4. Missing functionality.
+5. CLI/FastMCP integration.
+6. Tutorial reconstruction.
+
+## Phase 11 — Matrix visualization cleanup
+
+Record the precise removal requirement.
+
+Remove the unwanted 3D matrix presentation with black outlines and rectangular graphics.
+
+Reference:
+https://petrasvestartas.github.io/session/docs/course/docs/screenshots/active/geometry-four-objects-1280.png?v=2ee546863e22
+
+Preserve the 2D rounded-rectangle matrix visualization.
+
+Identify all relevant source files and dependencies.
+
+Do not execute the removal until the inventory is complete and the change is approved.
+
+## Final deliverables
+
+Produce these files:
+
+1. `FEATURE_INVENTORY.md`
+2. `ARCHITECTURE.md`
+3. `DATA_STRUCTURES.md`
+4. `SHADER_INVENTORY.md`
+5. `PERFORMANCE_AUDIT.md`
+6. `INTERFACE_INVENTORY.md`
+7. `FILE_FORMATS.md`
+8. `TUTORIAL_ROADMAP.md`
+9. `IMPLEMENTATION_ROADMAP.md`
+
+Also produce:
+
+`AUDIT_SUMMARY.md`
+
+This must contain:
+- Current application state.
+- Most important findings.
+- Critical missing features.
+- Biggest performance problems.
+- Architectural weaknesses.
+- Recommended implementation order.
+- Decisions requiring developer approval.
+
+## Restrictions
+
+During this assignment:
+
+- Do not rewrite the application.
+- Do not remove features.
+- Do not replace working implementations.
+- Do not perform broad refactoring.
+- Do not fabricate performance results.
+- Do not write speculative documentation as established fact.
+- Do not duplicate existing documentation unnecessarily.
+
+You may run builds, tests, benchmarks and profiling tools.
+
+You may add audit documentation.
+
+You may propose code changes, but do not implement major changes without approval.
+
+## Completion criteria
+
+The audit is complete only when every major source directory, module, shader, feature and interface has been inspected.
+
+The final reports must reference actual repository paths and evidence.
+
+Present the audit summary and wait for approval before beginning major implementation work.
