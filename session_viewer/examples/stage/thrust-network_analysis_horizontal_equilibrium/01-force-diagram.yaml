@@ -1,0 +1,413 @@
+# Written by generate.py in ../thrust-network_analysis_horizontal_equilibrium; edit the sentences there.
+# Open local: http://127.0.0.1:8770/?stage=decks/thrust-network_analysis_horizontal_equilibrium/index.yaml&data=off&chapter=1&step=1
+# Open live: https://petrasvestartas.github.io/session/?stage=thrust-network_analysis_horizontal_equilibrium&chapter=1&step=1
+
+title: THE FORCE DIAGRAM
+split: 0.5
+camera: {view: top, fit: [LO, HI]}
+points:
+  n1: [1.300, 8.100, 0]
+  n2: [4.900, 8.700, 0]
+  n3: [3.700, 11.300, 0]
+  n4: [2.000, 10.000, 0]
+  s1: [1.200, 6.500, 0]
+  s2: [4.900, 6.500, 0]
+  s3: [6.000, 9.400, 0]
+  s4: [6.000, 11.400, 0]
+  s5: [3.300, 12.500, 0]
+  s6: [2.300, 12.500, 0]
+  s7: [0.000, 10.500, 0]
+  s8: [0.000, 7.900, 0]
+  A: [0.833, 7.500, 0]
+  B: [3.075, 7.450, 0]
+  C: [5.267, 8.200, 0]
+  D: [0.825, 9.125, 0]
+  E: [2.975, 9.525, 0]
+  F: [5.150, 10.200, 0]
+  G: [1.433, 11.000, 0]
+  H: [2.825, 11.575, 0]
+  I: [4.333, 11.733, 0]
+  vB: [3.059, 2.855, 0]
+  rB: [2.444, 2.752, 0]
+  vD: [4.189, 2.998, 0]
+  rD: [4.416, 3.614, 0]
+  vF: [3.313, 3.204, 0]
+  rF: [3.599, 2.583, 0]
+  vH: [2.616, 4.195, 0]
+  rH: [3.106, 4.569, 0]
+  mA: [5.004, 1.076, 0]
+  mB: [4.880, 3.234, 0]
+  mC: [4.578, 5.930, 0]
+  mD: [3.067, 0.943, 0]
+  mE: [3.294, 3.313, 0]
+  mF: [2.436, 4.669, 0]
+  mG: [1.162, 1.438, 0]
+  mH: [1.481, 2.638, 0]
+  mI: [0.563, 4.790, 0]
+  TG: [-0.7, 12.3, 0]
+  TF: [-0.7, 5.6, 0]
+  LO: [0.0, 0.9, 0]
+  HI: [6.0, 11.8, 0]
+slides:
+  - title: NODES CLOSE POLYGONS
+    steps:
+      - say: 'Four bars push on node $1$.'
+        do:
+          - add:
+              - {id: rim, polygon: [s1, s2, s3, s4, s5, s6, s7, s8], color: grey, width: 1.2, dash: true}
+              - {id: b0, line: [s1, n1], color: ink, width: 2.4}
+              - {id: b1, line: [s2, n2], color: ink, width: 2.4}
+              - {id: b2, line: [s8, n1], color: ink, width: 2.4}
+              - {id: b3, line: [n1, n2], color: ink, width: 2.4}
+              - {id: b4, line: [n1, n4], color: ink, width: 2.4}
+              - {id: b5, line: [n2, s3], color: ink, width: 2.4}
+              - {id: b6, line: [n2, n3], color: ink, width: 2.4}
+              - {id: b7, line: [s7, n4], color: ink, width: 2.4}
+              - {id: b8, line: [n4, n3], color: ink, width: 2.4}
+              - {id: b9, line: [n4, s6], color: ink, width: 2.4}
+              - {id: b10, line: [n3, s4], color: ink, width: 2.4}
+              - {id: b11, line: [n3, s5], color: ink, width: 2.4}
+              - {id: s1, point: s1, color: fixed, size: 0.8}
+              - {id: s2, point: s2, color: fixed, size: 0.8}
+              - {id: s3, point: s3, color: fixed, size: 0.8}
+              - {id: s4, point: s4, color: fixed, size: 0.8}
+              - {id: s5, point: s5, color: fixed, size: 0.8}
+              - {id: s6, point: s6, color: fixed, size: 0.8}
+              - {id: s7, point: s7, color: fixed, size: 0.8}
+              - {id: s8, point: s8, color: fixed, size: 0.8}
+              - {id: n1, point: n1, color: free, label: '1'}
+              - {id: n2, point: n2, color: free, label: '2'}
+              - {id: n3, point: n3, color: free, label: '3'}
+              - {id: n4, point: n4, color: free, label: '4'}
+              - {id: tg, label: TG, tex: '\Gamma', color: accent}
+              - {id: p1_0, arrow: [[1.244, 7.210, 0], n1], color: pink, width: 4.2}
+              - {id: p1_3, arrow: [[1.889, 8.198, 0], n1], color: pink, width: 4.2}
+              - {id: p1_4, arrow: [[1.641, 9.027, 0], n1], color: pink, width: 4.2}
+              - {id: p1_2, arrow: [[0.425, 7.965, 0], n1], color: pink, width: 4.2}
+      - say: 'Head to tail the pushes close: equilibrium.'
+        do:
+          - derive: {from: p1_0, id: g1_0, arrow: [[4.674, 1.354, 0], [4.813, 3.580, 0]], color: pink, width: 3.2}
+          - derive: {from: p1_3, id: g1_3, arrow: [[4.813, 3.580, 0], [3.341, 3.335, 0]], color: pink, width: 3.2}
+          - derive: {from: p1_4, id: g1_4, arrow: [[3.341, 3.335, 0], [2.487, 1.018, 0]], color: pink, width: 3.2}
+          - derive: {from: p1_2, id: g1_2, arrow: [[2.487, 1.018, 0], [4.674, 1.354, 0]], color: pink, width: 3.2}
+          - add:
+              - {id: mag, label: [3.828, 2.321, 0], tex: '\times 2.5', color: grey}
+          - eq: {tex: '\sum \mathbf{F}_{\mathrm{H}} = \mathbf{0}', align: left, size: 36}
+      - say: 'Every node closes its own polygon. Neighbours share a side.'
+        do:
+          - remove: [mag]
+          - add:
+              - {id: p2_1, arrow: [[4.900, 7.687, 0], n2], color: blue, width: 4.2}
+              - {id: p2_5, arrow: [[5.752, 9.242, 0], n2], color: blue, width: 4.2}
+              - {id: p2_6, arrow: [[4.637, 9.269, 0], n2], color: blue, width: 4.2}
+              - {id: p2_3, arrow: [[4.311, 8.602, 0], n2], color: blue, width: 4.2}
+          - derive: {from: p2_1, id: g2_1, arrow: [[4.813, 3.580, 0], [4.813, 6.112, 0]], color: blue, width: 3.2}
+          - derive: {from: p2_5, id: g2_5, arrow: [[4.813, 6.112, 0], [2.684, 4.757, 0]], color: blue, width: 3.2, with: true}
+          - derive: {from: p2_6, id: g2_6, arrow: [[2.684, 4.757, 0], [3.341, 3.335, 0]], color: blue, width: 3.2, with: true}
+          - derive: {from: p2_3, id: g2_3, arrow: [[3.341, 3.335, 0], [4.813, 3.580, 0]], color: blue, width: 3.2, with: true}
+          - add:
+              - {id: p3_6, arrow: [[3.963, 10.731, 0], n3], color: pink, width: 4.2}
+              - {id: p3_10, arrow: [[4.499, 11.335, 0], n3], color: pink, width: 4.2}
+              - {id: p3_11, arrow: [[3.342, 12.373, 0], n3], color: pink, width: 4.2}
+              - {id: p3_8, arrow: [[2.996, 10.761, 0], n3], color: pink, width: 4.2}
+          - derive: {from: p3_6, id: g3_6, arrow: [[3.341, 3.335, 0], [2.684, 4.757, 0]], color: pink, width: 3.2}
+          - derive: {from: p3_10, id: g3_10, arrow: [[2.684, 4.757, 0], [0.686, 4.670, 0]], color: pink, width: 3.2, with: true}
+          - derive: {from: p3_11, id: g3_11, arrow: [[0.686, 4.670, 0], [1.580, 1.988, 0]], color: pink, width: 3.2, with: true}
+          - derive: {from: p3_8, id: g3_8, arrow: [[1.580, 1.988, 0], [3.341, 3.335, 0]], color: pink, width: 3.2, with: true}
+          - add:
+              - {id: p4_4, arrow: [[1.659, 9.073, 0], n4], color: blue, width: 4.2}
+              - {id: p4_8, arrow: [[2.704, 10.539, 0], n4], color: blue, width: 4.2}
+              - {id: p4_9, arrow: [[2.035, 10.289, 0], n4], color: blue, width: 4.2}
+              - {id: p4_7, arrow: [[1.603, 10.099, 0], n4], color: blue, width: 4.2}
+          - derive: {from: p4_4, id: g4_4, arrow: [[2.487, 1.018, 0], [3.341, 3.335, 0]], color: blue, width: 3.2}
+          - derive: {from: p4_8, id: g4_8, arrow: [[3.341, 3.335, 0], [1.580, 1.988, 0]], color: blue, width: 3.2, with: true}
+          - derive: {from: p4_9, id: g4_9, arrow: [[1.580, 1.988, 0], [1.493, 1.266, 0]], color: blue, width: 3.2, with: true}
+          - derive: {from: p4_7, id: g4_7, arrow: [[1.493, 1.266, 0], [2.487, 1.018, 0]], color: blue, width: 3.2, with: true}
+          - add:
+              - {id: tf, label: TF, tex: '\Gamma^*', color: accent}
+      - say: 'The force diagram $\Gamma^*$: side $BE$ is parallel to bar $1$–$2$, and its length is the thrust.'
+        do:
+          - remove: [p1_0, p1_3, p1_4, p1_2, p2_1, p2_5, p2_6, p2_3, p3_6, p3_10, p3_11, p3_8, p4_4, p4_8, p4_9, p4_7, g1_0, g1_3, g1_4, g1_2, g2_1, g2_5, g2_6, g2_3, g3_6, g3_10, g3_11, g3_8, g4_4, g4_8, g4_9, g4_7]
+          - add:
+              - {id: zf0, line: [[4.674, 1.354, 0], [4.813, 3.580, 0]], color: ink, width: 3.0}
+              - {id: zf1, line: [[4.813, 3.580, 0], [4.813, 6.112, 0]], color: ink, width: 3.0}
+              - {id: zf2, line: [[2.487, 1.018, 0], [4.674, 1.354, 0]], color: ink, width: 3.0}
+              - {id: zf3, line: [[3.341, 3.335, 0], [4.813, 3.580, 0]], color: ink, width: 3.0}
+              - {id: zf4, line: [[2.487, 1.018, 0], [3.341, 3.335, 0]], color: ink, width: 3.0}
+              - {id: zf5, line: [[2.684, 4.757, 0], [4.813, 6.112, 0]], color: ink, width: 3.0}
+              - {id: zf6, line: [[3.341, 3.335, 0], [2.684, 4.757, 0]], color: ink, width: 3.0}
+              - {id: zf7, line: [[1.493, 1.266, 0], [2.487, 1.018, 0]], color: ink, width: 3.0}
+              - {id: zf8, line: [[1.580, 1.988, 0], [3.341, 3.335, 0]], color: ink, width: 3.0}
+              - {id: zf9, line: [[1.493, 1.266, 0], [1.580, 1.988, 0]], color: ink, width: 3.0}
+              - {id: zf10, line: [[0.686, 4.670, 0], [2.684, 4.757, 0]], color: ink, width: 3.0}
+              - {id: zf11, line: [[1.580, 1.988, 0], [0.686, 4.670, 0]], color: ink, width: 3.0}
+              - {id: zA, point: [4.674, 1.354, 0], color: ink, size: 0.8, label: 'A'}
+              - {id: zB, point: [4.813, 3.580, 0], color: ink, size: 0.8, label: 'B'}
+              - {id: zC, point: [4.813, 6.112, 0], color: ink, size: 0.8, label: 'C'}
+              - {id: zD, point: [2.487, 1.018, 0], color: ink, size: 0.8, label: 'D'}
+              - {id: zE, point: [3.341, 3.335, 0], color: ink, size: 0.8, label: 'E'}
+              - {id: zF, point: [2.684, 4.757, 0], color: ink, size: 0.8, label: 'F'}
+              - {id: zG, point: [1.493, 1.266, 0], color: ink, size: 0.8, label: 'G'}
+              - {id: zH, point: [1.580, 1.988, 0], color: ink, size: 0.8, label: 'H'}
+              - {id: zI, point: [0.686, 4.670, 0], color: ink, size: 0.8, label: 'I'}
+              - {id: c1, label: [3.828, 2.321, 0], tex: '1', color: pink}
+              - {id: c2, label: [3.913, 4.446, 0], tex: '2', color: blue}
+              - {id: c3, label: [2.073, 3.687, 0], tex: '3', color: pink}
+              - {id: c4, label: [2.225, 1.902, 0], tex: '4', color: blue}
+              - {id: spA, label: [0.833, 7.500, 0], tex: 'A', color: grey}
+              - {id: spB, label: [3.075, 7.450, 0], tex: 'B', color: grey}
+              - {id: spC, label: [5.267, 8.200, 0], tex: 'C', color: grey}
+              - {id: spD, label: [0.825, 9.125, 0], tex: 'D', color: grey}
+              - {id: spE, label: [2.975, 9.525, 0], tex: 'E', color: grey}
+              - {id: spF, label: [5.150, 10.200, 0], tex: 'F', color: grey}
+              - {id: spG, label: [1.433, 11.000, 0], tex: 'G', color: grey}
+              - {id: spH, label: [2.825, 11.575, 0], tex: 'H', color: grey}
+              - {id: spI, label: [4.333, 11.733, 0], tex: 'I', color: grey}
+          - color: {target: b3, color: pink}
+          - color: {target: zf3, color: pink, with: true}
+          - eq: {tex: 'F_{\mathrm{H}} = \frac{1}{r}\,l^*', align: left, size: 36}
+  - title: 'compas_tna: A FIRST GUESS'
+    steps:
+      - say: 'Unknown $\Gamma^*$: guess one corner at the centroid of every space, joined across each bar.'
+        do:
+          - remove: [zf0, zf1, zf2, zf3, zf4, zf5, zf6, zf7, zf8, zf9, zf10, zf11, zA, zB, zC, zD, zE, zF, zG, zH, zI, c1, c2, c3, c4, spA, spB, spC, spD, spE, spF, spG, spH, spI]
+          - color: {target: b3, color: ink}
+          - add:
+              - {id: A, point: A, color: ink, size: 0.8, label: 'A'}
+              - {id: B, point: B, color: ink, size: 0.8, label: 'B'}
+              - {id: C, point: C, color: ink, size: 0.8, label: 'C'}
+              - {id: D, point: D, color: ink, size: 0.8, label: 'D'}
+              - {id: E, point: E, color: ink, size: 0.8, label: 'E'}
+              - {id: F, point: F, color: ink, size: 0.8, label: 'F'}
+              - {id: G, point: G, color: ink, size: 0.8, label: 'G'}
+              - {id: H, point: H, color: ink, size: 0.8, label: 'H'}
+              - {id: I, point: I, color: ink, size: 0.8, label: 'I'}
+              - {id: f0, line: [A, B], color: ink, width: 2.6}
+              - {id: f1, line: [B, C], color: ink, width: 2.6}
+              - {id: f2, line: [D, A], color: ink, width: 2.6}
+              - {id: f3, line: [E, B], color: ink, width: 2.6}
+              - {id: f4, line: [D, E], color: ink, width: 2.6}
+              - {id: f5, line: [F, C], color: ink, width: 2.6}
+              - {id: f6, line: [E, F], color: ink, width: 2.6}
+              - {id: f7, line: [G, D], color: ink, width: 2.6}
+              - {id: f8, line: [H, E], color: ink, width: 2.6}
+              - {id: f9, line: [G, H], color: ink, width: 2.6}
+              - {id: f10, line: [I, F], color: ink, width: 2.6}
+              - {id: f11, line: [H, I], color: ink, width: 2.6}
+          - code: |
+              force = ForceDiagram.from_formdiagram(form)
+      - say: 'Set aside and turned by $90^\circ$. Blue needles: the bars, where every side should point.'
+        do:
+          - move: {point: A, to: [0.833, 1.000, 0], dur: 1.2}
+          - move: {point: B, to: [3.075, 0.950, 0], dur: 1.2, with: true}
+          - move: {point: C, to: [5.267, 1.700, 0], dur: 1.2, with: true}
+          - move: {point: D, to: [0.825, 2.625, 0], dur: 1.2, with: true}
+          - move: {point: E, to: [2.975, 3.025, 0], dur: 1.2, with: true}
+          - move: {point: F, to: [5.150, 3.700, 0], dur: 1.2, with: true}
+          - move: {point: G, to: [1.433, 4.500, 0], dur: 1.2, with: true}
+          - move: {point: H, to: [2.825, 5.075, 0], dur: 1.2, with: true}
+          - move: {point: I, to: [4.333, 5.233, 0], dur: 1.2, with: true}
+          - move: {point: A, to: [5.058, 0.955, 0], dur: 1.4}
+          - move: {point: B, to: [5.108, 3.196, 0], dur: 1.4, with: true}
+          - move: {point: C, to: [4.358, 5.388, 0], dur: 1.4, with: true}
+          - move: {point: D, to: [3.433, 0.946, 0], dur: 1.4, with: true}
+          - move: {point: E, to: [3.033, 3.096, 0], dur: 1.4, with: true}
+          - move: {point: F, to: [2.358, 5.271, 0], dur: 1.4, with: true}
+          - move: {point: G, to: [1.558, 1.555, 0], dur: 1.4, with: true}
+          - move: {point: H, to: [0.983, 2.946, 0], dur: 1.4, with: true}
+          - move: {point: I, to: [0.825, 4.455, 0], dur: 1.4, with: true}
+          - derive: {from: b0, id: t0, arrow: ['mid(A, B) - [0.026, 0.419, 0]', 'mid(A, B) + [0.026, 0.419, 0]'], color: blue, width: 1.5}
+          - derive: {from: b1, id: t1, arrow: ['mid(B, C) - [0.000, 0.420, 0]', 'mid(B, C) + [0.000, 0.420, 0]'], color: blue, width: 1.5, with: true}
+          - derive: {from: b2, id: t2, arrow: ['mid(D, A) - [0.415, 0.064, 0]', 'mid(D, A) + [0.415, 0.064, 0]'], color: blue, width: 1.5, with: true}
+          - derive: {from: b3, id: t3, arrow: ['mid(E, B) - [0.414, 0.069, 0]', 'mid(E, B) + [0.414, 0.069, 0]'], color: blue, width: 1.5, with: true}
+          - derive: {from: b4, id: t4, arrow: ['mid(D, E) - [0.145, 0.394, 0]', 'mid(D, E) + [0.145, 0.394, 0]'], color: blue, width: 1.5, with: true}
+          - derive: {from: b5, id: t5, arrow: ['mid(F, C) - [0.354, 0.225, 0]', 'mid(F, C) + [0.354, 0.225, 0]'], color: blue, width: 1.5, with: true}
+          - derive: {from: b6, id: t6, arrow: ['mid(E, F) - [-0.176, 0.381, 0]', 'mid(E, F) + [-0.176, 0.381, 0]'], color: blue, width: 1.5, with: true}
+          - derive: {from: b7, id: t7, arrow: ['mid(G, D) - [0.407, -0.102, 0]', 'mid(G, D) + [0.407, -0.102, 0]'], color: blue, width: 1.5, with: true}
+          - derive: {from: b8, id: t8, arrow: ['mid(H, E) - [0.334, 0.255, 0]', 'mid(H, E) + [0.334, 0.255, 0]'], color: blue, width: 1.5, with: true}
+          - derive: {from: b9, id: t9, arrow: ['mid(G, H) - [0.050, 0.417, 0]', 'mid(G, H) + [0.050, 0.417, 0]'], color: blue, width: 1.5, with: true}
+          - derive: {from: b10, id: t10, arrow: ['mid(I, F) - [0.420, 0.018, 0]', 'mid(I, F) + [0.420, 0.018, 0]'], color: blue, width: 1.5, with: true}
+          - derive: {from: b11, id: t11, arrow: ['mid(H, I) - [-0.133, 0.398, 0]', 'mid(H, I) + [-0.133, 0.398, 0]'], color: blue, width: 1.5, with: true}
+          - code: |
+              _xy[:] = rot90(_xy, +1.0)    # (x, y) -> (-y, x)
+          - eq: {tex: '\text{largest miss}\quad 33.2^\circ', align: left, size: 30}
+  - title: ONE ITERATION
+    steps:
+      - say: 'Side $DE$: slide its needle to $D$ and turn the side onto it, keeping its length $l$.'
+        do:
+          - camera: {fit: [H, B, D, F, vH, vB, vD, vF], dur: 1.2}
+          - dim: [f0, f1, f2, f5, f7, f9, f10, f11, t0, t1, t2, t5, t7, t9, t10, t11]
+          - derive: {from: t4, id: rayD, line: [D, rD], color: blue, width: 1.6, dash: true}
+          - add:
+              - {id: arcD, polyline: [[3.033, 3.096, 0], [3.149, 3.115, 0], [3.266, 3.127, 0], [3.383, 3.133, 0], [3.501, 3.132, 0], [3.618, 3.125, 0], [3.735, 3.112, 0], [3.850, 3.093, 0], [3.965, 3.068, 0], [4.078, 3.036, 0], [4.189, 2.998, 0]], color: pink, width: 1.4}
+              - {id: aD, arrow: [D, vD], color: pink, width: 2.6}
+              - {id: vD, point: vD, color: pink, size: 0.7, label: '\mathbf{p}_D'}
+          - eq: {tex: '\mathbf{p}_D = \mathbf{x}_D + l\,\mathbf{t}', color: pink, align: left, size: 34}
+      - say: 'The other three sides of $E$ do the same.'
+        do:
+          - derive: {from: t3, id: rayB, line: [B, rB], color: blue, width: 1.6, dash: true}
+          - add:
+              - {id: arcB, polyline: [[3.033, 3.096, 0], [3.035, 3.072, 0], [3.036, 3.048, 0], [3.038, 3.024, 0], [3.040, 2.999, 0], [3.043, 2.975, 0], [3.045, 2.951, 0], [3.048, 2.927, 0], [3.052, 2.903, 0], [3.055, 2.879, 0], [3.059, 2.855, 0]], color: pink, width: 1.4}
+              - {id: aB, arrow: [B, vB], color: pink, width: 2.6}
+              - {id: vB, point: vB, color: pink, size: 0.7, label: '\mathbf{p}_B'}
+          - derive: {from: t6, id: rayF, line: [F, rF], color: blue, width: 1.6, dash: true}
+          - add:
+              - {id: arcF, polyline: [[3.033, 3.096, 0], [3.062, 3.105, 0], [3.090, 3.115, 0], [3.119, 3.125, 0], [3.147, 3.135, 0], [3.175, 3.145, 0], [3.203, 3.156, 0], [3.230, 3.168, 0], [3.258, 3.179, 0], [3.285, 3.191, 0], [3.313, 3.204, 0]], color: pink, width: 1.4}
+              - {id: aF, arrow: [F, vF], color: pink, width: 2.6}
+              - {id: vF, point: vF, color: pink, size: 0.7, label: '\mathbf{p}_F'}
+          - derive: {from: t8, id: rayH, line: [H, rH], color: blue, width: 1.6, dash: true}
+          - add:
+              - {id: arcH, polyline: [[3.033, 3.096, 0], [3.021, 3.215, 0], [3.002, 3.332, 0], [2.976, 3.449, 0], [2.944, 3.563, 0], [2.905, 3.676, 0], [2.859, 3.786, 0], [2.808, 3.893, 0], [2.750, 3.998, 0], [2.686, 4.098, 0], [2.616, 4.195, 0]], color: pink, width: 1.4}
+              - {id: aH, arrow: [H, vH], color: pink, width: 2.6}
+              - {id: vH, point: vH, color: pink, size: 0.7, label: '\mathbf{p}_H'}
+          - eq: {tex: '\mathbf{p}_i = \mathbf{x}_i \pm l_i\,\mathbf{t}_i', color: pink, align: left, size: 34}
+      - say: 'Corner $E$ goes to the average of the four.'
+        do:
+          - add:
+              - {id: wB, line: [vB, mE], color: pink, width: 1.0, dash: true}
+              - {id: wD, line: [vD, mE], color: pink, width: 1.0, dash: true}
+              - {id: wF, line: [vF, mE], color: pink, width: 1.0, dash: true}
+              - {id: wH, line: [vH, mE], color: pink, width: 1.0, dash: true}
+              - {id: step, arrow: [E, mE], color: ink, width: 3.4}
+          - eq: {tex: '\mathbf{x}_E \leftarrow \tfrac{1}{4}\,(\mathbf{p}_B + \mathbf{p}_D + \mathbf{p}_F + \mathbf{p}_H)', align: left, size: 30}
+      - say: 'Every corner does this at the same time: one iteration.'
+        do:
+          - camera: {fit: [A, C, G, I, B, D, F, H], dur: 1.2}
+          - remove: [step, rayB, arcB, aB, vB, wB, rayD, arcD, aD, vD, wD, rayF, arcF, aF, vF, wF, rayH, arcH, aH, vH, wH]
+          - undim: [f0, f1, f2, f5, f7, f9, f10, f11, t0, t1, t2, t5, t7, t9, t10, t11]
+          - add:
+              - {id: sA, arrow: [A, mA], color: ink, width: 2.2}
+              - {id: sB, arrow: [B, mB], color: ink, width: 2.2}
+              - {id: sC, arrow: [C, mC], color: ink, width: 2.2}
+              - {id: sD, arrow: [D, mD], color: ink, width: 2.2}
+              - {id: sE, arrow: [E, mE], color: ink, width: 2.2}
+              - {id: sF, arrow: [F, mF], color: ink, width: 2.2}
+              - {id: sG, arrow: [G, mG], color: ink, width: 2.2}
+              - {id: sH, arrow: [H, mH], color: ink, width: 2.2}
+              - {id: sI, arrow: [I, mI], color: ink, width: 2.2}
+          - wait: 0.8
+          - move: {point: A, to: [5.004, 1.076, 0], dur: 1.4}
+          - move: {point: B, to: [4.880, 3.234, 0], dur: 1.4, with: true}
+          - move: {point: C, to: [4.578, 5.930, 0], dur: 1.4, with: true}
+          - move: {point: D, to: [3.067, 0.943, 0], dur: 1.4, with: true}
+          - move: {point: E, to: [3.294, 3.313, 0], dur: 1.4, with: true}
+          - move: {point: F, to: [2.436, 4.669, 0], dur: 1.4, with: true}
+          - move: {point: G, to: [1.162, 1.438, 0], dur: 1.4, with: true}
+          - move: {point: H, to: [1.481, 2.638, 0], dur: 1.4, with: true}
+          - move: {point: I, to: [0.563, 4.790, 0], dur: 1.4, with: true}
+          - remove: [sA, sB, sC, sD, sE, sF, sG, sH, sI]
+          - eq: {tex: '\text{largest miss}\quad 33.2^\circ \to 17.0^\circ', align: left, size: 30}
+  - title: REPEAT
+    steps:
+      - say: 'Repeat until every side lies on its needle.'
+        do:
+          - camera: {fit: [LO, HI], dur: 1.2}
+          - eq: {tex: 'k = 1:\quad 17.0^\circ', align: left, size: 34}
+          - move: {point: A, to: [4.865, 1.157, 0], dur: 0.9}
+          - move: {point: B, to: [4.859, 3.341, 0], dur: 0.9, with: true}
+          - move: {point: C, to: [4.706, 5.975, 0], dur: 0.9, with: true}
+          - move: {point: D, to: [2.876, 0.940, 0], dur: 0.9, with: true}
+          - move: {point: E, to: [3.333, 3.294, 0], dur: 0.9, with: true}
+          - move: {point: F, to: [2.514, 4.746, 0], dur: 0.9, with: true}
+          - move: {point: G, to: [1.245, 1.413, 0], dur: 0.9, with: true}
+          - move: {point: H, to: [1.457, 2.459, 0], dur: 0.9, with: true}
+          - move: {point: I, to: [0.651, 4.723, 0], dur: 0.9, with: true}
+          - becomes: 'k = 2:\quad 13.4^\circ'
+          - move: {point: A, to: [4.788, 1.203, 0], dur: 0.9}
+          - move: {point: B, to: [4.849, 3.406, 0], dur: 0.9, with: true}
+          - move: {point: C, to: [4.747, 6.037, 0], dur: 0.9, with: true}
+          - move: {point: D, to: [2.761, 0.966, 0], dur: 0.9, with: true}
+          - move: {point: E, to: [3.339, 3.305, 0], dur: 0.9, with: true}
+          - move: {point: F, to: [2.577, 4.745, 0], dur: 0.9, with: true}
+          - move: {point: G, to: [1.279, 1.375, 0], dur: 0.9, with: true}
+          - move: {point: H, to: [1.495, 2.321, 0], dur: 0.9, with: true}
+          - move: {point: I, to: [0.675, 4.702, 0], dur: 0.9, with: true}
+          - becomes: 'k = 3:\quad 9.3^\circ'
+          - move: {point: A, to: [4.717, 1.270, 0], dur: 0.9}
+          - move: {point: B, to: [4.828, 3.487, 0], dur: 0.9, with: true}
+          - move: {point: C, to: [4.794, 6.091, 0], dur: 0.9, with: true}
+          - move: {point: D, to: [2.628, 0.990, 0], dur: 0.9, with: true}
+          - move: {point: E, to: [3.342, 3.316, 0], dur: 0.9, with: true}
+          - move: {point: F, to: [2.641, 4.751, 0], dur: 0.9, with: true}
+          - move: {point: G, to: [1.363, 1.328, 0], dur: 0.9, with: true}
+          - move: {point: H, to: [1.532, 2.163, 0], dur: 0.9, with: true}
+          - move: {point: I, to: [0.692, 4.678, 0], dur: 0.9, with: true}
+          - becomes: 'k = 5:\quad 4.9^\circ'
+          - move: {point: A, to: [4.677, 1.334, 0], dur: 0.9}
+          - move: {point: B, to: [4.814, 3.559, 0], dur: 0.9, with: true}
+          - move: {point: C, to: [4.814, 6.114, 0], dur: 0.9, with: true}
+          - move: {point: D, to: [2.517, 1.012, 0], dur: 0.9, with: true}
+          - move: {point: E, to: [3.341, 3.330, 0], dur: 0.9, with: true}
+          - move: {point: F, to: [2.678, 4.755, 0], dur: 0.9, with: true}
+          - move: {point: G, to: [1.462, 1.281, 0], dur: 0.9, with: true}
+          - move: {point: H, to: [1.569, 2.026, 0], dur: 0.9, with: true}
+          - move: {point: I, to: [0.690, 4.668, 0], dur: 0.9, with: true}
+          - becomes: 'k = 10:\quad 1.33^\circ'
+          - move: {point: A, to: [4.674, 1.353, 0], dur: 0.9}
+          - move: {point: B, to: [4.813, 3.579, 0], dur: 0.9, with: true}
+          - move: {point: C, to: [4.813, 6.112, 0], dur: 0.9, with: true}
+          - move: {point: D, to: [2.488, 1.017, 0], dur: 0.9, with: true}
+          - move: {point: E, to: [3.341, 3.334, 0], dur: 0.9, with: true}
+          - move: {point: F, to: [2.684, 4.757, 0], dur: 0.9, with: true}
+          - move: {point: G, to: [1.492, 1.267, 0], dur: 0.9, with: true}
+          - move: {point: H, to: [1.579, 1.990, 0], dur: 0.9, with: true}
+          - move: {point: I, to: [0.686, 4.670, 0], dur: 0.9, with: true}
+          - becomes: 'k = 20:\quad 0.07^\circ'
+          - move: {point: A, to: [4.674, 1.354, 0], dur: 0.9}
+          - move: {point: B, to: [4.813, 3.580, 0], dur: 0.9, with: true}
+          - move: {point: C, to: [4.813, 6.112, 0], dur: 0.9, with: true}
+          - move: {point: D, to: [2.487, 1.018, 0], dur: 0.9, with: true}
+          - move: {point: E, to: [3.341, 3.335, 0], dur: 0.9, with: true}
+          - move: {point: F, to: [2.684, 4.757, 0], dur: 0.9, with: true}
+          - move: {point: G, to: [1.493, 1.266, 0], dur: 0.9, with: true}
+          - move: {point: H, to: [1.580, 1.988, 0], dur: 0.9, with: true}
+          - move: {point: I, to: [0.686, 4.670, 0], dur: 0.9, with: true}
+          - becomes: 'k = 50:\quad 0.000^\circ'
+  - title: READ THE FORCES
+    steps:
+      - say: 'Side length is thrust, drawn as thickness. Divided by bar length: force density.'
+        do:
+          - remove: [t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11]
+          - add:
+              - {id: h0, line: [s1, n1], color: ink, width: 5.9}
+              - {id: h1, line: [s2, n2], color: ink, width: 6.6}
+              - {id: h2, line: [s8, n1], color: ink, width: 5.9}
+              - {id: h3, line: [n1, n2], color: ink, width: 4.3}
+              - {id: h4, line: [n1, n4], color: ink, width: 6.4}
+              - {id: h5, line: [n2, s3], color: ink, width: 6.6}
+              - {id: h6, line: [n2, n3], color: ink, width: 4.4}
+              - {id: h7, line: [s7, n4], color: ink, width: 3.3}
+              - {id: h8, line: [n4, n3], color: ink, width: 5.9}
+              - {id: h9, line: [n4, s6], color: ink, width: 2.6}
+              - {id: h10, line: [n3, s4], color: ink, width: 5.4}
+              - {id: h11, line: [n3, s5], color: ink, width: 7.2}
+          - color: {target: h3, color: pink}
+          - color: {target: f3, color: pink, with: true}
+          - eq: {tex: 'q = \frac{l^*}{r\,l}', align: left, size: 34}
+          - eq: {tex: 'q_{1,2} = \frac{l^*_{BE}}{l_{1,2}} = \frac{{=len(B, E):.2}}{3.65} = {=len(B, E) / 3.6497:.2}', align: left, size: 30}
+      - say: 'Four bars per node: other parallel diagrams exist, with other thrusts.'
+        do:
+          - remove: [h0, h1, h2, h3, h4, h5, h6, h7, h8, h9, h10, h11]
+          - move: {point: A, to: [4.496, 1.111, 0], dur: 1.8}
+          - move: {point: B, to: [4.672, 3.937, 0], dur: 1.8, with: true}
+          - move: {point: C, to: [4.672, 5.778, 0], dur: 1.8, with: true}
+          - move: {point: D, to: [2.476, 0.800, 0], dur: 1.8, with: true}
+          - move: {point: E, to: [3.564, 3.752, 0], dur: 1.8, with: true}
+          - move: {point: F, to: [3.092, 4.773, 0], dur: 1.8, with: true}
+          - move: {point: G, to: [1.385, 1.072, 0], dur: 1.8, with: true}
+          - move: {point: H, to: [1.519, 2.189, 0], dur: 1.8, with: true}
+          - move: {point: I, to: [0.693, 4.668, 0], dur: 1.8, with: true}
+          - add:
+              - {id: k0, line: [s1, n1], color: ink, width: 7.2}
+              - {id: k1, line: [s2, n2], color: ink, width: 5.1}
+              - {id: k2, line: [s8, n1], color: ink, width: 5.5}
+              - {id: k3, line: [n1, n2], color: ink, width: 3.5}
+              - {id: k4, line: [n1, n4], color: ink, width: 7.9}
+              - {id: k5, line: [n2, s3], color: ink, width: 5.1}
+              - {id: k6, line: [n2, n3], color: ink, width: 3.5}
+              - {id: k7, line: [s7, n4], color: ink, width: 3.5}
+              - {id: k8, line: [n4, n3], color: ink, width: 6.7}
+              - {id: k9, line: [n4, s6], color: ink, width: 3.5}
+              - {id: k10, line: [n3, s4], color: ink, width: 6.3}
+              - {id: k11, line: [n3, s5], color: ink, width: 6.8}
+          - color: {target: k3, color: pink}

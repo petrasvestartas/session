@@ -1,0 +1,8 @@
+# Open live: https://petrasvestartas.github.io/session/?stage=thrust-network_analysis_horizontal_equilibrium
+
+# How compas_tna computes horizontal equilibrium: the force diagram is made parallel to the form diagram.
+# The chapters are written by generate.py in ../thrust-network_analysis_horizontal_equilibrium.
+name: Thrust network analysis · horizontal equilibrium
+chapters:
+  - 01-force-diagram.yaml
+  - 02-matrices-and-code.yaml

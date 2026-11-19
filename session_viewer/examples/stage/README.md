@@ -11,6 +11,10 @@ https://petrasvestartas.github.io/session/?stage=force-density-derivation       
 https://petrasvestartas.github.io/session/?stage=force-density-materialization  4 · elongations and unstretched lengths (6.5), résumé
 https://petrasvestartas.github.io/session/?stage=foppl-spatial-joint           5 · Föppl’s spatial joint and a simple space truss
 https://petrasvestartas.github.io/session/?stage=thrust-network_analysis_one_node 6 · thrust network analysis of one node, no matrices
+https://petrasvestartas.github.io/session/?stage=thrust-network_analysis_horizontal_equilibrium 7 · how compas_tna makes the force diagram parallel: horizontal equilibrium
+https://petrasvestartas.github.io/session/?stage=thrust-network_analysis_vertical_equilibrium 8 · vertical equilibrium of a thrust network: every matrix of 7.9 to 7.14 built step by step
+https://petrasvestartas.github.io/session/?stage=thrust-network_analysis_horizontal_methods 9 · five published methods for the force diagram, side by side on one plan
+https://petrasvestartas.github.io/session/?stage=thrust-network_analysis_geometries 10 · which plans stand, repairing a plan (Vouga et al. 2012), and the vaults
 &chapter=7&step=3                                                           open at chapter 7, after its third step
 ```
 

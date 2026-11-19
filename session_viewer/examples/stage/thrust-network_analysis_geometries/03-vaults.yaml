@@ -1,0 +1,1154 @@
+# Written by generate.py in ../thrust-network_analysis_horizontal_equilibrium; edit the sentences there.
+# Open local: http://127.0.0.1:8770/?stage=decks/thrust-network_analysis_geometries/index.yaml&data=off&chapter=3&step=1
+# Open live: https://petrasvestartas.github.io/session/?stage=thrust-network_analysis_geometries&chapter=3&step=1
+
+title: THE VAULTS
+split: 0.56
+camera: {yaw: -118, pitch: 28, fit: [V0, V1]}
+points:
+  tri0: [-3.000, -1.500, 0]
+  tri1: [-3.000, 0.000, 0]
+  tri2: [-3.000, 1.500, 0]
+  tri3: [-3.000, 3.000, 0]
+  tri4: [-1.500, -3.000, 0]
+  tri5: [-1.724, -1.642, 0]
+  tri6: [-1.337, 0.044, 0]
+  tri7: [-1.719, 1.464, 0]
+  tri8: [-1.500, 3.000, 0]
+  tri9: [0.000, -3.000, 0]
+  tri10: [-0.011, -1.684, 0]
+  tri11: [0.127, -0.209, 0]
+  tri12: [-0.059, 1.509, 0]
+  tri13: [0.000, 3.000, 0]
+  tri14: [1.500, -3.000, 0]
+  tri15: [1.463, -1.453, 0]
+  tri16: [1.628, 0.246, 0]
+  tri17: [1.383, 1.580, 0]
+  tri18: [1.500, 3.000, 0]
+  tri19: [3.000, -3.000, 0]
+  tri20: [3.000, -1.500, 0]
+  tri21: [3.000, 0.000, 0]
+  tri22: [3.000, 1.500, 0]
+  quad0: [-3.000, -1.800, 0]
+  quad1: [-3.000, -0.600, 0]
+  quad2: [-3.000, 0.600, 0]
+  quad3: [-3.000, 1.800, 0]
+  quad4: [-1.800, -3.000, 0]
+  quad5: [-1.949, -1.895, 0]
+  quad6: [-1.692, -0.570, 0]
+  quad7: [-1.946, 0.576, 0]
+  quad8: [-1.808, 1.677, 0]
+  quad9: [-1.800, 3.000, 0]
+  quad10: [-0.600, -3.000, 0]
+  quad11: [-0.516, -1.939, 0]
+  quad12: [-0.639, -0.594, 0]
+  quad13: [-0.625, 0.631, 0]
+  quad14: [-0.514, 1.964, 0]
+  quad15: [-0.600, 3.000, 0]
+  quad16: [0.600, -3.000, 0]
+  quad17: [0.522, -1.746, 0]
+  quad18: [0.671, -0.675, 0]
+  quad19: [0.420, 0.770, 0]
+  quad20: [0.527, 1.733, 0]
+  quad21: [0.600, 3.000, 0]
+  quad22: [1.800, -3.000, 0]
+  quad23: [1.941, -1.769, 0]
+  quad24: [1.790, -0.502, 0]
+  quad25: [1.631, 0.675, 0]
+  quad26: [1.755, 1.653, 0]
+  quad27: [1.800, 3.000, 0]
+  quad28: [3.000, -1.800, 0]
+  quad29: [3.000, -0.600, 0]
+  quad30: [3.000, 0.600, 0]
+  quad31: [3.000, 1.800, 0]
+  quadbad0: [-3.000, -1.800, 0]
+  quadbad1: [-3.000, -0.600, 0]
+  quadbad2: [-3.000, 0.600, 0]
+  quadbad3: [-3.000, 1.800, 0]
+  quadbad4: [-1.800, -3.000, 0]
+  quadbad5: [-1.532, -1.574, 0]
+  quadbad6: [-1.808, -0.795, 0]
+  quadbad7: [-2.256, 0.512, 0]
+  quadbad8: [-1.970, 1.420, 0]
+  quadbad9: [-1.800, 3.000, 0]
+  quadbad10: [-0.600, -3.000, 0]
+  quadbad11: [-1.065, -1.533, 0]
+  quadbad12: [-0.691, -0.862, 0]
+  quadbad13: [-0.612, 0.721, 0]
+  quadbad14: [-0.481, 2.003, 0]
+  quadbad15: [-0.600, 3.000, 0]
+  quadbad16: [0.600, -3.000, 0]
+  quadbad17: [0.554, -1.818, 0]
+  quadbad18: [0.581, -0.913, 0]
+  quadbad19: [0.760, 0.520, 0]
+  quadbad20: [0.848, 1.574, 0]
+  quadbad21: [0.600, 3.000, 0]
+  quadbad22: [1.800, -3.000, 0]
+  quadbad23: [1.954, -1.713, 0]
+  quadbad24: [1.833, -0.585, 0]
+  quadbad25: [2.034, 0.447, 0]
+  quadbad26: [1.866, 1.587, 0]
+  quadbad27: [1.800, 3.000, 0]
+  quadbad28: [3.000, -1.800, 0]
+  quadbad29: [3.000, -0.600, 0]
+  quadbad30: [3.000, 0.600, 0]
+  quadbad31: [3.000, 1.800, 0]
+  hex0: [-1.237, -3.000, 0]
+  hex1: [-1.732, -2.143, 0]
+  hex2: [-2.722, -2.143, 0]
+  hex3: [0.247, -2.143, 0]
+  hex4: [-0.247, -1.286, 0]
+  hex5: [-1.237, -1.286, 0]
+  hex6: [-0.247, -3.000, 0]
+  hex7: [1.732, -3.000, 0]
+  hex8: [1.237, -2.143, 0]
+  hex9: [2.722, -1.286, 0]
+  hex10: [1.732, -1.286, 0]
+  hex11: [-1.732, -0.429, 0]
+  hex12: [-2.722, -0.429, 0]
+  hex13: [0.247, -0.429, 0]
+  hex14: [-0.247, 0.429, 0]
+  hex15: [-1.237, 0.429, 0]
+  hex16: [1.237, -0.429, 0]
+  hex17: [2.722, 0.429, 0]
+  hex18: [1.732, 0.429, 0]
+  hex19: [-1.732, 1.286, 0]
+  hex20: [-2.722, 1.286, 0]
+  hex21: [0.247, 1.286, 0]
+  hex22: [-0.247, 2.143, 0]
+  hex23: [-1.237, 2.143, 0]
+  hex24: [1.237, 1.286, 0]
+  hex25: [2.722, 2.143, 0]
+  hex26: [1.732, 2.143, 0]
+  hex27: [-1.732, 3.000, 0]
+  hex28: [0.247, 3.000, 0]
+  hex29: [1.237, 3.000, 0]
+  hexbad0: [-1.237, -3.000, 0]
+  hexbad1: [-1.741, -2.006, 0]
+  hexbad2: [-2.722, -2.143, 0]
+  hexbad3: [0.150, -2.028, 0]
+  hexbad4: [-0.351, -1.351, 0]
+  hexbad5: [-1.186, -1.293, 0]
+  hexbad6: [-0.247, -3.000, 0]
+  hexbad7: [1.732, -3.000, 0]
+  hexbad8: [1.277, -2.266, 0]
+  hexbad9: [2.722, -1.286, 0]
+  hexbad10: [1.800, -1.245, 0]
+  hexbad11: [-1.786, -0.290, 0]
+  hexbad12: [-2.722, -0.429, 0]
+  hexbad13: [0.135, -0.496, 0]
+  hexbad14: [-0.332, 0.399, 0]
+  hexbad15: [-1.299, 0.404, 0]
+  hexbad16: [1.260, -0.499, 0]
+  hexbad17: [2.722, 0.429, 0]
+  hexbad18: [1.722, 0.554, 0]
+  hexbad19: [-1.579, 1.384, 0]
+  hexbad20: [-2.722, 1.286, 0]
+  hexbad21: [0.285, 1.223, 0]
+  hexbad22: [-0.311, 2.266, 0]
+  hexbad23: [-1.203, 2.042, 0]
+  hexbad24: [1.288, 1.358, 0]
+  hexbad25: [2.722, 2.143, 0]
+  hexbad26: [1.769, 2.264, 0]
+  hexbad27: [-1.732, 3.000, 0]
+  hexbad28: [0.247, 3.000, 0]
+  hexbad29: [1.237, 3.000, 0]
+  dome0: [0.000, 0.000, 0]
+  dome1: [1.000, 0.000, 0]
+  dome2: [0.707, 0.707, 0]
+  dome3: [0.000, 1.000, 0]
+  dome4: [-0.707, 0.707, 0]
+  dome5: [-1.000, 0.000, 0]
+  dome6: [-0.707, -0.707, 0]
+  dome7: [0.000, -1.000, 0]
+  dome8: [0.707, -0.707, 0]
+  dome9: [2.000, 0.000, 0]
+  dome10: [1.414, 1.414, 0]
+  dome11: [0.000, 2.000, 0]
+  dome12: [-1.414, 1.414, 0]
+  dome13: [-2.000, 0.000, 0]
+  dome14: [-1.414, -1.414, 0]
+  dome15: [0.000, -2.000, 0]
+  dome16: [1.414, -1.414, 0]
+  dome17: [3.000, 0.000, 0]
+  dome18: [2.121, 2.121, 0]
+  dome19: [0.000, 3.000, 0]
+  dome20: [-2.121, 2.121, 0]
+  dome21: [-3.000, 0.000, 0]
+  dome22: [-2.121, -2.121, 0]
+  dome23: [0.000, -3.000, 0]
+  dome24: [2.121, -2.121, 0]
+  open0: [-3.000, -3.000, 0]
+  open1: [-3.000, -1.800, 0]
+  open2: [-3.000, -0.600, 0]
+  open3: [-3.000, 0.600, 0]
+  open4: [-3.000, 1.800, 0]
+  open5: [-1.800, -2.745, 0]
+  open6: [-1.800, -1.797, 0]
+  open7: [-1.800, -0.621, 0]
+  open8: [-1.800, 0.590, 0]
+  open9: [-1.800, 1.797, 0]
+  open10: [-1.800, 3.000, 0]
+  open11: [-0.600, -2.698, 0]
+  open12: [-0.600, -1.809, 0]
+  open13: [-0.600, -0.635, 0]
+  open14: [-0.600, 0.584, 0]
+  open15: [-0.600, 1.795, 0]
+  open16: [-0.600, 3.000, 0]
+  open17: [0.600, -2.698, 0]
+  open18: [0.600, -1.809, 0]
+  open19: [0.600, -0.635, 0]
+  open20: [0.600, 0.584, 0]
+  open21: [0.600, 1.795, 0]
+  open22: [0.600, 3.000, 0]
+  open23: [1.800, -2.745, 0]
+  open24: [1.800, -1.797, 0]
+  open25: [1.800, -0.621, 0]
+  open26: [1.800, 0.590, 0]
+  open27: [1.800, 1.797, 0]
+  open28: [1.800, 3.000, 0]
+  open29: [3.000, -3.000, 0]
+  open30: [3.000, -1.800, 0]
+  open31: [3.000, -0.600, 0]
+  open32: [3.000, 0.600, 0]
+  open33: [3.000, 1.800, 0]
+  arch0: [-3.000, -3.000, 0]
+  arch1: [-3.000, -1.800, 0]
+  arch2: [-3.000, -0.600, 0]
+  arch3: [-3.000, 0.600, 0]
+  arch4: [-3.000, 1.800, 0]
+  arch5: [-1.800, -2.612, 0]
+  arch6: [-1.800, -1.800, 0]
+  arch7: [-1.800, -0.600, 0]
+  arch8: [-1.800, 0.600, 0]
+  arch9: [-1.800, 1.800, 0]
+  arch10: [-1.800, 3.000, 0]
+  arch11: [-0.600, -2.372, 0]
+  arch12: [-0.600, -1.800, 0]
+  arch13: [-0.600, -0.600, 0]
+  arch14: [-0.600, 0.600, 0]
+  arch15: [-0.600, 1.800, 0]
+  arch16: [-0.600, 3.000, 0]
+  arch17: [0.600, -2.372, 0]
+  arch18: [0.600, -1.800, 0]
+  arch19: [0.600, -0.600, 0]
+  arch20: [0.600, 0.600, 0]
+  arch21: [0.600, 1.800, 0]
+  arch22: [0.600, 3.000, 0]
+  arch23: [1.800, -2.612, 0]
+  arch24: [1.800, -1.800, 0]
+  arch25: [1.800, -0.600, 0]
+  arch26: [1.800, 0.600, 0]
+  arch27: [1.800, 1.800, 0]
+  arch28: [1.800, 3.000, 0]
+  arch29: [3.000, -3.000, 0]
+  arch30: [3.000, -1.800, 0]
+  arch31: [3.000, -0.600, 0]
+  arch32: [3.000, 0.600, 0]
+  arch33: [3.000, 1.800, 0]
+  V0: [-3.0, -3.0, 0]
+  V1: [3.0, 3.0, 2.2]
+slides:
+  - title: FROM PLAN TO THRUST NETWORK
+    steps:
+      - say: 'Triangles.'
+        do:
+          - add:
+              - {id: trig0, line: [[-3.000, -1.500, 0], [-1.724, -1.642, 0]], color: grey, width: 1.0}
+              - {id: trig1, line: [[-3.000, 0.000, 0], [-1.337, 0.044, 0]], color: grey, width: 1.0}
+              - {id: trig2, line: [[-3.000, 0.000, 0], [-1.724, -1.642, 0]], color: grey, width: 1.0}
+              - {id: trig3, line: [[-3.000, 1.500, 0], [-1.719, 1.464, 0]], color: grey, width: 1.0}
+              - {id: trig4, line: [[-3.000, 1.500, 0], [-1.337, 0.044, 0]], color: grey, width: 1.0}
+              - {id: trig5, line: [[-3.000, 3.000, 0], [-1.719, 1.464, 0]], color: grey, width: 1.0}
+              - {id: trig6, line: [[-1.500, -3.000, 0], [-1.724, -1.642, 0]], color: grey, width: 1.0}
+              - {id: trig7, line: [[-1.724, -1.642, 0], [-1.337, 0.044, 0]], color: grey, width: 1.0}
+              - {id: trig8, line: [[-1.724, -1.642, 0], [-0.011, -1.684, 0]], color: grey, width: 1.0}
+              - {id: trig9, line: [[-1.724, -1.642, 0], [0.000, -3.000, 0]], color: grey, width: 1.0}
+              - {id: trig10, line: [[-1.337, 0.044, 0], [-1.719, 1.464, 0]], color: grey, width: 1.0}
+              - {id: trig11, line: [[-1.337, 0.044, 0], [0.127, -0.209, 0]], color: grey, width: 1.0}
+              - {id: trig12, line: [[-1.337, 0.044, 0], [-0.011, -1.684, 0]], color: grey, width: 1.0}
+              - {id: trig13, line: [[-1.719, 1.464, 0], [-1.500, 3.000, 0]], color: grey, width: 1.0}
+              - {id: trig14, line: [[-1.719, 1.464, 0], [-0.059, 1.509, 0]], color: grey, width: 1.0}
+              - {id: trig15, line: [[-1.719, 1.464, 0], [0.127, -0.209, 0]], color: grey, width: 1.0}
+              - {id: trig16, line: [[-1.500, 3.000, 0], [-0.059, 1.509, 0]], color: grey, width: 1.0}
+              - {id: trig17, line: [[0.000, -3.000, 0], [-0.011, -1.684, 0]], color: grey, width: 1.0}
+              - {id: trig18, line: [[-0.011, -1.684, 0], [0.127, -0.209, 0]], color: grey, width: 1.0}
+              - {id: trig19, line: [[-0.011, -1.684, 0], [1.463, -1.453, 0]], color: grey, width: 1.0}
+              - {id: trig20, line: [[-0.011, -1.684, 0], [1.500, -3.000, 0]], color: grey, width: 1.0}
+              - {id: trig21, line: [[0.127, -0.209, 0], [-0.059, 1.509, 0]], color: grey, width: 1.0}
+              - {id: trig22, line: [[0.127, -0.209, 0], [1.628, 0.246, 0]], color: grey, width: 1.0}
+              - {id: trig23, line: [[0.127, -0.209, 0], [1.463, -1.453, 0]], color: grey, width: 1.0}
+              - {id: trig24, line: [[-0.059, 1.509, 0], [0.000, 3.000, 0]], color: grey, width: 1.0}
+              - {id: trig25, line: [[-0.059, 1.509, 0], [1.383, 1.580, 0]], color: grey, width: 1.0}
+              - {id: trig26, line: [[-0.059, 1.509, 0], [1.628, 0.246, 0]], color: grey, width: 1.0}
+              - {id: trig27, line: [[0.000, 3.000, 0], [1.383, 1.580, 0]], color: grey, width: 1.0}
+              - {id: trig28, line: [[1.500, -3.000, 0], [1.463, -1.453, 0]], color: grey, width: 1.0}
+              - {id: trig29, line: [[1.463, -1.453, 0], [1.628, 0.246, 0]], color: grey, width: 1.0}
+              - {id: trig30, line: [[1.463, -1.453, 0], [3.000, -1.500, 0]], color: grey, width: 1.0}
+              - {id: trig31, line: [[1.463, -1.453, 0], [3.000, -3.000, 0]], color: grey, width: 1.0}
+              - {id: trig32, line: [[1.628, 0.246, 0], [1.383, 1.580, 0]], color: grey, width: 1.0}
+              - {id: trig33, line: [[1.628, 0.246, 0], [3.000, 0.000, 0]], color: grey, width: 1.0}
+              - {id: trig34, line: [[1.628, 0.246, 0], [3.000, -1.500, 0]], color: grey, width: 1.0}
+              - {id: trig35, line: [[1.383, 1.580, 0], [1.500, 3.000, 0]], color: grey, width: 1.0}
+              - {id: trig36, line: [[1.383, 1.580, 0], [3.000, 1.500, 0]], color: grey, width: 1.0}
+              - {id: trig37, line: [[1.383, 1.580, 0], [3.000, 0.000, 0]], color: grey, width: 1.0}
+              - {id: trib0, line: [tri0, tri5], color: ink, width: 2.2}
+              - {id: trib1, line: [tri1, tri6], color: ink, width: 2.2}
+              - {id: trib2, line: [tri1, tri5], color: ink, width: 2.2}
+              - {id: trib3, line: [tri2, tri7], color: ink, width: 2.2}
+              - {id: trib4, line: [tri2, tri6], color: ink, width: 2.2}
+              - {id: trib5, line: [tri3, tri7], color: ink, width: 2.2}
+              - {id: trib6, line: [tri4, tri5], color: ink, width: 2.2}
+              - {id: trib7, line: [tri5, tri6], color: ink, width: 2.2}
+              - {id: trib8, line: [tri5, tri10], color: ink, width: 2.2}
+              - {id: trib9, line: [tri5, tri9], color: ink, width: 2.2}
+              - {id: trib10, line: [tri6, tri7], color: ink, width: 2.2}
+              - {id: trib11, line: [tri6, tri11], color: ink, width: 2.2}
+              - {id: trib12, line: [tri6, tri10], color: ink, width: 2.2}
+              - {id: trib13, line: [tri7, tri8], color: ink, width: 2.2}
+              - {id: trib14, line: [tri7, tri12], color: ink, width: 2.2}
+              - {id: trib15, line: [tri7, tri11], color: ink, width: 2.2}
+              - {id: trib16, line: [tri8, tri12], color: ink, width: 2.2}
+              - {id: trib17, line: [tri9, tri10], color: ink, width: 2.2}
+              - {id: trib18, line: [tri10, tri11], color: ink, width: 2.2}
+              - {id: trib19, line: [tri10, tri15], color: ink, width: 2.2}
+              - {id: trib20, line: [tri10, tri14], color: ink, width: 2.2}
+              - {id: trib21, line: [tri11, tri12], color: ink, width: 2.2}
+              - {id: trib22, line: [tri11, tri16], color: ink, width: 2.2}
+              - {id: trib23, line: [tri11, tri15], color: ink, width: 2.2}
+              - {id: trib24, line: [tri12, tri13], color: ink, width: 2.2}
+              - {id: trib25, line: [tri12, tri17], color: ink, width: 2.2}
+              - {id: trib26, line: [tri12, tri16], color: ink, width: 2.2}
+              - {id: trib27, line: [tri13, tri17], color: ink, width: 2.2}
+              - {id: trib28, line: [tri14, tri15], color: ink, width: 2.2}
+              - {id: trib29, line: [tri15, tri16], color: ink, width: 2.2}
+              - {id: trib30, line: [tri15, tri20], color: ink, width: 2.2}
+              - {id: trib31, line: [tri15, tri19], color: ink, width: 2.2}
+              - {id: trib32, line: [tri16, tri17], color: ink, width: 2.2}
+              - {id: trib33, line: [tri16, tri21], color: ink, width: 2.2}
+              - {id: trib34, line: [tri16, tri20], color: ink, width: 2.2}
+              - {id: trib35, line: [tri17, tri18], color: ink, width: 2.2}
+              - {id: trib36, line: [tri17, tri22], color: ink, width: 2.2}
+              - {id: trib37, line: [tri17, tri21], color: ink, width: 2.2}
+              - {id: tris0, point: [-3.000, -1.500, 0], color: fixed, size: 0.6}
+              - {id: tris1, point: [-3.000, 0.000, 0], color: fixed, size: 0.6}
+              - {id: tris2, point: [-3.000, 1.500, 0], color: fixed, size: 0.6}
+              - {id: tris3, point: [-3.000, 3.000, 0], color: fixed, size: 0.6}
+              - {id: tris4, point: [-1.500, -3.000, 0], color: fixed, size: 0.6}
+              - {id: tris8, point: [-1.500, 3.000, 0], color: fixed, size: 0.6}
+              - {id: tris9, point: [0.000, -3.000, 0], color: fixed, size: 0.6}
+              - {id: tris13, point: [0.000, 3.000, 0], color: fixed, size: 0.6}
+              - {id: tris14, point: [1.500, -3.000, 0], color: fixed, size: 0.6}
+              - {id: tris18, point: [1.500, 3.000, 0], color: fixed, size: 0.6}
+              - {id: tris19, point: [3.000, -3.000, 0], color: fixed, size: 0.6}
+              - {id: tris20, point: [3.000, -1.500, 0], color: fixed, size: 0.6}
+              - {id: tris21, point: [3.000, 0.000, 0], color: fixed, size: 0.6}
+              - {id: tris22, point: [3.000, 1.500, 0], color: fixed, size: 0.6}
+          - move: {point: tri5, to: [-1.724, -1.642, 0.934], dur: 1.8}
+          - move: {point: tri6, to: [-1.337, 0.044, 1.837], dur: 1.8, with: true}
+          - move: {point: tri7, to: [-1.719, 1.464, 1.438], dur: 1.8, with: true}
+          - move: {point: tri10, to: [-0.011, -1.684, 1.607], dur: 1.8, with: true}
+          - move: {point: tri11, to: [0.127, -0.209, 2.200], dur: 1.8, with: true}
+          - move: {point: tri12, to: [-0.059, 1.509, 1.778], dur: 1.8, with: true}
+          - move: {point: tri15, to: [1.463, -1.453, 1.594], dur: 1.8, with: true}
+          - move: {point: tri16, to: [1.628, 0.246, 1.516], dur: 1.8, with: true}
+          - move: {point: tri17, to: [1.383, 1.580, 1.141], dur: 1.8, with: true}
+          - eq: {tex: '\mathbf{z}_N = \mathbf{D}_N^{-1}\,(r\,\mathbf{p} - \mathbf{D}_F\,\mathbf{z}_F)', align: left, size: 30}
+          - {text: 'The same load on every free node; $r$ is set so that all vaults are equally high.', align: left}
+      - say: 'Quads.'
+        do:
+          - remove: [trig0, trig1, trig2, trig3, trig4, trig5, trig6, trig7, trig8, trig9, trig10, trig11, trig12, trig13, trig14, trig15, trig16, trig17, trig18, trig19, trig20, trig21, trig22, trig23, trig24, trig25, trig26, trig27, trig28, trig29, trig30, trig31, trig32, trig33, trig34, trig35, trig36, trig37, trib0, trib1, trib2, trib3, trib4, trib5, trib6, trib7, trib8, trib9, trib10, trib11, trib12, trib13, trib14, trib15, trib16, trib17, trib18, trib19, trib20, trib21, trib22, trib23, trib24, trib25, trib26, trib27, trib28, trib29, trib30, trib31, trib32, trib33, trib34, trib35, trib36, trib37, tris0, tris1, tris2, tris3, tris4, tris8, tris9, tris13, tris14, tris18, tris19, tris20, tris21, tris22]
+          - add:
+              - {id: quadg0, line: [[-3.000, -1.800, 0], [-1.949, -1.895, 0]], color: grey, width: 1.0}
+              - {id: quadg1, line: [[-3.000, -0.600, 0], [-1.692, -0.570, 0]], color: grey, width: 1.0}
+              - {id: quadg2, line: [[-3.000, 0.600, 0], [-1.946, 0.576, 0]], color: grey, width: 1.0}
+              - {id: quadg3, line: [[-3.000, 1.800, 0], [-1.808, 1.677, 0]], color: grey, width: 1.0}
+              - {id: quadg4, line: [[-1.800, -3.000, 0], [-1.949, -1.895, 0]], color: grey, width: 1.0}
+              - {id: quadg5, line: [[-1.949, -1.895, 0], [-1.692, -0.570, 0]], color: grey, width: 1.0}
+              - {id: quadg6, line: [[-1.949, -1.895, 0], [-0.516, -1.939, 0]], color: grey, width: 1.0}
+              - {id: quadg7, line: [[-1.692, -0.570, 0], [-1.946, 0.576, 0]], color: grey, width: 1.0}
+              - {id: quadg8, line: [[-1.692, -0.570, 0], [-0.639, -0.594, 0]], color: grey, width: 1.0}
+              - {id: quadg9, line: [[-1.946, 0.576, 0], [-1.808, 1.677, 0]], color: grey, width: 1.0}
+              - {id: quadg10, line: [[-1.946, 0.576, 0], [-0.625, 0.631, 0]], color: grey, width: 1.0}
+              - {id: quadg11, line: [[-1.808, 1.677, 0], [-1.800, 3.000, 0]], color: grey, width: 1.0}
+              - {id: quadg12, line: [[-1.808, 1.677, 0], [-0.514, 1.964, 0]], color: grey, width: 1.0}
+              - {id: quadg13, line: [[-0.600, -3.000, 0], [-0.516, -1.939, 0]], color: grey, width: 1.0}
+              - {id: quadg14, line: [[-0.516, -1.939, 0], [-0.639, -0.594, 0]], color: grey, width: 1.0}
+              - {id: quadg15, line: [[-0.516, -1.939, 0], [0.522, -1.746, 0]], color: grey, width: 1.0}
+              - {id: quadg16, line: [[-0.639, -0.594, 0], [-0.625, 0.631, 0]], color: grey, width: 1.0}
+              - {id: quadg17, line: [[-0.639, -0.594, 0], [0.671, -0.675, 0]], color: grey, width: 1.0}
+              - {id: quadg18, line: [[-0.625, 0.631, 0], [-0.514, 1.964, 0]], color: grey, width: 1.0}
+              - {id: quadg19, line: [[-0.625, 0.631, 0], [0.420, 0.770, 0]], color: grey, width: 1.0}
+              - {id: quadg20, line: [[-0.514, 1.964, 0], [-0.600, 3.000, 0]], color: grey, width: 1.0}
+              - {id: quadg21, line: [[-0.514, 1.964, 0], [0.527, 1.733, 0]], color: grey, width: 1.0}
+              - {id: quadg22, line: [[0.600, -3.000, 0], [0.522, -1.746, 0]], color: grey, width: 1.0}
+              - {id: quadg23, line: [[0.522, -1.746, 0], [0.671, -0.675, 0]], color: grey, width: 1.0}
+              - {id: quadg24, line: [[0.522, -1.746, 0], [1.941, -1.769, 0]], color: grey, width: 1.0}
+              - {id: quadg25, line: [[0.671, -0.675, 0], [0.420, 0.770, 0]], color: grey, width: 1.0}
+              - {id: quadg26, line: [[0.671, -0.675, 0], [1.790, -0.502, 0]], color: grey, width: 1.0}
+              - {id: quadg27, line: [[0.420, 0.770, 0], [0.527, 1.733, 0]], color: grey, width: 1.0}
+              - {id: quadg28, line: [[0.420, 0.770, 0], [1.631, 0.675, 0]], color: grey, width: 1.0}
+              - {id: quadg29, line: [[0.527, 1.733, 0], [0.600, 3.000, 0]], color: grey, width: 1.0}
+              - {id: quadg30, line: [[0.527, 1.733, 0], [1.755, 1.653, 0]], color: grey, width: 1.0}
+              - {id: quadg31, line: [[1.800, -3.000, 0], [1.941, -1.769, 0]], color: grey, width: 1.0}
+              - {id: quadg32, line: [[1.941, -1.769, 0], [1.790, -0.502, 0]], color: grey, width: 1.0}
+              - {id: quadg33, line: [[1.941, -1.769, 0], [3.000, -1.800, 0]], color: grey, width: 1.0}
+              - {id: quadg34, line: [[1.790, -0.502, 0], [1.631, 0.675, 0]], color: grey, width: 1.0}
+              - {id: quadg35, line: [[1.790, -0.502, 0], [3.000, -0.600, 0]], color: grey, width: 1.0}
+              - {id: quadg36, line: [[1.631, 0.675, 0], [1.755, 1.653, 0]], color: grey, width: 1.0}
+              - {id: quadg37, line: [[1.631, 0.675, 0], [3.000, 0.600, 0]], color: grey, width: 1.0}
+              - {id: quadg38, line: [[1.755, 1.653, 0], [1.800, 3.000, 0]], color: grey, width: 1.0}
+              - {id: quadg39, line: [[1.755, 1.653, 0], [3.000, 1.800, 0]], color: grey, width: 1.0}
+              - {id: quadb0, line: [quad0, quad5], color: ink, width: 2.2}
+              - {id: quadb1, line: [quad1, quad6], color: ink, width: 2.2}
+              - {id: quadb2, line: [quad2, quad7], color: ink, width: 2.2}
+              - {id: quadb3, line: [quad3, quad8], color: ink, width: 2.2}
+              - {id: quadb4, line: [quad4, quad5], color: ink, width: 2.2}
+              - {id: quadb5, line: [quad5, quad6], color: ink, width: 2.2}
+              - {id: quadb6, line: [quad5, quad11], color: ink, width: 2.2}
+              - {id: quadb7, line: [quad6, quad7], color: ink, width: 2.2}
+              - {id: quadb8, line: [quad6, quad12], color: ink, width: 2.2}
+              - {id: quadb9, line: [quad7, quad8], color: ink, width: 2.2}
+              - {id: quadb10, line: [quad7, quad13], color: ink, width: 2.2}
+              - {id: quadb11, line: [quad8, quad9], color: ink, width: 2.2}
+              - {id: quadb12, line: [quad8, quad14], color: ink, width: 2.2}
+              - {id: quadb13, line: [quad10, quad11], color: ink, width: 2.2}
+              - {id: quadb14, line: [quad11, quad12], color: ink, width: 2.2}
+              - {id: quadb15, line: [quad11, quad17], color: ink, width: 2.2}
+              - {id: quadb16, line: [quad12, quad13], color: ink, width: 2.2}
+              - {id: quadb17, line: [quad12, quad18], color: ink, width: 2.2}
+              - {id: quadb18, line: [quad13, quad14], color: ink, width: 2.2}
+              - {id: quadb19, line: [quad13, quad19], color: ink, width: 2.2}
+              - {id: quadb20, line: [quad14, quad15], color: ink, width: 2.2}
+              - {id: quadb21, line: [quad14, quad20], color: ink, width: 2.2}
+              - {id: quadb22, line: [quad16, quad17], color: ink, width: 2.2}
+              - {id: quadb23, line: [quad17, quad18], color: ink, width: 2.2}
+              - {id: quadb24, line: [quad17, quad23], color: ink, width: 2.2}
+              - {id: quadb25, line: [quad18, quad19], color: ink, width: 2.2}
+              - {id: quadb26, line: [quad18, quad24], color: ink, width: 2.2}
+              - {id: quadb27, line: [quad19, quad20], color: ink, width: 2.2}
+              - {id: quadb28, line: [quad19, quad25], color: ink, width: 2.2}
+              - {id: quadb29, line: [quad20, quad21], color: ink, width: 2.2}
+              - {id: quadb30, line: [quad20, quad26], color: ink, width: 2.2}
+              - {id: quadb31, line: [quad22, quad23], color: ink, width: 2.2}
+              - {id: quadb32, line: [quad23, quad24], color: ink, width: 2.2}
+              - {id: quadb33, line: [quad23, quad28], color: ink, width: 2.2}
+              - {id: quadb34, line: [quad24, quad25], color: ink, width: 2.2}
+              - {id: quadb35, line: [quad24, quad29], color: ink, width: 2.2}
+              - {id: quadb36, line: [quad25, quad26], color: ink, width: 2.2}
+              - {id: quadb37, line: [quad25, quad30], color: ink, width: 2.2}
+              - {id: quadb38, line: [quad26, quad27], color: ink, width: 2.2}
+              - {id: quadb39, line: [quad26, quad31], color: ink, width: 2.2}
+              - {id: quads0, point: [-3.000, -1.800, 0], color: fixed, size: 0.6}
+              - {id: quads1, point: [-3.000, -0.600, 0], color: fixed, size: 0.6}
+              - {id: quads2, point: [-3.000, 0.600, 0], color: fixed, size: 0.6}
+              - {id: quads3, point: [-3.000, 1.800, 0], color: fixed, size: 0.6}
+              - {id: quads4, point: [-1.800, -3.000, 0], color: fixed, size: 0.6}
+              - {id: quads9, point: [-1.800, 3.000, 0], color: fixed, size: 0.6}
+              - {id: quads10, point: [-0.600, -3.000, 0], color: fixed, size: 0.6}
+              - {id: quads15, point: [-0.600, 3.000, 0], color: fixed, size: 0.6}
+              - {id: quads16, point: [0.600, -3.000, 0], color: fixed, size: 0.6}
+              - {id: quads21, point: [0.600, 3.000, 0], color: fixed, size: 0.6}
+              - {id: quads22, point: [1.800, -3.000, 0], color: fixed, size: 0.6}
+              - {id: quads27, point: [1.800, 3.000, 0], color: fixed, size: 0.6}
+              - {id: quads28, point: [3.000, -1.800, 0], color: fixed, size: 0.6}
+              - {id: quads29, point: [3.000, -0.600, 0], color: fixed, size: 0.6}
+              - {id: quads30, point: [3.000, 0.600, 0], color: fixed, size: 0.6}
+              - {id: quads31, point: [3.000, 1.800, 0], color: fixed, size: 0.6}
+          - move: {point: quad5, to: [-1.949, -1.895, 0.906], dur: 1.8}
+          - move: {point: quad6, to: [-1.692, -0.570, 1.615], dur: 1.8, with: true}
+          - move: {point: quad7, to: [-1.946, 0.576, 1.335], dur: 1.8, with: true}
+          - move: {point: quad8, to: [-1.808, 1.677, 1.223], dur: 1.8, with: true}
+          - move: {point: quad11, to: [-0.516, -1.939, 1.409], dur: 1.8, with: true}
+          - move: {point: quad12, to: [-0.639, -0.594, 2.145], dur: 1.8, with: true}
+          - move: {point: quad13, to: [-0.625, 0.631, 2.138], dur: 1.8, with: true}
+          - move: {point: quad14, to: [-0.514, 1.964, 1.429], dur: 1.8, with: true}
+          - move: {point: quad17, to: [0.522, -1.746, 1.587], dur: 1.8, with: true}
+          - move: {point: quad18, to: [0.671, -0.675, 2.086], dur: 1.8, with: true}
+          - move: {point: quad19, to: [0.420, 0.770, 2.200], dur: 1.8, with: true}
+          - move: {point: quad20, to: [0.527, 1.733, 1.654], dur: 1.8, with: true}
+          - move: {point: quad23, to: [1.941, -1.769, 1.074], dur: 1.8, with: true}
+          - move: {point: quad24, to: [1.790, -0.502, 1.504], dur: 1.8, with: true}
+          - move: {point: quad25, to: [1.631, 0.675, 1.716], dur: 1.8, with: true}
+          - move: {point: quad26, to: [1.755, 1.653, 1.269], dur: 1.8, with: true}
+      - say: 'Distorted quads, on their repaired plan.'
+        do:
+          - remove: [quadg0, quadg1, quadg2, quadg3, quadg4, quadg5, quadg6, quadg7, quadg8, quadg9, quadg10, quadg11, quadg12, quadg13, quadg14, quadg15, quadg16, quadg17, quadg18, quadg19, quadg20, quadg21, quadg22, quadg23, quadg24, quadg25, quadg26, quadg27, quadg28, quadg29, quadg30, quadg31, quadg32, quadg33, quadg34, quadg35, quadg36, quadg37, quadg38, quadg39, quadb0, quadb1, quadb2, quadb3, quadb4, quadb5, quadb6, quadb7, quadb8, quadb9, quadb10, quadb11, quadb12, quadb13, quadb14, quadb15, quadb16, quadb17, quadb18, quadb19, quadb20, quadb21, quadb22, quadb23, quadb24, quadb25, quadb26, quadb27, quadb28, quadb29, quadb30, quadb31, quadb32, quadb33, quadb34, quadb35, quadb36, quadb37, quadb38, quadb39, quads0, quads1, quads2, quads3, quads4, quads9, quads10, quads15, quads16, quads21, quads22, quads27, quads28, quads29, quads30, quads31]
+          - add:
+              - {id: quadbadg0, line: [[-3.000, -1.800, 0], [-1.532, -1.574, 0]], color: grey, width: 1.0}
+              - {id: quadbadg1, line: [[-3.000, -0.600, 0], [-1.808, -0.795, 0]], color: grey, width: 1.0}
+              - {id: quadbadg2, line: [[-3.000, 0.600, 0], [-2.256, 0.512, 0]], color: grey, width: 1.0}
+              - {id: quadbadg3, line: [[-3.000, 1.800, 0], [-1.970, 1.420, 0]], color: grey, width: 1.0}
+              - {id: quadbadg4, line: [[-1.800, -3.000, 0], [-1.532, -1.574, 0]], color: grey, width: 1.0}
+              - {id: quadbadg5, line: [[-1.532, -1.574, 0], [-1.808, -0.795, 0]], color: grey, width: 1.0}
+              - {id: quadbadg6, line: [[-1.532, -1.574, 0], [-1.065, -1.533, 0]], color: grey, width: 1.0}
+              - {id: quadbadg7, line: [[-1.808, -0.795, 0], [-2.256, 0.512, 0]], color: grey, width: 1.0}
+              - {id: quadbadg8, line: [[-1.808, -0.795, 0], [-0.691, -0.862, 0]], color: grey, width: 1.0}
+              - {id: quadbadg9, line: [[-2.256, 0.512, 0], [-1.970, 1.420, 0]], color: grey, width: 1.0}
+              - {id: quadbadg10, line: [[-2.256, 0.512, 0], [-0.612, 0.721, 0]], color: grey, width: 1.0}
+              - {id: quadbadg11, line: [[-1.970, 1.420, 0], [-1.800, 3.000, 0]], color: grey, width: 1.0}
+              - {id: quadbadg12, line: [[-1.970, 1.420, 0], [-0.481, 2.003, 0]], color: grey, width: 1.0}
+              - {id: quadbadg13, line: [[-0.600, -3.000, 0], [-1.065, -1.533, 0]], color: grey, width: 1.0}
+              - {id: quadbadg14, line: [[-1.065, -1.533, 0], [-0.691, -0.862, 0]], color: grey, width: 1.0}
+              - {id: quadbadg15, line: [[-1.065, -1.533, 0], [0.554, -1.818, 0]], color: grey, width: 1.0}
+              - {id: quadbadg16, line: [[-0.691, -0.862, 0], [-0.612, 0.721, 0]], color: grey, width: 1.0}
+              - {id: quadbadg17, line: [[-0.691, -0.862, 0], [0.581, -0.913, 0]], color: grey, width: 1.0}
+              - {id: quadbadg18, line: [[-0.612, 0.721, 0], [-0.481, 2.003, 0]], color: grey, width: 1.0}
+              - {id: quadbadg19, line: [[-0.612, 0.721, 0], [0.760, 0.520, 0]], color: grey, width: 1.0}
+              - {id: quadbadg20, line: [[-0.481, 2.003, 0], [-0.600, 3.000, 0]], color: grey, width: 1.0}
+              - {id: quadbadg21, line: [[-0.481, 2.003, 0], [0.848, 1.574, 0]], color: grey, width: 1.0}
+              - {id: quadbadg22, line: [[0.600, -3.000, 0], [0.554, -1.818, 0]], color: grey, width: 1.0}
+              - {id: quadbadg23, line: [[0.554, -1.818, 0], [0.581, -0.913, 0]], color: grey, width: 1.0}
+              - {id: quadbadg24, line: [[0.554, -1.818, 0], [1.954, -1.713, 0]], color: grey, width: 1.0}
+              - {id: quadbadg25, line: [[0.581, -0.913, 0], [0.760, 0.520, 0]], color: grey, width: 1.0}
+              - {id: quadbadg26, line: [[0.581, -0.913, 0], [1.833, -0.585, 0]], color: grey, width: 1.0}
+              - {id: quadbadg27, line: [[0.760, 0.520, 0], [0.848, 1.574, 0]], color: grey, width: 1.0}
+              - {id: quadbadg28, line: [[0.760, 0.520, 0], [2.034, 0.447, 0]], color: grey, width: 1.0}
+              - {id: quadbadg29, line: [[0.848, 1.574, 0], [0.600, 3.000, 0]], color: grey, width: 1.0}
+              - {id: quadbadg30, line: [[0.848, 1.574, 0], [1.866, 1.587, 0]], color: grey, width: 1.0}
+              - {id: quadbadg31, line: [[1.800, -3.000, 0], [1.954, -1.713, 0]], color: grey, width: 1.0}
+              - {id: quadbadg32, line: [[1.954, -1.713, 0], [1.833, -0.585, 0]], color: grey, width: 1.0}
+              - {id: quadbadg33, line: [[1.954, -1.713, 0], [3.000, -1.800, 0]], color: grey, width: 1.0}
+              - {id: quadbadg34, line: [[1.833, -0.585, 0], [2.034, 0.447, 0]], color: grey, width: 1.0}
+              - {id: quadbadg35, line: [[1.833, -0.585, 0], [3.000, -0.600, 0]], color: grey, width: 1.0}
+              - {id: quadbadg36, line: [[2.034, 0.447, 0], [1.866, 1.587, 0]], color: grey, width: 1.0}
+              - {id: quadbadg37, line: [[2.034, 0.447, 0], [3.000, 0.600, 0]], color: grey, width: 1.0}
+              - {id: quadbadg38, line: [[1.866, 1.587, 0], [1.800, 3.000, 0]], color: grey, width: 1.0}
+              - {id: quadbadg39, line: [[1.866, 1.587, 0], [3.000, 1.800, 0]], color: grey, width: 1.0}
+              - {id: quadbadb0, line: [quadbad0, quadbad5], color: ink, width: 2.2}
+              - {id: quadbadb1, line: [quadbad1, quadbad6], color: ink, width: 2.2}
+              - {id: quadbadb2, line: [quadbad2, quadbad7], color: ink, width: 2.2}
+              - {id: quadbadb3, line: [quadbad3, quadbad8], color: ink, width: 2.2}
+              - {id: quadbadb4, line: [quadbad4, quadbad5], color: ink, width: 2.2}
+              - {id: quadbadb5, line: [quadbad5, quadbad6], color: ink, width: 2.2}
+              - {id: quadbadb6, line: [quadbad5, quadbad11], color: ink, width: 2.2}
+              - {id: quadbadb7, line: [quadbad6, quadbad7], color: ink, width: 2.2}
+              - {id: quadbadb8, line: [quadbad6, quadbad12], color: ink, width: 2.2}
+              - {id: quadbadb9, line: [quadbad7, quadbad8], color: ink, width: 2.2}
+              - {id: quadbadb10, line: [quadbad7, quadbad13], color: ink, width: 2.2}
+              - {id: quadbadb11, line: [quadbad8, quadbad9], color: ink, width: 2.2}
+              - {id: quadbadb12, line: [quadbad8, quadbad14], color: ink, width: 2.2}
+              - {id: quadbadb13, line: [quadbad10, quadbad11], color: ink, width: 2.2}
+              - {id: quadbadb14, line: [quadbad11, quadbad12], color: ink, width: 2.2}
+              - {id: quadbadb15, line: [quadbad11, quadbad17], color: ink, width: 2.2}
+              - {id: quadbadb16, line: [quadbad12, quadbad13], color: ink, width: 2.2}
+              - {id: quadbadb17, line: [quadbad12, quadbad18], color: ink, width: 2.2}
+              - {id: quadbadb18, line: [quadbad13, quadbad14], color: ink, width: 2.2}
+              - {id: quadbadb19, line: [quadbad13, quadbad19], color: ink, width: 2.2}
+              - {id: quadbadb20, line: [quadbad14, quadbad15], color: ink, width: 2.2}
+              - {id: quadbadb21, line: [quadbad14, quadbad20], color: ink, width: 2.2}
+              - {id: quadbadb22, line: [quadbad16, quadbad17], color: ink, width: 2.2}
+              - {id: quadbadb23, line: [quadbad17, quadbad18], color: ink, width: 2.2}
+              - {id: quadbadb24, line: [quadbad17, quadbad23], color: ink, width: 2.2}
+              - {id: quadbadb25, line: [quadbad18, quadbad19], color: ink, width: 2.2}
+              - {id: quadbadb26, line: [quadbad18, quadbad24], color: ink, width: 2.2}
+              - {id: quadbadb27, line: [quadbad19, quadbad20], color: ink, width: 2.2}
+              - {id: quadbadb28, line: [quadbad19, quadbad25], color: ink, width: 2.2}
+              - {id: quadbadb29, line: [quadbad20, quadbad21], color: ink, width: 2.2}
+              - {id: quadbadb30, line: [quadbad20, quadbad26], color: ink, width: 2.2}
+              - {id: quadbadb31, line: [quadbad22, quadbad23], color: ink, width: 2.2}
+              - {id: quadbadb32, line: [quadbad23, quadbad24], color: ink, width: 2.2}
+              - {id: quadbadb33, line: [quadbad23, quadbad28], color: ink, width: 2.2}
+              - {id: quadbadb34, line: [quadbad24, quadbad25], color: ink, width: 2.2}
+              - {id: quadbadb35, line: [quadbad24, quadbad29], color: ink, width: 2.2}
+              - {id: quadbadb36, line: [quadbad25, quadbad26], color: ink, width: 2.2}
+              - {id: quadbadb37, line: [quadbad25, quadbad30], color: ink, width: 2.2}
+              - {id: quadbadb38, line: [quadbad26, quadbad27], color: ink, width: 2.2}
+              - {id: quadbadb39, line: [quadbad26, quadbad31], color: ink, width: 2.2}
+              - {id: quadbads0, point: [-3.000, -1.800, 0], color: fixed, size: 0.6}
+              - {id: quadbads1, point: [-3.000, -0.600, 0], color: fixed, size: 0.6}
+              - {id: quadbads2, point: [-3.000, 0.600, 0], color: fixed, size: 0.6}
+              - {id: quadbads3, point: [-3.000, 1.800, 0], color: fixed, size: 0.6}
+              - {id: quadbads4, point: [-1.800, -3.000, 0], color: fixed, size: 0.6}
+              - {id: quadbads9, point: [-1.800, 3.000, 0], color: fixed, size: 0.6}
+              - {id: quadbads10, point: [-0.600, -3.000, 0], color: fixed, size: 0.6}
+              - {id: quadbads15, point: [-0.600, 3.000, 0], color: fixed, size: 0.6}
+              - {id: quadbads16, point: [0.600, -3.000, 0], color: fixed, size: 0.6}
+              - {id: quadbads21, point: [0.600, 3.000, 0], color: fixed, size: 0.6}
+              - {id: quadbads22, point: [1.800, -3.000, 0], color: fixed, size: 0.6}
+              - {id: quadbads27, point: [1.800, 3.000, 0], color: fixed, size: 0.6}
+              - {id: quadbads28, point: [3.000, -1.800, 0], color: fixed, size: 0.6}
+              - {id: quadbads29, point: [3.000, -0.600, 0], color: fixed, size: 0.6}
+              - {id: quadbads30, point: [3.000, 0.600, 0], color: fixed, size: 0.6}
+              - {id: quadbads31, point: [3.000, 1.800, 0], color: fixed, size: 0.6}
+          - move: {point: quadbad5, to: [-1.532, -1.574, 1.440], dur: 1.8}
+          - move: {point: quadbad6, to: [-1.808, -0.795, 1.530], dur: 1.8, with: true}
+          - move: {point: quadbad7, to: [-2.256, 0.512, 1.050], dur: 1.8, with: true}
+          - move: {point: quadbad8, to: [-1.970, 1.420, 1.179], dur: 1.8, with: true}
+          - move: {point: quadbad11, to: [-1.065, -1.533, 1.721], dur: 1.8, with: true}
+          - move: {point: quadbad12, to: [-0.691, -0.862, 2.199], dur: 1.8, with: true}
+          - move: {point: quadbad13, to: [-0.612, 0.721, 2.085], dur: 1.8, with: true}
+          - move: {point: quadbad14, to: [-0.481, 2.003, 1.243], dur: 1.8, with: true}
+          - move: {point: quadbad17, to: [0.554, -1.818, 1.503], dur: 1.8, with: true}
+          - move: {point: quadbad18, to: [0.581, -0.913, 2.110], dur: 1.8, with: true}
+          - move: {point: quadbad19, to: [0.760, 0.520, 2.200], dur: 1.8, with: true}
+          - move: {point: quadbad20, to: [0.848, 1.574, 1.664], dur: 1.8, with: true}
+          - move: {point: quadbad23, to: [1.954, -1.713, 1.180], dur: 1.8, with: true}
+          - move: {point: quadbad24, to: [1.833, -0.585, 1.653], dur: 1.8, with: true}
+          - move: {point: quadbad25, to: [2.034, 0.447, 1.434], dur: 1.8, with: true}
+          - move: {point: quadbad26, to: [1.866, 1.587, 1.227], dur: 1.8, with: true}
+      - say: 'Hexagons.'
+        do:
+          - remove: [quadbadg0, quadbadg1, quadbadg2, quadbadg3, quadbadg4, quadbadg5, quadbadg6, quadbadg7, quadbadg8, quadbadg9, quadbadg10, quadbadg11, quadbadg12, quadbadg13, quadbadg14, quadbadg15, quadbadg16, quadbadg17, quadbadg18, quadbadg19, quadbadg20, quadbadg21, quadbadg22, quadbadg23, quadbadg24, quadbadg25, quadbadg26, quadbadg27, quadbadg28, quadbadg29, quadbadg30, quadbadg31, quadbadg32, quadbadg33, quadbadg34, quadbadg35, quadbadg36, quadbadg37, quadbadg38, quadbadg39, quadbadb0, quadbadb1, quadbadb2, quadbadb3, quadbadb4, quadbadb5, quadbadb6, quadbadb7, quadbadb8, quadbadb9, quadbadb10, quadbadb11, quadbadb12, quadbadb13, quadbadb14, quadbadb15, quadbadb16, quadbadb17, quadbadb18, quadbadb19, quadbadb20, quadbadb21, quadbadb22, quadbadb23, quadbadb24, quadbadb25, quadbadb26, quadbadb27, quadbadb28, quadbadb29, quadbadb30, quadbadb31, quadbadb32, quadbadb33, quadbadb34, quadbadb35, quadbadb36, quadbadb37, quadbadb38, quadbadb39, quadbads0, quadbads1, quadbads2, quadbads3, quadbads4, quadbads9, quadbads10, quadbads15, quadbads16, quadbads21, quadbads22, quadbads27, quadbads28, quadbads29, quadbads30, quadbads31]
+          - add:
+              - {id: hexg0, line: [[-1.237, -3.000, 0], [-1.732, -2.143, 0]], color: grey, width: 1.0}
+              - {id: hexg1, line: [[-1.732, -2.143, 0], [-2.722, -2.143, 0]], color: grey, width: 1.0}
+              - {id: hexg2, line: [[-1.732, -2.143, 0], [-1.237, -1.286, 0]], color: grey, width: 1.0}
+              - {id: hexg3, line: [[0.247, -2.143, 0], [-0.247, -1.286, 0]], color: grey, width: 1.0}
+              - {id: hexg4, line: [[0.247, -2.143, 0], [-0.247, -3.000, 0]], color: grey, width: 1.0}
+              - {id: hexg5, line: [[0.247, -2.143, 0], [1.237, -2.143, 0]], color: grey, width: 1.0}
+              - {id: hexg6, line: [[-0.247, -1.286, 0], [-1.237, -1.286, 0]], color: grey, width: 1.0}
+              - {id: hexg7, line: [[-0.247, -1.286, 0], [0.247, -0.429, 0]], color: grey, width: 1.0}
+              - {id: hexg8, line: [[-1.237, -1.286, 0], [-1.732, -0.429, 0]], color: grey, width: 1.0}
+              - {id: hexg9, line: [[1.732, -3.000, 0], [1.237, -2.143, 0]], color: grey, width: 1.0}
+              - {id: hexg10, line: [[1.237, -2.143, 0], [1.732, -1.286, 0]], color: grey, width: 1.0}
+              - {id: hexg11, line: [[2.722, -1.286, 0], [1.732, -1.286, 0]], color: grey, width: 1.0}
+              - {id: hexg12, line: [[1.732, -1.286, 0], [1.237, -0.429, 0]], color: grey, width: 1.0}
+              - {id: hexg13, line: [[-1.732, -0.429, 0], [-2.722, -0.429, 0]], color: grey, width: 1.0}
+              - {id: hexg14, line: [[-1.732, -0.429, 0], [-1.237, 0.429, 0]], color: grey, width: 1.0}
+              - {id: hexg15, line: [[0.247, -0.429, 0], [-0.247, 0.429, 0]], color: grey, width: 1.0}
+              - {id: hexg16, line: [[0.247, -0.429, 0], [1.237, -0.429, 0]], color: grey, width: 1.0}
+              - {id: hexg17, line: [[-0.247, 0.429, 0], [-1.237, 0.429, 0]], color: grey, width: 1.0}
+              - {id: hexg18, line: [[-0.247, 0.429, 0], [0.247, 1.286, 0]], color: grey, width: 1.0}
+              - {id: hexg19, line: [[-1.237, 0.429, 0], [-1.732, 1.286, 0]], color: grey, width: 1.0}
+              - {id: hexg20, line: [[1.237, -0.429, 0], [1.732, 0.429, 0]], color: grey, width: 1.0}
+              - {id: hexg21, line: [[2.722, 0.429, 0], [1.732, 0.429, 0]], color: grey, width: 1.0}
+              - {id: hexg22, line: [[1.732, 0.429, 0], [1.237, 1.286, 0]], color: grey, width: 1.0}
+              - {id: hexg23, line: [[-1.732, 1.286, 0], [-2.722, 1.286, 0]], color: grey, width: 1.0}
+              - {id: hexg24, line: [[-1.732, 1.286, 0], [-1.237, 2.143, 0]], color: grey, width: 1.0}
+              - {id: hexg25, line: [[0.247, 1.286, 0], [-0.247, 2.143, 0]], color: grey, width: 1.0}
+              - {id: hexg26, line: [[0.247, 1.286, 0], [1.237, 1.286, 0]], color: grey, width: 1.0}
+              - {id: hexg27, line: [[-0.247, 2.143, 0], [-1.237, 2.143, 0]], color: grey, width: 1.0}
+              - {id: hexg28, line: [[-0.247, 2.143, 0], [0.247, 3.000, 0]], color: grey, width: 1.0}
+              - {id: hexg29, line: [[-1.237, 2.143, 0], [-1.732, 3.000, 0]], color: grey, width: 1.0}
+              - {id: hexg30, line: [[1.237, 1.286, 0], [1.732, 2.143, 0]], color: grey, width: 1.0}
+              - {id: hexg31, line: [[2.722, 2.143, 0], [1.732, 2.143, 0]], color: grey, width: 1.0}
+              - {id: hexg32, line: [[1.732, 2.143, 0], [1.237, 3.000, 0]], color: grey, width: 1.0}
+              - {id: hexb0, line: [hex0, hex1], color: ink, width: 2.2}
+              - {id: hexb1, line: [hex1, hex2], color: ink, width: 2.2}
+              - {id: hexb2, line: [hex1, hex5], color: ink, width: 2.2}
+              - {id: hexb3, line: [hex3, hex4], color: ink, width: 2.2}
+              - {id: hexb4, line: [hex3, hex6], color: ink, width: 2.2}
+              - {id: hexb5, line: [hex3, hex8], color: ink, width: 2.2}
+              - {id: hexb6, line: [hex4, hex5], color: ink, width: 2.2}
+              - {id: hexb7, line: [hex4, hex13], color: ink, width: 2.2}
+              - {id: hexb8, line: [hex5, hex11], color: ink, width: 2.2}
+              - {id: hexb9, line: [hex7, hex8], color: ink, width: 2.2}
+              - {id: hexb10, line: [hex8, hex10], color: ink, width: 2.2}
+              - {id: hexb11, line: [hex9, hex10], color: ink, width: 2.2}
+              - {id: hexb12, line: [hex10, hex16], color: ink, width: 2.2}
+              - {id: hexb13, line: [hex11, hex12], color: ink, width: 2.2}
+              - {id: hexb14, line: [hex11, hex15], color: ink, width: 2.2}
+              - {id: hexb15, line: [hex13, hex14], color: ink, width: 2.2}
+              - {id: hexb16, line: [hex13, hex16], color: ink, width: 2.2}
+              - {id: hexb17, line: [hex14, hex15], color: ink, width: 2.2}
+              - {id: hexb18, line: [hex14, hex21], color: ink, width: 2.2}
+              - {id: hexb19, line: [hex15, hex19], color: ink, width: 2.2}
+              - {id: hexb20, line: [hex16, hex18], color: ink, width: 2.2}
+              - {id: hexb21, line: [hex17, hex18], color: ink, width: 2.2}
+              - {id: hexb22, line: [hex18, hex24], color: ink, width: 2.2}
+              - {id: hexb23, line: [hex19, hex20], color: ink, width: 2.2}
+              - {id: hexb24, line: [hex19, hex23], color: ink, width: 2.2}
+              - {id: hexb25, line: [hex21, hex22], color: ink, width: 2.2}
+              - {id: hexb26, line: [hex21, hex24], color: ink, width: 2.2}
+              - {id: hexb27, line: [hex22, hex23], color: ink, width: 2.2}
+              - {id: hexb28, line: [hex22, hex28], color: ink, width: 2.2}
+              - {id: hexb29, line: [hex23, hex27], color: ink, width: 2.2}
+              - {id: hexb30, line: [hex24, hex26], color: ink, width: 2.2}
+              - {id: hexb31, line: [hex25, hex26], color: ink, width: 2.2}
+              - {id: hexb32, line: [hex26, hex29], color: ink, width: 2.2}
+              - {id: hexs0, point: [-1.237, -3.000, 0], color: fixed, size: 0.6}
+              - {id: hexs2, point: [-2.722, -2.143, 0], color: fixed, size: 0.6}
+              - {id: hexs6, point: [-0.247, -3.000, 0], color: fixed, size: 0.6}
+              - {id: hexs7, point: [1.732, -3.000, 0], color: fixed, size: 0.6}
+              - {id: hexs9, point: [2.722, -1.286, 0], color: fixed, size: 0.6}
+              - {id: hexs12, point: [-2.722, -0.429, 0], color: fixed, size: 0.6}
+              - {id: hexs17, point: [2.722, 0.429, 0], color: fixed, size: 0.6}
+              - {id: hexs20, point: [-2.722, 1.286, 0], color: fixed, size: 0.6}
+              - {id: hexs25, point: [2.722, 2.143, 0], color: fixed, size: 0.6}
+              - {id: hexs27, point: [-1.732, 3.000, 0], color: fixed, size: 0.6}
+              - {id: hexs28, point: [0.247, 3.000, 0], color: fixed, size: 0.6}
+              - {id: hexs29, point: [1.237, 3.000, 0], color: fixed, size: 0.6}
+          - move: {point: hex1, to: [-1.732, -2.143, 0.755], dur: 1.8}
+          - move: {point: hex3, to: [0.247, -2.143, 1.205], dur: 1.8, with: true}
+          - move: {point: hex4, to: [-0.247, -1.286, 1.890], dur: 1.8, with: true}
+          - move: {point: hex5, to: [-1.237, -1.286, 1.567], dur: 1.8, with: true}
+          - move: {point: hex8, to: [1.237, -2.143, 1.027], dur: 1.8, with: true}
+          - move: {point: hex10, to: [1.732, -1.286, 1.179], dur: 1.8, with: true}
+          - move: {point: hex11, to: [-1.732, -0.429, 1.359], dur: 1.8, with: true}
+          - move: {point: hex13, to: [0.247, -0.429, 2.200], dur: 1.8, with: true}
+          - move: {point: hex14, to: [-0.247, 0.429, 2.200], dur: 1.8, with: true}
+          - move: {point: hex15, to: [-1.237, 0.429, 1.812], dur: 1.8, with: true}
+          - move: {point: hex16, to: [1.237, -0.429, 1.812], dur: 1.8, with: true}
+          - move: {point: hex18, to: [1.732, 0.429, 1.359], dur: 1.8, with: true}
+          - move: {point: hex19, to: [-1.732, 1.286, 1.179], dur: 1.8, with: true}
+          - move: {point: hex21, to: [0.247, 1.286, 1.890], dur: 1.8, with: true}
+          - move: {point: hex22, to: [-0.247, 2.143, 1.205], dur: 1.8, with: true}
+          - move: {point: hex23, to: [-1.237, 2.143, 1.027], dur: 1.8, with: true}
+          - move: {point: hex24, to: [1.237, 1.286, 1.567], dur: 1.8, with: true}
+          - move: {point: hex26, to: [1.732, 2.143, 0.755], dur: 1.8, with: true}
+      - say: 'Disturbed hexagons, on their repaired plan.'
+        do:
+          - remove: [hexg0, hexg1, hexg2, hexg3, hexg4, hexg5, hexg6, hexg7, hexg8, hexg9, hexg10, hexg11, hexg12, hexg13, hexg14, hexg15, hexg16, hexg17, hexg18, hexg19, hexg20, hexg21, hexg22, hexg23, hexg24, hexg25, hexg26, hexg27, hexg28, hexg29, hexg30, hexg31, hexg32, hexb0, hexb1, hexb2, hexb3, hexb4, hexb5, hexb6, hexb7, hexb8, hexb9, hexb10, hexb11, hexb12, hexb13, hexb14, hexb15, hexb16, hexb17, hexb18, hexb19, hexb20, hexb21, hexb22, hexb23, hexb24, hexb25, hexb26, hexb27, hexb28, hexb29, hexb30, hexb31, hexb32, hexs0, hexs2, hexs6, hexs7, hexs9, hexs12, hexs17, hexs20, hexs25, hexs27, hexs28, hexs29]
+          - add:
+              - {id: hexbadg0, line: [[-1.237, -3.000, 0], [-1.741, -2.006, 0]], color: grey, width: 1.0}
+              - {id: hexbadg1, line: [[-1.741, -2.006, 0], [-2.722, -2.143, 0]], color: grey, width: 1.0}
+              - {id: hexbadg2, line: [[-1.741, -2.006, 0], [-1.186, -1.293, 0]], color: grey, width: 1.0}
+              - {id: hexbadg3, line: [[0.150, -2.028, 0], [-0.351, -1.351, 0]], color: grey, width: 1.0}
+              - {id: hexbadg4, line: [[0.150, -2.028, 0], [-0.247, -3.000, 0]], color: grey, width: 1.0}
+              - {id: hexbadg5, line: [[0.150, -2.028, 0], [1.277, -2.266, 0]], color: grey, width: 1.0}
+              - {id: hexbadg6, line: [[-0.351, -1.351, 0], [-1.186, -1.293, 0]], color: grey, width: 1.0}
+              - {id: hexbadg7, line: [[-0.351, -1.351, 0], [0.135, -0.496, 0]], color: grey, width: 1.0}
+              - {id: hexbadg8, line: [[-1.186, -1.293, 0], [-1.786, -0.290, 0]], color: grey, width: 1.0}
+              - {id: hexbadg9, line: [[1.732, -3.000, 0], [1.277, -2.266, 0]], color: grey, width: 1.0}
+              - {id: hexbadg10, line: [[1.277, -2.266, 0], [1.800, -1.245, 0]], color: grey, width: 1.0}
+              - {id: hexbadg11, line: [[2.722, -1.286, 0], [1.800, -1.245, 0]], color: grey, width: 1.0}
+              - {id: hexbadg12, line: [[1.800, -1.245, 0], [1.260, -0.499, 0]], color: grey, width: 1.0}
+              - {id: hexbadg13, line: [[-1.786, -0.290, 0], [-2.722, -0.429, 0]], color: grey, width: 1.0}
+              - {id: hexbadg14, line: [[-1.786, -0.290, 0], [-1.299, 0.404, 0]], color: grey, width: 1.0}
+              - {id: hexbadg15, line: [[0.135, -0.496, 0], [-0.332, 0.399, 0]], color: grey, width: 1.0}
+              - {id: hexbadg16, line: [[0.135, -0.496, 0], [1.260, -0.499, 0]], color: grey, width: 1.0}
+              - {id: hexbadg17, line: [[-0.332, 0.399, 0], [-1.299, 0.404, 0]], color: grey, width: 1.0}
+              - {id: hexbadg18, line: [[-0.332, 0.399, 0], [0.285, 1.223, 0]], color: grey, width: 1.0}
+              - {id: hexbadg19, line: [[-1.299, 0.404, 0], [-1.579, 1.384, 0]], color: grey, width: 1.0}
+              - {id: hexbadg20, line: [[1.260, -0.499, 0], [1.722, 0.554, 0]], color: grey, width: 1.0}
+              - {id: hexbadg21, line: [[2.722, 0.429, 0], [1.722, 0.554, 0]], color: grey, width: 1.0}
+              - {id: hexbadg22, line: [[1.722, 0.554, 0], [1.288, 1.358, 0]], color: grey, width: 1.0}
+              - {id: hexbadg23, line: [[-1.579, 1.384, 0], [-2.722, 1.286, 0]], color: grey, width: 1.0}
+              - {id: hexbadg24, line: [[-1.579, 1.384, 0], [-1.203, 2.042, 0]], color: grey, width: 1.0}
+              - {id: hexbadg25, line: [[0.285, 1.223, 0], [-0.311, 2.266, 0]], color: grey, width: 1.0}
+              - {id: hexbadg26, line: [[0.285, 1.223, 0], [1.288, 1.358, 0]], color: grey, width: 1.0}
+              - {id: hexbadg27, line: [[-0.311, 2.266, 0], [-1.203, 2.042, 0]], color: grey, width: 1.0}
+              - {id: hexbadg28, line: [[-0.311, 2.266, 0], [0.247, 3.000, 0]], color: grey, width: 1.0}
+              - {id: hexbadg29, line: [[-1.203, 2.042, 0], [-1.732, 3.000, 0]], color: grey, width: 1.0}
+              - {id: hexbadg30, line: [[1.288, 1.358, 0], [1.769, 2.264, 0]], color: grey, width: 1.0}
+              - {id: hexbadg31, line: [[2.722, 2.143, 0], [1.769, 2.264, 0]], color: grey, width: 1.0}
+              - {id: hexbadg32, line: [[1.769, 2.264, 0], [1.237, 3.000, 0]], color: grey, width: 1.0}
+              - {id: hexbadb0, line: [hexbad0, hexbad1], color: ink, width: 2.2}
+              - {id: hexbadb1, line: [hexbad1, hexbad2], color: ink, width: 2.2}
+              - {id: hexbadb2, line: [hexbad1, hexbad5], color: ink, width: 2.2}
+              - {id: hexbadb3, line: [hexbad3, hexbad4], color: ink, width: 2.2}
+              - {id: hexbadb4, line: [hexbad3, hexbad6], color: ink, width: 2.2}
+              - {id: hexbadb5, line: [hexbad3, hexbad8], color: ink, width: 2.2}
+              - {id: hexbadb6, line: [hexbad4, hexbad5], color: ink, width: 2.2}
+              - {id: hexbadb7, line: [hexbad4, hexbad13], color: ink, width: 2.2}
+              - {id: hexbadb8, line: [hexbad5, hexbad11], color: ink, width: 2.2}
+              - {id: hexbadb9, line: [hexbad7, hexbad8], color: ink, width: 2.2}
+              - {id: hexbadb10, line: [hexbad8, hexbad10], color: ink, width: 2.2}
+              - {id: hexbadb11, line: [hexbad9, hexbad10], color: ink, width: 2.2}
+              - {id: hexbadb12, line: [hexbad10, hexbad16], color: ink, width: 2.2}
+              - {id: hexbadb13, line: [hexbad11, hexbad12], color: ink, width: 2.2}
+              - {id: hexbadb14, line: [hexbad11, hexbad15], color: ink, width: 2.2}
+              - {id: hexbadb15, line: [hexbad13, hexbad14], color: ink, width: 2.2}
+              - {id: hexbadb16, line: [hexbad13, hexbad16], color: ink, width: 2.2}
+              - {id: hexbadb17, line: [hexbad14, hexbad15], color: ink, width: 2.2}
+              - {id: hexbadb18, line: [hexbad14, hexbad21], color: ink, width: 2.2}
+              - {id: hexbadb19, line: [hexbad15, hexbad19], color: ink, width: 2.2}
+              - {id: hexbadb20, line: [hexbad16, hexbad18], color: ink, width: 2.2}
+              - {id: hexbadb21, line: [hexbad17, hexbad18], color: ink, width: 2.2}
+              - {id: hexbadb22, line: [hexbad18, hexbad24], color: ink, width: 2.2}
+              - {id: hexbadb23, line: [hexbad19, hexbad20], color: ink, width: 2.2}
+              - {id: hexbadb24, line: [hexbad19, hexbad23], color: ink, width: 2.2}
+              - {id: hexbadb25, line: [hexbad21, hexbad22], color: ink, width: 2.2}
+              - {id: hexbadb26, line: [hexbad21, hexbad24], color: ink, width: 2.2}
+              - {id: hexbadb27, line: [hexbad22, hexbad23], color: ink, width: 2.2}
+              - {id: hexbadb28, line: [hexbad22, hexbad28], color: ink, width: 2.2}
+              - {id: hexbadb29, line: [hexbad23, hexbad27], color: ink, width: 2.2}
+              - {id: hexbadb30, line: [hexbad24, hexbad26], color: ink, width: 2.2}
+              - {id: hexbadb31, line: [hexbad25, hexbad26], color: ink, width: 2.2}
+              - {id: hexbadb32, line: [hexbad26, hexbad29], color: ink, width: 2.2}
+              - {id: hexbads0, point: [-1.237, -3.000, 0], color: fixed, size: 0.6}
+              - {id: hexbads2, point: [-2.722, -2.143, 0], color: fixed, size: 0.6}
+              - {id: hexbads6, point: [-0.247, -3.000, 0], color: fixed, size: 0.6}
+              - {id: hexbads7, point: [1.732, -3.000, 0], color: fixed, size: 0.6}
+              - {id: hexbads9, point: [2.722, -1.286, 0], color: fixed, size: 0.6}
+              - {id: hexbads12, point: [-2.722, -0.429, 0], color: fixed, size: 0.6}
+              - {id: hexbads17, point: [2.722, 0.429, 0], color: fixed, size: 0.6}
+              - {id: hexbads20, point: [-2.722, 1.286, 0], color: fixed, size: 0.6}
+              - {id: hexbads25, point: [2.722, 2.143, 0], color: fixed, size: 0.6}
+              - {id: hexbads27, point: [-1.732, 3.000, 0], color: fixed, size: 0.6}
+              - {id: hexbads28, point: [0.247, 3.000, 0], color: fixed, size: 0.6}
+              - {id: hexbads29, point: [1.237, 3.000, 0], color: fixed, size: 0.6}
+          - move: {point: hexbad1, to: [-1.741, -2.006, 0.896], dur: 1.8}
+          - move: {point: hexbad3, to: [0.150, -2.028, 1.374], dur: 1.8, with: true}
+          - move: {point: hexbad4, to: [-0.351, -1.351, 1.860], dur: 1.8, with: true}
+          - move: {point: hexbad5, to: [-1.186, -1.293, 1.585], dur: 1.8, with: true}
+          - move: {point: hexbad8, to: [1.277, -2.266, 0.954], dur: 1.8, with: true}
+          - move: {point: hexbad10, to: [1.800, -1.245, 1.182], dur: 1.8, with: true}
+          - move: {point: hexbad11, to: [-1.786, -0.290, 1.232], dur: 1.8, with: true}
+          - move: {point: hexbad13, to: [0.135, -0.496, 2.200], dur: 1.8, with: true}
+          - move: {point: hexbad14, to: [-0.332, 0.399, 2.124], dur: 1.8, with: true}
+          - move: {point: hexbad15, to: [-1.299, 0.404, 1.663], dur: 1.8, with: true}
+          - move: {point: hexbad16, to: [1.260, -0.499, 1.825], dur: 1.8, with: true}
+          - move: {point: hexbad18, to: [1.722, 0.554, 1.376], dur: 1.8, with: true}
+          - move: {point: hexbad19, to: [-1.579, 1.384, 1.167], dur: 1.8, with: true}
+          - move: {point: hexbad21, to: [0.285, 1.223, 1.853], dur: 1.8, with: true}
+          - move: {point: hexbad22, to: [-0.311, 2.266, 0.988], dur: 1.8, with: true}
+          - move: {point: hexbad23, to: [-1.203, 2.042, 1.018], dur: 1.8, with: true}
+          - move: {point: hexbad24, to: [1.288, 1.358, 1.458], dur: 1.8, with: true}
+          - move: {point: hexbad26, to: [1.769, 2.264, 0.554], dur: 1.8, with: true}
+      - say: 'The dome plan.'
+        do:
+          - remove: [hexbadg0, hexbadg1, hexbadg2, hexbadg3, hexbadg4, hexbadg5, hexbadg6, hexbadg7, hexbadg8, hexbadg9, hexbadg10, hexbadg11, hexbadg12, hexbadg13, hexbadg14, hexbadg15, hexbadg16, hexbadg17, hexbadg18, hexbadg19, hexbadg20, hexbadg21, hexbadg22, hexbadg23, hexbadg24, hexbadg25, hexbadg26, hexbadg27, hexbadg28, hexbadg29, hexbadg30, hexbadg31, hexbadg32, hexbadb0, hexbadb1, hexbadb2, hexbadb3, hexbadb4, hexbadb5, hexbadb6, hexbadb7, hexbadb8, hexbadb9, hexbadb10, hexbadb11, hexbadb12, hexbadb13, hexbadb14, hexbadb15, hexbadb16, hexbadb17, hexbadb18, hexbadb19, hexbadb20, hexbadb21, hexbadb22, hexbadb23, hexbadb24, hexbadb25, hexbadb26, hexbadb27, hexbadb28, hexbadb29, hexbadb30, hexbadb31, hexbadb32, hexbads0, hexbads2, hexbads6, hexbads7, hexbads9, hexbads12, hexbads17, hexbads20, hexbads25, hexbads27, hexbads28, hexbads29]
+          - add:
+              - {id: domeg0, line: [[0.000, 0.000, 0], [1.000, 0.000, 0]], color: grey, width: 1.0}
+              - {id: domeg1, line: [[0.000, 0.000, 0], [0.707, 0.707, 0]], color: grey, width: 1.0}
+              - {id: domeg2, line: [[0.000, 0.000, 0], [0.000, 1.000, 0]], color: grey, width: 1.0}
+              - {id: domeg3, line: [[0.000, 0.000, 0], [-0.707, 0.707, 0]], color: grey, width: 1.0}
+              - {id: domeg4, line: [[0.000, 0.000, 0], [-1.000, 0.000, 0]], color: grey, width: 1.0}
+              - {id: domeg5, line: [[0.000, 0.000, 0], [-0.707, -0.707, 0]], color: grey, width: 1.0}
+              - {id: domeg6, line: [[0.000, 0.000, 0], [0.000, -1.000, 0]], color: grey, width: 1.0}
+              - {id: domeg7, line: [[0.000, 0.000, 0], [0.707, -0.707, 0]], color: grey, width: 1.0}
+              - {id: domeg8, line: [[1.000, 0.000, 0], [0.707, 0.707, 0]], color: grey, width: 1.0}
+              - {id: domeg9, line: [[1.000, 0.000, 0], [0.707, -0.707, 0]], color: grey, width: 1.0}
+              - {id: domeg10, line: [[1.000, 0.000, 0], [2.000, 0.000, 0]], color: grey, width: 1.0}
+              - {id: domeg11, line: [[0.707, 0.707, 0], [0.000, 1.000, 0]], color: grey, width: 1.0}
+              - {id: domeg12, line: [[0.707, 0.707, 0], [1.414, 1.414, 0]], color: grey, width: 1.0}
+              - {id: domeg13, line: [[0.000, 1.000, 0], [-0.707, 0.707, 0]], color: grey, width: 1.0}
+              - {id: domeg14, line: [[0.000, 1.000, 0], [0.000, 2.000, 0]], color: grey, width: 1.0}
+              - {id: domeg15, line: [[-0.707, 0.707, 0], [-1.000, 0.000, 0]], color: grey, width: 1.0}
+              - {id: domeg16, line: [[-0.707, 0.707, 0], [-1.414, 1.414, 0]], color: grey, width: 1.0}
+              - {id: domeg17, line: [[-1.000, 0.000, 0], [-0.707, -0.707, 0]], color: grey, width: 1.0}
+              - {id: domeg18, line: [[-1.000, 0.000, 0], [-2.000, 0.000, 0]], color: grey, width: 1.0}
+              - {id: domeg19, line: [[-0.707, -0.707, 0], [0.000, -1.000, 0]], color: grey, width: 1.0}
+              - {id: domeg20, line: [[-0.707, -0.707, 0], [-1.414, -1.414, 0]], color: grey, width: 1.0}
+              - {id: domeg21, line: [[0.000, -1.000, 0], [0.707, -0.707, 0]], color: grey, width: 1.0}
+              - {id: domeg22, line: [[0.000, -1.000, 0], [0.000, -2.000, 0]], color: grey, width: 1.0}
+              - {id: domeg23, line: [[0.707, -0.707, 0], [1.414, -1.414, 0]], color: grey, width: 1.0}
+              - {id: domeg24, line: [[2.000, 0.000, 0], [1.414, 1.414, 0]], color: grey, width: 1.0}
+              - {id: domeg25, line: [[2.000, 0.000, 0], [1.414, -1.414, 0]], color: grey, width: 1.0}
+              - {id: domeg26, line: [[2.000, 0.000, 0], [3.000, 0.000, 0]], color: grey, width: 1.0}
+              - {id: domeg27, line: [[1.414, 1.414, 0], [0.000, 2.000, 0]], color: grey, width: 1.0}
+              - {id: domeg28, line: [[1.414, 1.414, 0], [2.121, 2.121, 0]], color: grey, width: 1.0}
+              - {id: domeg29, line: [[0.000, 2.000, 0], [-1.414, 1.414, 0]], color: grey, width: 1.0}
+              - {id: domeg30, line: [[0.000, 2.000, 0], [0.000, 3.000, 0]], color: grey, width: 1.0}
+              - {id: domeg31, line: [[-1.414, 1.414, 0], [-2.000, 0.000, 0]], color: grey, width: 1.0}
+              - {id: domeg32, line: [[-1.414, 1.414, 0], [-2.121, 2.121, 0]], color: grey, width: 1.0}
+              - {id: domeg33, line: [[-2.000, 0.000, 0], [-1.414, -1.414, 0]], color: grey, width: 1.0}
+              - {id: domeg34, line: [[-2.000, 0.000, 0], [-3.000, 0.000, 0]], color: grey, width: 1.0}
+              - {id: domeg35, line: [[-1.414, -1.414, 0], [0.000, -2.000, 0]], color: grey, width: 1.0}
+              - {id: domeg36, line: [[-1.414, -1.414, 0], [-2.121, -2.121, 0]], color: grey, width: 1.0}
+              - {id: domeg37, line: [[0.000, -2.000, 0], [1.414, -1.414, 0]], color: grey, width: 1.0}
+              - {id: domeg38, line: [[0.000, -2.000, 0], [0.000, -3.000, 0]], color: grey, width: 1.0}
+              - {id: domeg39, line: [[1.414, -1.414, 0], [2.121, -2.121, 0]], color: grey, width: 1.0}
+              - {id: domeb0, line: [dome0, dome1], color: ink, width: 2.2}
+              - {id: domeb1, line: [dome0, dome2], color: ink, width: 2.2}
+              - {id: domeb2, line: [dome0, dome3], color: ink, width: 2.2}
+              - {id: domeb3, line: [dome0, dome4], color: ink, width: 2.2}
+              - {id: domeb4, line: [dome0, dome5], color: ink, width: 2.2}
+              - {id: domeb5, line: [dome0, dome6], color: ink, width: 2.2}
+              - {id: domeb6, line: [dome0, dome7], color: ink, width: 2.2}
+              - {id: domeb7, line: [dome0, dome8], color: ink, width: 2.2}
+              - {id: domeb8, line: [dome1, dome2], color: ink, width: 2.2}
+              - {id: domeb9, line: [dome1, dome8], color: ink, width: 2.2}
+              - {id: domeb10, line: [dome1, dome9], color: ink, width: 2.2}
+              - {id: domeb11, line: [dome2, dome3], color: ink, width: 2.2}
+              - {id: domeb12, line: [dome2, dome10], color: ink, width: 2.2}
+              - {id: domeb13, line: [dome3, dome4], color: ink, width: 2.2}
+              - {id: domeb14, line: [dome3, dome11], color: ink, width: 2.2}
+              - {id: domeb15, line: [dome4, dome5], color: ink, width: 2.2}
+              - {id: domeb16, line: [dome4, dome12], color: ink, width: 2.2}
+              - {id: domeb17, line: [dome5, dome6], color: ink, width: 2.2}
+              - {id: domeb18, line: [dome5, dome13], color: ink, width: 2.2}
+              - {id: domeb19, line: [dome6, dome7], color: ink, width: 2.2}
+              - {id: domeb20, line: [dome6, dome14], color: ink, width: 2.2}
+              - {id: domeb21, line: [dome7, dome8], color: ink, width: 2.2}
+              - {id: domeb22, line: [dome7, dome15], color: ink, width: 2.2}
+              - {id: domeb23, line: [dome8, dome16], color: ink, width: 2.2}
+              - {id: domeb24, line: [dome9, dome10], color: ink, width: 2.2}
+              - {id: domeb25, line: [dome9, dome16], color: ink, width: 2.2}
+              - {id: domeb26, line: [dome9, dome17], color: ink, width: 2.2}
+              - {id: domeb27, line: [dome10, dome11], color: ink, width: 2.2}
+              - {id: domeb28, line: [dome10, dome18], color: ink, width: 2.2}
+              - {id: domeb29, line: [dome11, dome12], color: ink, width: 2.2}
+              - {id: domeb30, line: [dome11, dome19], color: ink, width: 2.2}
+              - {id: domeb31, line: [dome12, dome13], color: ink, width: 2.2}
+              - {id: domeb32, line: [dome12, dome20], color: ink, width: 2.2}
+              - {id: domeb33, line: [dome13, dome14], color: ink, width: 2.2}
+              - {id: domeb34, line: [dome13, dome21], color: ink, width: 2.2}
+              - {id: domeb35, line: [dome14, dome15], color: ink, width: 2.2}
+              - {id: domeb36, line: [dome14, dome22], color: ink, width: 2.2}
+              - {id: domeb37, line: [dome15, dome16], color: ink, width: 2.2}
+              - {id: domeb38, line: [dome15, dome23], color: ink, width: 2.2}
+              - {id: domeb39, line: [dome16, dome24], color: ink, width: 2.2}
+              - {id: domes17, point: [3.000, 0.000, 0], color: fixed, size: 0.6}
+              - {id: domes18, point: [2.121, 2.121, 0], color: fixed, size: 0.6}
+              - {id: domes19, point: [0.000, 3.000, 0], color: fixed, size: 0.6}
+              - {id: domes20, point: [-2.121, 2.121, 0], color: fixed, size: 0.6}
+              - {id: domes21, point: [-3.000, 0.000, 0], color: fixed, size: 0.6}
+              - {id: domes22, point: [-2.121, -2.121, 0], color: fixed, size: 0.6}
+              - {id: domes23, point: [0.000, -3.000, 0], color: fixed, size: 0.6}
+              - {id: domes24, point: [2.121, -2.121, 0], color: fixed, size: 0.6}
+          - move: {point: dome0, to: [0.000, 0.000, 2.200], dur: 1.8}
+          - move: {point: dome1, to: [1.000, 0.000, 2.023], dur: 1.8, with: true}
+          - move: {point: dome2, to: [0.707, 0.707, 2.023], dur: 1.8, with: true}
+          - move: {point: dome3, to: [0.000, 1.000, 2.023], dur: 1.8, with: true}
+          - move: {point: dome4, to: [-0.707, 0.707, 2.023], dur: 1.8, with: true}
+          - move: {point: dome5, to: [-1.000, 0.000, 2.023], dur: 1.8, with: true}
+          - move: {point: dome6, to: [-0.707, -0.707, 2.023], dur: 1.8, with: true}
+          - move: {point: dome7, to: [0.000, -1.000, 2.023], dur: 1.8, with: true}
+          - move: {point: dome8, to: [0.707, -0.707, 2.023], dur: 1.8, with: true}
+          - move: {point: dome9, to: [2.000, 0.000, 1.018], dur: 1.8, with: true}
+          - move: {point: dome10, to: [1.414, 1.414, 1.018], dur: 1.8, with: true}
+          - move: {point: dome11, to: [0.000, 2.000, 1.018], dur: 1.8, with: true}
+          - move: {point: dome12, to: [-1.414, 1.414, 1.018], dur: 1.8, with: true}
+          - move: {point: dome13, to: [-2.000, 0.000, 1.018], dur: 1.8, with: true}
+          - move: {point: dome14, to: [-1.414, -1.414, 1.018], dur: 1.8, with: true}
+          - move: {point: dome15, to: [0.000, -2.000, 1.018], dur: 1.8, with: true}
+          - move: {point: dome16, to: [1.414, -1.414, 1.018], dur: 1.8, with: true}
+      - say: 'The straight open edge, repaired: it has become an arch.'
+        do:
+          - remove: [domeg0, domeg1, domeg2, domeg3, domeg4, domeg5, domeg6, domeg7, domeg8, domeg9, domeg10, domeg11, domeg12, domeg13, domeg14, domeg15, domeg16, domeg17, domeg18, domeg19, domeg20, domeg21, domeg22, domeg23, domeg24, domeg25, domeg26, domeg27, domeg28, domeg29, domeg30, domeg31, domeg32, domeg33, domeg34, domeg35, domeg36, domeg37, domeg38, domeg39, domeb0, domeb1, domeb2, domeb3, domeb4, domeb5, domeb6, domeb7, domeb8, domeb9, domeb10, domeb11, domeb12, domeb13, domeb14, domeb15, domeb16, domeb17, domeb18, domeb19, domeb20, domeb21, domeb22, domeb23, domeb24, domeb25, domeb26, domeb27, domeb28, domeb29, domeb30, domeb31, domeb32, domeb33, domeb34, domeb35, domeb36, domeb37, domeb38, domeb39, domes17, domes18, domes19, domes20, domes21, domes22, domes23, domes24]
+          - add:
+              - {id: openg0, line: [[-3.000, -3.000, 0], [-1.800, -2.745, 0]], color: grey, width: 1.0}
+              - {id: openg1, line: [[-3.000, -1.800, 0], [-1.800, -1.797, 0]], color: grey, width: 1.0}
+              - {id: openg2, line: [[-3.000, -0.600, 0], [-1.800, -0.621, 0]], color: grey, width: 1.0}
+              - {id: openg3, line: [[-3.000, 0.600, 0], [-1.800, 0.590, 0]], color: grey, width: 1.0}
+              - {id: openg4, line: [[-3.000, 1.800, 0], [-1.800, 1.797, 0]], color: grey, width: 1.0}
+              - {id: openg5, line: [[-1.800, -2.745, 0], [-1.800, -1.797, 0]], color: grey, width: 1.0}
+              - {id: openg6, line: [[-1.800, -2.745, 0], [-0.600, -2.698, 0]], color: grey, width: 1.0}
+              - {id: openg7, line: [[-1.800, -1.797, 0], [-1.800, -0.621, 0]], color: grey, width: 1.0}
+              - {id: openg8, line: [[-1.800, -1.797, 0], [-0.600, -1.809, 0]], color: grey, width: 1.0}
+              - {id: openg9, line: [[-1.800, -0.621, 0], [-1.800, 0.590, 0]], color: grey, width: 1.0}
+              - {id: openg10, line: [[-1.800, -0.621, 0], [-0.600, -0.635, 0]], color: grey, width: 1.0}
+              - {id: openg11, line: [[-1.800, 0.590, 0], [-1.800, 1.797, 0]], color: grey, width: 1.0}
+              - {id: openg12, line: [[-1.800, 0.590, 0], [-0.600, 0.584, 0]], color: grey, width: 1.0}
+              - {id: openg13, line: [[-1.800, 1.797, 0], [-1.800, 3.000, 0]], color: grey, width: 1.0}
+              - {id: openg14, line: [[-1.800, 1.797, 0], [-0.600, 1.795, 0]], color: grey, width: 1.0}
+              - {id: openg15, line: [[-0.600, -2.698, 0], [-0.600, -1.809, 0]], color: grey, width: 1.0}
+              - {id: openg16, line: [[-0.600, -2.698, 0], [0.600, -2.698, 0]], color: grey, width: 1.0}
+              - {id: openg17, line: [[-0.600, -1.809, 0], [-0.600, -0.635, 0]], color: grey, width: 1.0}
+              - {id: openg18, line: [[-0.600, -1.809, 0], [0.600, -1.809, 0]], color: grey, width: 1.0}
+              - {id: openg19, line: [[-0.600, -0.635, 0], [-0.600, 0.584, 0]], color: grey, width: 1.0}
+              - {id: openg20, line: [[-0.600, -0.635, 0], [0.600, -0.635, 0]], color: grey, width: 1.0}
+              - {id: openg21, line: [[-0.600, 0.584, 0], [-0.600, 1.795, 0]], color: grey, width: 1.0}
+              - {id: openg22, line: [[-0.600, 0.584, 0], [0.600, 0.584, 0]], color: grey, width: 1.0}
+              - {id: openg23, line: [[-0.600, 1.795, 0], [-0.600, 3.000, 0]], color: grey, width: 1.0}
+              - {id: openg24, line: [[-0.600, 1.795, 0], [0.600, 1.795, 0]], color: grey, width: 1.0}
+              - {id: openg25, line: [[0.600, -2.698, 0], [0.600, -1.809, 0]], color: grey, width: 1.0}
+              - {id: openg26, line: [[0.600, -2.698, 0], [1.800, -2.745, 0]], color: grey, width: 1.0}
+              - {id: openg27, line: [[0.600, -1.809, 0], [0.600, -0.635, 0]], color: grey, width: 1.0}
+              - {id: openg28, line: [[0.600, -1.809, 0], [1.800, -1.797, 0]], color: grey, width: 1.0}
+              - {id: openg29, line: [[0.600, -0.635, 0], [0.600, 0.584, 0]], color: grey, width: 1.0}
+              - {id: openg30, line: [[0.600, -0.635, 0], [1.800, -0.621, 0]], color: grey, width: 1.0}
+              - {id: openg31, line: [[0.600, 0.584, 0], [0.600, 1.795, 0]], color: grey, width: 1.0}
+              - {id: openg32, line: [[0.600, 0.584, 0], [1.800, 0.590, 0]], color: grey, width: 1.0}
+              - {id: openg33, line: [[0.600, 1.795, 0], [0.600, 3.000, 0]], color: grey, width: 1.0}
+              - {id: openg34, line: [[0.600, 1.795, 0], [1.800, 1.797, 0]], color: grey, width: 1.0}
+              - {id: openg35, line: [[1.800, -2.745, 0], [1.800, -1.797, 0]], color: grey, width: 1.0}
+              - {id: openg36, line: [[1.800, -2.745, 0], [3.000, -3.000, 0]], color: grey, width: 1.0}
+              - {id: openg37, line: [[1.800, -1.797, 0], [1.800, -0.621, 0]], color: grey, width: 1.0}
+              - {id: openg38, line: [[1.800, -1.797, 0], [3.000, -1.800, 0]], color: grey, width: 1.0}
+              - {id: openg39, line: [[1.800, -0.621, 0], [1.800, 0.590, 0]], color: grey, width: 1.0}
+              - {id: openg40, line: [[1.800, -0.621, 0], [3.000, -0.600, 0]], color: grey, width: 1.0}
+              - {id: openg41, line: [[1.800, 0.590, 0], [1.800, 1.797, 0]], color: grey, width: 1.0}
+              - {id: openg42, line: [[1.800, 0.590, 0], [3.000, 0.600, 0]], color: grey, width: 1.0}
+              - {id: openg43, line: [[1.800, 1.797, 0], [1.800, 3.000, 0]], color: grey, width: 1.0}
+              - {id: openg44, line: [[1.800, 1.797, 0], [3.000, 1.800, 0]], color: grey, width: 1.0}
+              - {id: openb0, line: [open0, open5], color: ink, width: 2.2}
+              - {id: openb1, line: [open1, open6], color: ink, width: 2.2}
+              - {id: openb2, line: [open2, open7], color: ink, width: 2.2}
+              - {id: openb3, line: [open3, open8], color: ink, width: 2.2}
+              - {id: openb4, line: [open4, open9], color: ink, width: 2.2}
+              - {id: openb5, line: [open5, open6], color: ink, width: 2.2}
+              - {id: openb6, line: [open5, open11], color: ink, width: 2.2}
+              - {id: openb7, line: [open6, open7], color: ink, width: 2.2}
+              - {id: openb8, line: [open6, open12], color: ink, width: 2.2}
+              - {id: openb9, line: [open7, open8], color: ink, width: 2.2}
+              - {id: openb10, line: [open7, open13], color: ink, width: 2.2}
+              - {id: openb11, line: [open8, open9], color: ink, width: 2.2}
+              - {id: openb12, line: [open8, open14], color: ink, width: 2.2}
+              - {id: openb13, line: [open9, open10], color: ink, width: 2.2}
+              - {id: openb14, line: [open9, open15], color: ink, width: 2.2}
+              - {id: openb15, line: [open11, open12], color: ink, width: 2.2}
+              - {id: openb16, line: [open11, open17], color: ink, width: 2.2}
+              - {id: openb17, line: [open12, open13], color: ink, width: 2.2}
+              - {id: openb18, line: [open12, open18], color: ink, width: 2.2}
+              - {id: openb19, line: [open13, open14], color: ink, width: 2.2}
+              - {id: openb20, line: [open13, open19], color: ink, width: 2.2}
+              - {id: openb21, line: [open14, open15], color: ink, width: 2.2}
+              - {id: openb22, line: [open14, open20], color: ink, width: 2.2}
+              - {id: openb23, line: [open15, open16], color: ink, width: 2.2}
+              - {id: openb24, line: [open15, open21], color: ink, width: 2.2}
+              - {id: openb25, line: [open17, open18], color: ink, width: 2.2}
+              - {id: openb26, line: [open17, open23], color: ink, width: 2.2}
+              - {id: openb27, line: [open18, open19], color: ink, width: 2.2}
+              - {id: openb28, line: [open18, open24], color: ink, width: 2.2}
+              - {id: openb29, line: [open19, open20], color: ink, width: 2.2}
+              - {id: openb30, line: [open19, open25], color: ink, width: 2.2}
+              - {id: openb31, line: [open20, open21], color: ink, width: 2.2}
+              - {id: openb32, line: [open20, open26], color: ink, width: 2.2}
+              - {id: openb33, line: [open21, open22], color: ink, width: 2.2}
+              - {id: openb34, line: [open21, open27], color: ink, width: 2.2}
+              - {id: openb35, line: [open23, open24], color: ink, width: 2.2}
+              - {id: openb36, line: [open23, open29], color: ink, width: 2.2}
+              - {id: openb37, line: [open24, open25], color: ink, width: 2.2}
+              - {id: openb38, line: [open24, open30], color: ink, width: 2.2}
+              - {id: openb39, line: [open25, open26], color: ink, width: 2.2}
+              - {id: openb40, line: [open25, open31], color: ink, width: 2.2}
+              - {id: openb41, line: [open26, open27], color: ink, width: 2.2}
+              - {id: openb42, line: [open26, open32], color: ink, width: 2.2}
+              - {id: openb43, line: [open27, open28], color: ink, width: 2.2}
+              - {id: openb44, line: [open27, open33], color: ink, width: 2.2}
+              - {id: opens0, point: [-3.000, -3.000, 0], color: fixed, size: 0.6}
+              - {id: opens1, point: [-3.000, -1.800, 0], color: fixed, size: 0.6}
+              - {id: opens2, point: [-3.000, -0.600, 0], color: fixed, size: 0.6}
+              - {id: opens3, point: [-3.000, 0.600, 0], color: fixed, size: 0.6}
+              - {id: opens4, point: [-3.000, 1.800, 0], color: fixed, size: 0.6}
+              - {id: opens10, point: [-1.800, 3.000, 0], color: fixed, size: 0.6}
+              - {id: opens16, point: [-0.600, 3.000, 0], color: fixed, size: 0.6}
+              - {id: opens22, point: [0.600, 3.000, 0], color: fixed, size: 0.6}
+              - {id: opens28, point: [1.800, 3.000, 0], color: fixed, size: 0.6}
+              - {id: opens29, point: [3.000, -3.000, 0], color: fixed, size: 0.6}
+              - {id: opens30, point: [3.000, -1.800, 0], color: fixed, size: 0.6}
+              - {id: opens31, point: [3.000, -0.600, 0], color: fixed, size: 0.6}
+              - {id: opens32, point: [3.000, 0.600, 0], color: fixed, size: 0.6}
+              - {id: opens33, point: [3.000, 1.800, 0], color: fixed, size: 0.6}
+          - move: {point: open5, to: [-1.800, -2.745, 0.338], dur: 1.8}
+          - move: {point: open6, to: [-1.800, -1.797, 0.901], dur: 1.8, with: true}
+          - move: {point: open7, to: [-1.800, -0.621, 1.202], dur: 1.8, with: true}
+          - move: {point: open8, to: [-1.800, 0.590, 1.134], dur: 1.8, with: true}
+          - move: {point: open9, to: [-1.800, 1.797, 0.753], dur: 1.8, with: true}
+          - move: {point: open11, to: [-0.600, -2.698, 0.477], dur: 1.8, with: true}
+          - move: {point: open12, to: [-0.600, -1.809, 1.702], dur: 1.8, with: true}
+          - move: {point: open13, to: [-0.600, -0.635, 2.200], dur: 1.8, with: true}
+          - move: {point: open14, to: [-0.600, 0.584, 1.980], dur: 1.8, with: true}
+          - move: {point: open15, to: [-0.600, 1.795, 1.371], dur: 1.8, with: true}
+          - move: {point: open17, to: [0.600, -2.698, 0.477], dur: 1.8, with: true}
+          - move: {point: open18, to: [0.600, -1.809, 1.702], dur: 1.8, with: true}
+          - move: {point: open19, to: [0.600, -0.635, 2.200], dur: 1.8, with: true}
+          - move: {point: open20, to: [0.600, 0.584, 1.980], dur: 1.8, with: true}
+          - move: {point: open21, to: [0.600, 1.795, 1.371], dur: 1.8, with: true}
+          - move: {point: open23, to: [1.800, -2.745, 0.338], dur: 1.8, with: true}
+          - move: {point: open24, to: [1.800, -1.797, 0.901], dur: 1.8, with: true}
+          - move: {point: open25, to: [1.800, -0.621, 1.202], dur: 1.8, with: true}
+          - move: {point: open26, to: [1.800, 0.590, 1.134], dur: 1.8, with: true}
+          - move: {point: open27, to: [1.800, 1.797, 0.753], dur: 1.8, with: true}
+      - say: 'The arched open edge.'
+        do:
+          - remove: [openg0, openg1, openg2, openg3, openg4, openg5, openg6, openg7, openg8, openg9, openg10, openg11, openg12, openg13, openg14, openg15, openg16, openg17, openg18, openg19, openg20, openg21, openg22, openg23, openg24, openg25, openg26, openg27, openg28, openg29, openg30, openg31, openg32, openg33, openg34, openg35, openg36, openg37, openg38, openg39, openg40, openg41, openg42, openg43, openg44, openb0, openb1, openb2, openb3, openb4, openb5, openb6, openb7, openb8, openb9, openb10, openb11, openb12, openb13, openb14, openb15, openb16, openb17, openb18, openb19, openb20, openb21, openb22, openb23, openb24, openb25, openb26, openb27, openb28, openb29, openb30, openb31, openb32, openb33, openb34, openb35, openb36, openb37, openb38, openb39, openb40, openb41, openb42, openb43, openb44, opens0, opens1, opens2, opens3, opens4, opens10, opens16, opens22, opens28, opens29, opens30, opens31, opens32, opens33]
+          - add:
+              - {id: archg0, line: [[-3.000, -3.000, 0], [-1.800, -2.612, 0]], color: grey, width: 1.0}
+              - {id: archg1, line: [[-3.000, -1.800, 0], [-1.800, -1.800, 0]], color: grey, width: 1.0}
+              - {id: archg2, line: [[-3.000, -0.600, 0], [-1.800, -0.600, 0]], color: grey, width: 1.0}
+              - {id: archg3, line: [[-3.000, 0.600, 0], [-1.800, 0.600, 0]], color: grey, width: 1.0}
+              - {id: archg4, line: [[-3.000, 1.800, 0], [-1.800, 1.800, 0]], color: grey, width: 1.0}
+              - {id: archg5, line: [[-1.800, -2.612, 0], [-1.800, -1.800, 0]], color: grey, width: 1.0}
+              - {id: archg6, line: [[-1.800, -2.612, 0], [-0.600, -2.372, 0]], color: grey, width: 1.0}
+              - {id: archg7, line: [[-1.800, -1.800, 0], [-1.800, -0.600, 0]], color: grey, width: 1.0}
+              - {id: archg8, line: [[-1.800, -1.800, 0], [-0.600, -1.800, 0]], color: grey, width: 1.0}
+              - {id: archg9, line: [[-1.800, -0.600, 0], [-1.800, 0.600, 0]], color: grey, width: 1.0}
+              - {id: archg10, line: [[-1.800, -0.600, 0], [-0.600, -0.600, 0]], color: grey, width: 1.0}
+              - {id: archg11, line: [[-1.800, 0.600, 0], [-1.800, 1.800, 0]], color: grey, width: 1.0}
+              - {id: archg12, line: [[-1.800, 0.600, 0], [-0.600, 0.600, 0]], color: grey, width: 1.0}
+              - {id: archg13, line: [[-1.800, 1.800, 0], [-1.800, 3.000, 0]], color: grey, width: 1.0}
+              - {id: archg14, line: [[-1.800, 1.800, 0], [-0.600, 1.800, 0]], color: grey, width: 1.0}
+              - {id: archg15, line: [[-0.600, -2.372, 0], [-0.600, -1.800, 0]], color: grey, width: 1.0}
+              - {id: archg16, line: [[-0.600, -2.372, 0], [0.600, -2.372, 0]], color: grey, width: 1.0}
+              - {id: archg17, line: [[-0.600, -1.800, 0], [-0.600, -0.600, 0]], color: grey, width: 1.0}
+              - {id: archg18, line: [[-0.600, -1.800, 0], [0.600, -1.800, 0]], color: grey, width: 1.0}
+              - {id: archg19, line: [[-0.600, -0.600, 0], [-0.600, 0.600, 0]], color: grey, width: 1.0}
+              - {id: archg20, line: [[-0.600, -0.600, 0], [0.600, -0.600, 0]], color: grey, width: 1.0}
+              - {id: archg21, line: [[-0.600, 0.600, 0], [-0.600, 1.800, 0]], color: grey, width: 1.0}
+              - {id: archg22, line: [[-0.600, 0.600, 0], [0.600, 0.600, 0]], color: grey, width: 1.0}
+              - {id: archg23, line: [[-0.600, 1.800, 0], [-0.600, 3.000, 0]], color: grey, width: 1.0}
+              - {id: archg24, line: [[-0.600, 1.800, 0], [0.600, 1.800, 0]], color: grey, width: 1.0}
+              - {id: archg25, line: [[0.600, -2.372, 0], [0.600, -1.800, 0]], color: grey, width: 1.0}
+              - {id: archg26, line: [[0.600, -2.372, 0], [1.800, -2.612, 0]], color: grey, width: 1.0}
+              - {id: archg27, line: [[0.600, -1.800, 0], [0.600, -0.600, 0]], color: grey, width: 1.0}
+              - {id: archg28, line: [[0.600, -1.800, 0], [1.800, -1.800, 0]], color: grey, width: 1.0}
+              - {id: archg29, line: [[0.600, -0.600, 0], [0.600, 0.600, 0]], color: grey, width: 1.0}
+              - {id: archg30, line: [[0.600, -0.600, 0], [1.800, -0.600, 0]], color: grey, width: 1.0}
+              - {id: archg31, line: [[0.600, 0.600, 0], [0.600, 1.800, 0]], color: grey, width: 1.0}
+              - {id: archg32, line: [[0.600, 0.600, 0], [1.800, 0.600, 0]], color: grey, width: 1.0}
+              - {id: archg33, line: [[0.600, 1.800, 0], [0.600, 3.000, 0]], color: grey, width: 1.0}
+              - {id: archg34, line: [[0.600, 1.800, 0], [1.800, 1.800, 0]], color: grey, width: 1.0}
+              - {id: archg35, line: [[1.800, -2.612, 0], [1.800, -1.800, 0]], color: grey, width: 1.0}
+              - {id: archg36, line: [[1.800, -2.612, 0], [3.000, -3.000, 0]], color: grey, width: 1.0}
+              - {id: archg37, line: [[1.800, -1.800, 0], [1.800, -0.600, 0]], color: grey, width: 1.0}
+              - {id: archg38, line: [[1.800, -1.800, 0], [3.000, -1.800, 0]], color: grey, width: 1.0}
+              - {id: archg39, line: [[1.800, -0.600, 0], [1.800, 0.600, 0]], color: grey, width: 1.0}
+              - {id: archg40, line: [[1.800, -0.600, 0], [3.000, -0.600, 0]], color: grey, width: 1.0}
+              - {id: archg41, line: [[1.800, 0.600, 0], [1.800, 1.800, 0]], color: grey, width: 1.0}
+              - {id: archg42, line: [[1.800, 0.600, 0], [3.000, 0.600, 0]], color: grey, width: 1.0}
+              - {id: archg43, line: [[1.800, 1.800, 0], [1.800, 3.000, 0]], color: grey, width: 1.0}
+              - {id: archg44, line: [[1.800, 1.800, 0], [3.000, 1.800, 0]], color: grey, width: 1.0}
+              - {id: archb0, line: [arch0, arch5], color: ink, width: 2.2}
+              - {id: archb1, line: [arch1, arch6], color: ink, width: 2.2}
+              - {id: archb2, line: [arch2, arch7], color: ink, width: 2.2}
+              - {id: archb3, line: [arch3, arch8], color: ink, width: 2.2}
+              - {id: archb4, line: [arch4, arch9], color: ink, width: 2.2}
+              - {id: archb5, line: [arch5, arch6], color: ink, width: 2.2}
+              - {id: archb6, line: [arch5, arch11], color: ink, width: 2.2}
+              - {id: archb7, line: [arch6, arch7], color: ink, width: 2.2}
+              - {id: archb8, line: [arch6, arch12], color: ink, width: 2.2}
+              - {id: archb9, line: [arch7, arch8], color: ink, width: 2.2}
+              - {id: archb10, line: [arch7, arch13], color: ink, width: 2.2}
+              - {id: archb11, line: [arch8, arch9], color: ink, width: 2.2}
+              - {id: archb12, line: [arch8, arch14], color: ink, width: 2.2}
+              - {id: archb13, line: [arch9, arch10], color: ink, width: 2.2}
+              - {id: archb14, line: [arch9, arch15], color: ink, width: 2.2}
+              - {id: archb15, line: [arch11, arch12], color: ink, width: 2.2}
+              - {id: archb16, line: [arch11, arch17], color: ink, width: 2.2}
+              - {id: archb17, line: [arch12, arch13], color: ink, width: 2.2}
+              - {id: archb18, line: [arch12, arch18], color: ink, width: 2.2}
+              - {id: archb19, line: [arch13, arch14], color: ink, width: 2.2}
+              - {id: archb20, line: [arch13, arch19], color: ink, width: 2.2}
+              - {id: archb21, line: [arch14, arch15], color: ink, width: 2.2}
+              - {id: archb22, line: [arch14, arch20], color: ink, width: 2.2}
+              - {id: archb23, line: [arch15, arch16], color: ink, width: 2.2}
+              - {id: archb24, line: [arch15, arch21], color: ink, width: 2.2}
+              - {id: archb25, line: [arch17, arch18], color: ink, width: 2.2}
+              - {id: archb26, line: [arch17, arch23], color: ink, width: 2.2}
+              - {id: archb27, line: [arch18, arch19], color: ink, width: 2.2}
+              - {id: archb28, line: [arch18, arch24], color: ink, width: 2.2}
+              - {id: archb29, line: [arch19, arch20], color: ink, width: 2.2}
+              - {id: archb30, line: [arch19, arch25], color: ink, width: 2.2}
+              - {id: archb31, line: [arch20, arch21], color: ink, width: 2.2}
+              - {id: archb32, line: [arch20, arch26], color: ink, width: 2.2}
+              - {id: archb33, line: [arch21, arch22], color: ink, width: 2.2}
+              - {id: archb34, line: [arch21, arch27], color: ink, width: 2.2}
+              - {id: archb35, line: [arch23, arch24], color: ink, width: 2.2}
+              - {id: archb36, line: [arch23, arch29], color: ink, width: 2.2}
+              - {id: archb37, line: [arch24, arch25], color: ink, width: 2.2}
+              - {id: archb38, line: [arch24, arch30], color: ink, width: 2.2}
+              - {id: archb39, line: [arch25, arch26], color: ink, width: 2.2}
+              - {id: archb40, line: [arch25, arch31], color: ink, width: 2.2}
+              - {id: archb41, line: [arch26, arch27], color: ink, width: 2.2}
+              - {id: archb42, line: [arch26, arch32], color: ink, width: 2.2}
+              - {id: archb43, line: [arch27, arch28], color: ink, width: 2.2}
+              - {id: archb44, line: [arch27, arch33], color: ink, width: 2.2}
+              - {id: archs0, point: [-3.000, -3.000, 0], color: fixed, size: 0.6}
+              - {id: archs1, point: [-3.000, -1.800, 0], color: fixed, size: 0.6}
+              - {id: archs2, point: [-3.000, -0.600, 0], color: fixed, size: 0.6}
+              - {id: archs3, point: [-3.000, 0.600, 0], color: fixed, size: 0.6}
+              - {id: archs4, point: [-3.000, 1.800, 0], color: fixed, size: 0.6}
+              - {id: archs10, point: [-1.800, 3.000, 0], color: fixed, size: 0.6}
+              - {id: archs16, point: [-0.600, 3.000, 0], color: fixed, size: 0.6}
+              - {id: archs22, point: [0.600, 3.000, 0], color: fixed, size: 0.6}
+              - {id: archs28, point: [1.800, 3.000, 0], color: fixed, size: 0.6}
+              - {id: archs29, point: [3.000, -3.000, 0], color: fixed, size: 0.6}
+              - {id: archs30, point: [3.000, -1.800, 0], color: fixed, size: 0.6}
+              - {id: archs31, point: [3.000, -0.600, 0], color: fixed, size: 0.6}
+              - {id: archs32, point: [3.000, 0.600, 0], color: fixed, size: 0.6}
+              - {id: archs33, point: [3.000, 1.800, 0], color: fixed, size: 0.6}
+          - move: {point: arch5, to: [-1.800, -2.612, 0.779], dur: 1.8}
+          - move: {point: arch6, to: [-1.800, -1.800, 1.304], dur: 1.8, with: true}
+          - move: {point: arch7, to: [-1.800, -0.600, 1.575], dur: 1.8, with: true}
+          - move: {point: arch8, to: [-1.800, 0.600, 1.517], dur: 1.8, with: true}
+          - move: {point: arch9, to: [-1.800, 1.800, 1.094], dur: 1.8, with: true}
+          - move: {point: arch11, to: [-0.600, -2.372, 1.233], dur: 1.8, with: true}
+          - move: {point: arch12, to: [-0.600, -1.800, 1.767], dur: 1.8, with: true}
+          - move: {point: arch13, to: [-0.600, -0.600, 2.200], dur: 1.8, with: true}
+          - move: {point: arch14, to: [-0.600, 0.600, 2.106], dur: 1.8, with: true}
+          - move: {point: arch15, to: [-0.600, 1.800, 1.450], dur: 1.8, with: true}
+          - move: {point: arch17, to: [0.600, -2.372, 1.233], dur: 1.8, with: true}
+          - move: {point: arch18, to: [0.600, -1.800, 1.767], dur: 1.8, with: true}
+          - move: {point: arch19, to: [0.600, -0.600, 2.200], dur: 1.8, with: true}
+          - move: {point: arch20, to: [0.600, 0.600, 2.106], dur: 1.8, with: true}
+          - move: {point: arch21, to: [0.600, 1.800, 1.450], dur: 1.8, with: true}
+          - move: {point: arch23, to: [1.800, -2.612, 0.779], dur: 1.8, with: true}
+          - move: {point: arch24, to: [1.800, -1.800, 1.304], dur: 1.8, with: true}
+          - move: {point: arch25, to: [1.800, -0.600, 1.575], dur: 1.8, with: true}
+          - move: {point: arch26, to: [1.800, 0.600, 1.517], dur: 1.8, with: true}
+          - move: {point: arch27, to: [1.800, 1.800, 1.094], dur: 1.8, with: true}

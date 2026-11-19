@@ -1,0 +1,69 @@
+# cd /home/pv/brg/code_cpp/wood_research/session/session_viewer && aws s3 sync examples/stage s3://session-viewer-data/stage/ --delete --exclude '*' --include '*.yaml' --content-type application/yaml --cache-control no-cache --profile r2 --endpoint-url https://0520459c6817bd96c1e25fcb49461c4e.r2.cloudflarestorage.com
+# Open local: http://127.0.0.1:8770/?stage=decks/thrust-network_analysis_one_node/index.yaml&data=off&chapter=2&step=1
+# Open live: https://petrasvestartas.github.io/session/?stage=thrust-network_analysis_one_node&chapter=2&step=1
+
+# Chapter 2: the height of the node. One linear equation in z_i, solved with numbers, and the scale r of the force diagram.
+title: THE HEIGHT OF THE NODE
+grid: {center: [0, 0], size: 10, step: 1, z: 0}
+camera: {yaw: -112, pitch: 22}
+palette: {free: ink}
+points:
+  O: [0, 0, 0]
+  Gj: [-4, 3, 0]
+  Gk: [0, -4, 0]
+  Gl: [4, 3, 0]
+  TOP: [0, 0, 7.2]
+net:
+  fixed: {j: [-4, 3, 1], k: [0, -4, 2], l: [4, 3, 1]}
+  free: {i: [0, 0, 2.2]}
+  cables: {ej: [i, j], ek: [i, k], el: [i, l]}
+  q: {ej: 1.0, ek: 1.5, el: 1.0}
+  load: {i: [0, 0, 9]}
+slides:
+  - title: ONE UNKNOWN
+    steps:
+      - say: 'Plan and thrusts are known. Only the height $z_i$ is unknown.'
+        show: [cables, fixed, free]
+        add:
+          - {id: gj, line: [O, Gj], color: grey, width: 1.6, dash: true}
+          - {id: gk, line: [O, Gk], color: grey, width: 1.6, dash: true}
+          - {id: gl, line: [O, Gl], color: grey, width: 1.6, dash: true}
+          - {id: di, line: [i, O], color: grey, width: 1.4, dash: true}
+          - {id: p, arrow: ['i + [0, 0, 1.8]', i], color: load, width: 3.2, label: 'P_i'}
+        do:
+          - morph: {target: j.label, label: j, tex: 'j\,(-4,\,3,\,1)', dur: 0.6}
+          - morph: {target: k.label, label: k, tex: 'k\,(0,\,-4,\,2)', dur: 0.6, with: true}
+          - morph: {target: l.label, label: l, tex: 'l\,(4,\,3,\,1)', dur: 0.6, with: true}
+          - morph: {target: i.label, label: i, tex: 'i\,(0,\,0,\,z_i)', dur: 0.6, with: true}
+          - eq: {tex: '\sum_j F_{\mathrm{H},ji} \cdot \frac{z_i - z_j}{l_{\mathrm{H},ji}} = P_i', align: left, size: 30}
+      - say: 'Thrust is the side of $\Gamma^*$ over $r$. Each bar counts with $d = l^* / l$: one linear equation.'
+        do:
+          - eq: {tex: 'F_{\mathrm{H},ji} = \frac{1}{r}\,l^*_{\mathrm{H},ji} \qquad d_j = \frac{l^*_{\mathrm{H},ji}}{l_{\mathrm{H},ji}}', align: left, size: 28}
+          - eq: {tex: '\boxed{(d_j + d_k + d_l)\,z_i - d_j z_j - d_k z_k - d_l z_l = P_i\,r}', color: blue, align: left, size: 28}
+
+  - title: SOLVE
+    steps:
+      - say: 'With numbers the node rises to $4$ m.'
+        do:
+          - eq: {tex: 'd_j = \frac{5}{5} = 1 \qquad d_k = \frac{6}{4} = 1.5 \qquad d_l = \frac{5}{5} = 1', align: left, size: 28}
+          - eq: {tex: 'z_i = \frac{9 \cdot 1 + 1 \cdot 1 + 1.5 \cdot 2 + 1 \cdot 1}{3.5} = 4\ \text{m}', color: blue, align: left, size: 30}
+          - solve: true
+          - morph: {target: i.label, label: i, tex: 'i\,(0,\,0,\,4)', dur: 0.8}
+      - say: 'Check: three rises of $3$ kN carry the $9$ kN.'
+        do:
+          - eq: {tex: '5 \cdot \frac{4 - 1}{5} + 6 \cdot \frac{4 - 2}{4} + 5 \cdot \frac{4 - 1}{5} = 3 + 3 + 3 = 9', align: left, size: 28}
+          - highlight: [i]
+
+  - title: THE SCALE r OF THE FORCE DIAGRAM
+    steps:
+      - say: 'Halve $r$: twice the thrust, a flatter vault.'
+        do:
+          - eq: {tex: 'z_i = \frac{P_i\,r + d_j z_j + d_k z_k + d_l z_l}{d_i}', color: blue, align: left, size: 30}
+          - solve: {load: {i: [0, 0, 4.5]}}
+          - morph: {target: i.label, label: i, tex: 'i\,(0,\,0,\,2.71)', dur: 0.6}
+          - eq: {tex: 'r = 0.5:\quad z_i = \frac{4.5 + 5}{3.5} = 2.71\ \text{m}', align: left, size: 28}
+      - say: 'Raise $r$: less thrust, a higher vault.'
+        do:
+          - solve: {load: {i: [0, 0, 13.5]}}
+          - morph: {target: i.label, label: i, tex: 'i\,(0,\,0,\,5.29)', dur: 0.6}
+          - eq: {tex: 'r = 1.5:\quad z_i = \frac{13.5 + 5}{3.5} = 5.29\ \text{m}', align: left, size: 28}

@@ -1,0 +1,158 @@
+# Written by generate.py in ../thrust-network_analysis_horizontal_equilibrium; edit the sentences there.
+# Open local: http://127.0.0.1:8770/?stage=decks/thrust-network_analysis_horizontal_methods/index.yaml&data=off&chapter=1&step=1
+# Open live: https://petrasvestartas.github.io/session/?stage=thrust-network_analysis_horizontal_methods&chapter=1&step=1
+
+title: THE EQUILIBRIUM MATRIX
+split: 0.4
+camera: {view: top, fit: [LO, HI]}
+points:
+  n1: [1.300, 8.100, 0]
+  n2: [4.900, 8.700, 0]
+  n3: [3.700, 11.300, 0]
+  n4: [2.000, 10.000, 0]
+  s1: [1.200, 6.500, 0]
+  s2: [4.900, 6.500, 0]
+  s3: [6.000, 9.400, 0]
+  s4: [6.000, 11.400, 0]
+  s5: [3.300, 12.500, 0]
+  s6: [2.300, 12.500, 0]
+  s7: [0.000, 10.500, 0]
+  s8: [0.000, 7.900, 0]
+  A: [4.674, 1.354, 0]
+  B: [4.813, 3.580, 0]
+  C: [4.813, 6.112, 0]
+  D: [2.487, 1.018, 0]
+  E: [3.341, 3.335, 0]
+  F: [2.684, 4.757, 0]
+  G: [1.493, 1.266, 0]
+  H: [1.580, 1.988, 0]
+  I: [0.686, 4.670, 0]
+  TG: [-0.7, 12.3, 0]
+  TF: [-0.7, 5.6, 0]
+  LO: [0.0, 0.9, 0]
+  HI: [6.0, 11.8, 0]
+slides:
+  - title: 'BARS AND FREE NODES: $\mathbf{C}_i$'
+    steps:
+      - say: 'One row per bar, one column per free node: $-1$ where the bar starts, $+1$ where it ends.'
+        do:
+          - add:
+              - {id: rim, polygon: [s1, s2, s3, s4, s5, s6, s7, s8], color: grey, width: 1.2, dash: true}
+              - {id: g0, arrow: [s1, n1], color: ink, width: 2.2}
+              - {id: g1, arrow: [s2, n2], color: ink, width: 2.2}
+              - {id: g2, arrow: [s8, n1], color: ink, width: 2.2}
+              - {id: g3, arrow: [n1, n2], color: ink, width: 2.2}
+              - {id: g4, arrow: [n1, n4], color: ink, width: 2.2}
+              - {id: g5, arrow: [n2, s3], color: ink, width: 2.2}
+              - {id: g6, arrow: [n2, n3], color: ink, width: 2.2}
+              - {id: g7, arrow: [s7, n4], color: ink, width: 2.2}
+              - {id: g8, arrow: [n4, n3], color: ink, width: 2.2}
+              - {id: g9, arrow: [n4, s6], color: ink, width: 2.2}
+              - {id: g10, arrow: [n3, s4], color: ink, width: 2.2}
+              - {id: g11, arrow: [n3, s5], color: ink, width: 2.2}
+              - {id: s1, point: s1, color: fixed, size: 0.8}
+              - {id: s2, point: s2, color: fixed, size: 0.8}
+              - {id: s3, point: s3, color: fixed, size: 0.8}
+              - {id: s4, point: s4, color: fixed, size: 0.8}
+              - {id: s5, point: s5, color: fixed, size: 0.8}
+              - {id: s6, point: s6, color: fixed, size: 0.8}
+              - {id: s7, point: s7, color: fixed, size: 0.8}
+              - {id: s8, point: s8, color: fixed, size: 0.8}
+              - {id: n1, point: n1, color: free, label: '1'}
+              - {id: n2, point: n2, color: free, label: '2'}
+              - {id: n3, point: n3, color: free, label: '3'}
+              - {id: n4, point: n4, color: free, label: '4'}
+              - {id: tg, label: TG, tex: '\Gamma', color: accent}
+              - {id: tf, label: TF, tex: '\Gamma^*', color: accent}
+              - {id: f0, line: [A, B], color: ink, width: 2.4}
+              - {id: f1, line: [B, C], color: ink, width: 2.4}
+              - {id: f2, line: [D, A], color: ink, width: 2.4}
+              - {id: f3, line: [E, B], color: ink, width: 2.4}
+              - {id: f4, line: [D, E], color: ink, width: 2.4}
+              - {id: f5, line: [F, C], color: ink, width: 2.4}
+              - {id: f6, line: [E, F], color: ink, width: 2.4}
+              - {id: f7, line: [G, D], color: ink, width: 2.4}
+              - {id: f8, line: [H, E], color: ink, width: 2.4}
+              - {id: f9, line: [G, H], color: ink, width: 2.4}
+              - {id: f10, line: [I, F], color: ink, width: 2.4}
+              - {id: f11, line: [H, I], color: ink, width: 2.4}
+              - {id: A, point: A, color: ink, size: 0.8, label: 'A'}
+              - {id: B, point: B, color: ink, size: 0.8, label: 'B'}
+              - {id: C, point: C, color: ink, size: 0.8, label: 'C'}
+              - {id: D, point: D, color: ink, size: 0.8, label: 'D'}
+              - {id: E, point: E, color: ink, size: 0.8, label: 'E'}
+              - {id: F, point: F, color: ink, size: 0.8, label: 'F'}
+              - {id: G, point: G, color: ink, size: 0.8, label: 'G'}
+              - {id: H, point: H, color: ink, size: 0.8, label: 'H'}
+              - {id: I, point: I, color: ink, size: 0.8, label: 'I'}
+          - row:
+              - {id: Ci, matrix: {rows: [[1, 0, 0, 0], [0, 1, 0, 0], [1, 0, 0, 0], [-1, 1, 0, 0], [-1, 0, 0, 1], [0, -1, 0, 0], [0, -1, 1, 0], [0, 0, 0, 1], [0, 0, 1, -1], [0, 0, 0, -1], [0, 0, -1, 0], [0, 0, -1, 0]], rowlabels: ['e_{0}', 'e_{1}', 'e_{2}', 'e_{3}', 'e_{4}', 'e_{5}', 'e_{6}', 'e_{7}', 'e_{8}', 'e_{9}', 'e_{10}', 'e_{11}'], collabels: ['1', '2', '3', '4'], name: '\mathbf{C}_i', empty: true}}
+            size: 27
+          - color: {target: g0, color: pink}
+          - show: ['Ci[0,:]']
+          - color: {target: g0, color: ink, dur: 0.2}
+          - color: {target: g1, color: pink}
+          - show: ['Ci[1,:]']
+          - color: {target: g1, color: ink, dur: 0.2}
+          - color: {target: g2, color: pink}
+          - show: ['Ci[2,:]']
+          - color: {target: g2, color: ink, dur: 0.2}
+          - color: {target: g3, color: pink}
+          - show: ['Ci[3,:]']
+          - color: {target: g3, color: ink, dur: 0.2}
+          - color: {target: g4, color: pink}
+          - show: ['Ci[4,:]']
+          - color: {target: g4, color: ink, dur: 0.2}
+          - color: {target: g5, color: pink}
+          - show: ['Ci[5,:]']
+          - color: {target: g5, color: ink, dur: 0.2}
+          - color: {target: g6, color: pink}
+          - show: ['Ci[6,:]']
+          - color: {target: g6, color: ink, dur: 0.2}
+          - color: {target: g7, color: pink}
+          - show: ['Ci[7,:]']
+          - color: {target: g7, color: ink, dur: 0.2}
+          - color: {target: g8, color: pink}
+          - show: ['Ci[8,:]']
+          - color: {target: g8, color: ink, dur: 0.2}
+          - color: {target: g9, color: pink}
+          - show: ['Ci[9,:]']
+          - color: {target: g9, color: ink, dur: 0.2}
+          - color: {target: g10, color: pink}
+          - show: ['Ci[10,:]']
+          - color: {target: g10, color: ink, dur: 0.2}
+          - color: {target: g11, color: pink}
+          - show: ['Ci[11,:]']
+          - color: {target: g11, color: ink, dur: 0.2}
+  - title: 'BAR VECTORS: $\mathbf{u}$ AND $\mathbf{v}$'
+    steps:
+      - say: 'With all twelve node columns, times the coordinates: every bar as a vector.'
+        do:
+          - eq: {tex: '\mathbf{u} = \mathbf{C}\,\mathbf{x} \qquad \mathbf{v} = \mathbf{C}\,\mathbf{y}', align: left, size: 28}
+          - row:
+              - {id: uu, matrix: {rows: [['0.1'], [0], ['1.3'], ['3.6'], ['0.7'], ['1.1'], ['-1.2'], ['2.0'], ['1.7'], ['0.3'], ['2.3'], ['-0.4']], rowlabels: ['e_{0}', 'e_{1}', 'e_{2}', 'e_{3}', 'e_{4}', 'e_{5}', 'e_{6}', 'e_{7}', 'e_{8}', 'e_{9}', 'e_{10}', 'e_{11}'], name: '\mathbf{u}'}}
+              - '\quad'
+              - {id: vv, matrix: {rows: [['1.6'], ['2.2'], ['0.2'], ['0.6'], ['1.9'], ['0.7'], ['2.6'], ['-0.5'], ['1.3'], ['2.5'], ['0.1'], ['1.2']], name: '\mathbf{v}'}}
+            size: 26
+  - title: 'ONE NODE, TWO EQUATIONS: $\mathbf{A}$'
+    steps:
+      - say: 'Node $1$ along $x$: its four bars, each with its $u$ and a sign from $\mathbf{C}_i$, times the unknown $q$.'
+        do:
+          - color: {target: g0, color: pink}
+          - color: {target: g2, color: pink, with: true}
+          - color: {target: g3, color: pink, with: true}
+          - color: {target: g4, color: pink, with: true}
+          - eq: {tex: '\mathbf{A} = \left[\ \mathbf{C}_i^T\mathbf{U}\ ;\ \mathbf{C}_i^T\mathbf{V}\ \right] \qquad \mathbf{A}\,\mathbf{q} = \mathbf{0}', align: left, size: 26}
+          - row:
+              - {id: Am, matrix: {rows: [['0.1', 0, '1.3', '-3.6', '-0.7', 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, '3.6', 0, '-1.1', '1.2', 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, '-1.2', 0, '1.7', 0, '-2.3', '0.4'], [0, 0, 0, 0, '0.7', 0, 0, '2.0', '-1.7', '-0.3', 0, 0], ['1.6', 0, '0.2', '-0.6', '-1.9', 0, 0, 0, 0, 0, 0, 0], [0, '2.2', 0, '0.6', 0, '-0.7', '-2.6', 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, '2.6', 0, '1.3', 0, '-0.1', '-1.2'], [0, 0, 0, 0, '1.9', 0, 0, '-0.5', '-1.3', '-2.5', 0, 0]], rowlabels: ['1_x', '2_x', '3_x', '4_x', '1_y', '2_y', '3_y', '4_y'], collabels: ['e_{0}', 'e_{1}', 'e_{2}', 'e_{3}', 'e_{4}', 'e_{5}', 'e_{6}', 'e_{7}', 'e_{8}', 'e_{9}', 'e_{10}', 'e_{11}'], name: '\mathbf{A}', empty: true}}
+            size: 22
+          - show: ['Am[0,:]']
+      - say: 'Along $y$ the same with $v$. Two rows per free node: $8$ equations for $12$ unknown $q$.'
+        do:
+          - show: ['Am[4,:]']
+          - color: {target: g0, color: ink}
+          - color: {target: g2, color: ink, with: true}
+          - color: {target: g3, color: ink, with: true}
+          - color: {target: g4, color: ink, with: true}
+          - show: ['Am[1,:]', 'Am[2,:]', 'Am[3,:]', 'Am[5,:]', 'Am[6,:]', 'Am[7,:]']
+          - eq: {tex: 'k = m - \text{rank}\,\mathbf{A} = 12 - 8 = 4\ \text{free states}', align: left, size: 26}

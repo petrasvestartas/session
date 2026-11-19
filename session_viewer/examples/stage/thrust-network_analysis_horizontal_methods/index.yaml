@@ -1,0 +1,8 @@
+# Open live: https://petrasvestartas.github.io/session/?stage=thrust-network_analysis_horizontal_methods
+
+# Five published methods for horizontal equilibrium, solved side by side on the same plan.
+# The chapters are written by generate.py in ../thrust-network_analysis_horizontal_equilibrium.
+name: Thrust network analysis · five ways to the force diagram
+chapters:
+  - 01-equilibrium-matrix.yaml
+  - 02-methods.yaml

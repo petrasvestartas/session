@@ -1,0 +1,383 @@
+# Written by generate.py in ../thrust-network_analysis_horizontal_equilibrium; edit the sentences there.
+# Open local: http://127.0.0.1:8770/?stage=decks/thrust-network_analysis_horizontal_methods/index.yaml&data=off&chapter=2&step=1
+# Open live: https://petrasvestartas.github.io/session/?stage=thrust-network_analysis_horizontal_methods&chapter=2&step=1
+
+title: FIVE METHODS SIDE BY SIDE
+split: 0.62
+camera: {view: top, fit: [M0, M1]}
+points:
+  qa0: [3.428, 5.532, 0]
+  qa1: [3.557, 7.597, 0]
+  qa2: [3.557, 8.942, 0]
+  qa3: [1.952, 5.305, 0]
+  qa4: [2.747, 7.462, 0]
+  qa5: [2.402, 8.207, 0]
+  qa6: [1.155, 5.504, 0]
+  qa7: [1.253, 6.320, 0]
+  qa8: [0.649, 8.131, 0]
+  qb0: [8.572, 5.541, 0]
+  qb1: [8.711, 7.770, 0]
+  qb2: [8.711, 8.906, 0]
+  qb3: [6.660, 5.247, 0]
+  qb4: [7.516, 7.571, 0]
+  qb5: [7.311, 8.015, 0]
+  qb6: [6.122, 5.381, 0]
+  qb7: [6.270, 6.618, 0]
+  qb8: [5.826, 7.951, 0]
+  qe0: [13.627, 5.695, 0]
+  qe1: [13.734, 7.406, 0]
+  qe2: [13.734, 9.219, 0]
+  qe3: [11.768, 5.409, 0]
+  qe4: [12.424, 7.188, 0]
+  qe5: [11.997, 8.113, 0]
+  qe6: [11.259, 5.536, 0]
+  qe7: [11.359, 6.374, 0]
+  qe8: [10.797, 8.061, 0]
+  qc0: [3.846, 0.720, 0]
+  qc1: [3.883, 2.379, 0]
+  qc2: [3.328, 4.001, 0]
+  qc3: [2.644, 0.714, 0]
+  qc4: [2.348, 2.305, 0]
+  qc5: [1.848, 3.914, 0]
+  qc6: [1.256, 1.164, 0]
+  qc7: [0.831, 2.194, 0]
+  qc8: [0.714, 3.310, 0]
+  qd0: [8.846, 0.720, 0]
+  qd1: [8.883, 2.379, 0]
+  qd2: [8.328, 4.001, 0]
+  qd3: [7.644, 0.714, 0]
+  qd4: [7.348, 2.305, 0]
+  qd5: [6.848, 3.914, 0]
+  qd6: [6.256, 1.164, 0]
+  qd7: [5.831, 2.194, 0]
+  qd8: [5.714, 3.310, 0]
+  Ta: [0.100, 9.350, 0]
+  Tb: [5.100, 9.350, 0]
+  Te: [10.100, 9.350, 0]
+  Tc: [0.100, 4.650, 0]
+  Td: [5.100, 4.650, 0]
+  M0: [0.8, 1.2, 0]
+  M1: [13.8, 8.6, 0]
+  TG: [10.2, 4.3, 0]
+slides:
+  - title: ONE PLAN, FIVE SOLVERS
+    steps:
+      - say: 'The same plan and the same targets. Methods 3 and 4 start from the first guess; 1, 2 and 5 need none.'
+        do:
+          - add:
+              - {id: gb0, line: [[11.184, 0.340, 0], [11.246, 1.332, 0]], color: ink, width: 2.0}
+              - {id: gb1, line: [[13.478, 0.340, 0], [13.478, 1.704, 0]], color: ink, width: 2.0}
+              - {id: gb2, line: [[10.440, 1.208, 0], [11.246, 1.332, 0]], color: ink, width: 2.0}
+              - {id: gb3, line: [[11.246, 1.332, 0], [13.478, 1.704, 0]], color: ink, width: 2.0}
+              - {id: gb4, line: [[11.246, 1.332, 0], [11.680, 2.510, 0]], color: ink, width: 2.0}
+              - {id: gb5, line: [[13.478, 1.704, 0], [14.160, 2.138, 0]], color: ink, width: 2.0}
+              - {id: gb6, line: [[13.478, 1.704, 0], [12.734, 3.316, 0]], color: ink, width: 2.0}
+              - {id: gb7, line: [[10.440, 2.820, 0], [11.680, 2.510, 0]], color: ink, width: 2.0}
+              - {id: gb8, line: [[11.680, 2.510, 0], [12.734, 3.316, 0]], color: ink, width: 2.0}
+              - {id: gb9, line: [[11.680, 2.510, 0], [11.866, 4.060, 0]], color: ink, width: 2.0}
+              - {id: gb10, line: [[12.734, 3.316, 0], [14.160, 3.378, 0]], color: ink, width: 2.0}
+              - {id: gb11, line: [[12.734, 3.316, 0], [12.486, 4.060, 0]], color: ink, width: 2.0}
+              - {id: gss1, point: [11.184, 0.340, 0], color: fixed, size: 0.6}
+              - {id: gss2, point: [13.478, 0.340, 0], color: fixed, size: 0.6}
+              - {id: gss3, point: [14.160, 2.138, 0], color: fixed, size: 0.6}
+              - {id: gss4, point: [14.160, 3.378, 0], color: fixed, size: 0.6}
+              - {id: gss5, point: [12.486, 4.060, 0], color: fixed, size: 0.6}
+              - {id: gss6, point: [11.866, 4.060, 0], color: fixed, size: 0.6}
+              - {id: gss7, point: [10.440, 2.820, 0], color: fixed, size: 0.6}
+              - {id: gss8, point: [10.440, 1.208, 0], color: fixed, size: 0.6}
+              - {id: tg, label: TG, tex: '\Gamma', color: accent}
+              - {id: ta, label: Ta, tex: '\text{1 · linear programme}', color: accent}
+              - {id: tb, label: Tb, tex: '\text{2 · independent } q', color: accent}
+              - {id: te, label: Te, tex: '\text{5 · bounded fit}', color: accent}
+              - {id: tc, label: Tc, tex: '\text{3 · averaging}\quad k = 0:\ 33.2^\circ', color: accent}
+              - {id: td, label: Td, tex: '\text{4 · least squares}\quad k = 0:\ 33.2^\circ', color: accent}
+              - {id: cf0, line: [qc0, qc1], color: ink, width: 2.4}
+              - {id: cf1, line: [qc1, qc2], color: ink, width: 2.4}
+              - {id: cf2, line: [qc3, qc0], color: ink, width: 2.4}
+              - {id: cf3, line: [qc4, qc1], color: ink, width: 2.4}
+              - {id: cf4, line: [qc3, qc4], color: ink, width: 2.4}
+              - {id: cf5, line: [qc5, qc2], color: ink, width: 2.4}
+              - {id: cf6, line: [qc4, qc5], color: ink, width: 2.4}
+              - {id: cf7, line: [qc6, qc3], color: ink, width: 2.4}
+              - {id: cf8, line: [qc7, qc4], color: ink, width: 2.4}
+              - {id: cf9, line: [qc6, qc7], color: ink, width: 2.4}
+              - {id: cf10, line: [qc8, qc5], color: ink, width: 2.4}
+              - {id: cf11, line: [qc7, qc8], color: ink, width: 2.4}
+              - {id: ct0, arrow: ['mid(qc0, qc1) - [0.019, 0.299, 0]', 'mid(qc0, qc1) + [0.019, 0.299, 0]'], color: blue, width: 1.2}
+              - {id: ct1, arrow: ['mid(qc1, qc2) - [0.000, 0.300, 0]', 'mid(qc1, qc2) + [0.000, 0.300, 0]'], color: blue, width: 1.2}
+              - {id: ct2, arrow: ['mid(qc3, qc0) - [0.297, 0.046, 0]', 'mid(qc3, qc0) + [0.297, 0.046, 0]'], color: blue, width: 1.2}
+              - {id: ct3, arrow: ['mid(qc4, qc1) - [0.296, 0.049, 0]', 'mid(qc4, qc1) + [0.296, 0.049, 0]'], color: blue, width: 1.2}
+              - {id: ct4, arrow: ['mid(qc3, qc4) - [0.104, 0.282, 0]', 'mid(qc3, qc4) + [0.104, 0.282, 0]'], color: blue, width: 1.2}
+              - {id: ct5, arrow: ['mid(qc5, qc2) - [0.253, 0.161, 0]', 'mid(qc5, qc2) + [0.253, 0.161, 0]'], color: blue, width: 1.2}
+              - {id: ct6, arrow: ['mid(qc4, qc5) - [-0.126, 0.272, 0]', 'mid(qc4, qc5) + [-0.126, 0.272, 0]'], color: blue, width: 1.2}
+              - {id: ct7, arrow: ['mid(qc6, qc3) - [0.291, -0.073, 0]', 'mid(qc6, qc3) + [0.291, -0.073, 0]'], color: blue, width: 1.2}
+              - {id: ct8, arrow: ['mid(qc7, qc4) - [0.238, 0.182, 0]', 'mid(qc7, qc4) + [0.238, 0.182, 0]'], color: blue, width: 1.2}
+              - {id: ct9, arrow: ['mid(qc6, qc7) - [0.036, 0.298, 0]', 'mid(qc6, qc7) + [0.036, 0.298, 0]'], color: blue, width: 1.2}
+              - {id: ct10, arrow: ['mid(qc8, qc5) - [0.300, 0.013, 0]', 'mid(qc8, qc5) + [0.300, 0.013, 0]'], color: blue, width: 1.2}
+              - {id: ct11, arrow: ['mid(qc7, qc8) - [-0.095, 0.285, 0]', 'mid(qc7, qc8) + [-0.095, 0.285, 0]'], color: blue, width: 1.2}
+              - {id: df0, line: [qd0, qd1], color: ink, width: 2.4}
+              - {id: df1, line: [qd1, qd2], color: ink, width: 2.4}
+              - {id: df2, line: [qd3, qd0], color: ink, width: 2.4}
+              - {id: df3, line: [qd4, qd1], color: ink, width: 2.4}
+              - {id: df4, line: [qd3, qd4], color: ink, width: 2.4}
+              - {id: df5, line: [qd5, qd2], color: ink, width: 2.4}
+              - {id: df6, line: [qd4, qd5], color: ink, width: 2.4}
+              - {id: df7, line: [qd6, qd3], color: ink, width: 2.4}
+              - {id: df8, line: [qd7, qd4], color: ink, width: 2.4}
+              - {id: df9, line: [qd6, qd7], color: ink, width: 2.4}
+              - {id: df10, line: [qd8, qd5], color: ink, width: 2.4}
+              - {id: df11, line: [qd7, qd8], color: ink, width: 2.4}
+              - {id: dt0, arrow: ['mid(qd0, qd1) - [0.019, 0.299, 0]', 'mid(qd0, qd1) + [0.019, 0.299, 0]'], color: blue, width: 1.2}
+              - {id: dt1, arrow: ['mid(qd1, qd2) - [0.000, 0.300, 0]', 'mid(qd1, qd2) + [0.000, 0.300, 0]'], color: blue, width: 1.2}
+              - {id: dt2, arrow: ['mid(qd3, qd0) - [0.297, 0.046, 0]', 'mid(qd3, qd0) + [0.297, 0.046, 0]'], color: blue, width: 1.2}
+              - {id: dt3, arrow: ['mid(qd4, qd1) - [0.296, 0.049, 0]', 'mid(qd4, qd1) + [0.296, 0.049, 0]'], color: blue, width: 1.2}
+              - {id: dt4, arrow: ['mid(qd3, qd4) - [0.104, 0.282, 0]', 'mid(qd3, qd4) + [0.104, 0.282, 0]'], color: blue, width: 1.2}
+              - {id: dt5, arrow: ['mid(qd5, qd2) - [0.253, 0.161, 0]', 'mid(qd5, qd2) + [0.253, 0.161, 0]'], color: blue, width: 1.2}
+              - {id: dt6, arrow: ['mid(qd4, qd5) - [-0.126, 0.272, 0]', 'mid(qd4, qd5) + [-0.126, 0.272, 0]'], color: blue, width: 1.2}
+              - {id: dt7, arrow: ['mid(qd6, qd3) - [0.291, -0.073, 0]', 'mid(qd6, qd3) + [0.291, -0.073, 0]'], color: blue, width: 1.2}
+              - {id: dt8, arrow: ['mid(qd7, qd4) - [0.238, 0.182, 0]', 'mid(qd7, qd4) + [0.238, 0.182, 0]'], color: blue, width: 1.2}
+              - {id: dt9, arrow: ['mid(qd6, qd7) - [0.036, 0.298, 0]', 'mid(qd6, qd7) + [0.036, 0.298, 0]'], color: blue, width: 1.2}
+              - {id: dt10, arrow: ['mid(qd8, qd5) - [0.300, 0.013, 0]', 'mid(qd8, qd5) + [0.300, 0.013, 0]'], color: blue, width: 1.2}
+              - {id: dt11, arrow: ['mid(qd7, qd8) - [-0.095, 0.285, 0]', 'mid(qd7, qd8) + [-0.095, 0.285, 0]'], color: blue, width: 1.2}
+  - title: 1 · LINEAR PROGRAMME (BLOCK 2009)
+    steps:
+      - say: 'Unknowns: one ratio $t_e = l^*_e / l_e$ per bar. Every node must close; every ratio stays positive.'
+        do:
+          - eq: {tex: '\min \sum_e t_e', align: left, size: 28}
+          - eq: {tex: '\mathbf{C}_i^T\mathbf{U}\,\mathbf{t} = \mathbf{0} \qquad \mathbf{C}_i^T\mathbf{V}\,\mathbf{t} = \mathbf{0}', align: left, size: 28}
+          - eq: {tex: 't_e \ge d / l_e', align: left, size: 28}
+      - say: 'One solve gives all twelve ratios. Each side is its bar times its ratio, so the diagram can be drawn at once.'
+        do:
+          - add:
+              - {id: af0, line: [qa0, qa1], color: ink, width: 2.4}
+              - {id: af1, line: [qa1, qa2], color: ink, width: 2.4}
+              - {id: af2, line: [qa3, qa0], color: ink, width: 2.4}
+              - {id: af3, line: [qa4, qa1], color: ink, width: 2.4}
+              - {id: af4, line: [qa3, qa4], color: ink, width: 2.4}
+              - {id: af5, line: [qa5, qa2], color: ink, width: 2.4}
+              - {id: af6, line: [qa4, qa5], color: ink, width: 2.4}
+              - {id: af7, line: [qa6, qa3], color: ink, width: 2.4}
+              - {id: af8, line: [qa7, qa4], color: ink, width: 2.4}
+              - {id: af9, line: [qa6, qa7], color: ink, width: 2.4}
+              - {id: af10, line: [qa8, qa5], color: ink, width: 2.4}
+              - {id: af11, line: [qa7, qa8], color: ink, width: 2.4}
+          - morph: {target: ta, label: Ta, tex: '\text{1 · linear programme}\quad 0.0^\circ', dur: 0.4, with: true}
+          - eq: {tex: '\mathbf{C}^*\mathbf{x}^* = \mathbf{U}\,\mathbf{t} \qquad \mathbf{C}^*\mathbf{y}^* = \mathbf{V}\,\mathbf{t}', align: left, size: 28}
+  - title: 2 · INDEPENDENT FORCE DENSITIES (BLOCK AND LACHAUER 2014)
+    steps:
+      - say: 'Row reduction of the equilibrium matrix finds $k = 4$ bars whose force can be chosen freely, drawn pink.'
+        do:
+          - color: {target: gb5, color: pink}
+          - color: {target: gb9, color: pink, with: true}
+          - color: {target: gb10, color: pink, with: true}
+          - color: {target: gb11, color: pink, with: true}
+          - eq: {tex: '\mathbf{A}\,\mathbf{q} = \mathbf{0} \qquad k = m - \text{rank}\,\mathbf{A} = 12 - 8 = 4', align: left, size: 28}
+      - say: 'Choose those four; the other eight follow from one small solve, and the diagram is drawn from $q$.'
+        do:
+          - add:
+              - {id: bf0, line: [qb0, qb1], color: ink, width: 2.4}
+              - {id: bf1, line: [qb1, qb2], color: ink, width: 2.4}
+              - {id: bf2, line: [qb3, qb0], color: ink, width: 2.4}
+              - {id: bf3, line: [qb4, qb1], color: ink, width: 2.4}
+              - {id: bf4, line: [qb3, qb4], color: ink, width: 2.4}
+              - {id: bf5, line: [qb5, qb2], color: ink, width: 2.4}
+              - {id: bf6, line: [qb4, qb5], color: ink, width: 2.4}
+              - {id: bf7, line: [qb6, qb3], color: ink, width: 2.4}
+              - {id: bf8, line: [qb7, qb4], color: ink, width: 2.4}
+              - {id: bf9, line: [qb6, qb7], color: ink, width: 2.4}
+              - {id: bf10, line: [qb8, qb5], color: ink, width: 2.4}
+              - {id: bf11, line: [qb7, qb8], color: ink, width: 2.4}
+          - morph: {target: tb, label: Tb, tex: '\text{2 · independent } q\quad 0.0^\circ', dur: 0.4, with: true}
+          - eq: {tex: '\mathbf{q}_{dep} = -\mathbf{A}_{dep}^{-1}\,\mathbf{A}_{indep}\,\mathbf{q}_{indep}', align: left, size: 28}
+  - title: 5 · BOUNDED FIT (VOUGA, HÖBINGER, WALLNER, POTTMANN 2012)
+    steps:
+      - say: 'Fit all force densities at once to the node equations, each kept between two bounds. No first guess, no rank.'
+        do:
+          - color: {target: gb5, color: ink}
+          - color: {target: gb9, color: ink, with: true}
+          - color: {target: gb10, color: ink, with: true}
+          - color: {target: gb11, color: ink, with: true}
+          - eq: {tex: '\min_{\mathbf{q}}\ \left| \mathbf{A}\,\mathbf{q} \right|^2 \qquad q_{min} \le q_e \le q_{max}', align: left, size: 28}
+      - say: 'Here the minimum is zero, so the plan stands and the diagram is drawn from $q$. If it is not zero, the nodes of the plan are moved.'
+        do:
+          - add:
+              - {id: ef0, line: [qe0, qe1], color: ink, width: 2.4}
+              - {id: ef1, line: [qe1, qe2], color: ink, width: 2.4}
+              - {id: ef2, line: [qe3, qe0], color: ink, width: 2.4}
+              - {id: ef3, line: [qe4, qe1], color: ink, width: 2.4}
+              - {id: ef4, line: [qe3, qe4], color: ink, width: 2.4}
+              - {id: ef5, line: [qe5, qe2], color: ink, width: 2.4}
+              - {id: ef6, line: [qe4, qe5], color: ink, width: 2.4}
+              - {id: ef7, line: [qe6, qe3], color: ink, width: 2.4}
+              - {id: ef8, line: [qe7, qe4], color: ink, width: 2.4}
+              - {id: ef9, line: [qe6, qe7], color: ink, width: 2.4}
+              - {id: ef10, line: [qe8, qe5], color: ink, width: 2.4}
+              - {id: ef11, line: [qe7, qe8], color: ink, width: 2.4}
+          - morph: {target: te, label: Te, tex: '\text{5 · bounded fit}\quad 0.0^\circ', dur: 0.4, with: true}
+  - title: 3 AND 4 · THE TWO LOOPS
+    steps:
+      - say: 'Method 3 moves each corner to the average of its wishes. Method 4 solves for all corners at once.'
+        do:
+          - eq: {tex: '3:\quad \mathbf{x}_j \leftarrow \frac{1}{n_j} \sum_i (\mathbf{x}_i \pm l_i\,\mathbf{t}_i)', align: left, size: 26}
+          - eq: {tex: '4:\quad \mathbf{C}^{*T}\mathbf{C}^*\,\mathbf{x}^* = \mathbf{C}^{*T}(\mathbf{l}^* \cdot \mathbf{t})', align: left, size: 26}
+      - say: 'Iteration $1$.'
+        do:
+          - move: {point: qc0, to: [3.806, 0.810, 0], dur: 1.2}
+          - move: {point: qc1, to: [3.714, 2.407, 0], dur: 1.2, with: true}
+          - move: {point: qc2, to: [3.491, 4.402, 0], dur: 1.2, with: true}
+          - move: {point: qc3, to: [2.373, 0.711, 0], dur: 1.2, with: true}
+          - move: {point: qc4, to: [2.541, 2.465, 0], dur: 1.2, with: true}
+          - move: {point: qc5, to: [1.906, 3.468, 0], dur: 1.2, with: true}
+          - move: {point: qc6, to: [0.964, 1.078, 0], dur: 1.2, with: true}
+          - move: {point: qc7, to: [1.199, 1.965, 0], dur: 1.2, with: true}
+          - move: {point: qc8, to: [0.520, 3.558, 0], dur: 1.2, with: true}
+          - move: {point: qd0, to: [8.846, 0.720, 0], dur: 1.2, with: true}
+          - move: {point: qd1, to: [9.063, 2.403, 0], dur: 1.2, with: true}
+          - move: {point: qd2, to: [8.854, 4.141, 0], dur: 1.2, with: true}
+          - move: {point: qd3, to: [7.545, 0.510, 0], dur: 1.2, with: true}
+          - move: {point: qd4, to: [7.868, 2.153, 0], dur: 1.2, with: true}
+          - move: {point: qd5, to: [7.394, 3.369, 0], dur: 1.2, with: true}
+          - move: {point: qd6, to: [6.255, 0.713, 0], dur: 1.2, with: true}
+          - move: {point: qd7, to: [6.512, 1.669, 0], dur: 1.2, with: true}
+          - move: {point: qd8, to: [6.133, 3.024, 0], dur: 1.2, with: true}
+          - morph: {target: tc, label: Tc, tex: '\text{3 · averaging}\quad k = 1:\ 17.0^\circ', dur: 0.4, with: true}
+          - morph: {target: td, label: Td, tex: '\text{4 · least squares}\quad k = 1:\ 17.8^\circ', dur: 0.4, with: true}
+      - say: 'Iteration $2$.'
+        do:
+          - move: {point: qc0, to: [3.704, 0.870, 0], dur: 1.2}
+          - move: {point: qc1, to: [3.699, 2.486, 0], dur: 1.2, with: true}
+          - move: {point: qc2, to: [3.586, 4.435, 0], dur: 1.2, with: true}
+          - move: {point: qc3, to: [2.231, 0.709, 0], dur: 1.2, with: true}
+          - move: {point: qc4, to: [2.569, 2.451, 0], dur: 1.2, with: true}
+          - move: {point: qc5, to: [1.963, 3.525, 0], dur: 1.2, with: true}
+          - move: {point: qc6, to: [1.025, 1.059, 0], dur: 1.2, with: true}
+          - move: {point: qc7, to: [1.181, 1.834, 0], dur: 1.2, with: true}
+          - move: {point: qc8, to: [0.585, 3.508, 0], dur: 1.2, with: true}
+          - move: {point: qd0, to: [8.846, 0.720, 0], dur: 1.2, with: true}
+          - move: {point: qd1, to: [8.994, 2.410, 0], dur: 1.2, with: true}
+          - move: {point: qd2, to: [8.918, 4.155, 0], dur: 1.2, with: true}
+          - move: {point: qd3, to: [7.502, 0.523, 0], dur: 1.2, with: true}
+          - move: {point: qd4, to: [7.907, 2.212, 0], dur: 1.2, with: true}
+          - move: {point: qd5, to: [7.450, 3.263, 0], dur: 1.2, with: true}
+          - move: {point: qd6, to: [6.367, 0.725, 0], dur: 1.2, with: true}
+          - move: {point: qd7, to: [6.617, 1.592, 0], dur: 1.2, with: true}
+          - move: {point: qd8, to: [6.158, 3.066, 0], dur: 1.2, with: true}
+          - morph: {target: tc, label: Tc, tex: '\text{3 · averaging}\quad k = 2:\ 13.4^\circ', dur: 0.4, with: true}
+          - morph: {target: td, label: Td, tex: '\text{4 · least squares}\quad k = 2:\ 11.8^\circ', dur: 0.4, with: true}
+      - say: 'Iteration $3$.'
+        do:
+          - move: {point: qc0, to: [3.647, 0.904, 0], dur: 1.2}
+          - move: {point: qc1, to: [3.692, 2.534, 0], dur: 1.2, with: true}
+          - move: {point: qc2, to: [3.616, 4.481, 0], dur: 1.2, with: true}
+          - move: {point: qc3, to: [2.146, 0.728, 0], dur: 1.2, with: true}
+          - move: {point: qc4, to: [2.574, 2.459, 0], dur: 1.2, with: true}
+          - move: {point: qc5, to: [2.010, 3.525, 0], dur: 1.2, with: true}
+          - move: {point: qc6, to: [1.050, 1.031, 0], dur: 1.2, with: true}
+          - move: {point: qc7, to: [1.210, 1.731, 0], dur: 1.2, with: true}
+          - move: {point: qc8, to: [0.603, 3.493, 0], dur: 1.2, with: true}
+          - move: {point: qd0, to: [8.846, 0.720, 0], dur: 1.2, with: true}
+          - move: {point: qd1, to: [8.980, 2.409, 0], dur: 1.2, with: true}
+          - move: {point: qd2, to: [8.958, 4.143, 0], dur: 1.2, with: true}
+          - move: {point: qd3, to: [7.476, 0.518, 0], dur: 1.2, with: true}
+          - move: {point: qd4, to: [7.939, 2.235, 0], dur: 1.2, with: true}
+          - move: {point: qd5, to: [7.487, 3.208, 0], dur: 1.2, with: true}
+          - move: {point: qd6, to: [6.467, 0.715, 0], dur: 1.2, with: true}
+          - move: {point: qd7, to: [6.685, 1.528, 0], dur: 1.2, with: true}
+          - move: {point: qd8, to: [6.189, 3.072, 0], dur: 1.2, with: true}
+          - morph: {target: tc, label: Tc, tex: '\text{3 · averaging}\quad k = 3:\ 9.3^\circ', dur: 0.4, with: true}
+          - morph: {target: td, label: Td, tex: '\text{4 · least squares}\quad k = 3:\ 8.1^\circ', dur: 0.4, with: true}
+      - say: 'Iteration $5$.'
+        do:
+          - move: {point: qc0, to: [3.594, 0.953, 0], dur: 1.2}
+          - move: {point: qc1, to: [3.676, 2.594, 0], dur: 1.2, with: true}
+          - move: {point: qc2, to: [3.651, 4.521, 0], dur: 1.2, with: true}
+          - move: {point: qc3, to: [2.048, 0.746, 0], dur: 1.2, with: true}
+          - move: {point: qc4, to: [2.576, 2.467, 0], dur: 1.2, with: true}
+          - move: {point: qc5, to: [2.057, 3.530, 0], dur: 1.2, with: true}
+          - move: {point: qc6, to: [1.112, 0.996, 0], dur: 1.2, with: true}
+          - move: {point: qc7, to: [1.237, 1.614, 0], dur: 1.2, with: true}
+          - move: {point: qc8, to: [0.615, 3.475, 0], dur: 1.2, with: true}
+          - move: {point: qd0, to: [8.846, 0.720, 0], dur: 1.2, with: true}
+          - move: {point: qd1, to: [8.975, 2.406, 0], dur: 1.2, with: true}
+          - move: {point: qd2, to: [8.986, 4.114, 0], dur: 1.2, with: true}
+          - move: {point: qd3, to: [7.431, 0.509, 0], dur: 1.2, with: true}
+          - move: {point: qd4, to: [7.968, 2.246, 0], dur: 1.2, with: true}
+          - move: {point: qd5, to: [7.523, 3.163, 0], dur: 1.2, with: true}
+          - move: {point: qd6, to: [6.592, 0.693, 0], dur: 1.2, with: true}
+          - move: {point: qd7, to: [6.751, 1.445, 0], dur: 1.2, with: true}
+          - move: {point: qd8, to: [6.221, 3.069, 0], dur: 1.2, with: true}
+          - morph: {target: tc, label: Tc, tex: '\text{3 · averaging}\quad k = 5:\ 4.9^\circ', dur: 0.4, with: true}
+          - morph: {target: td, label: Td, tex: '\text{4 · least squares}\quad k = 5:\ 5.1^\circ', dur: 0.4, with: true}
+      - say: 'Iteration $10$.'
+        do:
+          - move: {point: qc0, to: [3.564, 1.001, 0], dur: 1.2}
+          - move: {point: qc1, to: [3.666, 2.647, 0], dur: 1.2, with: true}
+          - move: {point: qc2, to: [3.666, 4.538, 0], dur: 1.2, with: true}
+          - move: {point: qc3, to: [1.966, 0.762, 0], dur: 1.2, with: true}
+          - move: {point: qc4, to: [2.576, 2.478, 0], dur: 1.2, with: true}
+          - move: {point: qc5, to: [2.085, 3.532, 0], dur: 1.2, with: true}
+          - move: {point: qc6, to: [1.185, 0.961, 0], dur: 1.2, with: true}
+          - move: {point: qc7, to: [1.264, 1.513, 0], dur: 1.2, with: true}
+          - move: {point: qc8, to: [0.614, 3.468, 0], dur: 1.2, with: true}
+          - move: {point: qd0, to: [8.846, 0.720, 0], dur: 1.2, with: true}
+          - move: {point: qd1, to: [8.962, 2.395, 0], dur: 1.2, with: true}
+          - move: {point: qd2, to: [8.973, 4.062, 0], dur: 1.2, with: true}
+          - move: {point: qd3, to: [7.359, 0.496, 0], dur: 1.2, with: true}
+          - move: {point: qd4, to: [7.968, 2.231, 0], dur: 1.2, with: true}
+          - move: {point: qd5, to: [7.536, 3.135, 0], dur: 1.2, with: true}
+          - move: {point: qd6, to: [6.685, 0.661, 0], dur: 1.2, with: true}
+          - move: {point: qd7, to: [6.787, 1.359, 0], dur: 1.2, with: true}
+          - move: {point: qd8, to: [6.223, 3.066, 0], dur: 1.2, with: true}
+          - morph: {target: tc, label: Tc, tex: '\text{3 · averaging}\quad k = 10:\ 1.329^\circ', dur: 0.4, with: true}
+          - morph: {target: td, label: Td, tex: '\text{4 · least squares}\quad k = 10:\ 1.401^\circ', dur: 0.4, with: true}
+      - say: 'Iteration $20$.'
+        do:
+          - move: {point: qc0, to: [3.562, 1.015, 0], dur: 1.2}
+          - move: {point: qc1, to: [3.665, 2.662, 0], dur: 1.2, with: true}
+          - move: {point: qc2, to: [3.665, 4.537, 0], dur: 1.2, with: true}
+          - move: {point: qc3, to: [1.945, 0.766, 0], dur: 1.2, with: true}
+          - move: {point: qc4, to: [2.575, 2.481, 0], dur: 1.2, with: true}
+          - move: {point: qc5, to: [2.089, 3.534, 0], dur: 1.2, with: true}
+          - move: {point: qc6, to: [1.207, 0.951, 0], dur: 1.2, with: true}
+          - move: {point: qc7, to: [1.272, 1.486, 0], dur: 1.2, with: true}
+          - move: {point: qc8, to: [0.611, 3.469, 0], dur: 1.2, with: true}
+          - move: {point: qd0, to: [8.846, 0.720, 0], dur: 1.2, with: true}
+          - move: {point: qd1, to: [8.952, 2.382, 0], dur: 1.2, with: true}
+          - move: {point: qd2, to: [8.953, 4.030, 0], dur: 1.2, with: true}
+          - move: {point: qd3, to: [7.322, 0.486, 0], dur: 1.2, with: true}
+          - move: {point: qd4, to: [7.956, 2.216, 0], dur: 1.2, with: true}
+          - move: {point: qd5, to: [7.534, 3.126, 0], dur: 1.2, with: true}
+          - move: {point: qd6, to: [6.705, 0.640, 0], dur: 1.2, with: true}
+          - move: {point: qd7, to: [6.789, 1.326, 0], dur: 1.2, with: true}
+          - move: {point: qd8, to: [6.210, 3.067, 0], dur: 1.2, with: true}
+          - morph: {target: tc, label: Tc, tex: '\text{3 · averaging}\quad k = 20:\ 0.072^\circ', dur: 0.4, with: true}
+          - morph: {target: td, label: Td, tex: '\text{4 · least squares}\quad k = 20:\ 0.134^\circ', dur: 0.4, with: true}
+      - say: 'Iteration $50$.'
+        do:
+          - move: {point: qc0, to: [3.562, 1.015, 0], dur: 1.2}
+          - move: {point: qc1, to: [3.665, 2.663, 0], dur: 1.2, with: true}
+          - move: {point: qc2, to: [3.665, 4.536, 0], dur: 1.2, with: true}
+          - move: {point: qc3, to: [1.944, 0.766, 0], dur: 1.2, with: true}
+          - move: {point: qc4, to: [2.575, 2.481, 0], dur: 1.2, with: true}
+          - move: {point: qc5, to: [2.089, 3.534, 0], dur: 1.2, with: true}
+          - move: {point: qc6, to: [1.208, 0.950, 0], dur: 1.2, with: true}
+          - move: {point: qc7, to: [1.272, 1.485, 0], dur: 1.2, with: true}
+          - move: {point: qc8, to: [0.611, 3.469, 0], dur: 1.2, with: true}
+          - move: {point: qd0, to: [8.846, 0.720, 0], dur: 1.2, with: true}
+          - move: {point: qd1, to: [8.950, 2.379, 0], dur: 1.2, with: true}
+          - move: {point: qd2, to: [8.950, 4.026, 0], dur: 1.2, with: true}
+          - move: {point: qd3, to: [7.317, 0.485, 0], dur: 1.2, with: true}
+          - move: {point: qd4, to: [7.954, 2.213, 0], dur: 1.2, with: true}
+          - move: {point: qd5, to: [7.533, 3.124, 0], dur: 1.2, with: true}
+          - move: {point: qd6, to: [6.707, 0.637, 0], dur: 1.2, with: true}
+          - move: {point: qd7, to: [6.789, 1.322, 0], dur: 1.2, with: true}
+          - move: {point: qd8, to: [6.208, 3.067, 0], dur: 1.2, with: true}
+          - morph: {target: tc, label: Tc, tex: '\text{3 · averaging}\quad k = 50:\ 0.000^\circ', dur: 0.4, with: true}
+          - morph: {target: td, label: Td, tex: '\text{4 · least squares}\quad k = 50:\ 0.000^\circ', dur: 0.4, with: true}
+  - title: FIVE ANSWERS
+    steps:
+      - say: 'All five diagrams are parallel, and they differ: each method picks another of the possible force distributions.'
+        do:
+          - eq: {tex: 'q_{1,2}:\quad 0.28 \qquad 0.41 \qquad 0.37 \qquad 0.37 \qquad 0.45', align: left, size: 28}
+          - {text: 'Force density of bar $1$–$2$ in methods 1 to 5, each divided by its mean so the scales compare.', align: left}
+          - {text: '1, 2 and 5 are one solve each. 3 and 4 need a first guess and many steps. 3, 4 and 5 can also move the plan.', align: left}

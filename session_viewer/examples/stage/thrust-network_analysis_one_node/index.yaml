@@ -6,5 +6,4 @@
 name: Thrust network analysis · one node
 chapters:
   - 01-diagrams.yaml
-  - 02-derivation.yaml
-  - 03-coordinates.yaml
+  - 02-height.yaml

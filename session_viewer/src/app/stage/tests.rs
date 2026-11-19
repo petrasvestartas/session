@@ -2,7 +2,7 @@ use super::{deck, font, run, tex};
 use std::collections::HashMap;
 use std::rc::Rc;
 
-const DECKS: [&str; 7] = [
+const DECKS: [&str; 11] = [
     "equilibrium",
     "force-density",
     "force-density-matrices",
@@ -10,6 +10,10 @@ const DECKS: [&str; 7] = [
     "force-density-materialization",
     "foppl-spatial-joint",
     "thrust-network_analysis_one_node",
+    "thrust-network_analysis_horizontal_equilibrium",
+    "thrust-network_analysis_vertical_equilibrium",
+    "thrust-network_analysis_horizontal_methods",
+    "thrust-network_analysis_geometries",
 ];
 
 /// The stage fonts read from the crate's assets.

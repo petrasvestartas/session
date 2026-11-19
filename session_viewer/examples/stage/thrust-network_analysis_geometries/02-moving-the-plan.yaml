@@ -1,0 +1,620 @@
+# Written by generate.py in ../thrust-network_analysis_horizontal_equilibrium; edit the sentences there.
+# Open local: http://127.0.0.1:8770/?stage=decks/thrust-network_analysis_geometries/index.yaml&data=off&chapter=2&step=1
+# Open live: https://petrasvestartas.github.io/session/?stage=thrust-network_analysis_geometries&chapter=2&step=1
+
+title: MOVING THE PLAN
+split: 0.5
+camera: {view: top, fit: [LO, HI]}
+points:
+  n1: [1.300, 8.100, 0]
+  n2: [4.900, 8.700, 0]
+  n3: [3.700, 11.300, 0]
+  n4: [2.000, 10.000, 0]
+  s1: [1.200, 6.500, 0]
+  s2: [4.900, 6.500, 0]
+  s3: [6.000, 9.400, 0]
+  s4: [6.000, 11.400, 0]
+  s5: [3.300, 12.500, 0]
+  s6: [2.300, 12.500, 0]
+  s7: [0.000, 10.500, 0]
+  s8: [0.000, 7.900, 0]
+  quadbad0: [0.350, 7.660, 0]
+  quadbad1: [0.350, 8.720, 0]
+  quadbad2: [0.350, 9.780, 0]
+  quadbad3: [0.350, 10.840, 0]
+  quadbad4: [1.410, 6.600, 0]
+  quadbad5: [1.682, 7.934, 0]
+  quadbad6: [1.424, 8.529, 0]
+  quadbad7: [1.013, 9.676, 0]
+  quadbad8: [1.328, 10.435, 0]
+  quadbad9: [1.410, 11.900, 0]
+  quadbad10: [2.470, 6.600, 0]
+  quadbad11: [2.068, 8.104, 0]
+  quadbad12: [2.606, 8.484, 0]
+  quadbad13: [2.412, 10.202, 0]
+  quadbad14: [2.824, 11.147, 0]
+  quadbad15: [2.470, 11.900, 0]
+  quadbad16: [3.530, 6.600, 0]
+  quadbad17: [3.434, 7.654, 0]
+  quadbad18: [3.687, 8.329, 0]
+  quadbad19: [3.580, 9.576, 0]
+  quadbad20: [3.868, 10.452, 0]
+  quadbad21: [3.530, 11.900, 0]
+  quadbad22: [4.590, 6.600, 0]
+  quadbad23: [4.750, 7.990, 0]
+  quadbad24: [4.347, 9.072, 0]
+  quadbad25: [4.921, 9.351, 0]
+  quadbad26: [4.775, 10.396, 0]
+  quadbad27: [4.590, 11.900, 0]
+  quadbad28: [5.650, 7.660, 0]
+  quadbad29: [5.650, 8.720, 0]
+  quadbad30: [5.650, 9.780, 0]
+  quadbad31: [5.650, 10.840, 0]
+  hexbad0: [1.907, 6.600, 0]
+  hexbad1: [1.473, 7.475, 0]
+  hexbad2: [0.596, 7.357, 0]
+  hexbad3: [3.125, 7.475, 0]
+  hexbad4: [2.732, 8.094, 0]
+  hexbad5: [1.993, 8.090, 0]
+  hexbad6: [2.781, 6.600, 0]
+  hexbad7: [4.530, 6.600, 0]
+  hexbad8: [4.106, 7.233, 0]
+  hexbad9: [5.404, 8.114, 0]
+  hexbad10: [4.597, 8.124, 0]
+  hexbad11: [1.425, 8.947, 0]
+  hexbad12: [0.596, 8.871, 0]
+  hexbad13: [3.167, 8.859, 0]
+  hexbad14: [2.685, 9.603, 0]
+  hexbad15: [1.829, 9.566, 0]
+  hexbad16: [4.158, 8.814, 0]
+  hexbad17: [5.404, 9.629, 0]
+  hexbad18: [4.526, 9.755, 0]
+  hexbad19: [1.591, 10.445, 0]
+  hexbad20: [0.596, 10.386, 0]
+  hexbad21: [3.229, 10.327, 0]
+  hexbad22: [2.692, 11.266, 0]
+  hexbad23: [1.911, 11.042, 0]
+  hexbad24: [4.125, 10.458, 0]
+  hexbad25: [5.404, 11.143, 0]
+  hexbad26: [4.560, 11.252, 0]
+  hexbad27: [1.470, 11.900, 0]
+  hexbad28: [3.219, 11.900, 0]
+  hexbad29: [4.093, 11.900, 0]
+  open0: [0.350, 6.600, 0]
+  open1: [0.350, 7.660, 0]
+  open2: [0.350, 8.720, 0]
+  open3: [0.350, 9.780, 0]
+  open4: [0.350, 10.840, 0]
+  open5: [1.410, 6.600, 0]
+  open6: [1.410, 7.660, 0]
+  open7: [1.410, 8.720, 0]
+  open8: [1.410, 9.780, 0]
+  open9: [1.410, 10.840, 0]
+  open10: [1.410, 11.900, 0]
+  open11: [2.470, 6.600, 0]
+  open12: [2.470, 7.660, 0]
+  open13: [2.470, 8.720, 0]
+  open14: [2.470, 9.780, 0]
+  open15: [2.470, 10.840, 0]
+  open16: [2.470, 11.900, 0]
+  open17: [3.530, 6.600, 0]
+  open18: [3.530, 7.660, 0]
+  open19: [3.530, 8.720, 0]
+  open20: [3.530, 9.780, 0]
+  open21: [3.530, 10.840, 0]
+  open22: [3.530, 11.900, 0]
+  open23: [4.590, 6.600, 0]
+  open24: [4.590, 7.660, 0]
+  open25: [4.590, 8.720, 0]
+  open26: [4.590, 9.780, 0]
+  open27: [4.590, 10.840, 0]
+  open28: [4.590, 11.900, 0]
+  open29: [5.650, 6.600, 0]
+  open30: [5.650, 7.660, 0]
+  open31: [5.650, 8.720, 0]
+  open32: [5.650, 9.780, 0]
+  open33: [5.650, 10.840, 0]
+  TG: [-0.7, 12.3, 0]
+  TF: [-0.7, 5.6, 0]
+  LO: [0.0, 0.9, 0]
+  HI: [6.0, 11.8, 0]
+slides:
+  - title: QUADS, DISTORTED
+    steps:
+      - say: 'Fit force densities between two bounds to this plan. The best fit leaves $60$ percent of a node force unbalanced.'
+        do:
+          - add:
+              - {id: tg, label: TG, tex: '\Gamma', color: accent}
+              - {id: tf, label: TF, tex: '\Gamma^*', color: accent}
+          - add:
+              - {id: quadbadg0, line: [[0.350, 7.660, 0], [1.682, 7.934, 0]], color: grey, width: 1.0, dash: true}
+              - {id: quadbadg1, line: [[0.350, 8.720, 0], [1.424, 8.529, 0]], color: grey, width: 1.0, dash: true}
+              - {id: quadbadg2, line: [[0.350, 9.780, 0], [1.013, 9.676, 0]], color: grey, width: 1.0, dash: true}
+              - {id: quadbadg3, line: [[0.350, 10.840, 0], [1.328, 10.435, 0]], color: grey, width: 1.0, dash: true}
+              - {id: quadbadg4, line: [[1.410, 6.600, 0], [1.682, 7.934, 0]], color: grey, width: 1.0, dash: true}
+              - {id: quadbadg5, line: [[1.682, 7.934, 0], [1.424, 8.529, 0]], color: grey, width: 1.0, dash: true}
+              - {id: quadbadg6, line: [[1.682, 7.934, 0], [2.068, 8.104, 0]], color: grey, width: 1.0, dash: true}
+              - {id: quadbadg7, line: [[1.424, 8.529, 0], [1.013, 9.676, 0]], color: grey, width: 1.0, dash: true}
+              - {id: quadbadg8, line: [[1.424, 8.529, 0], [2.606, 8.484, 0]], color: grey, width: 1.0, dash: true}
+              - {id: quadbadg9, line: [[1.013, 9.676, 0], [1.328, 10.435, 0]], color: grey, width: 1.0, dash: true}
+              - {id: quadbadg10, line: [[1.013, 9.676, 0], [2.412, 10.202, 0]], color: grey, width: 1.0, dash: true}
+              - {id: quadbadg11, line: [[1.328, 10.435, 0], [1.410, 11.900, 0]], color: grey, width: 1.0, dash: true}
+              - {id: quadbadg12, line: [[1.328, 10.435, 0], [2.824, 11.147, 0]], color: grey, width: 1.0, dash: true}
+              - {id: quadbadg13, line: [[2.470, 6.600, 0], [2.068, 8.104, 0]], color: grey, width: 1.0, dash: true}
+              - {id: quadbadg14, line: [[2.068, 8.104, 0], [2.606, 8.484, 0]], color: grey, width: 1.0, dash: true}
+              - {id: quadbadg15, line: [[2.068, 8.104, 0], [3.434, 7.654, 0]], color: grey, width: 1.0, dash: true}
+              - {id: quadbadg16, line: [[2.606, 8.484, 0], [2.412, 10.202, 0]], color: grey, width: 1.0, dash: true}
+              - {id: quadbadg17, line: [[2.606, 8.484, 0], [3.687, 8.329, 0]], color: grey, width: 1.0, dash: true}
+              - {id: quadbadg18, line: [[2.412, 10.202, 0], [2.824, 11.147, 0]], color: grey, width: 1.0, dash: true}
+              - {id: quadbadg19, line: [[2.412, 10.202, 0], [3.580, 9.576, 0]], color: grey, width: 1.0, dash: true}
+              - {id: quadbadg20, line: [[2.824, 11.147, 0], [2.470, 11.900, 0]], color: grey, width: 1.0, dash: true}
+              - {id: quadbadg21, line: [[2.824, 11.147, 0], [3.868, 10.452, 0]], color: grey, width: 1.0, dash: true}
+              - {id: quadbadg22, line: [[3.530, 6.600, 0], [3.434, 7.654, 0]], color: grey, width: 1.0, dash: true}
+              - {id: quadbadg23, line: [[3.434, 7.654, 0], [3.687, 8.329, 0]], color: grey, width: 1.0, dash: true}
+              - {id: quadbadg24, line: [[3.434, 7.654, 0], [4.750, 7.990, 0]], color: grey, width: 1.0, dash: true}
+              - {id: quadbadg25, line: [[3.687, 8.329, 0], [3.580, 9.576, 0]], color: grey, width: 1.0, dash: true}
+              - {id: quadbadg26, line: [[3.687, 8.329, 0], [4.347, 9.072, 0]], color: grey, width: 1.0, dash: true}
+              - {id: quadbadg27, line: [[3.580, 9.576, 0], [3.868, 10.452, 0]], color: grey, width: 1.0, dash: true}
+              - {id: quadbadg28, line: [[3.580, 9.576, 0], [4.921, 9.351, 0]], color: grey, width: 1.0, dash: true}
+              - {id: quadbadg29, line: [[3.868, 10.452, 0], [3.530, 11.900, 0]], color: grey, width: 1.0, dash: true}
+              - {id: quadbadg30, line: [[3.868, 10.452, 0], [4.775, 10.396, 0]], color: grey, width: 1.0, dash: true}
+              - {id: quadbadg31, line: [[4.590, 6.600, 0], [4.750, 7.990, 0]], color: grey, width: 1.0, dash: true}
+              - {id: quadbadg32, line: [[4.750, 7.990, 0], [4.347, 9.072, 0]], color: grey, width: 1.0, dash: true}
+              - {id: quadbadg33, line: [[4.750, 7.990, 0], [5.650, 7.660, 0]], color: grey, width: 1.0, dash: true}
+              - {id: quadbadg34, line: [[4.347, 9.072, 0], [4.921, 9.351, 0]], color: grey, width: 1.0, dash: true}
+              - {id: quadbadg35, line: [[4.347, 9.072, 0], [5.650, 8.720, 0]], color: grey, width: 1.0, dash: true}
+              - {id: quadbadg36, line: [[4.921, 9.351, 0], [4.775, 10.396, 0]], color: grey, width: 1.0, dash: true}
+              - {id: quadbadg37, line: [[4.921, 9.351, 0], [5.650, 9.780, 0]], color: grey, width: 1.0, dash: true}
+              - {id: quadbadg38, line: [[4.775, 10.396, 0], [4.590, 11.900, 0]], color: grey, width: 1.0, dash: true}
+              - {id: quadbadg39, line: [[4.775, 10.396, 0], [5.650, 10.840, 0]], color: grey, width: 1.0, dash: true}
+              - {id: quadbadb0, line: [quadbad0, quadbad5], color: ink, width: 2.0}
+              - {id: quadbadb1, line: [quadbad1, quadbad6], color: ink, width: 2.0}
+              - {id: quadbadb2, line: [quadbad2, quadbad7], color: ink, width: 2.0}
+              - {id: quadbadb3, line: [quadbad3, quadbad8], color: ink, width: 2.0}
+              - {id: quadbadb4, line: [quadbad4, quadbad5], color: ink, width: 2.0}
+              - {id: quadbadb5, line: [quadbad5, quadbad6], color: ink, width: 2.0}
+              - {id: quadbadb6, line: [quadbad5, quadbad11], color: ink, width: 2.0}
+              - {id: quadbadb7, line: [quadbad6, quadbad7], color: ink, width: 2.0}
+              - {id: quadbadb8, line: [quadbad6, quadbad12], color: ink, width: 2.0}
+              - {id: quadbadb9, line: [quadbad7, quadbad8], color: ink, width: 2.0}
+              - {id: quadbadb10, line: [quadbad7, quadbad13], color: ink, width: 2.0}
+              - {id: quadbadb11, line: [quadbad8, quadbad9], color: ink, width: 2.0}
+              - {id: quadbadb12, line: [quadbad8, quadbad14], color: ink, width: 2.0}
+              - {id: quadbadb13, line: [quadbad10, quadbad11], color: ink, width: 2.0}
+              - {id: quadbadb14, line: [quadbad11, quadbad12], color: ink, width: 2.0}
+              - {id: quadbadb15, line: [quadbad11, quadbad17], color: ink, width: 2.0}
+              - {id: quadbadb16, line: [quadbad12, quadbad13], color: ink, width: 2.0}
+              - {id: quadbadb17, line: [quadbad12, quadbad18], color: ink, width: 2.0}
+              - {id: quadbadb18, line: [quadbad13, quadbad14], color: ink, width: 2.0}
+              - {id: quadbadb19, line: [quadbad13, quadbad19], color: ink, width: 2.0}
+              - {id: quadbadb20, line: [quadbad14, quadbad15], color: ink, width: 2.0}
+              - {id: quadbadb21, line: [quadbad14, quadbad20], color: ink, width: 2.0}
+              - {id: quadbadb22, line: [quadbad16, quadbad17], color: ink, width: 2.0}
+              - {id: quadbadb23, line: [quadbad17, quadbad18], color: ink, width: 2.0}
+              - {id: quadbadb24, line: [quadbad17, quadbad23], color: ink, width: 2.0}
+              - {id: quadbadb25, line: [quadbad18, quadbad19], color: ink, width: 2.0}
+              - {id: quadbadb26, line: [quadbad18, quadbad24], color: ink, width: 2.0}
+              - {id: quadbadb27, line: [quadbad19, quadbad20], color: ink, width: 2.0}
+              - {id: quadbadb28, line: [quadbad19, quadbad25], color: ink, width: 2.0}
+              - {id: quadbadb29, line: [quadbad20, quadbad21], color: ink, width: 2.0}
+              - {id: quadbadb30, line: [quadbad20, quadbad26], color: ink, width: 2.0}
+              - {id: quadbadb31, line: [quadbad22, quadbad23], color: ink, width: 2.0}
+              - {id: quadbadb32, line: [quadbad23, quadbad24], color: ink, width: 2.0}
+              - {id: quadbadb33, line: [quadbad23, quadbad28], color: ink, width: 2.0}
+              - {id: quadbadb34, line: [quadbad24, quadbad25], color: ink, width: 2.0}
+              - {id: quadbadb35, line: [quadbad24, quadbad29], color: ink, width: 2.0}
+              - {id: quadbadb36, line: [quadbad25, quadbad26], color: ink, width: 2.0}
+              - {id: quadbadb37, line: [quadbad25, quadbad30], color: ink, width: 2.0}
+              - {id: quadbadb38, line: [quadbad26, quadbad27], color: ink, width: 2.0}
+              - {id: quadbadb39, line: [quadbad26, quadbad31], color: ink, width: 2.0}
+              - {id: quadbads0, point: [0.350, 7.660, 0], color: fixed, size: 0.6}
+              - {id: quadbads1, point: [0.350, 8.720, 0], color: fixed, size: 0.6}
+              - {id: quadbads2, point: [0.350, 9.780, 0], color: fixed, size: 0.6}
+              - {id: quadbads3, point: [0.350, 10.840, 0], color: fixed, size: 0.6}
+              - {id: quadbads4, point: [1.410, 6.600, 0], color: fixed, size: 0.6}
+              - {id: quadbads9, point: [1.410, 11.900, 0], color: fixed, size: 0.6}
+              - {id: quadbads10, point: [2.470, 6.600, 0], color: fixed, size: 0.6}
+              - {id: quadbads15, point: [2.470, 11.900, 0], color: fixed, size: 0.6}
+              - {id: quadbads16, point: [3.530, 6.600, 0], color: fixed, size: 0.6}
+              - {id: quadbads21, point: [3.530, 11.900, 0], color: fixed, size: 0.6}
+              - {id: quadbads22, point: [4.590, 6.600, 0], color: fixed, size: 0.6}
+              - {id: quadbads27, point: [4.590, 11.900, 0], color: fixed, size: 0.6}
+              - {id: quadbads28, point: [5.650, 7.660, 0], color: fixed, size: 0.6}
+              - {id: quadbads29, point: [5.650, 8.720, 0], color: fixed, size: 0.6}
+              - {id: quadbads30, point: [5.650, 9.780, 0], color: fixed, size: 0.6}
+              - {id: quadbads31, point: [5.650, 10.840, 0], color: fixed, size: 0.6}
+          - eq: {tex: '\min_{\mathbf{q}}\ \left| \mathbf{A}\,\mathbf{q} \right|^2 \qquad q_{min} \le q_e \le q_{max}', align: left, size: 28}
+      - say: 'Move the free nodes to reduce what is unbalanced, staying close to where they were. Fit again.'
+        do:
+          - move: {point: quadbad5, to: [1.647, 7.860, 0], dur: 1.6}
+          - move: {point: quadbad6, to: [1.403, 8.548, 0], dur: 1.6, with: true}
+          - move: {point: quadbad7, to: [1.007, 9.703, 0], dur: 1.6, with: true}
+          - move: {point: quadbad8, to: [1.260, 10.504, 0], dur: 1.6, with: true}
+          - move: {point: quadbad11, to: [2.060, 7.896, 0], dur: 1.6, with: true}
+          - move: {point: quadbad12, to: [2.390, 8.489, 0], dur: 1.6, with: true}
+          - move: {point: quadbad13, to: [2.460, 9.887, 0], dur: 1.6, with: true}
+          - move: {point: quadbad14, to: [2.575, 11.019, 0], dur: 1.6, with: true}
+          - move: {point: quadbad17, to: [3.490, 7.644, 0], dur: 1.6, with: true}
+          - move: {point: quadbad18, to: [3.513, 8.443, 0], dur: 1.6, with: true}
+          - move: {point: quadbad19, to: [3.672, 9.709, 0], dur: 1.6, with: true}
+          - move: {point: quadbad20, to: [3.749, 10.640, 0], dur: 1.6, with: true}
+          - move: {point: quadbad23, to: [4.726, 7.737, 0], dur: 1.6, with: true}
+          - move: {point: quadbad24, to: [4.619, 8.733, 0], dur: 1.6, with: true}
+          - move: {point: quadbad25, to: [4.797, 9.645, 0], dur: 1.6, with: true}
+          - move: {point: quadbad26, to: [4.648, 10.652, 0], dur: 1.6, with: true}
+          - eq: {tex: '\min_{\mathbf{x}_N}\ \left| \mathbf{D}_N\,\mathbf{x}_N + \mathbf{D}_F\,\mathbf{x}_F \right|^2 + \beta\,\left| \mathbf{x}_N - \mathbf{x}_N^0 \right|^2', align: left, size: 26}
+          - eq: {tex: '1\ \text{iteration} \qquad \text{largest move: } 0.30\ \text{bar lengths}', align: left, size: 24}
+      - say: 'Nothing is left unbalanced: this plan has a compression-only force diagram.'
+        do:
+          - add:
+              - {id: quadbadf0, line: [[0.400, 1.916, 0], [0.521, 1.131, 0]], color: ink, width: 2.0}
+              - {id: quadbadf1, line: [[0.508, 2.577, 0], [0.400, 1.916, 0]], color: ink, width: 2.0}
+              - {id: quadbadf2, line: [[0.724, 4.410, 0], [0.508, 2.577, 0]], color: ink, width: 2.0}
+              - {id: quadbadf3, line: [[0.893, 4.868, 0], [0.724, 4.410, 0]], color: ink, width: 2.0}
+              - {id: quadbadf4, line: [[0.521, 1.131, 0], [2.207, 0.814, 0]], color: ink, width: 2.0}
+              - {id: quadbadf5, line: [[0.400, 1.916, 0], [2.059, 2.505, 0]], color: ink, width: 2.0}
+              - {id: quadbadf6, line: [[2.059, 2.505, 0], [2.207, 0.814, 0]], color: ink, width: 2.0}
+              - {id: quadbadf7, line: [[0.508, 2.577, 0], [2.096, 3.121, 0]], color: ink, width: 2.0}
+              - {id: quadbadf8, line: [[2.096, 3.121, 0], [2.059, 2.505, 0]], color: ink, width: 2.0}
+              - {id: quadbadf9, line: [[0.724, 4.410, 0], [1.983, 4.014, 0]], color: ink, width: 2.0}
+              - {id: quadbadf10, line: [[1.983, 4.014, 0], [2.096, 3.121, 0]], color: ink, width: 2.0}
+              - {id: quadbadf11, line: [[0.893, 4.868, 0], [1.682, 4.783, 0]], color: ink, width: 2.0}
+              - {id: quadbadf12, line: [[1.682, 4.783, 0], [1.983, 4.014, 0]], color: ink, width: 2.0}
+              - {id: quadbadf13, line: [[2.207, 0.814, 0], [2.939, 1.046, 0]], color: ink, width: 2.0}
+              - {id: quadbadf14, line: [[2.059, 2.505, 0], [3.095, 1.928, 0]], color: ink, width: 2.0}
+              - {id: quadbadf15, line: [[3.095, 1.928, 0], [2.939, 1.046, 0]], color: ink, width: 2.0}
+              - {id: quadbadf16, line: [[2.096, 3.121, 0], [3.140, 3.069, 0]], color: ink, width: 2.0}
+              - {id: quadbadf17, line: [[3.140, 3.069, 0], [3.095, 1.928, 0]], color: ink, width: 2.0}
+              - {id: quadbadf18, line: [[1.983, 4.014, 0], [3.260, 3.884, 0]], color: ink, width: 2.0}
+              - {id: quadbadf19, line: [[3.260, 3.884, 0], [3.140, 3.069, 0]], color: ink, width: 2.0}
+              - {id: quadbadf20, line: [[1.682, 4.783, 0], [3.625, 5.015, 0]], color: ink, width: 2.0}
+              - {id: quadbadf21, line: [[3.625, 5.015, 0], [3.260, 3.884, 0]], color: ink, width: 2.0}
+              - {id: quadbadf22, line: [[2.939, 1.046, 0], [4.698, 1.114, 0]], color: ink, width: 2.0}
+              - {id: quadbadf23, line: [[3.095, 1.928, 0], [4.640, 1.882, 0]], color: ink, width: 2.0}
+              - {id: quadbadf24, line: [[4.640, 1.882, 0], [4.698, 1.114, 0]], color: ink, width: 2.0}
+              - {id: quadbadf25, line: [[3.140, 3.069, 0], [4.369, 2.915, 0]], color: ink, width: 2.0}
+              - {id: quadbadf26, line: [[4.369, 2.915, 0], [4.640, 1.882, 0]], color: ink, width: 2.0}
+              - {id: quadbadf27, line: [[3.260, 3.884, 0], [4.419, 3.787, 0]], color: ink, width: 2.0}
+              - {id: quadbadf28, line: [[4.419, 3.787, 0], [4.369, 2.915, 0]], color: ink, width: 2.0}
+              - {id: quadbadf29, line: [[3.625, 5.015, 0], [4.402, 5.150, 0]], color: ink, width: 2.0}
+              - {id: quadbadf30, line: [[4.402, 5.150, 0], [4.419, 3.787, 0]], color: ink, width: 2.0}
+              - {id: quadbadf31, line: [[4.698, 1.114, 0], [5.511, 1.017, 0]], color: ink, width: 2.0}
+              - {id: quadbadf32, line: [[4.640, 1.882, 0], [5.591, 1.984, 0]], color: ink, width: 2.0}
+              - {id: quadbadf33, line: [[5.591, 1.984, 0], [5.511, 1.017, 0]], color: ink, width: 2.0}
+              - {id: quadbadf34, line: [[4.369, 2.915, 0], [5.600, 2.675, 0]], color: ink, width: 2.0}
+              - {id: quadbadf35, line: [[5.600, 2.675, 0], [5.591, 1.984, 0]], color: ink, width: 2.0}
+              - {id: quadbadf36, line: [[4.419, 3.787, 0], [5.402, 3.931, 0]], color: ink, width: 2.0}
+              - {id: quadbadf37, line: [[5.402, 3.931, 0], [5.600, 2.675, 0]], color: ink, width: 2.0}
+              - {id: quadbadf38, line: [[4.402, 5.150, 0], [5.166, 5.186, 0]], color: ink, width: 2.0}
+              - {id: quadbadf39, line: [[5.166, 5.186, 0], [5.402, 3.931, 0]], color: ink, width: 2.0}
+  - title: HEXAGONS, DISTURBED
+    steps:
+      - say: 'Fit force densities between two bounds to this plan. The best fit leaves $5$ percent of a node force unbalanced.'
+        do:
+          - remove: [quadbadg0, quadbadg1, quadbadg2, quadbadg3, quadbadg4, quadbadg5, quadbadg6, quadbadg7, quadbadg8, quadbadg9, quadbadg10, quadbadg11, quadbadg12, quadbadg13, quadbadg14, quadbadg15, quadbadg16, quadbadg17, quadbadg18, quadbadg19, quadbadg20, quadbadg21, quadbadg22, quadbadg23, quadbadg24, quadbadg25, quadbadg26, quadbadg27, quadbadg28, quadbadg29, quadbadg30, quadbadg31, quadbadg32, quadbadg33, quadbadg34, quadbadg35, quadbadg36, quadbadg37, quadbadg38, quadbadg39, quadbadb0, quadbadb1, quadbadb2, quadbadb3, quadbadb4, quadbadb5, quadbadb6, quadbadb7, quadbadb8, quadbadb9, quadbadb10, quadbadb11, quadbadb12, quadbadb13, quadbadb14, quadbadb15, quadbadb16, quadbadb17, quadbadb18, quadbadb19, quadbadb20, quadbadb21, quadbadb22, quadbadb23, quadbadb24, quadbadb25, quadbadb26, quadbadb27, quadbadb28, quadbadb29, quadbadb30, quadbadb31, quadbadb32, quadbadb33, quadbadb34, quadbadb35, quadbadb36, quadbadb37, quadbadb38, quadbadb39, quadbads0, quadbads1, quadbads2, quadbads3, quadbads4, quadbads9, quadbads10, quadbads15, quadbads16, quadbads21, quadbads22, quadbads27, quadbads28, quadbads29, quadbads30, quadbads31, quadbadf0, quadbadf1, quadbadf2, quadbadf3, quadbadf4, quadbadf5, quadbadf6, quadbadf7, quadbadf8, quadbadf9, quadbadf10, quadbadf11, quadbadf12, quadbadf13, quadbadf14, quadbadf15, quadbadf16, quadbadf17, quadbadf18, quadbadf19, quadbadf20, quadbadf21, quadbadf22, quadbadf23, quadbadf24, quadbadf25, quadbadf26, quadbadf27, quadbadf28, quadbadf29, quadbadf30, quadbadf31, quadbadf32, quadbadf33, quadbadf34, quadbadf35, quadbadf36, quadbadf37, quadbadf38, quadbadf39]
+          - add:
+              - {id: hexbadg0, line: [[1.907, 6.600, 0], [1.473, 7.475, 0]], color: grey, width: 1.0, dash: true}
+              - {id: hexbadg1, line: [[1.473, 7.475, 0], [0.596, 7.357, 0]], color: grey, width: 1.0, dash: true}
+              - {id: hexbadg2, line: [[1.473, 7.475, 0], [1.993, 8.090, 0]], color: grey, width: 1.0, dash: true}
+              - {id: hexbadg3, line: [[3.125, 7.475, 0], [2.732, 8.094, 0]], color: grey, width: 1.0, dash: true}
+              - {id: hexbadg4, line: [[3.125, 7.475, 0], [2.781, 6.600, 0]], color: grey, width: 1.0, dash: true}
+              - {id: hexbadg5, line: [[3.125, 7.475, 0], [4.106, 7.233, 0]], color: grey, width: 1.0, dash: true}
+              - {id: hexbadg6, line: [[2.732, 8.094, 0], [1.993, 8.090, 0]], color: grey, width: 1.0, dash: true}
+              - {id: hexbadg7, line: [[2.732, 8.094, 0], [3.167, 8.859, 0]], color: grey, width: 1.0, dash: true}
+              - {id: hexbadg8, line: [[1.993, 8.090, 0], [1.425, 8.947, 0]], color: grey, width: 1.0, dash: true}
+              - {id: hexbadg9, line: [[4.530, 6.600, 0], [4.106, 7.233, 0]], color: grey, width: 1.0, dash: true}
+              - {id: hexbadg10, line: [[4.106, 7.233, 0], [4.597, 8.124, 0]], color: grey, width: 1.0, dash: true}
+              - {id: hexbadg11, line: [[5.404, 8.114, 0], [4.597, 8.124, 0]], color: grey, width: 1.0, dash: true}
+              - {id: hexbadg12, line: [[4.597, 8.124, 0], [4.158, 8.814, 0]], color: grey, width: 1.0, dash: true}
+              - {id: hexbadg13, line: [[1.425, 8.947, 0], [0.596, 8.871, 0]], color: grey, width: 1.0, dash: true}
+              - {id: hexbadg14, line: [[1.425, 8.947, 0], [1.829, 9.566, 0]], color: grey, width: 1.0, dash: true}
+              - {id: hexbadg15, line: [[3.167, 8.859, 0], [2.685, 9.603, 0]], color: grey, width: 1.0, dash: true}
+              - {id: hexbadg16, line: [[3.167, 8.859, 0], [4.158, 8.814, 0]], color: grey, width: 1.0, dash: true}
+              - {id: hexbadg17, line: [[2.685, 9.603, 0], [1.829, 9.566, 0]], color: grey, width: 1.0, dash: true}
+              - {id: hexbadg18, line: [[2.685, 9.603, 0], [3.229, 10.327, 0]], color: grey, width: 1.0, dash: true}
+              - {id: hexbadg19, line: [[1.829, 9.566, 0], [1.591, 10.445, 0]], color: grey, width: 1.0, dash: true}
+              - {id: hexbadg20, line: [[4.158, 8.814, 0], [4.526, 9.755, 0]], color: grey, width: 1.0, dash: true}
+              - {id: hexbadg21, line: [[5.404, 9.629, 0], [4.526, 9.755, 0]], color: grey, width: 1.0, dash: true}
+              - {id: hexbadg22, line: [[4.526, 9.755, 0], [4.125, 10.458, 0]], color: grey, width: 1.0, dash: true}
+              - {id: hexbadg23, line: [[1.591, 10.445, 0], [0.596, 10.386, 0]], color: grey, width: 1.0, dash: true}
+              - {id: hexbadg24, line: [[1.591, 10.445, 0], [1.911, 11.042, 0]], color: grey, width: 1.0, dash: true}
+              - {id: hexbadg25, line: [[3.229, 10.327, 0], [2.692, 11.266, 0]], color: grey, width: 1.0, dash: true}
+              - {id: hexbadg26, line: [[3.229, 10.327, 0], [4.125, 10.458, 0]], color: grey, width: 1.0, dash: true}
+              - {id: hexbadg27, line: [[2.692, 11.266, 0], [1.911, 11.042, 0]], color: grey, width: 1.0, dash: true}
+              - {id: hexbadg28, line: [[2.692, 11.266, 0], [3.219, 11.900, 0]], color: grey, width: 1.0, dash: true}
+              - {id: hexbadg29, line: [[1.911, 11.042, 0], [1.470, 11.900, 0]], color: grey, width: 1.0, dash: true}
+              - {id: hexbadg30, line: [[4.125, 10.458, 0], [4.560, 11.252, 0]], color: grey, width: 1.0, dash: true}
+              - {id: hexbadg31, line: [[5.404, 11.143, 0], [4.560, 11.252, 0]], color: grey, width: 1.0, dash: true}
+              - {id: hexbadg32, line: [[4.560, 11.252, 0], [4.093, 11.900, 0]], color: grey, width: 1.0, dash: true}
+              - {id: hexbadb0, line: [hexbad0, hexbad1], color: ink, width: 2.0}
+              - {id: hexbadb1, line: [hexbad1, hexbad2], color: ink, width: 2.0}
+              - {id: hexbadb2, line: [hexbad1, hexbad5], color: ink, width: 2.0}
+              - {id: hexbadb3, line: [hexbad3, hexbad4], color: ink, width: 2.0}
+              - {id: hexbadb4, line: [hexbad3, hexbad6], color: ink, width: 2.0}
+              - {id: hexbadb5, line: [hexbad3, hexbad8], color: ink, width: 2.0}
+              - {id: hexbadb6, line: [hexbad4, hexbad5], color: ink, width: 2.0}
+              - {id: hexbadb7, line: [hexbad4, hexbad13], color: ink, width: 2.0}
+              - {id: hexbadb8, line: [hexbad5, hexbad11], color: ink, width: 2.0}
+              - {id: hexbadb9, line: [hexbad7, hexbad8], color: ink, width: 2.0}
+              - {id: hexbadb10, line: [hexbad8, hexbad10], color: ink, width: 2.0}
+              - {id: hexbadb11, line: [hexbad9, hexbad10], color: ink, width: 2.0}
+              - {id: hexbadb12, line: [hexbad10, hexbad16], color: ink, width: 2.0}
+              - {id: hexbadb13, line: [hexbad11, hexbad12], color: ink, width: 2.0}
+              - {id: hexbadb14, line: [hexbad11, hexbad15], color: ink, width: 2.0}
+              - {id: hexbadb15, line: [hexbad13, hexbad14], color: ink, width: 2.0}
+              - {id: hexbadb16, line: [hexbad13, hexbad16], color: ink, width: 2.0}
+              - {id: hexbadb17, line: [hexbad14, hexbad15], color: ink, width: 2.0}
+              - {id: hexbadb18, line: [hexbad14, hexbad21], color: ink, width: 2.0}
+              - {id: hexbadb19, line: [hexbad15, hexbad19], color: ink, width: 2.0}
+              - {id: hexbadb20, line: [hexbad16, hexbad18], color: ink, width: 2.0}
+              - {id: hexbadb21, line: [hexbad17, hexbad18], color: ink, width: 2.0}
+              - {id: hexbadb22, line: [hexbad18, hexbad24], color: ink, width: 2.0}
+              - {id: hexbadb23, line: [hexbad19, hexbad20], color: ink, width: 2.0}
+              - {id: hexbadb24, line: [hexbad19, hexbad23], color: ink, width: 2.0}
+              - {id: hexbadb25, line: [hexbad21, hexbad22], color: ink, width: 2.0}
+              - {id: hexbadb26, line: [hexbad21, hexbad24], color: ink, width: 2.0}
+              - {id: hexbadb27, line: [hexbad22, hexbad23], color: ink, width: 2.0}
+              - {id: hexbadb28, line: [hexbad22, hexbad28], color: ink, width: 2.0}
+              - {id: hexbadb29, line: [hexbad23, hexbad27], color: ink, width: 2.0}
+              - {id: hexbadb30, line: [hexbad24, hexbad26], color: ink, width: 2.0}
+              - {id: hexbadb31, line: [hexbad25, hexbad26], color: ink, width: 2.0}
+              - {id: hexbadb32, line: [hexbad26, hexbad29], color: ink, width: 2.0}
+              - {id: hexbads0, point: [1.907, 6.600, 0], color: fixed, size: 0.6}
+              - {id: hexbads2, point: [0.596, 7.357, 0], color: fixed, size: 0.6}
+              - {id: hexbads6, point: [2.781, 6.600, 0], color: fixed, size: 0.6}
+              - {id: hexbads7, point: [4.530, 6.600, 0], color: fixed, size: 0.6}
+              - {id: hexbads9, point: [5.404, 8.114, 0], color: fixed, size: 0.6}
+              - {id: hexbads12, point: [0.596, 8.871, 0], color: fixed, size: 0.6}
+              - {id: hexbads17, point: [5.404, 9.629, 0], color: fixed, size: 0.6}
+              - {id: hexbads20, point: [0.596, 10.386, 0], color: fixed, size: 0.6}
+              - {id: hexbads25, point: [5.404, 11.143, 0], color: fixed, size: 0.6}
+              - {id: hexbads27, point: [1.470, 11.900, 0], color: fixed, size: 0.6}
+              - {id: hexbads28, point: [3.219, 11.900, 0], color: fixed, size: 0.6}
+              - {id: hexbads29, point: [4.093, 11.900, 0], color: fixed, size: 0.6}
+          - eq: {tex: '\min_{\mathbf{q}}\ \left| \mathbf{A}\,\mathbf{q} \right|^2 \qquad q_{min} \le q_e \le q_{max}', align: left, size: 28}
+      - say: 'Move the free nodes to reduce what is unbalanced, staying close to where they were. Fit again.'
+        do:
+          - move: {point: hexbad1, to: [1.462, 7.478, 0], dur: 1.6}
+          - move: {point: hexbad3, to: [3.132, 7.459, 0], dur: 1.6, with: true}
+          - move: {point: hexbad4, to: [2.690, 8.056, 0], dur: 1.6, with: true}
+          - move: {point: hexbad5, to: [1.952, 8.108, 0], dur: 1.6, with: true}
+          - move: {point: hexbad8, to: [4.128, 7.248, 0], dur: 1.6, with: true}
+          - move: {point: hexbad10, to: [4.590, 8.150, 0], dur: 1.6, with: true}
+          - move: {point: hexbad11, to: [1.423, 8.994, 0], dur: 1.6, with: true}
+          - move: {point: hexbad13, to: [3.119, 8.811, 0], dur: 1.6, with: true}
+          - move: {point: hexbad14, to: [2.706, 9.602, 0], dur: 1.6, with: true}
+          - move: {point: hexbad15, to: [1.852, 9.607, 0], dur: 1.6, with: true}
+          - move: {point: hexbad16, to: [4.113, 8.809, 0], dur: 1.6, with: true}
+          - move: {point: hexbad18, to: [4.521, 9.740, 0], dur: 1.6, with: true}
+          - move: {point: hexbad19, to: [1.606, 10.472, 0], dur: 1.6, with: true}
+          - move: {point: hexbad21, to: [3.252, 10.331, 0], dur: 1.6, with: true}
+          - move: {point: hexbad22, to: [2.725, 11.252, 0], dur: 1.6, with: true}
+          - move: {point: hexbad23, to: [1.937, 11.054, 0], dur: 1.6, with: true}
+          - move: {point: hexbad24, to: [4.138, 10.449, 0], dur: 1.6, with: true}
+          - move: {point: hexbad26, to: [4.563, 11.250, 0], dur: 1.6, with: true}
+          - eq: {tex: '\min_{\mathbf{x}_N}\ \left| \mathbf{D}_N\,\mathbf{x}_N + \mathbf{D}_F\,\mathbf{x}_F \right|^2 + \beta\,\left| \mathbf{x}_N - \mathbf{x}_N^0 \right|^2', align: left, size: 26}
+          - eq: {tex: '4\ \text{iterations} \qquad \text{largest move: } 0.05\ \text{bar lengths}', align: left, size: 24}
+      - say: 'Nothing is left unbalanced: this plan has a compression-only force diagram.'
+        do:
+          - add:
+              - {id: hexbadf0, line: [[1.531, 0.500, 0], [2.406, 0.943, 0]], color: ink, width: 2.0}
+              - {id: hexbadf1, line: [[1.531, 0.500, 0], [1.355, 1.762, 0]], color: ink, width: 2.0}
+              - {id: hexbadf2, line: [[1.355, 1.762, 0], [2.406, 0.943, 0]], color: ink, width: 2.0}
+              - {id: hexbadf3, line: [[2.406, 0.943, 0], [3.605, 1.831, 0]], color: ink, width: 2.0}
+              - {id: hexbadf4, line: [[3.337, 0.563, 0], [2.406, 0.943, 0]], color: ink, width: 2.0}
+              - {id: hexbadf5, line: [[3.605, 1.831, 0], [3.337, 0.563, 0]], color: ink, width: 2.0}
+              - {id: hexbadf6, line: [[2.406, 0.943, 0], [2.511, 2.453, 0]], color: ink, width: 2.0}
+              - {id: hexbadf7, line: [[2.511, 2.453, 0], [3.605, 1.831, 0]], color: ink, width: 2.0}
+              - {id: hexbadf8, line: [[1.355, 1.762, 0], [2.511, 2.453, 0]], color: ink, width: 2.0}
+              - {id: hexbadf9, line: [[3.337, 0.563, 0], [4.578, 1.333, 0]], color: ink, width: 2.0}
+              - {id: hexbadf10, line: [[3.605, 1.831, 0], [4.578, 1.333, 0]], color: ink, width: 2.0}
+              - {id: hexbadf11, line: [[4.578, 1.333, 0], [4.633, 2.576, 0]], color: ink, width: 2.0}
+              - {id: hexbadf12, line: [[3.605, 1.831, 0], [4.633, 2.576, 0]], color: ink, width: 2.0}
+              - {id: hexbadf13, line: [[1.355, 1.762, 0], [1.106, 3.438, 0]], color: ink, width: 2.0}
+              - {id: hexbadf14, line: [[1.106, 3.438, 0], [2.511, 2.453, 0]], color: ink, width: 2.0}
+              - {id: hexbadf15, line: [[2.511, 2.453, 0], [3.608, 3.025, 0]], color: ink, width: 2.0}
+              - {id: hexbadf16, line: [[3.608, 3.025, 0], [3.605, 1.831, 0]], color: ink, width: 2.0}
+              - {id: hexbadf17, line: [[2.511, 2.453, 0], [2.519, 3.841, 0]], color: ink, width: 2.0}
+              - {id: hexbadf18, line: [[2.519, 3.841, 0], [3.608, 3.025, 0]], color: ink, width: 2.0}
+              - {id: hexbadf19, line: [[1.106, 3.438, 0], [2.519, 3.841, 0]], color: ink, width: 2.0}
+              - {id: hexbadf20, line: [[3.608, 3.025, 0], [4.633, 2.576, 0]], color: ink, width: 2.0}
+              - {id: hexbadf21, line: [[4.633, 2.576, 0], [4.768, 3.651, 0]], color: ink, width: 2.0}
+              - {id: hexbadf22, line: [[3.608, 3.025, 0], [4.768, 3.651, 0]], color: ink, width: 2.0}
+              - {id: hexbadf23, line: [[1.106, 3.438, 0], [0.997, 4.709, 0]], color: ink, width: 2.0}
+              - {id: hexbadf24, line: [[0.997, 4.709, 0], [2.519, 3.841, 0]], color: ink, width: 2.0}
+              - {id: hexbadf25, line: [[2.519, 3.841, 0], [3.428, 4.362, 0]], color: ink, width: 2.0}
+              - {id: hexbadf26, line: [[3.428, 4.362, 0], [3.608, 3.025, 0]], color: ink, width: 2.0}
+              - {id: hexbadf27, line: [[2.519, 3.841, 0], [2.141, 5.341, 0]], color: ink, width: 2.0}
+              - {id: hexbadf28, line: [[2.141, 5.341, 0], [3.428, 4.362, 0]], color: ink, width: 2.0}
+              - {id: hexbadf29, line: [[0.997, 4.709, 0], [2.141, 5.341, 0]], color: ink, width: 2.0}
+              - {id: hexbadf30, line: [[3.428, 4.362, 0], [4.768, 3.651, 0]], color: ink, width: 2.0}
+              - {id: hexbadf31, line: [[4.768, 3.651, 0], [5.003, 5.500, 0]], color: ink, width: 2.0}
+              - {id: hexbadf32, line: [[3.428, 4.362, 0], [5.003, 5.500, 0]], color: ink, width: 2.0}
+  - title: OPEN EDGE, STRAIGHT
+    steps:
+      - say: 'Fit force densities between two bounds to this plan. The best fit leaves $20$ percent of a node force unbalanced.'
+        do:
+          - remove: [hexbadg0, hexbadg1, hexbadg2, hexbadg3, hexbadg4, hexbadg5, hexbadg6, hexbadg7, hexbadg8, hexbadg9, hexbadg10, hexbadg11, hexbadg12, hexbadg13, hexbadg14, hexbadg15, hexbadg16, hexbadg17, hexbadg18, hexbadg19, hexbadg20, hexbadg21, hexbadg22, hexbadg23, hexbadg24, hexbadg25, hexbadg26, hexbadg27, hexbadg28, hexbadg29, hexbadg30, hexbadg31, hexbadg32, hexbadb0, hexbadb1, hexbadb2, hexbadb3, hexbadb4, hexbadb5, hexbadb6, hexbadb7, hexbadb8, hexbadb9, hexbadb10, hexbadb11, hexbadb12, hexbadb13, hexbadb14, hexbadb15, hexbadb16, hexbadb17, hexbadb18, hexbadb19, hexbadb20, hexbadb21, hexbadb22, hexbadb23, hexbadb24, hexbadb25, hexbadb26, hexbadb27, hexbadb28, hexbadb29, hexbadb30, hexbadb31, hexbadb32, hexbads0, hexbads2, hexbads6, hexbads7, hexbads9, hexbads12, hexbads17, hexbads20, hexbads25, hexbads27, hexbads28, hexbads29, hexbadf0, hexbadf1, hexbadf2, hexbadf3, hexbadf4, hexbadf5, hexbadf6, hexbadf7, hexbadf8, hexbadf9, hexbadf10, hexbadf11, hexbadf12, hexbadf13, hexbadf14, hexbadf15, hexbadf16, hexbadf17, hexbadf18, hexbadf19, hexbadf20, hexbadf21, hexbadf22, hexbadf23, hexbadf24, hexbadf25, hexbadf26, hexbadf27, hexbadf28, hexbadf29, hexbadf30, hexbadf31, hexbadf32]
+          - add:
+              - {id: openg0, line: [[0.350, 6.600, 0], [1.410, 6.600, 0]], color: grey, width: 1.0, dash: true}
+              - {id: openg1, line: [[0.350, 7.660, 0], [1.410, 7.660, 0]], color: grey, width: 1.0, dash: true}
+              - {id: openg2, line: [[0.350, 8.720, 0], [1.410, 8.720, 0]], color: grey, width: 1.0, dash: true}
+              - {id: openg3, line: [[0.350, 9.780, 0], [1.410, 9.780, 0]], color: grey, width: 1.0, dash: true}
+              - {id: openg4, line: [[0.350, 10.840, 0], [1.410, 10.840, 0]], color: grey, width: 1.0, dash: true}
+              - {id: openg5, line: [[1.410, 6.600, 0], [1.410, 7.660, 0]], color: grey, width: 1.0, dash: true}
+              - {id: openg6, line: [[1.410, 6.600, 0], [2.470, 6.600, 0]], color: grey, width: 1.0, dash: true}
+              - {id: openg7, line: [[1.410, 7.660, 0], [1.410, 8.720, 0]], color: grey, width: 1.0, dash: true}
+              - {id: openg8, line: [[1.410, 7.660, 0], [2.470, 7.660, 0]], color: grey, width: 1.0, dash: true}
+              - {id: openg9, line: [[1.410, 8.720, 0], [1.410, 9.780, 0]], color: grey, width: 1.0, dash: true}
+              - {id: openg10, line: [[1.410, 8.720, 0], [2.470, 8.720, 0]], color: grey, width: 1.0, dash: true}
+              - {id: openg11, line: [[1.410, 9.780, 0], [1.410, 10.840, 0]], color: grey, width: 1.0, dash: true}
+              - {id: openg12, line: [[1.410, 9.780, 0], [2.470, 9.780, 0]], color: grey, width: 1.0, dash: true}
+              - {id: openg13, line: [[1.410, 10.840, 0], [1.410, 11.900, 0]], color: grey, width: 1.0, dash: true}
+              - {id: openg14, line: [[1.410, 10.840, 0], [2.470, 10.840, 0]], color: grey, width: 1.0, dash: true}
+              - {id: openg15, line: [[2.470, 6.600, 0], [2.470, 7.660, 0]], color: grey, width: 1.0, dash: true}
+              - {id: openg16, line: [[2.470, 6.600, 0], [3.530, 6.600, 0]], color: grey, width: 1.0, dash: true}
+              - {id: openg17, line: [[2.470, 7.660, 0], [2.470, 8.720, 0]], color: grey, width: 1.0, dash: true}
+              - {id: openg18, line: [[2.470, 7.660, 0], [3.530, 7.660, 0]], color: grey, width: 1.0, dash: true}
+              - {id: openg19, line: [[2.470, 8.720, 0], [2.470, 9.780, 0]], color: grey, width: 1.0, dash: true}
+              - {id: openg20, line: [[2.470, 8.720, 0], [3.530, 8.720, 0]], color: grey, width: 1.0, dash: true}
+              - {id: openg21, line: [[2.470, 9.780, 0], [2.470, 10.840, 0]], color: grey, width: 1.0, dash: true}
+              - {id: openg22, line: [[2.470, 9.780, 0], [3.530, 9.780, 0]], color: grey, width: 1.0, dash: true}
+              - {id: openg23, line: [[2.470, 10.840, 0], [2.470, 11.900, 0]], color: grey, width: 1.0, dash: true}
+              - {id: openg24, line: [[2.470, 10.840, 0], [3.530, 10.840, 0]], color: grey, width: 1.0, dash: true}
+              - {id: openg25, line: [[3.530, 6.600, 0], [3.530, 7.660, 0]], color: grey, width: 1.0, dash: true}
+              - {id: openg26, line: [[3.530, 6.600, 0], [4.590, 6.600, 0]], color: grey, width: 1.0, dash: true}
+              - {id: openg27, line: [[3.530, 7.660, 0], [3.530, 8.720, 0]], color: grey, width: 1.0, dash: true}
+              - {id: openg28, line: [[3.530, 7.660, 0], [4.590, 7.660, 0]], color: grey, width: 1.0, dash: true}
+              - {id: openg29, line: [[3.530, 8.720, 0], [3.530, 9.780, 0]], color: grey, width: 1.0, dash: true}
+              - {id: openg30, line: [[3.530, 8.720, 0], [4.590, 8.720, 0]], color: grey, width: 1.0, dash: true}
+              - {id: openg31, line: [[3.530, 9.780, 0], [3.530, 10.840, 0]], color: grey, width: 1.0, dash: true}
+              - {id: openg32, line: [[3.530, 9.780, 0], [4.590, 9.780, 0]], color: grey, width: 1.0, dash: true}
+              - {id: openg33, line: [[3.530, 10.840, 0], [3.530, 11.900, 0]], color: grey, width: 1.0, dash: true}
+              - {id: openg34, line: [[3.530, 10.840, 0], [4.590, 10.840, 0]], color: grey, width: 1.0, dash: true}
+              - {id: openg35, line: [[4.590, 6.600, 0], [4.590, 7.660, 0]], color: grey, width: 1.0, dash: true}
+              - {id: openg36, line: [[4.590, 6.600, 0], [5.650, 6.600, 0]], color: grey, width: 1.0, dash: true}
+              - {id: openg37, line: [[4.590, 7.660, 0], [4.590, 8.720, 0]], color: grey, width: 1.0, dash: true}
+              - {id: openg38, line: [[4.590, 7.660, 0], [5.650, 7.660, 0]], color: grey, width: 1.0, dash: true}
+              - {id: openg39, line: [[4.590, 8.720, 0], [4.590, 9.780, 0]], color: grey, width: 1.0, dash: true}
+              - {id: openg40, line: [[4.590, 8.720, 0], [5.650, 8.720, 0]], color: grey, width: 1.0, dash: true}
+              - {id: openg41, line: [[4.590, 9.780, 0], [4.590, 10.840, 0]], color: grey, width: 1.0, dash: true}
+              - {id: openg42, line: [[4.590, 9.780, 0], [5.650, 9.780, 0]], color: grey, width: 1.0, dash: true}
+              - {id: openg43, line: [[4.590, 10.840, 0], [4.590, 11.900, 0]], color: grey, width: 1.0, dash: true}
+              - {id: openg44, line: [[4.590, 10.840, 0], [5.650, 10.840, 0]], color: grey, width: 1.0, dash: true}
+              - {id: openb0, line: [open0, open5], color: ink, width: 2.0}
+              - {id: openb1, line: [open1, open6], color: ink, width: 2.0}
+              - {id: openb2, line: [open2, open7], color: ink, width: 2.0}
+              - {id: openb3, line: [open3, open8], color: ink, width: 2.0}
+              - {id: openb4, line: [open4, open9], color: ink, width: 2.0}
+              - {id: openb5, line: [open5, open6], color: ink, width: 2.0}
+              - {id: openb6, line: [open5, open11], color: ink, width: 2.0}
+              - {id: openb7, line: [open6, open7], color: ink, width: 2.0}
+              - {id: openb8, line: [open6, open12], color: ink, width: 2.0}
+              - {id: openb9, line: [open7, open8], color: ink, width: 2.0}
+              - {id: openb10, line: [open7, open13], color: ink, width: 2.0}
+              - {id: openb11, line: [open8, open9], color: ink, width: 2.0}
+              - {id: openb12, line: [open8, open14], color: ink, width: 2.0}
+              - {id: openb13, line: [open9, open10], color: ink, width: 2.0}
+              - {id: openb14, line: [open9, open15], color: ink, width: 2.0}
+              - {id: openb15, line: [open11, open12], color: ink, width: 2.0}
+              - {id: openb16, line: [open11, open17], color: ink, width: 2.0}
+              - {id: openb17, line: [open12, open13], color: ink, width: 2.0}
+              - {id: openb18, line: [open12, open18], color: ink, width: 2.0}
+              - {id: openb19, line: [open13, open14], color: ink, width: 2.0}
+              - {id: openb20, line: [open13, open19], color: ink, width: 2.0}
+              - {id: openb21, line: [open14, open15], color: ink, width: 2.0}
+              - {id: openb22, line: [open14, open20], color: ink, width: 2.0}
+              - {id: openb23, line: [open15, open16], color: ink, width: 2.0}
+              - {id: openb24, line: [open15, open21], color: ink, width: 2.0}
+              - {id: openb25, line: [open17, open18], color: ink, width: 2.0}
+              - {id: openb26, line: [open17, open23], color: ink, width: 2.0}
+              - {id: openb27, line: [open18, open19], color: ink, width: 2.0}
+              - {id: openb28, line: [open18, open24], color: ink, width: 2.0}
+              - {id: openb29, line: [open19, open20], color: ink, width: 2.0}
+              - {id: openb30, line: [open19, open25], color: ink, width: 2.0}
+              - {id: openb31, line: [open20, open21], color: ink, width: 2.0}
+              - {id: openb32, line: [open20, open26], color: ink, width: 2.0}
+              - {id: openb33, line: [open21, open22], color: ink, width: 2.0}
+              - {id: openb34, line: [open21, open27], color: ink, width: 2.0}
+              - {id: openb35, line: [open23, open24], color: ink, width: 2.0}
+              - {id: openb36, line: [open23, open29], color: ink, width: 2.0}
+              - {id: openb37, line: [open24, open25], color: ink, width: 2.0}
+              - {id: openb38, line: [open24, open30], color: ink, width: 2.0}
+              - {id: openb39, line: [open25, open26], color: ink, width: 2.0}
+              - {id: openb40, line: [open25, open31], color: ink, width: 2.0}
+              - {id: openb41, line: [open26, open27], color: ink, width: 2.0}
+              - {id: openb42, line: [open26, open32], color: ink, width: 2.0}
+              - {id: openb43, line: [open27, open28], color: ink, width: 2.0}
+              - {id: openb44, line: [open27, open33], color: ink, width: 2.0}
+              - {id: opens0, point: [0.350, 6.600, 0], color: fixed, size: 0.6}
+              - {id: opens1, point: [0.350, 7.660, 0], color: fixed, size: 0.6}
+              - {id: opens2, point: [0.350, 8.720, 0], color: fixed, size: 0.6}
+              - {id: opens3, point: [0.350, 9.780, 0], color: fixed, size: 0.6}
+              - {id: opens4, point: [0.350, 10.840, 0], color: fixed, size: 0.6}
+              - {id: opens10, point: [1.410, 11.900, 0], color: fixed, size: 0.6}
+              - {id: opens16, point: [2.470, 11.900, 0], color: fixed, size: 0.6}
+              - {id: opens22, point: [3.530, 11.900, 0], color: fixed, size: 0.6}
+              - {id: opens28, point: [4.590, 11.900, 0], color: fixed, size: 0.6}
+              - {id: opens29, point: [5.650, 6.600, 0], color: fixed, size: 0.6}
+              - {id: opens30, point: [5.650, 7.660, 0], color: fixed, size: 0.6}
+              - {id: opens31, point: [5.650, 8.720, 0], color: fixed, size: 0.6}
+              - {id: opens32, point: [5.650, 9.780, 0], color: fixed, size: 0.6}
+              - {id: opens33, point: [5.650, 10.840, 0], color: fixed, size: 0.6}
+          - eq: {tex: '\min_{\mathbf{q}}\ \left| \mathbf{A}\,\mathbf{q} \right|^2 \qquad q_{min} \le q_e \le q_{max}', align: left, size: 28}
+      - say: 'Move the free nodes to reduce what is unbalanced, staying close to where they were. Fit again.'
+        do:
+          - move: {point: open5, to: [1.410, 6.826, 0], dur: 1.6}
+          - move: {point: open6, to: [1.410, 7.662, 0], dur: 1.6, with: true}
+          - move: {point: open7, to: [1.410, 8.702, 0], dur: 1.6, with: true}
+          - move: {point: open8, to: [1.410, 9.771, 0], dur: 1.6, with: true}
+          - move: {point: open9, to: [1.410, 10.838, 0], dur: 1.6, with: true}
+          - move: {point: open11, to: [2.470, 6.867, 0], dur: 1.6, with: true}
+          - move: {point: open12, to: [2.470, 7.652, 0], dur: 1.6, with: true}
+          - move: {point: open13, to: [2.470, 8.689, 0], dur: 1.6, with: true}
+          - move: {point: open14, to: [2.470, 9.766, 0], dur: 1.6, with: true}
+          - move: {point: open15, to: [2.470, 10.836, 0], dur: 1.6, with: true}
+          - move: {point: open17, to: [3.530, 6.867, 0], dur: 1.6, with: true}
+          - move: {point: open18, to: [3.530, 7.652, 0], dur: 1.6, with: true}
+          - move: {point: open19, to: [3.530, 8.689, 0], dur: 1.6, with: true}
+          - move: {point: open20, to: [3.530, 9.766, 0], dur: 1.6, with: true}
+          - move: {point: open21, to: [3.530, 10.836, 0], dur: 1.6, with: true}
+          - move: {point: open23, to: [4.590, 6.826, 0], dur: 1.6, with: true}
+          - move: {point: open24, to: [4.590, 7.662, 0], dur: 1.6, with: true}
+          - move: {point: open25, to: [4.590, 8.702, 0], dur: 1.6, with: true}
+          - move: {point: open26, to: [4.590, 9.771, 0], dur: 1.6, with: true}
+          - move: {point: open27, to: [4.590, 10.838, 0], dur: 1.6, with: true}
+          - eq: {tex: '\min_{\mathbf{x}_N}\ \left| \mathbf{D}_N\,\mathbf{x}_N + \mathbf{D}_F\,\mathbf{x}_F \right|^2 + \beta\,\left| \mathbf{x}_N - \mathbf{x}_N^0 \right|^2', align: left, size: 26}
+          - eq: {tex: '1\ \text{iteration} \qquad \text{largest move: } 0.25\ \text{bar lengths}', align: left, size: 24}
+      - say: 'Nothing is left unbalanced: this plan has a compression-only force diagram.'
+        do:
+          - add:
+              - {id: openf0, line: [[2.135, 4.567, 0], [3.000, 0.500, 0]], color: ink, width: 2.0}
+              - {id: openf1, line: [[2.134, 4.718, 0], [2.135, 4.567, 0]], color: ink, width: 2.0}
+              - {id: openf2, line: [[2.138, 4.908, 0], [2.134, 4.718, 0]], color: ink, width: 2.0}
+              - {id: openf3, line: [[2.140, 5.197, 0], [2.138, 4.908, 0]], color: ink, width: 2.0}
+              - {id: openf4, line: [[2.141, 5.500, 0], [2.140, 5.197, 0]], color: ink, width: 2.0}
+              - {id: openf5, line: [[2.135, 4.567, 0], [2.842, 4.567, 0]], color: ink, width: 2.0}
+              - {id: openf6, line: [[2.842, 4.567, 0], [3.000, 0.500, 0]], color: ink, width: 2.0}
+              - {id: openf7, line: [[2.134, 4.718, 0], [2.843, 4.718, 0]], color: ink, width: 2.0}
+              - {id: openf8, line: [[2.843, 4.718, 0], [2.842, 4.567, 0]], color: ink, width: 2.0}
+              - {id: openf9, line: [[2.138, 4.908, 0], [2.845, 4.908, 0]], color: ink, width: 2.0}
+              - {id: openf10, line: [[2.845, 4.908, 0], [2.843, 4.718, 0]], color: ink, width: 2.0}
+              - {id: openf11, line: [[2.140, 5.197, 0], [2.847, 5.197, 0]], color: ink, width: 2.0}
+              - {id: openf12, line: [[2.847, 5.197, 0], [2.845, 4.908, 0]], color: ink, width: 2.0}
+              - {id: openf13, line: [[2.141, 5.500, 0], [2.847, 5.500, 0]], color: ink, width: 2.0}
+              - {id: openf14, line: [[2.847, 5.500, 0], [2.847, 5.197, 0]], color: ink, width: 2.0}
+              - {id: openf15, line: [[2.842, 4.567, 0], [3.000, 4.567, 0]], color: ink, width: 2.0}
+              - {id: openf16, line: [[3.000, 4.567, 0], [3.000, 0.500, 0]], color: ink, width: 2.0}
+              - {id: openf17, line: [[2.843, 4.718, 0], [3.000, 4.718, 0]], color: ink, width: 2.0}
+              - {id: openf18, line: [[3.000, 4.718, 0], [3.000, 4.567, 0]], color: ink, width: 2.0}
+              - {id: openf19, line: [[2.845, 4.908, 0], [3.000, 4.908, 0]], color: ink, width: 2.0}
+              - {id: openf20, line: [[3.000, 4.908, 0], [3.000, 4.718, 0]], color: ink, width: 2.0}
+              - {id: openf21, line: [[2.847, 5.197, 0], [3.000, 5.197, 0]], color: ink, width: 2.0}
+              - {id: openf22, line: [[3.000, 5.197, 0], [3.000, 4.908, 0]], color: ink, width: 2.0}
+              - {id: openf23, line: [[2.847, 5.500, 0], [3.000, 5.500, 0]], color: ink, width: 2.0}
+              - {id: openf24, line: [[3.000, 5.500, 0], [3.000, 5.197, 0]], color: ink, width: 2.0}
+              - {id: openf25, line: [[3.000, 4.567, 0], [3.158, 4.567, 0]], color: ink, width: 2.0}
+              - {id: openf26, line: [[3.158, 4.567, 0], [3.000, 0.500, 0]], color: ink, width: 2.0}
+              - {id: openf27, line: [[3.000, 4.718, 0], [3.157, 4.718, 0]], color: ink, width: 2.0}
+              - {id: openf28, line: [[3.157, 4.718, 0], [3.158, 4.567, 0]], color: ink, width: 2.0}
+              - {id: openf29, line: [[3.000, 4.908, 0], [3.155, 4.908, 0]], color: ink, width: 2.0}
+              - {id: openf30, line: [[3.155, 4.908, 0], [3.157, 4.718, 0]], color: ink, width: 2.0}
+              - {id: openf31, line: [[3.000, 5.197, 0], [3.153, 5.197, 0]], color: ink, width: 2.0}
+              - {id: openf32, line: [[3.153, 5.197, 0], [3.155, 4.908, 0]], color: ink, width: 2.0}
+              - {id: openf33, line: [[3.000, 5.500, 0], [3.153, 5.500, 0]], color: ink, width: 2.0}
+              - {id: openf34, line: [[3.153, 5.500, 0], [3.153, 5.197, 0]], color: ink, width: 2.0}
+              - {id: openf35, line: [[3.158, 4.567, 0], [3.865, 4.567, 0]], color: ink, width: 2.0}
+              - {id: openf36, line: [[3.865, 4.567, 0], [3.000, 0.500, 0]], color: ink, width: 2.0}
+              - {id: openf37, line: [[3.157, 4.718, 0], [3.866, 4.718, 0]], color: ink, width: 2.0}
+              - {id: openf38, line: [[3.866, 4.718, 0], [3.865, 4.567, 0]], color: ink, width: 2.0}
+              - {id: openf39, line: [[3.155, 4.908, 0], [3.862, 4.908, 0]], color: ink, width: 2.0}
+              - {id: openf40, line: [[3.862, 4.908, 0], [3.866, 4.718, 0]], color: ink, width: 2.0}
+              - {id: openf41, line: [[3.153, 5.197, 0], [3.860, 5.197, 0]], color: ink, width: 2.0}
+              - {id: openf42, line: [[3.860, 5.197, 0], [3.862, 4.908, 0]], color: ink, width: 2.0}
+              - {id: openf43, line: [[3.153, 5.500, 0], [3.859, 5.500, 0]], color: ink, width: 2.0}
+              - {id: openf44, line: [[3.859, 5.500, 0], [3.860, 5.197, 0]], color: ink, width: 2.0}
+  - title: WHAT IT COSTS
+    steps:
+      - say: 'The price is the plan itself: it is no longer the one that was drawn. The dashed lines show how far it went.'
+        do:
+          - {text: 'Vouga, Höbinger, Wallner and Pottmann 2012 move plan and heights together to stay near a given surface. Here only the plan step is used; the heights follow in the next chapter.', align: left}

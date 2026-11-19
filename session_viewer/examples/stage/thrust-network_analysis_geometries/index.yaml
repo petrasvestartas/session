@@ -1,0 +1,9 @@
+# Open live: https://petrasvestartas.github.io/session/?stage=thrust-network_analysis_geometries
+
+# Which plans have a compression-only force diagram, how a failing plan is repaired, and the vaults they give.
+# The chapters are written by generate.py in ../thrust-network_analysis_horizontal_equilibrium.
+name: Thrust network analysis · plans that stand
+chapters:
+  - 01-patterns.yaml
+  - 02-moving-the-plan.yaml
+  - 03-vaults.yaml

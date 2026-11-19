@@ -2,8 +2,8 @@
 # Open local: http://127.0.0.1:8770/?stage=decks/thrust-network_analysis_one_node/index.yaml&data=off&chapter=1&step=1
 # Open live: https://petrasvestartas.github.io/session/?stage=thrust-network_analysis_one_node&chapter=1&step=1
 
-# Chapter 1: 3 fixed nodes and 1 free node, full-length F_ji and tangent formula, G + Gamma, and 3D Force Diagram above Gamma*.
-title: TANGENT FORMULA AND 3D FORCE DIAGRAM
+# Chapter 1: one node on three bars. The slope of a bar, the form diagram, the closed force polygons, and the two equilibria.
+title: ONE NODE, FORM AND FORCE
 split: 0.52
 camera: {yaw: -112, pitch: 20, fit: [i, j, k, l, Mj, P_TOP]}
 points:
@@ -28,20 +28,26 @@ points:
   V0: [7.0, 2.0, -0.3]
   V1: [9.2, 0.35, 1.35]
   V2: [7.0, -1.3, 3.0]
+  S0: [6.45, 2.0, -0.3]
+  S1: [6.45, 2.0, 1.35]
+  S2: [6.45, 2.0, 3.0]
+  S3: [6.45, 2.0, 4.65]
 slides:
-  - title: ONE NODE AND THE TANGENT FORMULA
+  - title: THREE BARS, ONE NODE
     steps:
-      - say: 'Three fixed supports $j, k, l$ hold one free node $i$ in compression under load $P_i$. On bar $ji$, force $F_{ji}$ runs from $j$ to $i$ at slope $\tan\alpha$:'
+      - say: 'Three bars carry the load $P_i$ at node $i$.'
         add:
-          - {id: ek, line: [k, i], color: ink, width: 2.2}
-          - {id: el, line: [l, i], color: ink, width: 2.2}
           - {id: fj, arrow: [j, i], color: ink, width: 3.2, label: 'F_{ji}', dir: [-0.2, 1]}
+          - {id: fk, arrow: [k, i], color: ink, width: 3.2, label: 'F_{ki}', dir: [1, -0.2]}
+          - {id: fl, arrow: [l, i], color: ink, width: 3.2, label: 'F_{li}', dir: [0.4, 1]}
           - {id: pi, arrow: [P_TOP, i], color: load, width: 3.2, label: 'P_i', dir: [1, 0]}
           - {id: jp, point: j, color: fixed, label: 'j', dir: [-1, 0.2]}
           - {id: kp, point: k, color: fixed, label: 'k', dir: [1, -0.4]}
           - {id: lp, point: l, color: fixed, label: 'l', dir: [1, 0.2]}
           - {id: ip, point: i, color: free, label: 'i', dir: [-1, 0.5]}
-        dim: [ek, el, kp, lp, kp.label, lp.label]
+      - say: 'In a bar, force and geometry share one slope.'
+        dim: [fk, fl, kp, lp, kp.label, lp.label]
+        hide: [fk.label, fl.label]
         do:
           - add:
               - {id: base_j, arrow: [j, Mj], color: ink, width: 3.0, dash: true, label: 'F_{\mathrm{H},ji}\;(\,l_{\mathrm{H},ji}\,)', dir: [0, -1]}
@@ -49,22 +55,17 @@ slides:
               - {id: mjp, point: Mj, color: grey, size: 0.7}
               - {id: arc_a, polyline: [[-2.9200, 2.1900, 1.0000], [-2.9225, 2.1918, 1.0911], [-2.9298, 2.1974, 1.1818], [-2.9421, 2.2066, 1.2717], [-2.9592, 2.2194, 1.3604], [-2.9810, 2.2358, 1.4474], [-3.0075, 2.2556, 1.5323], [-3.0385, 2.2789, 1.6148], [-3.0739, 2.3054, 1.6946]], color: pink, width: 2.4}
               - {id: arc_t, label: [-2.635, 1.977, 1.472], tex: '\alpha', color: pink}
-          - eq: {tex: '\tan\alpha = \frac{\Delta z}{l_{\mathrm{H},ji}} = \frac{F_{\mathrm{V},ji}}{F_{\mathrm{H},ji}}', align: left}
-      - say: 'Because horizontal length $l_{\mathrm{H},ji}$ and horizontal thrust $F_{\mathrm{H},ji}$ are known in 2D, vertical thrust is linear in $z_i$:'
-        do:
           - eq: {tex: '\boxed{F_{\mathrm{V},ji} = F_{\mathrm{H},ji} \cdot \frac{z_i - z_j}{l_{\mathrm{H},ji}}}', color: blue, align: left}
-          - text: 'This tangent relation avoids the 3D bar length and its square root.'
 
-  - title: 3D FORM G, 3D FORCE DIAGRAM, AND Γ, Γ*
+  - title: FORM AND FORCE
     steps:
-      - say: 'Projecting all three compression bars vertically onto the ground plane links the 3D Thrust Network $\mathbf{G}$ to its 2D Form Diagram $\Gamma$:'
+      - say: 'From above: the form diagram $\Gamma$ with the horizontal thrusts.'
         camera: {yaw: -112, pitch: 22, fit: [j, k, l, jG, kG, T0, V1, Q1, Q2, P_TOP, CF3]}
-        remove: [base_j, rise_j, mjp, arc_a, arc_t, ek, el]
-        undim: [kp, lp, kp.label, lp.label]
+        remove: [base_j, rise_j, mjp, arc_a, arc_t]
+        undim: [fk, fl, kp, lp, kp.label, lp.label]
+        show: [fk.label, fl.label]
         do:
           - add:
-              - {id: fk, arrow: [k, i], color: ink, width: 3.2, label: 'F_{ki}', dir: [1, -0.2]}
-              - {id: fl, arrow: [l, i], color: ink, width: 3.2, label: 'F_{li}', dir: [0.4, 1]}
               - {id: g3t, label: CG3, tex: '\mathbf{G}', color: accent}
               - {id: gt, label: CG, tex: '\Gamma', color: accent}
               - {id: pi_drop, line: [i, iG], color: grey, width: 1.3, dash: true}
@@ -78,9 +79,7 @@ slides:
               - {id: kGp, point: kG, color: fixed}
               - {id: lGp, point: lG, color: fixed}
               - {id: iGp, point: iG, color: free}
-          - text: '**$\mathbf{G}$ · Thrust network** — the 3D compression form $(x, y, z)$ carrying 3D thrusts $F_{ji}, F_{ki}, F_{li}$.'
-          - text: '**$\Gamma$ · Form diagram** — the 2D $(x, y)$ plan projection of $\mathbf{G}$, with horizontal thrusts $F_{\mathrm{H},ji}, F_{\mathrm{H},ki}, F_{\mathrm{H},li}$.'
-      - say: 'On the right, the 3D Force Diagram stacks $P_i, F_{ji}, F_{li}, F_{ki}$ head-to-tail in 3D directly above its 2D projected Force Diagram $\Gamma^*$:'
+      - say: 'Head to tail the forces close: in space, and in plan as the force diagram $\Gamma^*$.'
         do:
           - add:
               - {id: f3t, label: CF3, tex: '\text{3D Force}', color: accent}
@@ -103,20 +102,24 @@ slides:
               - {id: q0, point: Q0, color: ink}
               - {id: q1, point: Q1, color: ink}
               - {id: q2, point: Q2, color: ink}
-          - text: '**3D Force diagram** (above) closes $\mathbf{P}_i + \mathbf{F}_{ji} + \mathbf{F}_{li} + \mathbf{F}_{ki} = \mathbf{0}$ in space; **$\Gamma^*$** (below) is its 2D horizontal projection.'
+          - eq: {tex: '\mathbf{P}_i + \mathbf{F}_{ji} + \mathbf{F}_{li} + \mathbf{F}_{ki} = \mathbf{0}', color: blue, align: left}
 
-  - title: 3D STACKED FORCES AND 2D PROJECTION Γ*
+  - title: TWO EQUILIBRIA
     steps:
-      - say: 'Zooming onto the 3D Force Diagram above $\Gamma^*$: from the tip of $P_i$, the 3D vectors $F_{ji}, F_{li}, F_{ki}$ climb back to the top of $P_i$:'
+      - say: 'Vertical: the three rises stack up to $P_i$.'
         camera: {yaw: -108, pitch: 22, fit: [T0, V0, V1, V2, Q0, Q1, Q2, CF3, CF]}
         hide: [g3t, gt, fj.label, fk.label, fl.label, pi.label, jp.label, kp.label, lp.label, ip.label, fhj.label, fhk.label, fhl.label]
         do:
-          - eq: {tex: '\mathbf{P}_i + \mathbf{F}_{ji} + \mathbf{F}_{li} + \mathbf{F}_{ki} = \mathbf{0}', color: blue, align: left}
-          - eq: {tex: '\boxed{F_{\mathrm{V},ji} + F_{\mathrm{V},ki} + F_{\mathrm{V},li} = P_i}', align: left}
-          - text: 'Vertical equilibrium holds because the three 3D rises stack to the exact height of $P_i$.'
-      - say: 'Viewed from above in plan, only the 2D diagrams $\Gamma$ and $\Gamma^*$ remain: dual branches are parallel and close the horizontal triangle:'
+          - add:
+              - {id: lev1, line: [V1, S1], color: grey, width: 1.2, dash: true}
+              - {id: lev2, line: [V2, S2], color: grey, width: 1.2, dash: true}
+              - {id: r1, arrow: [S0, S1], color: pink, width: 2.8}
+              - {id: r2, arrow: [S1, S2], color: pink, width: 2.8}
+              - {id: r3, arrow: [S2, S3], color: pink, width: 2.8}
+          - eq: {tex: '\boxed{F_{\mathrm{V},ji} + F_{\mathrm{V},li} + F_{\mathrm{V},ki} = P_i}', align: left}
+      - say: 'Horizontal: from above, the thrusts close the triangle $\Gamma^*$.'
         camera: {view: top, fit: [jG, kG, lG, Q0, Q1, Q2, CG, CF]}
         show: [gt, fhj.label, fhk.label, fhl.label]
-        remove: [g3t, f3t, fj, fk, fl, pi, jp, kp, lp, ip, pi_drop, pj_drop, pk_drop, pl_drop, q0_drop, q1_drop, q2_drop, ps, fjs, fls, fks, t0p, v0p, v1p, v2p]
+        remove: [g3t, f3t, fj, fk, fl, pi, jp, kp, lp, ip, pi_drop, pj_drop, pk_drop, pl_drop, q0_drop, q1_drop, q2_drop, ps, fjs, fls, fks, t0p, v0p, v1p, v2p, lev1, lev2, r1, r2, r3]
         do:
-          - eq: {tex: '\boxed{F_{\mathrm{H},ji} + F_{\mathrm{H},ki} + F_{\mathrm{H},li} = 0}\qquad F_{\mathrm{H},ji} = \frac{1}{r} \cdot l^*_{\mathrm{H},ji}', align: left}
+          - eq: {tex: '\boxed{F_{\mathrm{H},ji} + F_{\mathrm{H},ki} + F_{\mathrm{H},li} = 0}\qquad F_{\mathrm{H}} = \frac{1}{r} \cdot l^*_{\mathrm{H}}', align: left}

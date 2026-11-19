@@ -1,0 +1,244 @@
+# Open local: http://127.0.0.1:8770/?stage=decks/thrust-network_analysis_vertical_equilibrium/index.yaml&data=off
+# Open live: https://petrasvestartas.github.io/session/?stage=thrust-network_analysis_vertical_equilibrium
+
+# Vertical equilibrium of a thrust network on the nine-node network of Figure 7.9, Shell Structures for Architecture 7.3.
+# From the force diagram to t and q (7.10), one node (7.5), the matrix D (7.9, 7.11), the heights (7.12), forces (7.14), scale (7.13).
+title: VERTICAL EQUILIBRIUM
+split: 0.46
+camera: {view: top, fit: [F0, F1]}
+palette: {free: ink}
+points:
+  F0: [-2.0, -2.3, 0]
+  F1: [7.4, 2.3, 0]
+  a: [6.2, 1, 0]
+  b: [4.2, 1, 0]
+  c: [4.2, -1, 0]
+  d: [6.2, -1, 0]
+  e: [7.2, 2, 0]
+  f: [3.2, 2, 0]
+  g: [3.2, -2, 0]
+  h: [7.2, -2, 0]
+  TG: [-1.9, 2.2, 0]
+  TF: [3.0, 2.6, 0]
+net:
+  fixed: {n6: [1.8, 0, 0], n7: [0, 1.8, 0], n8: [-1.8, 0, 0], n9: [0, -1.8, 0]}
+  free: {n1: [0, 0, 0], n2: [1, 0, 0], n3: [0, 1, 0], n4: [-1, 0, 0], n5: [0, -1, 0]}
+  cables: {e1: [n1, n2], e2: [n1, n3], e3: [n1, n4], e4: [n1, n5], e5: [n2, n3], e6: [n3, n4], e7: [n4, n5], e8: [n2, n5], e9: [n2, n6], e10: [n3, n7], e11: [n4, n8], e12: [n5, n9]}
+  q: {e1: 2, e2: 2, e3: 2, e4: 2, e5: 1, e6: 1, e7: 1, e8: 1, e9: 5, e10: 5, e11: 5, e12: 5}
+  load: [0, 0, 1]
+slides:
+  - title: 'FORCE DENSITIES FROM THE FORCE DIAGRAM'
+    steps:
+      - say: 'Length of a side over length of its bar: the ratio $t$.'
+        show: [cables, fixed, free]
+        hide: [e1.label, e2.label, e3.label, e4.label, e5.label, e6.label, e7.label, e8.label, e9.label, e10.label, e11.label, e12.label]
+        do:
+          - add:
+              - {id: tg, label: TG, tex: '\Gamma', color: accent}
+              - {id: tf, label: TF, tex: '\Gamma^*', color: accent}
+              - {id: s1, line: [b, a], width: 2.6}
+              - {id: s2, line: [c, b], width: 2.6}
+              - {id: s3, line: [d, c], width: 2.6}
+              - {id: s4, line: [a, d], width: 2.6}
+              - {id: s5, line: [a, e], width: 2.6}
+              - {id: s6, line: [b, f], width: 2.6}
+              - {id: s7, line: [c, g], width: 2.6}
+              - {id: s8, line: [d, h], width: 2.6}
+              - {id: s9, line: [f, e], width: 2.6}
+              - {id: s10, line: [g, f], width: 2.6}
+              - {id: s11, line: [h, g], width: 2.6}
+              - {id: s12, line: [e, h], width: 2.6}
+          - row:
+              - {id: lh, matrix: {rows: [['1'], ['1'], ['1'], ['1'], ['1.41'], ['1.41'], ['1.41'], ['1.41'], ['0.8'], ['0.8'], ['0.8'], ['0.8']], rowlabels: ['e_{1}', 'e_{2}', 'e_{3}', 'e_{4}', 'e_{5}', 'e_{6}', 'e_{7}', 'e_{8}', 'e_{9}', 'e_{10}', 'e_{11}', 'e_{12}'], name: '\mathbf{l}_{\mathrm{H}}', signs: false, empty: true}}
+              - '\quad'
+              - {id: ls, matrix: {rows: [['2'], ['2'], ['2'], ['2'], ['1.41'], ['1.41'], ['1.41'], ['1.41'], ['4'], ['4'], ['4'], ['4']], name: '\mathbf{l}^*_{\mathrm{H}}', signs: false, empty: true}}
+              - '\quad\Rightarrow\quad'
+              - {id: tt, matrix: {rows: [['2'], ['2'], ['2'], ['2'], ['1'], ['1'], ['1'], ['1'], ['5'], ['5'], ['5'], ['5']], name: '\mathbf{t}', signs: false, empty: true}}
+            size: 25
+          - color: {target: e1, color: pink}
+          - color: {target: s1, color: pink, with: true}
+          - color: {target: e2, color: pink, with: true}
+          - color: {target: s2, color: pink, with: true}
+          - color: {target: e3, color: pink, with: true}
+          - color: {target: s3, color: pink, with: true}
+          - color: {target: e4, color: pink, with: true}
+          - color: {target: s4, color: pink, with: true}
+          - show: ['lh[0,:]', 'lh[1,:]', 'lh[2,:]', 'lh[3,:]', 'ls[0,:]', 'ls[1,:]', 'ls[2,:]', 'ls[3,:]', 'tt[0,:]', 'tt[1,:]', 'tt[2,:]', 'tt[3,:]']
+          - color: {target: e1, color: reset, dur: 0.3}
+          - color: {target: s1, color: ink, with: true, dur: 0.3}
+          - color: {target: e2, color: reset, dur: 0.3, with: true}
+          - color: {target: s2, color: ink, with: true, dur: 0.3}
+          - color: {target: e3, color: reset, dur: 0.3, with: true}
+          - color: {target: s3, color: ink, with: true, dur: 0.3}
+          - color: {target: e4, color: reset, dur: 0.3, with: true}
+          - color: {target: s4, color: ink, with: true, dur: 0.3}
+          - color: {target: e5, color: pink}
+          - color: {target: s5, color: pink, with: true}
+          - color: {target: e6, color: pink, with: true}
+          - color: {target: s6, color: pink, with: true}
+          - color: {target: e7, color: pink, with: true}
+          - color: {target: s7, color: pink, with: true}
+          - color: {target: e8, color: pink, with: true}
+          - color: {target: s8, color: pink, with: true}
+          - show: ['lh[4,:]', 'lh[5,:]', 'lh[6,:]', 'lh[7,:]', 'ls[4,:]', 'ls[5,:]', 'ls[6,:]', 'ls[7,:]', 'tt[4,:]', 'tt[5,:]', 'tt[6,:]', 'tt[7,:]']
+          - color: {target: e5, color: reset, dur: 0.3}
+          - color: {target: s5, color: ink, with: true, dur: 0.3}
+          - color: {target: e6, color: reset, dur: 0.3, with: true}
+          - color: {target: s6, color: ink, with: true, dur: 0.3}
+          - color: {target: e7, color: reset, dur: 0.3, with: true}
+          - color: {target: s7, color: ink, with: true, dur: 0.3}
+          - color: {target: e8, color: reset, dur: 0.3, with: true}
+          - color: {target: s8, color: ink, with: true, dur: 0.3}
+          - color: {target: e9, color: pink}
+          - color: {target: s9, color: pink, with: true}
+          - color: {target: e10, color: pink, with: true}
+          - color: {target: s10, color: pink, with: true}
+          - color: {target: e11, color: pink, with: true}
+          - color: {target: s11, color: pink, with: true}
+          - color: {target: e12, color: pink, with: true}
+          - color: {target: s12, color: pink, with: true}
+          - show: ['lh[8,:]', 'lh[9,:]', 'lh[10,:]', 'lh[11,:]', 'ls[8,:]', 'ls[9,:]', 'ls[10,:]', 'ls[11,:]', 'tt[8,:]', 'tt[9,:]', 'tt[10,:]', 'tt[11,:]']
+          - color: {target: e9, color: reset, dur: 0.3}
+          - color: {target: s9, color: ink, with: true, dur: 0.3}
+          - color: {target: e10, color: reset, dur: 0.3, with: true}
+          - color: {target: s10, color: ink, with: true, dur: 0.3}
+          - color: {target: e11, color: reset, dur: 0.3, with: true}
+          - color: {target: s11, color: ink, with: true, dur: 0.3}
+          - color: {target: e12, color: reset, dur: 0.3, with: true}
+          - color: {target: s12, color: ink, with: true, dur: 0.3}
+          - eq: {tex: 't = \frac{l^*_{\mathrm{H}}}{l_{\mathrm{H}}}', align: left, size: 30}
+      - say: 'Divided by the scale $r$ of $\Gamma^*$: the force density. Here $r = 1$.'
+        do:
+          - remove: [tf, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12]
+          - add:
+              - {id: t1, label: 'mid(n1, n2)', tex: '2', color: pink}
+              - {id: t2, label: 'mid(n1, n3)', tex: '2', color: pink}
+              - {id: t3, label: 'mid(n1, n4)', tex: '2', color: pink}
+              - {id: t4, label: 'mid(n1, n5)', tex: '2', color: pink}
+              - {id: t5, label: 'mid(n2, n3)', tex: '1', color: pink}
+              - {id: t6, label: 'mid(n3, n4)', tex: '1', color: pink}
+              - {id: t7, label: 'mid(n4, n5)', tex: '1', color: pink}
+              - {id: t8, label: 'mid(n2, n5)', tex: '1', color: pink}
+              - {id: t9, label: 'mid(n2, n6)', tex: '5', color: pink}
+              - {id: t10, label: 'mid(n3, n7)', tex: '5', color: pink}
+              - {id: t11, label: 'mid(n4, n8)', tex: '5', color: pink}
+              - {id: t12, label: 'mid(n5, n9)', tex: '5', color: pink}
+          - eq: {tex: '\mathbf{q} = \frac{1}{r}\,\mathbf{t}', color: blue, align: left, size: 30}
+
+  - title: 'ONE NODE'
+    steps:
+      - say: 'The thrust network $\mathbf{G}$: loads $P$ push down, the heights $z$ are unknown.'
+        do:
+          - remove: [tg]
+          - camera: {yaw: -112, pitch: 24, fit: [n6, n7, n8, n9, 'n1 + [0, 0, 1.5]'], dur: 1.4}
+          - add:
+              - {id: P1, arrow: ['n1 + [0, 0, 1.0]', n1], color: load, width: 3.0, label: 'P_1'}
+              - {id: P2, arrow: ['n2 + [0, 0, 1.0]', n2], color: load, width: 3.0}
+              - {id: P3, arrow: ['n3 + [0, 0, 1.0]', n3], color: load, width: 3.0}
+              - {id: P4, arrow: ['n4 + [0, 0, 1.0]', n4], color: load, width: 3.0}
+              - {id: P5, arrow: ['n5 + [0, 0, 1.0]', n5], color: load, width: 3.0}
+          - solve: true
+          - morph: {target: n1.label, label: n1, tex: 'z_1', dur: 0.4}
+          - morph: {target: n2.label, label: n2, tex: 'z_2', dur: 0.4, with: true}
+          - morph: {target: n3.label, label: n3, tex: 'z_3', dur: 0.4, with: true}
+          - morph: {target: n4.label, label: n4, tex: 'z_4', dur: 0.4, with: true}
+          - morph: {target: n5.label, label: n5, tex: 'z_5', dur: 0.4, with: true}
+      - say: 'A bar lifts its node by $q$ times the height difference. At node $1$ four lifts carry $P_1$.'
+        do:
+          - camera: {fit: [n2, n3, n4, n5, 'n1 + [0, 0, 1.0]'], dur: 1.2}
+          - add:
+              - {id: legh, line: [n2, '[x(n1), y(n1), z(n2)]'], color: grey, width: 1.4, dash: true}
+              - {id: legv, line: ['[x(n1), y(n1), z(n2)]', n1], color: pink, width: 2.2, label: 'z_1 - z_2', dir: [-1, 0]}
+          - color: {target: e1, color: pink}
+          - add: {id: lift1, arrow: ['n1 + [0.16, -0.16, 0.00]', 'n1 + [0.16, -0.16, 0.25]'], color: pink, width: 2.6}
+          - color: {target: e1, color: reset, dur: 0.3}
+          - color: {target: e2, color: pink}
+          - add: {id: lift2, arrow: ['n1 + [0.16, -0.16, 0.25]', 'n1 + [0.16, -0.16, 0.50]'], color: pink, width: 2.6}
+          - color: {target: e2, color: reset, dur: 0.3}
+          - color: {target: e3, color: pink}
+          - add: {id: lift3, arrow: ['n1 + [0.16, -0.16, 0.50]', 'n1 + [0.16, -0.16, 0.75]'], color: pink, width: 2.6}
+          - color: {target: e3, color: reset, dur: 0.3}
+          - color: {target: e4, color: pink}
+          - add: {id: lift4, arrow: ['n1 + [0.16, -0.16, 0.75]', 'n1 + [0.16, -0.16, 1.00]'], color: pink, width: 2.6}
+          - color: {target: e4, color: reset, dur: 0.3}
+          - eq: {tex: '\sum_j q_j\,(z_1 - z_j) = P_1', align: left, size: 32}
+
+  - title: 'ALL NODES: THE MATRIX $\mathbf{D}$'
+    steps:
+      - say: 'Node $1$ as a row: the sum of its $t$ on the diagonal, $-t$ under each neighbour.'
+        do:
+          - remove: [legh, legv, lift1, lift2, lift3, lift4]
+          - camera: {fit: [n6, n7, n8, n9, 'n1 + [0, 0, 1.5]'], dur: 1.2}
+          - eq: {tex: '8\,z_1 - 2 z_2 - 2 z_3 - 2 z_4 - 2 z_5 = r\,P_1', align: left, size: 26}
+          - matrix: DN
+          - node: {of: n1}
+          - color: {target: 'DN[0,:]', color: yellow, with: true}
+      - say: 'Node $2$: $2 + 1 + 1 + 5$ on the diagonal. Its bar to support $6$ goes to $\mathbf{D}_{\mathrm{F}}$.'
+        do:
+          - node: {of: n1, clear: true}
+          - color: {target: 'DN[0,:]', color: reset, with: true}
+          - matrix: DF
+          - node: {of: n2}
+          - color: {target: 'DN[1,:]', color: yellow, with: true}
+          - color: {target: 'DF[1,:]', color: yellow, with: true}
+      - say: 'All five free nodes at once.'
+        do:
+          - node: {of: n2, clear: true}
+          - color: {target: 'DN[1,:]', color: reset, with: true}
+          - color: {target: 'DF[1,:]', color: reset, with: true}
+          - eq: {tex: '\mathbf{D}_{\mathrm{N}}\,\mathbf{z}_{\mathrm{N}} + \mathbf{D}_{\mathrm{F}}\,\mathbf{z}_{\mathrm{F}} = r\,\mathbf{p}', color: blue, align: left, size: 30}
+
+  - title: '$\mathbf{D}$ FROM $\mathbf{C}$ AND $\mathbf{T}$'
+    steps:
+      - say: '$\mathbf{C}$: one row per bar, $+1$ and $-1$ at its two nodes. Columns $1$ to $5$ are $\mathbf{C}_{\mathrm{N}}$, the supports $\mathbf{C}_{\mathrm{F}}$.'
+        do:
+          - reveal: C
+          - eq: {tex: '\mathbf{D}_{\mathrm{N}} = \mathbf{C}_{\mathrm{N}}^T\,\mathbf{T}\,\mathbf{C}_{\mathrm{N}} \qquad \mathbf{D}_{\mathrm{F}} = \mathbf{C}_{\mathrm{N}}^T\,\mathbf{T}\,\mathbf{C}_{\mathrm{F}} \qquad \mathbf{T} = \text{diag}(\mathbf{t})', align: left, size: 24}
+
+  - title: 'THE HEIGHTS'
+    steps:
+      - say: 'One linear solve gives the heights.'
+        do:
+          - eq: {tex: '\mathbf{z}_{\mathrm{N}} = \mathbf{D}_{\mathrm{N}}^{-1}\,(r\,\mathbf{p} - \mathbf{D}_{\mathrm{F}}\,\mathbf{z}_{\mathrm{F}})', color: blue, align: left, size: 32}
+          - morph: {target: n1.label, label: n1, tex: '0.375', dur: 0.5}
+          - morph: {target: n2.label, label: n2, tex: '0.25', dur: 0.5, with: true}
+          - morph: {target: n3.label, label: n3, tex: '0.25', dur: 0.5, with: true}
+          - morph: {target: n4.label, label: n4, tex: '0.25', dur: 0.5, with: true}
+          - morph: {target: n5.label, label: n5, tex: '0.25', dur: 0.5, with: true}
+          - eq: {tex: '\text{node } 1:\quad 8 \cdot 0.375 - 4 \cdot 2 \cdot 0.25 = 1', align: left, size: 26}
+      - say: 'Force in a bar: force density times its length in space.'
+        do:
+          - show: forces
+          - eq: {tex: '\mathbf{s} = \frac{1}{r}\,\mathbf{L}\,\mathbf{t} \qquad 2.02 \quad 1.41 \quad 4.19\ \text{kN}', align: left, size: 28}
+      - say: 'Double $r$: half the thrust, twice the height. Height limits choose the largest $r$ that fits.'
+        do:
+          - remove: [force_e1, force_e2, force_e3, force_e4, force_e5, force_e6, force_e7, force_e8, force_e9, force_e10, force_e11, force_e12]
+          - solve: {load: [0, 0, 2]}
+          - morph: {target: n1.label, label: n1, tex: '0.75', dur: 0.5}
+          - morph: {target: n2.label, label: n2, tex: '0.5', dur: 0.5, with: true}
+          - morph: {target: n3.label, label: n3, tex: '0.5', dur: 0.5, with: true}
+          - morph: {target: n4.label, label: n4, tex: '0.5', dur: 0.5, with: true}
+          - morph: {target: n5.label, label: n5, tex: '0.5', dur: 0.5, with: true}
+          - eq: {tex: '\max\ r \qquad \mathbf{z}^{LB} \le \mathbf{z} \le \mathbf{z}^{UB}', align: left, size: 28}
+
+  - title: 'IN CODE'
+    steps:
+      - say: 'compas_tna, vertical_from_zmax: the same symbols under other names.'
+        code: |
+          Ci = C[:, free]                  # C_N
+          Cf = C[:, fixed]                 # C_F
+          q = scale * q0                   # q = t / r
+          Q = diags([q.ravel()], [0])      # T / r
+          A = Cit.dot(Q).dot(Ci)           # D_N
+          b = p[free, 2] - Cit.dot(Q).dot(Cf).dot(xyz[fixed, 2])
+          xyz[free, 2] = spsolve(A, b)     # z_N
+          scale = scale * (z / zmax)       # r: until the top is at zmax
+          f = q * normrow(C.dot(xyz))      # s
+      - say: 'The same with numpy alone, from tna_numpy.py beside the horizontal deck.'
+        code: |
+          def heights(xy, edges, free, fixed, q, p, zF=0.0, r=1.0):
+              C = connectivity(len(xy), edges)
+              D = C[:, free].T @ (q[:, None] * C)      # C_N^T T C
+              z = np.full(len(xy), float(zF))
+              z[free] = np.linalg.solve(D[:, free], r * p - D[:, fixed] @ z[fixed])
+              return z

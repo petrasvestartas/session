@@ -1,0 +1,1253 @@
+# Written by generate.py in ../thrust-network_analysis_horizontal_equilibrium; edit the sentences there.
+# Open local: http://127.0.0.1:8770/?stage=decks/thrust-network_analysis_geometries/index.yaml&data=off&chapter=1&step=1
+# Open live: https://petrasvestartas.github.io/session/?stage=thrust-network_analysis_geometries&chapter=1&step=1
+
+title: OTHER PATTERNS
+split: 0.5
+camera: {view: top, fit: [LO, HI]}
+points:
+  n1: [1.300, 8.100, 0]
+  n2: [4.900, 8.700, 0]
+  n3: [3.700, 11.300, 0]
+  n4: [2.000, 10.000, 0]
+  s1: [1.200, 6.500, 0]
+  s2: [4.900, 6.500, 0]
+  s3: [6.000, 9.400, 0]
+  s4: [6.000, 11.400, 0]
+  s5: [3.300, 12.500, 0]
+  s6: [2.300, 12.500, 0]
+  s7: [0.000, 10.500, 0]
+  s8: [0.000, 7.900, 0]
+  tri0: [1.653, 0.682, 0]
+  tri1: [0.818, 1.099, 0]
+  tri2: [0.400, 1.935, 0]
+  tri3: [0.863, 2.364, 0]
+  tri4: [1.695, 1.896, 0]
+  tri5: [2.067, 1.048, 0]
+  tri6: [0.508, 3.239, 0]
+  tri7: [0.864, 3.647, 0]
+  tri8: [1.735, 3.171, 0]
+  tri9: [2.210, 2.295, 0]
+  tri10: [0.401, 4.470, 0]
+  tri11: [0.819, 4.887, 0]
+  tri12: [1.638, 4.472, 0]
+  tri13: [2.091, 3.579, 0]
+  tri14: [2.965, 0.670, 0]
+  tri15: [2.990, 1.878, 0]
+  tri16: [3.372, 1.101, 0]
+  tri17: [3.023, 3.240, 0]
+  tri18: [3.446, 2.415, 0]
+  tri19: [2.117, 4.900, 0]
+  tri20: [2.919, 4.505, 0]
+  tri21: [3.373, 3.738, 0]
+  tri22: [4.211, 0.734, 0]
+  tri23: [4.246, 2.056, 0]
+  tri24: [4.628, 1.152, 0]
+  tri25: [4.224, 3.318, 0]
+  tri26: [4.674, 2.460, 0]
+  tri27: [3.353, 4.920, 0]
+  tri28: [4.189, 4.502, 0]
+  tri29: [4.606, 3.667, 0]
+  quad0: [1.797, 0.659, 0]
+  quad1: [0.772, 0.884, 0]
+  quad2: [0.613, 1.890, 0]
+  quad3: [1.814, 1.857, 0]
+  quad4: [0.614, 3.098, 0]
+  quad5: [1.788, 3.107, 0]
+  quad6: [0.585, 4.250, 0]
+  quad7: [1.790, 4.298, 0]
+  quad8: [0.819, 5.237, 0]
+  quad9: [1.833, 5.486, 0]
+  quad10: [3.005, 0.696, 0]
+  quad11: [3.012, 1.868, 0]
+  quad12: [2.960, 3.129, 0]
+  quad13: [2.955, 4.360, 0]
+  quad14: [3.006, 5.500, 0]
+  quad15: [4.208, 0.738, 0]
+  quad16: [4.223, 1.933, 0]
+  quad17: [4.121, 3.163, 0]
+  quad18: [4.077, 4.294, 0]
+  quad19: [4.163, 5.423, 0]
+  quad20: [5.231, 0.925, 0]
+  quad21: [5.415, 1.939, 0]
+  quad22: [5.338, 3.139, 0]
+  quad23: [5.329, 4.268, 0]
+  quad24: [5.169, 5.229, 0]
+  quadbad0: [1.719, 0.734, 0]
+  quadbad1: [0.845, 0.836, 0]
+  quadbad2: [0.620, 1.770, 0]
+  quadbad3: [1.762, 1.830, 0]
+  quadbad4: [0.427, 2.880, 0]
+  quadbad5: [1.668, 2.934, 0]
+  quadbad6: [0.400, 4.038, 0]
+  quadbad7: [1.704, 4.247, 0]
+  quadbad8: [0.709, 5.044, 0]
+  quadbad9: [1.835, 5.374, 0]
+  quadbad10: [2.832, 0.654, 0]
+  quadbad11: [2.916, 1.692, 0]
+  quadbad12: [3.057, 2.848, 0]
+  quadbad13: [3.172, 4.223, 0]
+  quadbad14: [3.174, 5.379, 0]
+  quadbad15: [4.212, 0.621, 0]
+  quadbad16: [4.188, 1.828, 0]
+  quadbad17: [4.279, 2.772, 0]
+  quadbad18: [4.454, 3.763, 0]
+  quadbad19: [4.344, 5.163, 0]
+  quadbad20: [5.271, 0.857, 0]
+  quadbad21: [5.389, 1.942, 0]
+  quadbad22: [5.438, 2.943, 0]
+  quadbad23: [5.561, 3.933, 0]
+  quadbad24: [5.280, 5.029, 0]
+  hex0: [3.667, 4.808, 0]
+  hex1: [2.310, 4.025, 0]
+  hex2: [2.310, 5.200, 0]
+  hex3: [2.310, 0.892, 0]
+  hex4: [1.255, 0.631, 0]
+  hex5: [1.135, 1.675, 0]
+  hex6: [4.843, 4.025, 0]
+  hex7: [3.667, 3.242, 0]
+  hex8: [1.293, 4.612, 0]
+  hex9: [4.722, 5.069, 0]
+  hex10: [3.667, 1.675, 0]
+  hex11: [3.667, 0.500, 0]
+  hex12: [2.310, 2.458, 0]
+  hex13: [4.685, 1.087, 0]
+  hex14: [4.843, 2.458, 0]
+  hex15: [1.135, 3.242, 0]
+  hexbad0: [3.704, 5.123, 0]
+  hexbad1: [2.242, 4.234, 0]
+  hexbad2: [2.242, 5.500, 0]
+  hexbad3: [2.256, 0.953, 0]
+  hexbad4: [1.146, 0.684, 0]
+  hexbad5: [1.026, 1.787, 0]
+  hexbad6: [4.968, 4.314, 0]
+  hexbad7: [3.699, 3.422, 0]
+  hexbad8: [1.219, 4.858, 0]
+  hexbad9: [4.838, 5.395, 0]
+  hexbad10: [3.698, 1.734, 0]
+  hexbad11: [3.685, 0.500, 0]
+  hexbad12: [2.223, 2.569, 0]
+  hexbad13: [4.809, 1.094, 0]
+  hexbad14: [4.984, 2.599, 0]
+  hexbad15: [1.016, 3.430, 0]
+  dome0: [3.667, 3.276, 0]
+  dome1: [3.667, 2.724, 0]
+  dome2: [3.276, 2.333, 0]
+  dome3: [2.724, 2.333, 0]
+  dome4: [2.333, 2.724, 0]
+  dome5: [2.333, 3.276, 0]
+  dome6: [2.724, 3.667, 0]
+  dome7: [3.276, 3.667, 0]
+  dome8: [4.500, 3.621, 0]
+  dome9: [4.500, 2.379, 0]
+  dome10: [3.621, 4.500, 0]
+  dome11: [2.379, 4.500, 0]
+  dome12: [1.500, 3.621, 0]
+  dome13: [1.500, 2.379, 0]
+  dome14: [2.379, 1.500, 0]
+  dome15: [3.621, 1.500, 0]
+  dome16: [5.500, 4.036, 0]
+  dome17: [5.500, 1.964, 0]
+  dome18: [4.036, 5.500, 0]
+  dome19: [1.964, 5.500, 0]
+  dome20: [0.500, 4.036, 0]
+  dome21: [0.500, 1.964, 0]
+  dome22: [1.964, 0.500, 0]
+  dome23: [4.036, 0.500, 0]
+  open0: [3.000, 0.500, 0]
+  open1: [0.778, 1.056, 0]
+  open2: [1.889, 1.056, 0]
+  open3: [0.778, 2.167, 0]
+  open4: [1.889, 2.167, 0]
+  open5: [0.778, 3.278, 0]
+  open6: [1.889, 3.278, 0]
+  open7: [0.778, 4.389, 0]
+  open8: [1.889, 4.389, 0]
+  open9: [0.963, 5.315, 0]
+  open10: [1.889, 5.500, 0]
+  open11: [3.000, 1.056, 0]
+  open12: [3.000, 2.167, 0]
+  open13: [3.000, 3.278, 0]
+  open14: [3.000, 4.389, 0]
+  open15: [3.000, 5.500, 0]
+  open16: [4.111, 1.056, 0]
+  open17: [4.111, 2.167, 0]
+  open18: [4.111, 3.278, 0]
+  open19: [4.111, 4.389, 0]
+  open20: [4.111, 5.500, 0]
+  open21: [5.222, 1.056, 0]
+  open22: [5.222, 2.167, 0]
+  open23: [5.222, 3.278, 0]
+  open24: [5.222, 4.389, 0]
+  open25: [5.037, 5.315, 0]
+  arch0: [3.000, 0.500, 0]
+  arch1: [1.337, 0.748, 0]
+  arch2: [2.168, 0.857, 0]
+  arch3: [1.337, 1.513, 0]
+  arch4: [2.168, 1.513, 0]
+  arch5: [1.337, 2.345, 0]
+  arch6: [2.168, 2.345, 0]
+  arch7: [1.337, 3.176, 0]
+  arch8: [2.168, 3.176, 0]
+  arch9: [1.475, 3.869, 0]
+  arch10: [2.168, 4.008, 0]
+  arch11: [3.000, 0.899, 0]
+  arch12: [3.000, 1.513, 0]
+  arch13: [3.000, 2.345, 0]
+  arch14: [3.000, 3.176, 0]
+  arch15: [3.000, 4.008, 0]
+  arch16: [3.832, 0.857, 0]
+  arch17: [3.832, 1.513, 0]
+  arch18: [3.832, 2.345, 0]
+  arch19: [3.832, 3.176, 0]
+  arch20: [3.832, 4.008, 0]
+  arch21: [4.663, 0.748, 0]
+  arch22: [4.663, 1.513, 0]
+  arch23: [4.663, 2.345, 0]
+  arch24: [4.663, 3.176, 0]
+  arch25: [4.525, 3.869, 0]
+  TG: [-0.7, 12.3, 0]
+  TF: [-0.7, 5.6, 0]
+  LO: [0.0, 0.9, 0]
+  HI: [6.0, 11.8, 0]
+slides:
+  - title: TRIANGLES
+    steps:
+      - say: 'Triangles: six bars meet at every free node.'
+        do:
+          - add:
+              - {id: tg, label: TG, tex: '\Gamma', color: accent}
+              - {id: tf, label: TF, tex: '\Gamma^*', color: accent}
+          - add:
+              - {id: trib0, line: [[0.350, 7.925, 0], [1.477, 7.800, 0]], color: ink, width: 2.0}
+              - {id: trib1, line: [[0.350, 9.250, 0], [1.819, 9.289, 0]], color: ink, width: 2.0}
+              - {id: trib2, line: [[0.350, 9.250, 0], [1.477, 7.800, 0]], color: ink, width: 2.0}
+              - {id: trib3, line: [[0.350, 10.575, 0], [1.481, 10.543, 0]], color: ink, width: 2.0}
+              - {id: trib4, line: [[0.350, 10.575, 0], [1.819, 9.289, 0]], color: ink, width: 2.0}
+              - {id: trib5, line: [[0.350, 11.900, 0], [1.481, 10.543, 0]], color: ink, width: 2.0}
+              - {id: trib6, line: [[1.675, 6.600, 0], [1.477, 7.800, 0]], color: ink, width: 2.0}
+              - {id: trib7, line: [[1.477, 7.800, 0], [1.819, 9.289, 0]], color: ink, width: 2.0}
+              - {id: trib8, line: [[1.477, 7.800, 0], [2.990, 7.763, 0]], color: ink, width: 2.0}
+              - {id: trib9, line: [[1.477, 7.800, 0], [3.000, 6.600, 0]], color: ink, width: 2.0}
+              - {id: trib10, line: [[1.819, 9.289, 0], [1.481, 10.543, 0]], color: ink, width: 2.0}
+              - {id: trib11, line: [[1.819, 9.289, 0], [3.112, 9.066, 0]], color: ink, width: 2.0}
+              - {id: trib12, line: [[1.819, 9.289, 0], [2.990, 7.763, 0]], color: ink, width: 2.0}
+              - {id: trib13, line: [[1.481, 10.543, 0], [1.675, 11.900, 0]], color: ink, width: 2.0}
+              - {id: trib14, line: [[1.481, 10.543, 0], [2.948, 10.583, 0]], color: ink, width: 2.0}
+              - {id: trib15, line: [[1.481, 10.543, 0], [3.112, 9.066, 0]], color: ink, width: 2.0}
+              - {id: trib16, line: [[1.675, 11.900, 0], [2.948, 10.583, 0]], color: ink, width: 2.0}
+              - {id: trib17, line: [[3.000, 6.600, 0], [2.990, 7.763, 0]], color: ink, width: 2.0}
+              - {id: trib18, line: [[2.990, 7.763, 0], [3.112, 9.066, 0]], color: ink, width: 2.0}
+              - {id: trib19, line: [[2.990, 7.763, 0], [4.292, 7.966, 0]], color: ink, width: 2.0}
+              - {id: trib20, line: [[2.990, 7.763, 0], [4.325, 6.600, 0]], color: ink, width: 2.0}
+              - {id: trib21, line: [[3.112, 9.066, 0], [2.948, 10.583, 0]], color: ink, width: 2.0}
+              - {id: trib22, line: [[3.112, 9.066, 0], [4.438, 9.468, 0]], color: ink, width: 2.0}
+              - {id: trib23, line: [[3.112, 9.066, 0], [4.292, 7.966, 0]], color: ink, width: 2.0}
+              - {id: trib24, line: [[2.948, 10.583, 0], [3.000, 11.900, 0]], color: ink, width: 2.0}
+              - {id: trib25, line: [[2.948, 10.583, 0], [4.222, 10.646, 0]], color: ink, width: 2.0}
+              - {id: trib26, line: [[2.948, 10.583, 0], [4.438, 9.468, 0]], color: ink, width: 2.0}
+              - {id: trib27, line: [[3.000, 11.900, 0], [4.222, 10.646, 0]], color: ink, width: 2.0}
+              - {id: trib28, line: [[4.325, 6.600, 0], [4.292, 7.966, 0]], color: ink, width: 2.0}
+              - {id: trib29, line: [[4.292, 7.966, 0], [4.438, 9.468, 0]], color: ink, width: 2.0}
+              - {id: trib30, line: [[4.292, 7.966, 0], [5.650, 7.925, 0]], color: ink, width: 2.0}
+              - {id: trib31, line: [[4.292, 7.966, 0], [5.650, 6.600, 0]], color: ink, width: 2.0}
+              - {id: trib32, line: [[4.438, 9.468, 0], [4.222, 10.646, 0]], color: ink, width: 2.0}
+              - {id: trib33, line: [[4.438, 9.468, 0], [5.650, 9.250, 0]], color: ink, width: 2.0}
+              - {id: trib34, line: [[4.438, 9.468, 0], [5.650, 7.925, 0]], color: ink, width: 2.0}
+              - {id: trib35, line: [[4.222, 10.646, 0], [4.325, 11.900, 0]], color: ink, width: 2.0}
+              - {id: trib36, line: [[4.222, 10.646, 0], [5.650, 10.575, 0]], color: ink, width: 2.0}
+              - {id: trib37, line: [[4.222, 10.646, 0], [5.650, 9.250, 0]], color: ink, width: 2.0}
+              - {id: tris0, point: [0.350, 7.925, 0], color: fixed, size: 0.6}
+              - {id: tris1, point: [0.350, 9.250, 0], color: fixed, size: 0.6}
+              - {id: tris2, point: [0.350, 10.575, 0], color: fixed, size: 0.6}
+              - {id: tris3, point: [0.350, 11.900, 0], color: fixed, size: 0.6}
+              - {id: tris4, point: [1.675, 6.600, 0], color: fixed, size: 0.6}
+              - {id: tris8, point: [1.675, 11.900, 0], color: fixed, size: 0.6}
+              - {id: tris9, point: [3.000, 6.600, 0], color: fixed, size: 0.6}
+              - {id: tris13, point: [3.000, 11.900, 0], color: fixed, size: 0.6}
+              - {id: tris14, point: [4.325, 6.600, 0], color: fixed, size: 0.6}
+              - {id: tris18, point: [4.325, 11.900, 0], color: fixed, size: 0.6}
+              - {id: tris19, point: [5.650, 6.600, 0], color: fixed, size: 0.6}
+              - {id: tris20, point: [5.650, 7.925, 0], color: fixed, size: 0.6}
+              - {id: tris21, point: [5.650, 9.250, 0], color: fixed, size: 0.6}
+              - {id: tris22, point: [5.650, 10.575, 0], color: fixed, size: 0.6}
+              - {id: trif0, line: [tri2, tri1], color: ink, width: 2.0}
+              - {id: trif1, line: [tri6, tri3], color: ink, width: 2.0}
+              - {id: trif2, line: [tri3, tri2], color: ink, width: 2.0}
+              - {id: trif3, line: [tri10, tri7], color: ink, width: 2.0}
+              - {id: trif4, line: [tri7, tri6], color: ink, width: 2.0}
+              - {id: trif5, line: [tri11, tri10], color: ink, width: 2.0}
+              - {id: trif6, line: [tri1, tri0], color: ink, width: 2.0}
+              - {id: trif7, line: [tri3, tri4], color: ink, width: 2.0}
+              - {id: trif8, line: [tri4, tri5], color: ink, width: 2.0}
+              - {id: trif9, line: [tri5, tri0], color: ink, width: 2.0}
+              - {id: trif10, line: [tri7, tri8], color: ink, width: 2.0}
+              - {id: trif11, line: [tri8, tri9], color: ink, width: 2.0}
+              - {id: trif12, line: [tri9, tri4], color: ink, width: 2.0}
+              - {id: trif13, line: [tri11, tri12], color: ink, width: 2.0}
+              - {id: trif14, line: [tri12, tri13], color: ink, width: 2.0}
+              - {id: trif15, line: [tri13, tri8], color: ink, width: 2.0}
+              - {id: trif16, line: [tri19, tri12], color: ink, width: 2.0}
+              - {id: trif17, line: [tri5, tri14], color: ink, width: 2.0}
+              - {id: trif18, line: [tri9, tri15], color: ink, width: 2.0}
+              - {id: trif19, line: [tri15, tri16], color: ink, width: 2.0}
+              - {id: trif20, line: [tri16, tri14], color: ink, width: 2.0}
+              - {id: trif21, line: [tri13, tri17], color: ink, width: 2.0}
+              - {id: trif22, line: [tri17, tri18], color: ink, width: 2.0}
+              - {id: trif23, line: [tri18, tri15], color: ink, width: 2.0}
+              - {id: trif24, line: [tri19, tri20], color: ink, width: 2.0}
+              - {id: trif25, line: [tri20, tri21], color: ink, width: 2.0}
+              - {id: trif26, line: [tri21, tri17], color: ink, width: 2.0}
+              - {id: trif27, line: [tri27, tri20], color: ink, width: 2.0}
+              - {id: trif28, line: [tri16, tri22], color: ink, width: 2.0}
+              - {id: trif29, line: [tri18, tri23], color: ink, width: 2.0}
+              - {id: trif30, line: [tri23, tri24], color: ink, width: 2.0}
+              - {id: trif31, line: [tri24, tri22], color: ink, width: 2.0}
+              - {id: trif32, line: [tri21, tri25], color: ink, width: 2.0}
+              - {id: trif33, line: [tri25, tri26], color: ink, width: 2.0}
+              - {id: trif34, line: [tri26, tri23], color: ink, width: 2.0}
+              - {id: trif35, line: [tri27, tri28], color: ink, width: 2.0}
+              - {id: trif36, line: [tri28, tri29], color: ink, width: 2.0}
+              - {id: trif37, line: [tri29, tri25], color: ink, width: 2.0}
+          - eq: {tex: '2 \cdot 9 = 18\ \text{equations} \qquad 38\ \text{unknowns} \qquad k = 20\ \text{free states}', align: left, size: 24}
+      - say: 'Parallel after 14 iterations. With so much freedom a diagram is easy to find.'
+        do:
+          - move: {point: tri0, to: [1.653, 0.682, 0], dur: 1.6}
+          - move: {point: tri1, to: [0.659, 0.518, 0], dur: 1.6, with: true}
+          - move: {point: tri2, to: [0.783, 1.629, 0], dur: 1.6, with: true}
+          - move: {point: tri3, to: [1.322, 2.047, 0], dur: 1.6, with: true}
+          - move: {point: tri4, to: [1.967, 1.899, 0], dur: 1.6, with: true}
+          - move: {point: tri5, to: [1.947, 1.055, 0], dur: 1.6, with: true}
+          - move: {point: tri6, to: [1.303, 2.738, 0], dur: 1.6, with: true}
+          - move: {point: tri7, to: [1.592, 3.067, 0], dur: 1.6, with: true}
+          - move: {point: tri8, to: [2.693, 3.364, 0], dur: 1.6, with: true}
+          - move: {point: tri9, to: [2.512, 2.317, 0], dur: 1.6, with: true}
+          - move: {point: tri10, to: [1.625, 4.229, 0], dur: 1.6, with: true}
+          - move: {point: tri11, to: [2.110, 4.634, 0], dur: 1.6, with: true}
+          - move: {point: tri12, to: [2.853, 4.528, 0], dur: 1.6, with: true}
+          - move: {point: tri13, to: [2.879, 3.568, 0], dur: 1.6, with: true}
+          - move: {point: tri14, to: [3.072, 1.064, 0], dur: 1.6, with: true}
+          - move: {point: tri15, to: [3.362, 2.238, 0], dur: 1.6, with: true}
+          - move: {point: tri16, to: [3.473, 1.526, 0], dur: 1.6, with: true}
+          - move: {point: tri17, to: [3.814, 3.669, 0], dur: 1.6, with: true}
+          - move: {point: tri18, to: [4.030, 2.955, 0], dur: 1.6, with: true}
+          - move: {point: tri19, to: [3.345, 5.003, 0], dur: 1.6, with: true}
+          - move: {point: tri20, to: [4.115, 4.973, 0], dur: 1.6, with: true}
+          - move: {point: tri21, to: [4.157, 4.127, 0], dur: 1.6, with: true}
+          - move: {point: tri22, to: [4.287, 1.545, 0], dur: 1.6, with: true}
+          - move: {point: tri23, to: [4.686, 2.891, 0], dur: 1.6, with: true}
+          - move: {point: tri24, to: [4.656, 1.912, 0], dur: 1.6, with: true}
+          - move: {point: tri25, to: [5.290, 4.335, 0], dur: 1.6, with: true}
+          - move: {point: tri26, to: [5.087, 3.206, 0], dur: 1.6, with: true}
+          - move: {point: tri27, to: [4.638, 5.482, 0], dur: 1.6, with: true}
+          - move: {point: tri28, to: [5.600, 5.403, 0], dur: 1.6, with: true}
+          - move: {point: tri29, to: [5.561, 4.613, 0], dur: 1.6, with: true}
+  - title: QUADS
+    steps:
+      - say: 'Quads, a little irregular: four bars per node.'
+        do:
+          - remove: [trib0, trib1, trib2, trib3, trib4, trib5, trib6, trib7, trib8, trib9, trib10, trib11, trib12, trib13, trib14, trib15, trib16, trib17, trib18, trib19, trib20, trib21, trib22, trib23, trib24, trib25, trib26, trib27, trib28, trib29, trib30, trib31, trib32, trib33, trib34, trib35, trib36, trib37, tris0, tris1, tris2, tris3, tris4, tris8, tris9, tris13, tris14, tris18, tris19, tris20, tris21, tris22, trif0, trif1, trif2, trif3, trif4, trif5, trif6, trif7, trif8, trif9, trif10, trif11, trif12, trif13, trif14, trif15, trif16, trif17, trif18, trif19, trif20, trif21, trif22, trif23, trif24, trif25, trif26, trif27, trif28, trif29, trif30, trif31, trif32, trif33, trif34, trif35, trif36, trif37]
+          - add:
+              - {id: quadb0, line: [[0.350, 7.660, 0], [1.278, 7.576, 0]], color: ink, width: 2.0}
+              - {id: quadb1, line: [[0.350, 8.720, 0], [1.506, 8.746, 0]], color: ink, width: 2.0}
+              - {id: quadb2, line: [[0.350, 9.780, 0], [1.281, 9.759, 0]], color: ink, width: 2.0}
+              - {id: quadb3, line: [[0.350, 10.840, 0], [1.403, 10.732, 0]], color: ink, width: 2.0}
+              - {id: quadb4, line: [[1.410, 6.600, 0], [1.278, 7.576, 0]], color: ink, width: 2.0}
+              - {id: quadb5, line: [[1.278, 7.576, 0], [1.506, 8.746, 0]], color: ink, width: 2.0}
+              - {id: quadb6, line: [[1.278, 7.576, 0], [2.545, 7.537, 0]], color: ink, width: 2.0}
+              - {id: quadb7, line: [[1.506, 8.746, 0], [1.281, 9.759, 0]], color: ink, width: 2.0}
+              - {id: quadb8, line: [[1.506, 8.746, 0], [2.435, 8.725, 0]], color: ink, width: 2.0}
+              - {id: quadb9, line: [[1.281, 9.759, 0], [1.403, 10.732, 0]], color: ink, width: 2.0}
+              - {id: quadb10, line: [[1.281, 9.759, 0], [2.448, 9.808, 0]], color: ink, width: 2.0}
+              - {id: quadb11, line: [[1.403, 10.732, 0], [1.410, 11.900, 0]], color: ink, width: 2.0}
+              - {id: quadb12, line: [[1.403, 10.732, 0], [2.546, 10.985, 0]], color: ink, width: 2.0}
+              - {id: quadb13, line: [[2.470, 6.600, 0], [2.545, 7.537, 0]], color: ink, width: 2.0}
+              - {id: quadb14, line: [[2.545, 7.537, 0], [2.435, 8.725, 0]], color: ink, width: 2.0}
+              - {id: quadb15, line: [[2.545, 7.537, 0], [3.461, 7.707, 0]], color: ink, width: 2.0}
+              - {id: quadb16, line: [[2.435, 8.725, 0], [2.448, 9.808, 0]], color: ink, width: 2.0}
+              - {id: quadb17, line: [[2.435, 8.725, 0], [3.592, 8.654, 0]], color: ink, width: 2.0}
+              - {id: quadb18, line: [[2.448, 9.808, 0], [2.546, 10.985, 0]], color: ink, width: 2.0}
+              - {id: quadb19, line: [[2.448, 9.808, 0], [3.371, 9.931, 0]], color: ink, width: 2.0}
+              - {id: quadb20, line: [[2.546, 10.985, 0], [2.470, 11.900, 0]], color: ink, width: 2.0}
+              - {id: quadb21, line: [[2.546, 10.985, 0], [3.466, 10.781, 0]], color: ink, width: 2.0}
+              - {id: quadb22, line: [[3.530, 6.600, 0], [3.461, 7.707, 0]], color: ink, width: 2.0}
+              - {id: quadb23, line: [[3.461, 7.707, 0], [3.592, 8.654, 0]], color: ink, width: 2.0}
+              - {id: quadb24, line: [[3.461, 7.707, 0], [4.715, 7.687, 0]], color: ink, width: 2.0}
+              - {id: quadb25, line: [[3.592, 8.654, 0], [3.371, 9.931, 0]], color: ink, width: 2.0}
+              - {id: quadb26, line: [[3.592, 8.654, 0], [4.581, 8.807, 0]], color: ink, width: 2.0}
+              - {id: quadb27, line: [[3.371, 9.931, 0], [3.466, 10.781, 0]], color: ink, width: 2.0}
+              - {id: quadb28, line: [[3.371, 9.931, 0], [4.441, 9.846, 0]], color: ink, width: 2.0}
+              - {id: quadb29, line: [[3.466, 10.781, 0], [3.530, 11.900, 0]], color: ink, width: 2.0}
+              - {id: quadb30, line: [[3.466, 10.781, 0], [4.550, 10.710, 0]], color: ink, width: 2.0}
+              - {id: quadb31, line: [[4.590, 6.600, 0], [4.715, 7.687, 0]], color: ink, width: 2.0}
+              - {id: quadb32, line: [[4.715, 7.687, 0], [4.581, 8.807, 0]], color: ink, width: 2.0}
+              - {id: quadb33, line: [[4.715, 7.687, 0], [5.650, 7.660, 0]], color: ink, width: 2.0}
+              - {id: quadb34, line: [[4.581, 8.807, 0], [4.441, 9.846, 0]], color: ink, width: 2.0}
+              - {id: quadb35, line: [[4.581, 8.807, 0], [5.650, 8.720, 0]], color: ink, width: 2.0}
+              - {id: quadb36, line: [[4.441, 9.846, 0], [4.550, 10.710, 0]], color: ink, width: 2.0}
+              - {id: quadb37, line: [[4.441, 9.846, 0], [5.650, 9.780, 0]], color: ink, width: 2.0}
+              - {id: quadb38, line: [[4.550, 10.710, 0], [4.590, 11.900, 0]], color: ink, width: 2.0}
+              - {id: quadb39, line: [[4.550, 10.710, 0], [5.650, 10.840, 0]], color: ink, width: 2.0}
+              - {id: quads0, point: [0.350, 7.660, 0], color: fixed, size: 0.6}
+              - {id: quads1, point: [0.350, 8.720, 0], color: fixed, size: 0.6}
+              - {id: quads2, point: [0.350, 9.780, 0], color: fixed, size: 0.6}
+              - {id: quads3, point: [0.350, 10.840, 0], color: fixed, size: 0.6}
+              - {id: quads4, point: [1.410, 6.600, 0], color: fixed, size: 0.6}
+              - {id: quads9, point: [1.410, 11.900, 0], color: fixed, size: 0.6}
+              - {id: quads10, point: [2.470, 6.600, 0], color: fixed, size: 0.6}
+              - {id: quads15, point: [2.470, 11.900, 0], color: fixed, size: 0.6}
+              - {id: quads16, point: [3.530, 6.600, 0], color: fixed, size: 0.6}
+              - {id: quads21, point: [3.530, 11.900, 0], color: fixed, size: 0.6}
+              - {id: quads22, point: [4.590, 6.600, 0], color: fixed, size: 0.6}
+              - {id: quads27, point: [4.590, 11.900, 0], color: fixed, size: 0.6}
+              - {id: quads28, point: [5.650, 7.660, 0], color: fixed, size: 0.6}
+              - {id: quads29, point: [5.650, 8.720, 0], color: fixed, size: 0.6}
+              - {id: quads30, point: [5.650, 9.780, 0], color: fixed, size: 0.6}
+              - {id: quads31, point: [5.650, 10.840, 0], color: fixed, size: 0.6}
+              - {id: quadf0, line: [quad2, quad1], color: ink, width: 2.0}
+              - {id: quadf1, line: [quad4, quad2], color: ink, width: 2.0}
+              - {id: quadf2, line: [quad6, quad4], color: ink, width: 2.0}
+              - {id: quadf3, line: [quad8, quad6], color: ink, width: 2.0}
+              - {id: quadf4, line: [quad1, quad0], color: ink, width: 2.0}
+              - {id: quadf5, line: [quad2, quad3], color: ink, width: 2.0}
+              - {id: quadf6, line: [quad3, quad0], color: ink, width: 2.0}
+              - {id: quadf7, line: [quad4, quad5], color: ink, width: 2.0}
+              - {id: quadf8, line: [quad5, quad3], color: ink, width: 2.0}
+              - {id: quadf9, line: [quad6, quad7], color: ink, width: 2.0}
+              - {id: quadf10, line: [quad7, quad5], color: ink, width: 2.0}
+              - {id: quadf11, line: [quad8, quad9], color: ink, width: 2.0}
+              - {id: quadf12, line: [quad9, quad7], color: ink, width: 2.0}
+              - {id: quadf13, line: [quad0, quad10], color: ink, width: 2.0}
+              - {id: quadf14, line: [quad3, quad11], color: ink, width: 2.0}
+              - {id: quadf15, line: [quad11, quad10], color: ink, width: 2.0}
+              - {id: quadf16, line: [quad5, quad12], color: ink, width: 2.0}
+              - {id: quadf17, line: [quad12, quad11], color: ink, width: 2.0}
+              - {id: quadf18, line: [quad7, quad13], color: ink, width: 2.0}
+              - {id: quadf19, line: [quad13, quad12], color: ink, width: 2.0}
+              - {id: quadf20, line: [quad9, quad14], color: ink, width: 2.0}
+              - {id: quadf21, line: [quad14, quad13], color: ink, width: 2.0}
+              - {id: quadf22, line: [quad10, quad15], color: ink, width: 2.0}
+              - {id: quadf23, line: [quad11, quad16], color: ink, width: 2.0}
+              - {id: quadf24, line: [quad16, quad15], color: ink, width: 2.0}
+              - {id: quadf25, line: [quad12, quad17], color: ink, width: 2.0}
+              - {id: quadf26, line: [quad17, quad16], color: ink, width: 2.0}
+              - {id: quadf27, line: [quad13, quad18], color: ink, width: 2.0}
+              - {id: quadf28, line: [quad18, quad17], color: ink, width: 2.0}
+              - {id: quadf29, line: [quad14, quad19], color: ink, width: 2.0}
+              - {id: quadf30, line: [quad19, quad18], color: ink, width: 2.0}
+              - {id: quadf31, line: [quad15, quad20], color: ink, width: 2.0}
+              - {id: quadf32, line: [quad16, quad21], color: ink, width: 2.0}
+              - {id: quadf33, line: [quad21, quad20], color: ink, width: 2.0}
+              - {id: quadf34, line: [quad17, quad22], color: ink, width: 2.0}
+              - {id: quadf35, line: [quad22, quad21], color: ink, width: 2.0}
+              - {id: quadf36, line: [quad18, quad23], color: ink, width: 2.0}
+              - {id: quadf37, line: [quad23, quad22], color: ink, width: 2.0}
+              - {id: quadf38, line: [quad19, quad24], color: ink, width: 2.0}
+              - {id: quadf39, line: [quad24, quad23], color: ink, width: 2.0}
+          - eq: {tex: '2 \cdot 16 = 32\ \text{equations} \qquad 40\ \text{unknowns} \qquad k = 8\ \text{free states}', align: left, size: 24}
+      - say: 'Parallel after 19 iterations, every side in compression.'
+        do:
+          - move: {point: quad0, to: [1.797, 0.659, 0], dur: 1.6}
+          - move: {point: quad1, to: [0.620, 0.500, 0], dur: 1.6, with: true}
+          - move: {point: quad2, to: [0.740, 1.832, 0], dur: 1.6, with: true}
+          - move: {point: quad3, to: [1.827, 1.621, 0], dur: 1.6, with: true}
+          - move: {point: quad4, to: [0.723, 2.595, 0], dur: 1.6, with: true}
+          - move: {point: quad5, to: [1.854, 2.846, 0], dur: 1.6, with: true}
+          - move: {point: quad6, to: [0.762, 4.297, 0], dur: 1.6, with: true}
+          - move: {point: quad7, to: [1.799, 4.166, 0], dur: 1.6, with: true}
+          - move: {point: quad8, to: [0.840, 5.057, 0], dur: 1.6, with: true}
+          - move: {point: quad9, to: [1.602, 5.052, 0], dur: 1.6, with: true}
+          - move: {point: quad10, to: [3.114, 0.554, 0], dur: 1.6, with: true}
+          - move: {point: quad11, to: [2.898, 1.719, 0], dur: 1.6, with: true}
+          - move: {point: quad12, to: [2.966, 2.834, 0], dur: 1.6, with: true}
+          - move: {point: quad13, to: [2.800, 4.083, 0], dur: 1.6, with: true}
+          - move: {point: quad14, to: [3.041, 5.171, 0], dur: 1.6, with: true}
+          - move: {point: quad15, to: [4.140, 0.618, 0], dur: 1.6, with: true}
+          - move: {point: quad16, to: [4.155, 1.545, 0], dur: 1.6, with: true}
+          - move: {point: quad17, to: [3.930, 3.000, 0], dur: 1.6, with: true}
+          - move: {point: quad18, to: [4.005, 3.949, 0], dur: 1.6, with: true}
+          - move: {point: quad19, to: [4.081, 5.112, 0], dur: 1.6, with: true}
+          - move: {point: quad20, to: [5.091, 0.509, 0], dur: 1.6, with: true}
+          - move: {point: quad21, to: [5.124, 1.661, 0], dur: 1.6, with: true}
+          - move: {point: quad22, to: [5.247, 3.178, 0], dur: 1.6, with: true}
+          - move: {point: quad23, to: [5.280, 3.788, 0], dur: 1.6, with: true}
+          - move: {point: quad24, to: [5.128, 5.077, 0], dur: 1.6, with: true}
+  - title: QUADS, DISTORTED
+    steps:
+      - say: 'The same quads, strongly distorted.'
+        do:
+          - remove: [quadb0, quadb1, quadb2, quadb3, quadb4, quadb5, quadb6, quadb7, quadb8, quadb9, quadb10, quadb11, quadb12, quadb13, quadb14, quadb15, quadb16, quadb17, quadb18, quadb19, quadb20, quadb21, quadb22, quadb23, quadb24, quadb25, quadb26, quadb27, quadb28, quadb29, quadb30, quadb31, quadb32, quadb33, quadb34, quadb35, quadb36, quadb37, quadb38, quadb39, quads0, quads1, quads2, quads3, quads4, quads9, quads10, quads15, quads16, quads21, quads22, quads27, quads28, quads29, quads30, quads31, quadf0, quadf1, quadf2, quadf3, quadf4, quadf5, quadf6, quadf7, quadf8, quadf9, quadf10, quadf11, quadf12, quadf13, quadf14, quadf15, quadf16, quadf17, quadf18, quadf19, quadf20, quadf21, quadf22, quadf23, quadf24, quadf25, quadf26, quadf27, quadf28, quadf29, quadf30, quadf31, quadf32, quadf33, quadf34, quadf35, quadf36, quadf37, quadf38, quadf39]
+          - add:
+              - {id: quadbadb0, line: [[0.350, 7.660, 0], [1.682, 7.934, 0]], color: ink, width: 2.0}
+              - {id: quadbadb1, line: [[0.350, 8.720, 0], [1.424, 8.529, 0]], color: ink, width: 2.0}
+              - {id: quadbadb2, line: [[0.350, 9.780, 0], [1.013, 9.676, 0]], color: ink, width: 2.0}
+              - {id: quadbadb3, line: [[0.350, 10.840, 0], [1.328, 10.435, 0]], color: ink, width: 2.0}
+              - {id: quadbadb4, line: [[1.410, 6.600, 0], [1.682, 7.934, 0]], color: ink, width: 2.0}
+              - {id: quadbadb5, line: [[1.682, 7.934, 0], [1.424, 8.529, 0]], color: ink, width: 2.0}
+              - {id: quadbadb6, line: [[1.682, 7.934, 0], [2.068, 8.104, 0]], color: ink, width: 2.0}
+              - {id: quadbadb7, line: [[1.424, 8.529, 0], [1.013, 9.676, 0]], color: ink, width: 2.0}
+              - {id: quadbadb8, line: [[1.424, 8.529, 0], [2.606, 8.484, 0]], color: ink, width: 2.0}
+              - {id: quadbadb9, line: [[1.013, 9.676, 0], [1.328, 10.435, 0]], color: ink, width: 2.0}
+              - {id: quadbadb10, line: [[1.013, 9.676, 0], [2.412, 10.202, 0]], color: ink, width: 2.0}
+              - {id: quadbadb11, line: [[1.328, 10.435, 0], [1.410, 11.900, 0]], color: ink, width: 2.0}
+              - {id: quadbadb12, line: [[1.328, 10.435, 0], [2.824, 11.147, 0]], color: ink, width: 2.0}
+              - {id: quadbadb13, line: [[2.470, 6.600, 0], [2.068, 8.104, 0]], color: ink, width: 2.0}
+              - {id: quadbadb14, line: [[2.068, 8.104, 0], [2.606, 8.484, 0]], color: ink, width: 2.0}
+              - {id: quadbadb15, line: [[2.068, 8.104, 0], [3.434, 7.654, 0]], color: ink, width: 2.0}
+              - {id: quadbadb16, line: [[2.606, 8.484, 0], [2.412, 10.202, 0]], color: ink, width: 2.0}
+              - {id: quadbadb17, line: [[2.606, 8.484, 0], [3.687, 8.329, 0]], color: ink, width: 2.0}
+              - {id: quadbadb18, line: [[2.412, 10.202, 0], [2.824, 11.147, 0]], color: ink, width: 2.0}
+              - {id: quadbadb19, line: [[2.412, 10.202, 0], [3.580, 9.576, 0]], color: ink, width: 2.0}
+              - {id: quadbadb20, line: [[2.824, 11.147, 0], [2.470, 11.900, 0]], color: ink, width: 2.0}
+              - {id: quadbadb21, line: [[2.824, 11.147, 0], [3.868, 10.452, 0]], color: ink, width: 2.0}
+              - {id: quadbadb22, line: [[3.530, 6.600, 0], [3.434, 7.654, 0]], color: ink, width: 2.0}
+              - {id: quadbadb23, line: [[3.434, 7.654, 0], [3.687, 8.329, 0]], color: ink, width: 2.0}
+              - {id: quadbadb24, line: [[3.434, 7.654, 0], [4.750, 7.990, 0]], color: ink, width: 2.0}
+              - {id: quadbadb25, line: [[3.687, 8.329, 0], [3.580, 9.576, 0]], color: ink, width: 2.0}
+              - {id: quadbadb26, line: [[3.687, 8.329, 0], [4.347, 9.072, 0]], color: ink, width: 2.0}
+              - {id: quadbadb27, line: [[3.580, 9.576, 0], [3.868, 10.452, 0]], color: ink, width: 2.0}
+              - {id: quadbadb28, line: [[3.580, 9.576, 0], [4.921, 9.351, 0]], color: ink, width: 2.0}
+              - {id: quadbadb29, line: [[3.868, 10.452, 0], [3.530, 11.900, 0]], color: ink, width: 2.0}
+              - {id: quadbadb30, line: [[3.868, 10.452, 0], [4.775, 10.396, 0]], color: ink, width: 2.0}
+              - {id: quadbadb31, line: [[4.590, 6.600, 0], [4.750, 7.990, 0]], color: ink, width: 2.0}
+              - {id: quadbadb32, line: [[4.750, 7.990, 0], [4.347, 9.072, 0]], color: ink, width: 2.0}
+              - {id: quadbadb33, line: [[4.750, 7.990, 0], [5.650, 7.660, 0]], color: ink, width: 2.0}
+              - {id: quadbadb34, line: [[4.347, 9.072, 0], [4.921, 9.351, 0]], color: ink, width: 2.0}
+              - {id: quadbadb35, line: [[4.347, 9.072, 0], [5.650, 8.720, 0]], color: ink, width: 2.0}
+              - {id: quadbadb36, line: [[4.921, 9.351, 0], [4.775, 10.396, 0]], color: ink, width: 2.0}
+              - {id: quadbadb37, line: [[4.921, 9.351, 0], [5.650, 9.780, 0]], color: ink, width: 2.0}
+              - {id: quadbadb38, line: [[4.775, 10.396, 0], [4.590, 11.900, 0]], color: ink, width: 2.0}
+              - {id: quadbadb39, line: [[4.775, 10.396, 0], [5.650, 10.840, 0]], color: ink, width: 2.0}
+              - {id: quadbads0, point: [0.350, 7.660, 0], color: fixed, size: 0.6}
+              - {id: quadbads1, point: [0.350, 8.720, 0], color: fixed, size: 0.6}
+              - {id: quadbads2, point: [0.350, 9.780, 0], color: fixed, size: 0.6}
+              - {id: quadbads3, point: [0.350, 10.840, 0], color: fixed, size: 0.6}
+              - {id: quadbads4, point: [1.410, 6.600, 0], color: fixed, size: 0.6}
+              - {id: quadbads9, point: [1.410, 11.900, 0], color: fixed, size: 0.6}
+              - {id: quadbads10, point: [2.470, 6.600, 0], color: fixed, size: 0.6}
+              - {id: quadbads15, point: [2.470, 11.900, 0], color: fixed, size: 0.6}
+              - {id: quadbads16, point: [3.530, 6.600, 0], color: fixed, size: 0.6}
+              - {id: quadbads21, point: [3.530, 11.900, 0], color: fixed, size: 0.6}
+              - {id: quadbads22, point: [4.590, 6.600, 0], color: fixed, size: 0.6}
+              - {id: quadbads27, point: [4.590, 11.900, 0], color: fixed, size: 0.6}
+              - {id: quadbads28, point: [5.650, 7.660, 0], color: fixed, size: 0.6}
+              - {id: quadbads29, point: [5.650, 8.720, 0], color: fixed, size: 0.6}
+              - {id: quadbads30, point: [5.650, 9.780, 0], color: fixed, size: 0.6}
+              - {id: quadbads31, point: [5.650, 10.840, 0], color: fixed, size: 0.6}
+              - {id: quadbadf0, line: [quadbad2, quadbad1], color: ink, width: 2.0}
+              - {id: quadbadf1, line: [quadbad4, quadbad2], color: ink, width: 2.0}
+              - {id: quadbadf2, line: [quadbad6, quadbad4], color: ink, width: 2.0}
+              - {id: quadbadf3, line: [quadbad8, quadbad6], color: ink, width: 2.0}
+              - {id: quadbadf4, line: [quadbad1, quadbad0], color: ink, width: 2.0}
+              - {id: quadbadf5, line: [quadbad2, quadbad3], color: ink, width: 2.0}
+              - {id: quadbadf6, line: [quadbad3, quadbad0], color: ink, width: 2.0}
+              - {id: quadbadf7, line: [quadbad4, quadbad5], color: ink, width: 2.0}
+              - {id: quadbadf8, line: [quadbad5, quadbad3], color: ink, width: 2.0}
+              - {id: quadbadf9, line: [quadbad6, quadbad7], color: ink, width: 2.0}
+              - {id: quadbadf10, line: [quadbad7, quadbad5], color: ink, width: 2.0}
+              - {id: quadbadf11, line: [quadbad8, quadbad9], color: ink, width: 2.0}
+              - {id: quadbadf12, line: [quadbad9, quadbad7], color: ink, width: 2.0}
+              - {id: quadbadf13, line: [quadbad0, quadbad10], color: ink, width: 2.0}
+              - {id: quadbadf14, line: [quadbad3, quadbad11], color: ink, width: 2.0}
+              - {id: quadbadf15, line: [quadbad11, quadbad10], color: ink, width: 2.0}
+              - {id: quadbadf16, line: [quadbad5, quadbad12], color: ink, width: 2.0}
+              - {id: quadbadf17, line: [quadbad12, quadbad11], color: ink, width: 2.0}
+              - {id: quadbadf18, line: [quadbad7, quadbad13], color: ink, width: 2.0}
+              - {id: quadbadf19, line: [quadbad13, quadbad12], color: ink, width: 2.0}
+              - {id: quadbadf20, line: [quadbad9, quadbad14], color: ink, width: 2.0}
+              - {id: quadbadf21, line: [quadbad14, quadbad13], color: ink, width: 2.0}
+              - {id: quadbadf22, line: [quadbad10, quadbad15], color: ink, width: 2.0}
+              - {id: quadbadf23, line: [quadbad11, quadbad16], color: ink, width: 2.0}
+              - {id: quadbadf24, line: [quadbad16, quadbad15], color: ink, width: 2.0}
+              - {id: quadbadf25, line: [quadbad12, quadbad17], color: ink, width: 2.0}
+              - {id: quadbadf26, line: [quadbad17, quadbad16], color: ink, width: 2.0}
+              - {id: quadbadf27, line: [quadbad13, quadbad18], color: ink, width: 2.0}
+              - {id: quadbadf28, line: [quadbad18, quadbad17], color: ink, width: 2.0}
+              - {id: quadbadf29, line: [quadbad14, quadbad19], color: ink, width: 2.0}
+              - {id: quadbadf30, line: [quadbad19, quadbad18], color: ink, width: 2.0}
+              - {id: quadbadf31, line: [quadbad15, quadbad20], color: ink, width: 2.0}
+              - {id: quadbadf32, line: [quadbad16, quadbad21], color: ink, width: 2.0}
+              - {id: quadbadf33, line: [quadbad21, quadbad20], color: ink, width: 2.0}
+              - {id: quadbadf34, line: [quadbad17, quadbad22], color: ink, width: 2.0}
+              - {id: quadbadf35, line: [quadbad22, quadbad21], color: ink, width: 2.0}
+              - {id: quadbadf36, line: [quadbad18, quadbad23], color: ink, width: 2.0}
+              - {id: quadbadf37, line: [quadbad23, quadbad22], color: ink, width: 2.0}
+              - {id: quadbadf38, line: [quadbad19, quadbad24], color: ink, width: 2.0}
+              - {id: quadbadf39, line: [quadbad24, quadbad23], color: ink, width: 2.0}
+          - eq: {tex: '2 \cdot 16 = 32\ \text{equations} \qquad 40\ \text{unknowns} \qquad k = 8\ \text{free states}', align: left, size: 24}
+      - say: 'But each of them has flipped sides, drawn pink: those bars would be in tension.'
+        do:
+          - move: {point: quadbad0, to: [3.355, 1.122, 0], dur: 1.6}
+          - move: {point: quadbad1, to: [0.693, 1.664, 0], dur: 1.6, with: true}
+          - move: {point: quadbad2, to: [0.593, 2.146, 0], dur: 1.6, with: true}
+          - move: {point: quadbad3, to: [2.533, 2.987, 0], dur: 1.6, with: true}
+          - move: {point: quadbad4, to: [0.560, 1.959, 0], dur: 1.6, with: true}
+          - move: {point: quadbad5, to: [2.521, 2.661, 0], dur: 1.6, with: true}
+          - move: {point: quadbad6, to: [0.989, 4.693, 0], dur: 1.6, with: true}
+          - move: {point: quadbad7, to: [1.899, 4.314, 0], dur: 1.6, with: true}
+          - move: {point: quadbad8, to: [0.813, 4.269, 0], dur: 1.6, with: true}
+          - move: {point: quadbad9, to: [1.951, 4.206, 0], dur: 1.6, with: true}
+          - move: {point: quadbad10, to: [1.551, 0.640, 0], dur: 1.6, with: true}
+          - move: {point: quadbad11, to: [2.392, 3.188, 0], dur: 1.6, with: true}
+          - move: {point: quadbad12, to: [2.313, 2.638, 0], dur: 1.6, with: true}
+          - move: {point: quadbad13, to: [2.963, 3.850, 0], dur: 1.6, with: true}
+          - move: {point: quadbad14, to: [3.767, 5.060, 0], dur: 1.6, with: true}
+          - move: {point: quadbad15, to: [5.600, 1.008, 0], dur: 1.6, with: true}
+          - move: {point: quadbad16, to: [5.324, 2.088, 0], dur: 1.6, with: true}
+          - move: {point: quadbad17, to: [4.493, 2.826, 0], dur: 1.6, with: true}
+          - move: {point: quadbad18, to: [4.576, 3.319, 0], dur: 1.6, with: true}
+          - move: {point: quadbad19, to: [4.697, 5.277, 0], dur: 1.6, with: true}
+          - move: {point: quadbad20, to: [4.562, 1.127, 0], dur: 1.6, with: true}
+          - move: {point: quadbad21, to: [4.849, 1.911, 0], dur: 1.6, with: true}
+          - move: {point: quadbad22, to: [4.881, 2.029, 0], dur: 1.6, with: true}
+          - move: {point: quadbad23, to: [4.156, 3.260, 0], dur: 1.6, with: true}
+          - move: {point: quadbad24, to: [3.225, 5.096, 0], dur: 1.6, with: true}
+          - color: {target: quadbadf1, color: pink, with: true}
+          - color: {target: quadbadf3, color: pink, with: true}
+          - color: {target: quadbadf8, color: pink, with: true}
+          - color: {target: quadbadf12, color: pink, with: true}
+          - color: {target: quadbadf13, color: pink, with: true}
+          - color: {target: quadbadf14, color: pink, with: true}
+          - color: {target: quadbadf16, color: pink, with: true}
+          - color: {target: quadbadf17, color: pink, with: true}
+          - color: {target: quadbadf31, color: pink, with: true}
+          - color: {target: quadbadf32, color: pink, with: true}
+          - color: {target: quadbadf36, color: pink, with: true}
+          - color: {target: quadbadf38, color: pink, with: true}
+          - {text: 'No compression-only diagram exists for this plan. The loop only shrinks to a point.', align: left}
+  - title: HEXAGONS
+    steps:
+      - say: 'Hexagons: three bars per node, so every polygon of $\Gamma^*$ is a triangle.'
+        do:
+          - remove: [quadbadb0, quadbadb1, quadbadb2, quadbadb3, quadbadb4, quadbadb5, quadbadb6, quadbadb7, quadbadb8, quadbadb9, quadbadb10, quadbadb11, quadbadb12, quadbadb13, quadbadb14, quadbadb15, quadbadb16, quadbadb17, quadbadb18, quadbadb19, quadbadb20, quadbadb21, quadbadb22, quadbadb23, quadbadb24, quadbadb25, quadbadb26, quadbadb27, quadbadb28, quadbadb29, quadbadb30, quadbadb31, quadbadb32, quadbadb33, quadbadb34, quadbadb35, quadbadb36, quadbadb37, quadbadb38, quadbadb39, quadbads0, quadbads1, quadbads2, quadbads3, quadbads4, quadbads9, quadbads10, quadbads15, quadbads16, quadbads21, quadbads22, quadbads27, quadbads28, quadbads29, quadbads30, quadbads31, quadbadf0, quadbadf1, quadbadf2, quadbadf3, quadbadf4, quadbadf5, quadbadf6, quadbadf7, quadbadf8, quadbadf9, quadbadf10, quadbadf11, quadbadf12, quadbadf13, quadbadf14, quadbadf15, quadbadf16, quadbadf17, quadbadf18, quadbadf19, quadbadf20, quadbadf21, quadbadf22, quadbadf23, quadbadf24, quadbadf25, quadbadf26, quadbadf27, quadbadf28, quadbadf29, quadbadf30, quadbadf31, quadbadf32, quadbadf33, quadbadf34, quadbadf35, quadbadf36, quadbadf37, quadbadf38, quadbadf39]
+          - add:
+              - {id: hexb0, line: [[1.907, 6.600, 0], [1.470, 7.357, 0]], color: ink, width: 2.0}
+              - {id: hexb1, line: [[1.470, 7.357, 0], [0.596, 7.357, 0]], color: ink, width: 2.0}
+              - {id: hexb2, line: [[1.470, 7.357, 0], [1.907, 8.114, 0]], color: ink, width: 2.0}
+              - {id: hexb3, line: [[3.219, 7.357, 0], [2.781, 8.114, 0]], color: ink, width: 2.0}
+              - {id: hexb4, line: [[3.219, 7.357, 0], [2.781, 6.600, 0]], color: ink, width: 2.0}
+              - {id: hexb5, line: [[3.219, 7.357, 0], [4.093, 7.357, 0]], color: ink, width: 2.0}
+              - {id: hexb6, line: [[2.781, 8.114, 0], [1.907, 8.114, 0]], color: ink, width: 2.0}
+              - {id: hexb7, line: [[2.781, 8.114, 0], [3.219, 8.871, 0]], color: ink, width: 2.0}
+              - {id: hexb8, line: [[1.907, 8.114, 0], [1.470, 8.871, 0]], color: ink, width: 2.0}
+              - {id: hexb9, line: [[4.530, 6.600, 0], [4.093, 7.357, 0]], color: ink, width: 2.0}
+              - {id: hexb10, line: [[4.093, 7.357, 0], [4.530, 8.114, 0]], color: ink, width: 2.0}
+              - {id: hexb11, line: [[5.404, 8.114, 0], [4.530, 8.114, 0]], color: ink, width: 2.0}
+              - {id: hexb12, line: [[4.530, 8.114, 0], [4.093, 8.871, 0]], color: ink, width: 2.0}
+              - {id: hexb13, line: [[1.470, 8.871, 0], [0.596, 8.871, 0]], color: ink, width: 2.0}
+              - {id: hexb14, line: [[1.470, 8.871, 0], [1.907, 9.629, 0]], color: ink, width: 2.0}
+              - {id: hexb15, line: [[3.219, 8.871, 0], [2.781, 9.629, 0]], color: ink, width: 2.0}
+              - {id: hexb16, line: [[3.219, 8.871, 0], [4.093, 8.871, 0]], color: ink, width: 2.0}
+              - {id: hexb17, line: [[2.781, 9.629, 0], [1.907, 9.629, 0]], color: ink, width: 2.0}
+              - {id: hexb18, line: [[2.781, 9.629, 0], [3.219, 10.386, 0]], color: ink, width: 2.0}
+              - {id: hexb19, line: [[1.907, 9.629, 0], [1.470, 10.386, 0]], color: ink, width: 2.0}
+              - {id: hexb20, line: [[4.093, 8.871, 0], [4.530, 9.629, 0]], color: ink, width: 2.0}
+              - {id: hexb21, line: [[5.404, 9.629, 0], [4.530, 9.629, 0]], color: ink, width: 2.0}
+              - {id: hexb22, line: [[4.530, 9.629, 0], [4.093, 10.386, 0]], color: ink, width: 2.0}
+              - {id: hexb23, line: [[1.470, 10.386, 0], [0.596, 10.386, 0]], color: ink, width: 2.0}
+              - {id: hexb24, line: [[1.470, 10.386, 0], [1.907, 11.143, 0]], color: ink, width: 2.0}
+              - {id: hexb25, line: [[3.219, 10.386, 0], [2.781, 11.143, 0]], color: ink, width: 2.0}
+              - {id: hexb26, line: [[3.219, 10.386, 0], [4.093, 10.386, 0]], color: ink, width: 2.0}
+              - {id: hexb27, line: [[2.781, 11.143, 0], [1.907, 11.143, 0]], color: ink, width: 2.0}
+              - {id: hexb28, line: [[2.781, 11.143, 0], [3.219, 11.900, 0]], color: ink, width: 2.0}
+              - {id: hexb29, line: [[1.907, 11.143, 0], [1.470, 11.900, 0]], color: ink, width: 2.0}
+              - {id: hexb30, line: [[4.093, 10.386, 0], [4.530, 11.143, 0]], color: ink, width: 2.0}
+              - {id: hexb31, line: [[5.404, 11.143, 0], [4.530, 11.143, 0]], color: ink, width: 2.0}
+              - {id: hexb32, line: [[4.530, 11.143, 0], [4.093, 11.900, 0]], color: ink, width: 2.0}
+              - {id: hexs0, point: [1.907, 6.600, 0], color: fixed, size: 0.6}
+              - {id: hexs2, point: [0.596, 7.357, 0], color: fixed, size: 0.6}
+              - {id: hexs6, point: [2.781, 6.600, 0], color: fixed, size: 0.6}
+              - {id: hexs7, point: [4.530, 6.600, 0], color: fixed, size: 0.6}
+              - {id: hexs9, point: [5.404, 8.114, 0], color: fixed, size: 0.6}
+              - {id: hexs12, point: [0.596, 8.871, 0], color: fixed, size: 0.6}
+              - {id: hexs17, point: [5.404, 9.629, 0], color: fixed, size: 0.6}
+              - {id: hexs20, point: [0.596, 10.386, 0], color: fixed, size: 0.6}
+              - {id: hexs25, point: [5.404, 11.143, 0], color: fixed, size: 0.6}
+              - {id: hexs27, point: [1.470, 11.900, 0], color: fixed, size: 0.6}
+              - {id: hexs28, point: [3.219, 11.900, 0], color: fixed, size: 0.6}
+              - {id: hexs29, point: [4.093, 11.900, 0], color: fixed, size: 0.6}
+              - {id: hexf0, line: [hex4, hex3], color: ink, width: 2.0}
+              - {id: hexf1, line: [hex4, hex5], color: ink, width: 2.0}
+              - {id: hexf2, line: [hex5, hex3], color: ink, width: 2.0}
+              - {id: hexf3, line: [hex3, hex10], color: ink, width: 2.0}
+              - {id: hexf4, line: [hex11, hex3], color: ink, width: 2.0}
+              - {id: hexf5, line: [hex10, hex11], color: ink, width: 2.0}
+              - {id: hexf6, line: [hex3, hex12], color: ink, width: 2.0}
+              - {id: hexf7, line: [hex12, hex10], color: ink, width: 2.0}
+              - {id: hexf8, line: [hex5, hex12], color: ink, width: 2.0}
+              - {id: hexf9, line: [hex11, hex13], color: ink, width: 2.0}
+              - {id: hexf10, line: [hex10, hex13], color: ink, width: 2.0}
+              - {id: hexf11, line: [hex13, hex14], color: ink, width: 2.0}
+              - {id: hexf12, line: [hex10, hex14], color: ink, width: 2.0}
+              - {id: hexf13, line: [hex5, hex15], color: ink, width: 2.0}
+              - {id: hexf14, line: [hex15, hex12], color: ink, width: 2.0}
+              - {id: hexf15, line: [hex12, hex7], color: ink, width: 2.0}
+              - {id: hexf16, line: [hex7, hex10], color: ink, width: 2.0}
+              - {id: hexf17, line: [hex12, hex1], color: ink, width: 2.0}
+              - {id: hexf18, line: [hex1, hex7], color: ink, width: 2.0}
+              - {id: hexf19, line: [hex15, hex1], color: ink, width: 2.0}
+              - {id: hexf20, line: [hex7, hex14], color: ink, width: 2.0}
+              - {id: hexf21, line: [hex14, hex6], color: ink, width: 2.0}
+              - {id: hexf22, line: [hex7, hex6], color: ink, width: 2.0}
+              - {id: hexf23, line: [hex15, hex8], color: ink, width: 2.0}
+              - {id: hexf24, line: [hex8, hex1], color: ink, width: 2.0}
+              - {id: hexf25, line: [hex1, hex0], color: ink, width: 2.0}
+              - {id: hexf26, line: [hex0, hex7], color: ink, width: 2.0}
+              - {id: hexf27, line: [hex1, hex2], color: ink, width: 2.0}
+              - {id: hexf28, line: [hex2, hex0], color: ink, width: 2.0}
+              - {id: hexf29, line: [hex8, hex2], color: ink, width: 2.0}
+              - {id: hexf30, line: [hex0, hex6], color: ink, width: 2.0}
+              - {id: hexf31, line: [hex6, hex9], color: ink, width: 2.0}
+              - {id: hexf32, line: [hex0, hex9], color: ink, width: 2.0}
+          - eq: {tex: '2 \cdot 18 = 36\ \text{equations} \qquad 33\ \text{unknowns} \qquad k = 1\ \text{free states}', align: left, size: 24}
+          - {text: 'More equations than unknowns, yet one state exists: this plan is regular.', align: left}
+      - say: 'One diagram, fixed up to its scale. No force can be moved elsewhere.'
+        do:
+          - move: {point: hex0, to: [3.667, 4.808, 0], dur: 1.6}
+          - move: {point: hex1, to: [2.469, 4.116, 0], dur: 1.6, with: true}
+          - move: {point: hex2, to: [2.469, 5.500, 0], dur: 1.6, with: true}
+          - move: {point: hex3, to: [2.469, 1.349, 0], dur: 1.6, with: true}
+          - move: {point: hex4, to: [1.270, 0.657, 0], dur: 1.6, with: true}
+          - move: {point: hex5, to: [1.270, 2.041, 0], dur: 1.6, with: true}
+          - move: {point: hex6, to: [4.865, 4.116, 0], dur: 1.6, with: true}
+          - move: {point: hex7, to: [3.667, 3.424, 0], dur: 1.6, with: true}
+          - move: {point: hex8, to: [1.270, 4.808, 0], dur: 1.6, with: true}
+          - move: {point: hex9, to: [4.865, 5.500, 0], dur: 1.6, with: true}
+          - move: {point: hex10, to: [3.667, 2.041, 0], dur: 1.6, with: true}
+          - move: {point: hex11, to: [3.667, 0.657, 0], dur: 1.6, with: true}
+          - move: {point: hex12, to: [2.469, 2.733, 0], dur: 1.6, with: true}
+          - move: {point: hex13, to: [4.865, 1.349, 0], dur: 1.6, with: true}
+          - move: {point: hex14, to: [4.865, 2.733, 0], dur: 1.6, with: true}
+          - move: {point: hex15, to: [1.270, 3.424, 0], dur: 1.6, with: true}
+  - title: HEXAGONS, DISTURBED
+    steps:
+      - say: 'The same hexagons with slightly moved nodes.'
+        do:
+          - remove: [hexb0, hexb1, hexb2, hexb3, hexb4, hexb5, hexb6, hexb7, hexb8, hexb9, hexb10, hexb11, hexb12, hexb13, hexb14, hexb15, hexb16, hexb17, hexb18, hexb19, hexb20, hexb21, hexb22, hexb23, hexb24, hexb25, hexb26, hexb27, hexb28, hexb29, hexb30, hexb31, hexb32, hexs0, hexs2, hexs6, hexs7, hexs9, hexs12, hexs17, hexs20, hexs25, hexs27, hexs28, hexs29, hexf0, hexf1, hexf2, hexf3, hexf4, hexf5, hexf6, hexf7, hexf8, hexf9, hexf10, hexf11, hexf12, hexf13, hexf14, hexf15, hexf16, hexf17, hexf18, hexf19, hexf20, hexf21, hexf22, hexf23, hexf24, hexf25, hexf26, hexf27, hexf28, hexf29, hexf30, hexf31, hexf32]
+          - add:
+              - {id: hexbadb0, line: [[1.907, 6.600, 0], [1.473, 7.475, 0]], color: ink, width: 2.0}
+              - {id: hexbadb1, line: [[1.473, 7.475, 0], [0.596, 7.357, 0]], color: ink, width: 2.0}
+              - {id: hexbadb2, line: [[1.473, 7.475, 0], [1.993, 8.090, 0]], color: ink, width: 2.0}
+              - {id: hexbadb3, line: [[3.125, 7.475, 0], [2.732, 8.094, 0]], color: ink, width: 2.0}
+              - {id: hexbadb4, line: [[3.125, 7.475, 0], [2.781, 6.600, 0]], color: ink, width: 2.0}
+              - {id: hexbadb5, line: [[3.125, 7.475, 0], [4.106, 7.233, 0]], color: ink, width: 2.0}
+              - {id: hexbadb6, line: [[2.732, 8.094, 0], [1.993, 8.090, 0]], color: ink, width: 2.0}
+              - {id: hexbadb7, line: [[2.732, 8.094, 0], [3.167, 8.859, 0]], color: ink, width: 2.0}
+              - {id: hexbadb8, line: [[1.993, 8.090, 0], [1.425, 8.947, 0]], color: ink, width: 2.0}
+              - {id: hexbadb9, line: [[4.530, 6.600, 0], [4.106, 7.233, 0]], color: ink, width: 2.0}
+              - {id: hexbadb10, line: [[4.106, 7.233, 0], [4.597, 8.124, 0]], color: ink, width: 2.0}
+              - {id: hexbadb11, line: [[5.404, 8.114, 0], [4.597, 8.124, 0]], color: ink, width: 2.0}
+              - {id: hexbadb12, line: [[4.597, 8.124, 0], [4.158, 8.814, 0]], color: ink, width: 2.0}
+              - {id: hexbadb13, line: [[1.425, 8.947, 0], [0.596, 8.871, 0]], color: ink, width: 2.0}
+              - {id: hexbadb14, line: [[1.425, 8.947, 0], [1.829, 9.566, 0]], color: ink, width: 2.0}
+              - {id: hexbadb15, line: [[3.167, 8.859, 0], [2.685, 9.603, 0]], color: ink, width: 2.0}
+              - {id: hexbadb16, line: [[3.167, 8.859, 0], [4.158, 8.814, 0]], color: ink, width: 2.0}
+              - {id: hexbadb17, line: [[2.685, 9.603, 0], [1.829, 9.566, 0]], color: ink, width: 2.0}
+              - {id: hexbadb18, line: [[2.685, 9.603, 0], [3.229, 10.327, 0]], color: ink, width: 2.0}
+              - {id: hexbadb19, line: [[1.829, 9.566, 0], [1.591, 10.445, 0]], color: ink, width: 2.0}
+              - {id: hexbadb20, line: [[4.158, 8.814, 0], [4.526, 9.755, 0]], color: ink, width: 2.0}
+              - {id: hexbadb21, line: [[5.404, 9.629, 0], [4.526, 9.755, 0]], color: ink, width: 2.0}
+              - {id: hexbadb22, line: [[4.526, 9.755, 0], [4.125, 10.458, 0]], color: ink, width: 2.0}
+              - {id: hexbadb23, line: [[1.591, 10.445, 0], [0.596, 10.386, 0]], color: ink, width: 2.0}
+              - {id: hexbadb24, line: [[1.591, 10.445, 0], [1.911, 11.042, 0]], color: ink, width: 2.0}
+              - {id: hexbadb25, line: [[3.229, 10.327, 0], [2.692, 11.266, 0]], color: ink, width: 2.0}
+              - {id: hexbadb26, line: [[3.229, 10.327, 0], [4.125, 10.458, 0]], color: ink, width: 2.0}
+              - {id: hexbadb27, line: [[2.692, 11.266, 0], [1.911, 11.042, 0]], color: ink, width: 2.0}
+              - {id: hexbadb28, line: [[2.692, 11.266, 0], [3.219, 11.900, 0]], color: ink, width: 2.0}
+              - {id: hexbadb29, line: [[1.911, 11.042, 0], [1.470, 11.900, 0]], color: ink, width: 2.0}
+              - {id: hexbadb30, line: [[4.125, 10.458, 0], [4.560, 11.252, 0]], color: ink, width: 2.0}
+              - {id: hexbadb31, line: [[5.404, 11.143, 0], [4.560, 11.252, 0]], color: ink, width: 2.0}
+              - {id: hexbadb32, line: [[4.560, 11.252, 0], [4.093, 11.900, 0]], color: ink, width: 2.0}
+              - {id: hexbads0, point: [1.907, 6.600, 0], color: fixed, size: 0.6}
+              - {id: hexbads2, point: [0.596, 7.357, 0], color: fixed, size: 0.6}
+              - {id: hexbads6, point: [2.781, 6.600, 0], color: fixed, size: 0.6}
+              - {id: hexbads7, point: [4.530, 6.600, 0], color: fixed, size: 0.6}
+              - {id: hexbads9, point: [5.404, 8.114, 0], color: fixed, size: 0.6}
+              - {id: hexbads12, point: [0.596, 8.871, 0], color: fixed, size: 0.6}
+              - {id: hexbads17, point: [5.404, 9.629, 0], color: fixed, size: 0.6}
+              - {id: hexbads20, point: [0.596, 10.386, 0], color: fixed, size: 0.6}
+              - {id: hexbads25, point: [5.404, 11.143, 0], color: fixed, size: 0.6}
+              - {id: hexbads27, point: [1.470, 11.900, 0], color: fixed, size: 0.6}
+              - {id: hexbads28, point: [3.219, 11.900, 0], color: fixed, size: 0.6}
+              - {id: hexbads29, point: [4.093, 11.900, 0], color: fixed, size: 0.6}
+              - {id: hexbadf0, line: [hexbad4, hexbad3], color: ink, width: 2.0}
+              - {id: hexbadf1, line: [hexbad4, hexbad5], color: ink, width: 2.0}
+              - {id: hexbadf2, line: [hexbad5, hexbad3], color: ink, width: 2.0}
+              - {id: hexbadf3, line: [hexbad3, hexbad10], color: ink, width: 2.0}
+              - {id: hexbadf4, line: [hexbad11, hexbad3], color: ink, width: 2.0}
+              - {id: hexbadf5, line: [hexbad10, hexbad11], color: ink, width: 2.0}
+              - {id: hexbadf6, line: [hexbad3, hexbad12], color: ink, width: 2.0}
+              - {id: hexbadf7, line: [hexbad12, hexbad10], color: ink, width: 2.0}
+              - {id: hexbadf8, line: [hexbad5, hexbad12], color: ink, width: 2.0}
+              - {id: hexbadf9, line: [hexbad11, hexbad13], color: ink, width: 2.0}
+              - {id: hexbadf10, line: [hexbad10, hexbad13], color: ink, width: 2.0}
+              - {id: hexbadf11, line: [hexbad13, hexbad14], color: ink, width: 2.0}
+              - {id: hexbadf12, line: [hexbad10, hexbad14], color: ink, width: 2.0}
+              - {id: hexbadf13, line: [hexbad5, hexbad15], color: ink, width: 2.0}
+              - {id: hexbadf14, line: [hexbad15, hexbad12], color: ink, width: 2.0}
+              - {id: hexbadf15, line: [hexbad12, hexbad7], color: ink, width: 2.0}
+              - {id: hexbadf16, line: [hexbad7, hexbad10], color: ink, width: 2.0}
+              - {id: hexbadf17, line: [hexbad12, hexbad1], color: ink, width: 2.0}
+              - {id: hexbadf18, line: [hexbad1, hexbad7], color: ink, width: 2.0}
+              - {id: hexbadf19, line: [hexbad15, hexbad1], color: ink, width: 2.0}
+              - {id: hexbadf20, line: [hexbad7, hexbad14], color: ink, width: 2.0}
+              - {id: hexbadf21, line: [hexbad14, hexbad6], color: ink, width: 2.0}
+              - {id: hexbadf22, line: [hexbad7, hexbad6], color: ink, width: 2.0}
+              - {id: hexbadf23, line: [hexbad15, hexbad8], color: ink, width: 2.0}
+              - {id: hexbadf24, line: [hexbad8, hexbad1], color: ink, width: 2.0}
+              - {id: hexbadf25, line: [hexbad1, hexbad0], color: ink, width: 2.0}
+              - {id: hexbadf26, line: [hexbad0, hexbad7], color: ink, width: 2.0}
+              - {id: hexbadf27, line: [hexbad1, hexbad2], color: ink, width: 2.0}
+              - {id: hexbadf28, line: [hexbad2, hexbad0], color: ink, width: 2.0}
+              - {id: hexbadf29, line: [hexbad8, hexbad2], color: ink, width: 2.0}
+              - {id: hexbadf30, line: [hexbad0, hexbad6], color: ink, width: 2.0}
+              - {id: hexbadf31, line: [hexbad6, hexbad9], color: ink, width: 2.0}
+              - {id: hexbadf32, line: [hexbad0, hexbad9], color: ink, width: 2.0}
+          - eq: {tex: '2 \cdot 18 = 36\ \text{equations} \qquad 33\ \text{unknowns} \qquad k = 0\ \text{free states}', align: left, size: 24}
+          - {text: '$k = 0$: no parallel diagram exists at all.', align: left}
+      - say: 'The loop stalls at $5.3^\circ$. Pink sides miss by more than $1^\circ$.'
+        do:
+          - move: {point: hexbad0, to: [3.704, 5.123, 0], dur: 1.6}
+          - move: {point: hexbad1, to: [2.242, 4.234, 0], dur: 1.6, with: true}
+          - move: {point: hexbad2, to: [2.242, 5.500, 0], dur: 1.6, with: true}
+          - move: {point: hexbad3, to: [2.256, 0.953, 0], dur: 1.6, with: true}
+          - move: {point: hexbad4, to: [1.146, 0.684, 0], dur: 1.6, with: true}
+          - move: {point: hexbad5, to: [1.026, 1.787, 0], dur: 1.6, with: true}
+          - move: {point: hexbad6, to: [4.968, 4.314, 0], dur: 1.6, with: true}
+          - move: {point: hexbad7, to: [3.699, 3.422, 0], dur: 1.6, with: true}
+          - move: {point: hexbad8, to: [1.219, 4.858, 0], dur: 1.6, with: true}
+          - move: {point: hexbad9, to: [4.838, 5.395, 0], dur: 1.6, with: true}
+          - move: {point: hexbad10, to: [3.698, 1.734, 0], dur: 1.6, with: true}
+          - move: {point: hexbad11, to: [3.685, 0.500, 0], dur: 1.6, with: true}
+          - move: {point: hexbad12, to: [2.223, 2.569, 0], dur: 1.6, with: true}
+          - move: {point: hexbad13, to: [4.809, 1.094, 0], dur: 1.6, with: true}
+          - move: {point: hexbad14, to: [4.984, 2.599, 0], dur: 1.6, with: true}
+          - move: {point: hexbad15, to: [1.016, 3.430, 0], dur: 1.6, with: true}
+          - color: {target: hexbadf2, color: pink, with: true}
+          - color: {target: hexbadf3, color: pink, with: true}
+          - color: {target: hexbadf4, color: pink, with: true}
+          - color: {target: hexbadf5, color: pink, with: true}
+          - color: {target: hexbadf6, color: pink, with: true}
+          - color: {target: hexbadf8, color: pink, with: true}
+          - color: {target: hexbadf9, color: pink, with: true}
+          - color: {target: hexbadf10, color: pink, with: true}
+          - color: {target: hexbadf11, color: pink, with: true}
+          - color: {target: hexbadf12, color: pink, with: true}
+          - color: {target: hexbadf13, color: pink, with: true}
+          - color: {target: hexbadf14, color: pink, with: true}
+          - color: {target: hexbadf15, color: pink, with: true}
+          - color: {target: hexbadf16, color: pink, with: true}
+          - color: {target: hexbadf17, color: pink, with: true}
+          - color: {target: hexbadf19, color: pink, with: true}
+          - color: {target: hexbadf20, color: pink, with: true}
+          - color: {target: hexbadf21, color: pink, with: true}
+          - color: {target: hexbadf22, color: pink, with: true}
+          - color: {target: hexbadf23, color: pink, with: true}
+          - color: {target: hexbadf24, color: pink, with: true}
+          - color: {target: hexbadf27, color: pink, with: true}
+          - color: {target: hexbadf28, color: pink, with: true}
+          - color: {target: hexbadf29, color: pink, with: true}
+          - {text: 'Here the plan has to move: alpha below 100, or a new drawing.', align: left}
+  - title: DOME PLAN
+    steps:
+      - say: 'A dome plan of hoops and meridians: eight bars meet at the centre.'
+        do:
+          - remove: [hexbadb0, hexbadb1, hexbadb2, hexbadb3, hexbadb4, hexbadb5, hexbadb6, hexbadb7, hexbadb8, hexbadb9, hexbadb10, hexbadb11, hexbadb12, hexbadb13, hexbadb14, hexbadb15, hexbadb16, hexbadb17, hexbadb18, hexbadb19, hexbadb20, hexbadb21, hexbadb22, hexbadb23, hexbadb24, hexbadb25, hexbadb26, hexbadb27, hexbadb28, hexbadb29, hexbadb30, hexbadb31, hexbadb32, hexbads0, hexbads2, hexbads6, hexbads7, hexbads9, hexbads12, hexbads17, hexbads20, hexbads25, hexbads27, hexbads28, hexbads29, hexbadf0, hexbadf1, hexbadf2, hexbadf3, hexbadf4, hexbadf5, hexbadf6, hexbadf7, hexbadf8, hexbadf9, hexbadf10, hexbadf11, hexbadf12, hexbadf13, hexbadf14, hexbadf15, hexbadf16, hexbadf17, hexbadf18, hexbadf19, hexbadf20, hexbadf21, hexbadf22, hexbadf23, hexbadf24, hexbadf25, hexbadf26, hexbadf27, hexbadf28, hexbadf29, hexbadf30, hexbadf31, hexbadf32]
+          - add:
+              - {id: domeb0, line: [[3.000, 9.250, 0], [3.883, 9.250, 0]], color: ink, width: 2.0}
+              - {id: domeb1, line: [[3.000, 9.250, 0], [3.625, 9.875, 0]], color: ink, width: 2.0}
+              - {id: domeb2, line: [[3.000, 9.250, 0], [3.000, 10.133, 0]], color: ink, width: 2.0}
+              - {id: domeb3, line: [[3.000, 9.250, 0], [2.375, 9.875, 0]], color: ink, width: 2.0}
+              - {id: domeb4, line: [[3.000, 9.250, 0], [2.117, 9.250, 0]], color: ink, width: 2.0}
+              - {id: domeb5, line: [[3.000, 9.250, 0], [2.375, 8.625, 0]], color: ink, width: 2.0}
+              - {id: domeb6, line: [[3.000, 9.250, 0], [3.000, 8.367, 0]], color: ink, width: 2.0}
+              - {id: domeb7, line: [[3.000, 9.250, 0], [3.625, 8.625, 0]], color: ink, width: 2.0}
+              - {id: domeb8, line: [[3.883, 9.250, 0], [3.625, 9.875, 0]], color: ink, width: 2.0}
+              - {id: domeb9, line: [[3.883, 9.250, 0], [3.625, 8.625, 0]], color: ink, width: 2.0}
+              - {id: domeb10, line: [[3.883, 9.250, 0], [4.767, 9.250, 0]], color: ink, width: 2.0}
+              - {id: domeb11, line: [[3.625, 9.875, 0], [3.000, 10.133, 0]], color: ink, width: 2.0}
+              - {id: domeb12, line: [[3.625, 9.875, 0], [4.249, 10.499, 0]], color: ink, width: 2.0}
+              - {id: domeb13, line: [[3.000, 10.133, 0], [2.375, 9.875, 0]], color: ink, width: 2.0}
+              - {id: domeb14, line: [[3.000, 10.133, 0], [3.000, 11.017, 0]], color: ink, width: 2.0}
+              - {id: domeb15, line: [[2.375, 9.875, 0], [2.117, 9.250, 0]], color: ink, width: 2.0}
+              - {id: domeb16, line: [[2.375, 9.875, 0], [1.751, 10.499, 0]], color: ink, width: 2.0}
+              - {id: domeb17, line: [[2.117, 9.250, 0], [2.375, 8.625, 0]], color: ink, width: 2.0}
+              - {id: domeb18, line: [[2.117, 9.250, 0], [1.233, 9.250, 0]], color: ink, width: 2.0}
+              - {id: domeb19, line: [[2.375, 8.625, 0], [3.000, 8.367, 0]], color: ink, width: 2.0}
+              - {id: domeb20, line: [[2.375, 8.625, 0], [1.751, 8.001, 0]], color: ink, width: 2.0}
+              - {id: domeb21, line: [[3.000, 8.367, 0], [3.625, 8.625, 0]], color: ink, width: 2.0}
+              - {id: domeb22, line: [[3.000, 8.367, 0], [3.000, 7.483, 0]], color: ink, width: 2.0}
+              - {id: domeb23, line: [[3.625, 8.625, 0], [4.249, 8.001, 0]], color: ink, width: 2.0}
+              - {id: domeb24, line: [[4.767, 9.250, 0], [4.249, 10.499, 0]], color: ink, width: 2.0}
+              - {id: domeb25, line: [[4.767, 9.250, 0], [4.249, 8.001, 0]], color: ink, width: 2.0}
+              - {id: domeb26, line: [[4.767, 9.250, 0], [5.650, 9.250, 0]], color: ink, width: 2.0}
+              - {id: domeb27, line: [[4.249, 10.499, 0], [3.000, 11.017, 0]], color: ink, width: 2.0}
+              - {id: domeb28, line: [[4.249, 10.499, 0], [4.874, 11.124, 0]], color: ink, width: 2.0}
+              - {id: domeb29, line: [[3.000, 11.017, 0], [1.751, 10.499, 0]], color: ink, width: 2.0}
+              - {id: domeb30, line: [[3.000, 11.017, 0], [3.000, 11.900, 0]], color: ink, width: 2.0}
+              - {id: domeb31, line: [[1.751, 10.499, 0], [1.233, 9.250, 0]], color: ink, width: 2.0}
+              - {id: domeb32, line: [[1.751, 10.499, 0], [1.126, 11.124, 0]], color: ink, width: 2.0}
+              - {id: domeb33, line: [[1.233, 9.250, 0], [1.751, 8.001, 0]], color: ink, width: 2.0}
+              - {id: domeb34, line: [[1.233, 9.250, 0], [0.350, 9.250, 0]], color: ink, width: 2.0}
+              - {id: domeb35, line: [[1.751, 8.001, 0], [3.000, 7.483, 0]], color: ink, width: 2.0}
+              - {id: domeb36, line: [[1.751, 8.001, 0], [1.126, 7.376, 0]], color: ink, width: 2.0}
+              - {id: domeb37, line: [[3.000, 7.483, 0], [4.249, 8.001, 0]], color: ink, width: 2.0}
+              - {id: domeb38, line: [[3.000, 7.483, 0], [3.000, 6.600, 0]], color: ink, width: 2.0}
+              - {id: domeb39, line: [[4.249, 8.001, 0], [4.874, 7.376, 0]], color: ink, width: 2.0}
+              - {id: domes17, point: [5.650, 9.250, 0], color: fixed, size: 0.6}
+              - {id: domes18, point: [4.874, 11.124, 0], color: fixed, size: 0.6}
+              - {id: domes19, point: [3.000, 11.900, 0], color: fixed, size: 0.6}
+              - {id: domes20, point: [1.126, 11.124, 0], color: fixed, size: 0.6}
+              - {id: domes21, point: [0.350, 9.250, 0], color: fixed, size: 0.6}
+              - {id: domes22, point: [1.126, 7.376, 0], color: fixed, size: 0.6}
+              - {id: domes23, point: [3.000, 6.600, 0], color: fixed, size: 0.6}
+              - {id: domes24, point: [4.874, 7.376, 0], color: fixed, size: 0.6}
+              - {id: domef0, line: [dome0, dome1], color: ink, width: 2.0}
+              - {id: domef1, line: [dome7, dome0], color: ink, width: 2.0}
+              - {id: domef2, line: [dome6, dome7], color: ink, width: 2.0}
+              - {id: domef3, line: [dome5, dome6], color: ink, width: 2.0}
+              - {id: domef4, line: [dome4, dome5], color: ink, width: 2.0}
+              - {id: domef5, line: [dome3, dome4], color: ink, width: 2.0}
+              - {id: domef6, line: [dome2, dome3], color: ink, width: 2.0}
+              - {id: domef7, line: [dome1, dome2], color: ink, width: 2.0}
+              - {id: domef8, line: [dome0, dome8], color: ink, width: 2.0}
+              - {id: domef9, line: [dome9, dome1], color: ink, width: 2.0}
+              - {id: domef10, line: [dome8, dome9], color: ink, width: 2.0}
+              - {id: domef11, line: [dome7, dome10], color: ink, width: 2.0}
+              - {id: domef12, line: [dome10, dome8], color: ink, width: 2.0}
+              - {id: domef13, line: [dome6, dome11], color: ink, width: 2.0}
+              - {id: domef14, line: [dome11, dome10], color: ink, width: 2.0}
+              - {id: domef15, line: [dome5, dome12], color: ink, width: 2.0}
+              - {id: domef16, line: [dome12, dome11], color: ink, width: 2.0}
+              - {id: domef17, line: [dome4, dome13], color: ink, width: 2.0}
+              - {id: domef18, line: [dome13, dome12], color: ink, width: 2.0}
+              - {id: domef19, line: [dome3, dome14], color: ink, width: 2.0}
+              - {id: domef20, line: [dome14, dome13], color: ink, width: 2.0}
+              - {id: domef21, line: [dome2, dome15], color: ink, width: 2.0}
+              - {id: domef22, line: [dome15, dome14], color: ink, width: 2.0}
+              - {id: domef23, line: [dome9, dome15], color: ink, width: 2.0}
+              - {id: domef24, line: [dome8, dome16], color: ink, width: 2.0}
+              - {id: domef25, line: [dome17, dome9], color: ink, width: 2.0}
+              - {id: domef26, line: [dome16, dome17], color: ink, width: 2.0}
+              - {id: domef27, line: [dome10, dome18], color: ink, width: 2.0}
+              - {id: domef28, line: [dome18, dome16], color: ink, width: 2.0}
+              - {id: domef29, line: [dome11, dome19], color: ink, width: 2.0}
+              - {id: domef30, line: [dome19, dome18], color: ink, width: 2.0}
+              - {id: domef31, line: [dome12, dome20], color: ink, width: 2.0}
+              - {id: domef32, line: [dome20, dome19], color: ink, width: 2.0}
+              - {id: domef33, line: [dome13, dome21], color: ink, width: 2.0}
+              - {id: domef34, line: [dome21, dome20], color: ink, width: 2.0}
+              - {id: domef35, line: [dome14, dome22], color: ink, width: 2.0}
+              - {id: domef36, line: [dome22, dome21], color: ink, width: 2.0}
+              - {id: domef37, line: [dome15, dome23], color: ink, width: 2.0}
+              - {id: domef38, line: [dome23, dome22], color: ink, width: 2.0}
+              - {id: domef39, line: [dome17, dome23], color: ink, width: 2.0}
+          - eq: {tex: '2 \cdot 17 = 34\ \text{equations} \qquad 40\ \text{unknowns} \qquad k = 8\ \text{free states}', align: left, size: 24}
+          - {text: 'By symmetry the first guess is already parallel.', align: left}
+  - title: OPEN EDGE, STRAIGHT
+    steps:
+      - say: 'An open edge: the bottom row has no supports, and its bars lie on one line.'
+        do:
+          - remove: [domeb0, domeb1, domeb2, domeb3, domeb4, domeb5, domeb6, domeb7, domeb8, domeb9, domeb10, domeb11, domeb12, domeb13, domeb14, domeb15, domeb16, domeb17, domeb18, domeb19, domeb20, domeb21, domeb22, domeb23, domeb24, domeb25, domeb26, domeb27, domeb28, domeb29, domeb30, domeb31, domeb32, domeb33, domeb34, domeb35, domeb36, domeb37, domeb38, domeb39, domes17, domes18, domes19, domes20, domes21, domes22, domes23, domes24, domef0, domef1, domef2, domef3, domef4, domef5, domef6, domef7, domef8, domef9, domef10, domef11, domef12, domef13, domef14, domef15, domef16, domef17, domef18, domef19, domef20, domef21, domef22, domef23, domef24, domef25, domef26, domef27, domef28, domef29, domef30, domef31, domef32, domef33, domef34, domef35, domef36, domef37, domef38, domef39]
+          - add:
+              - {id: openb0, line: [[0.350, 6.600, 0], [1.410, 6.600, 0]], color: ink, width: 2.0}
+              - {id: openb1, line: [[0.350, 7.660, 0], [1.410, 7.660, 0]], color: ink, width: 2.0}
+              - {id: openb2, line: [[0.350, 8.720, 0], [1.410, 8.720, 0]], color: ink, width: 2.0}
+              - {id: openb3, line: [[0.350, 9.780, 0], [1.410, 9.780, 0]], color: ink, width: 2.0}
+              - {id: openb4, line: [[0.350, 10.840, 0], [1.410, 10.840, 0]], color: ink, width: 2.0}
+              - {id: openb5, line: [[1.410, 6.600, 0], [1.410, 7.660, 0]], color: ink, width: 2.0}
+              - {id: openb6, line: [[1.410, 6.600, 0], [2.470, 6.600, 0]], color: ink, width: 2.0}
+              - {id: openb7, line: [[1.410, 7.660, 0], [1.410, 8.720, 0]], color: ink, width: 2.0}
+              - {id: openb8, line: [[1.410, 7.660, 0], [2.470, 7.660, 0]], color: ink, width: 2.0}
+              - {id: openb9, line: [[1.410, 8.720, 0], [1.410, 9.780, 0]], color: ink, width: 2.0}
+              - {id: openb10, line: [[1.410, 8.720, 0], [2.470, 8.720, 0]], color: ink, width: 2.0}
+              - {id: openb11, line: [[1.410, 9.780, 0], [1.410, 10.840, 0]], color: ink, width: 2.0}
+              - {id: openb12, line: [[1.410, 9.780, 0], [2.470, 9.780, 0]], color: ink, width: 2.0}
+              - {id: openb13, line: [[1.410, 10.840, 0], [1.410, 11.900, 0]], color: ink, width: 2.0}
+              - {id: openb14, line: [[1.410, 10.840, 0], [2.470, 10.840, 0]], color: ink, width: 2.0}
+              - {id: openb15, line: [[2.470, 6.600, 0], [2.470, 7.660, 0]], color: ink, width: 2.0}
+              - {id: openb16, line: [[2.470, 6.600, 0], [3.530, 6.600, 0]], color: ink, width: 2.0}
+              - {id: openb17, line: [[2.470, 7.660, 0], [2.470, 8.720, 0]], color: ink, width: 2.0}
+              - {id: openb18, line: [[2.470, 7.660, 0], [3.530, 7.660, 0]], color: ink, width: 2.0}
+              - {id: openb19, line: [[2.470, 8.720, 0], [2.470, 9.780, 0]], color: ink, width: 2.0}
+              - {id: openb20, line: [[2.470, 8.720, 0], [3.530, 8.720, 0]], color: ink, width: 2.0}
+              - {id: openb21, line: [[2.470, 9.780, 0], [2.470, 10.840, 0]], color: ink, width: 2.0}
+              - {id: openb22, line: [[2.470, 9.780, 0], [3.530, 9.780, 0]], color: ink, width: 2.0}
+              - {id: openb23, line: [[2.470, 10.840, 0], [2.470, 11.900, 0]], color: ink, width: 2.0}
+              - {id: openb24, line: [[2.470, 10.840, 0], [3.530, 10.840, 0]], color: ink, width: 2.0}
+              - {id: openb25, line: [[3.530, 6.600, 0], [3.530, 7.660, 0]], color: ink, width: 2.0}
+              - {id: openb26, line: [[3.530, 6.600, 0], [4.590, 6.600, 0]], color: ink, width: 2.0}
+              - {id: openb27, line: [[3.530, 7.660, 0], [3.530, 8.720, 0]], color: ink, width: 2.0}
+              - {id: openb28, line: [[3.530, 7.660, 0], [4.590, 7.660, 0]], color: ink, width: 2.0}
+              - {id: openb29, line: [[3.530, 8.720, 0], [3.530, 9.780, 0]], color: ink, width: 2.0}
+              - {id: openb30, line: [[3.530, 8.720, 0], [4.590, 8.720, 0]], color: ink, width: 2.0}
+              - {id: openb31, line: [[3.530, 9.780, 0], [3.530, 10.840, 0]], color: ink, width: 2.0}
+              - {id: openb32, line: [[3.530, 9.780, 0], [4.590, 9.780, 0]], color: ink, width: 2.0}
+              - {id: openb33, line: [[3.530, 10.840, 0], [3.530, 11.900, 0]], color: ink, width: 2.0}
+              - {id: openb34, line: [[3.530, 10.840, 0], [4.590, 10.840, 0]], color: ink, width: 2.0}
+              - {id: openb35, line: [[4.590, 6.600, 0], [4.590, 7.660, 0]], color: ink, width: 2.0}
+              - {id: openb36, line: [[4.590, 6.600, 0], [5.650, 6.600, 0]], color: ink, width: 2.0}
+              - {id: openb37, line: [[4.590, 7.660, 0], [4.590, 8.720, 0]], color: ink, width: 2.0}
+              - {id: openb38, line: [[4.590, 7.660, 0], [5.650, 7.660, 0]], color: ink, width: 2.0}
+              - {id: openb39, line: [[4.590, 8.720, 0], [4.590, 9.780, 0]], color: ink, width: 2.0}
+              - {id: openb40, line: [[4.590, 8.720, 0], [5.650, 8.720, 0]], color: ink, width: 2.0}
+              - {id: openb41, line: [[4.590, 9.780, 0], [4.590, 10.840, 0]], color: ink, width: 2.0}
+              - {id: openb42, line: [[4.590, 9.780, 0], [5.650, 9.780, 0]], color: ink, width: 2.0}
+              - {id: openb43, line: [[4.590, 10.840, 0], [4.590, 11.900, 0]], color: ink, width: 2.0}
+              - {id: openb44, line: [[4.590, 10.840, 0], [5.650, 10.840, 0]], color: ink, width: 2.0}
+              - {id: opens0, point: [0.350, 6.600, 0], color: fixed, size: 0.6}
+              - {id: opens1, point: [0.350, 7.660, 0], color: fixed, size: 0.6}
+              - {id: opens2, point: [0.350, 8.720, 0], color: fixed, size: 0.6}
+              - {id: opens3, point: [0.350, 9.780, 0], color: fixed, size: 0.6}
+              - {id: opens4, point: [0.350, 10.840, 0], color: fixed, size: 0.6}
+              - {id: opens10, point: [1.410, 11.900, 0], color: fixed, size: 0.6}
+              - {id: opens16, point: [2.470, 11.900, 0], color: fixed, size: 0.6}
+              - {id: opens22, point: [3.530, 11.900, 0], color: fixed, size: 0.6}
+              - {id: opens28, point: [4.590, 11.900, 0], color: fixed, size: 0.6}
+              - {id: opens29, point: [5.650, 6.600, 0], color: fixed, size: 0.6}
+              - {id: opens30, point: [5.650, 7.660, 0], color: fixed, size: 0.6}
+              - {id: opens31, point: [5.650, 8.720, 0], color: fixed, size: 0.6}
+              - {id: opens32, point: [5.650, 9.780, 0], color: fixed, size: 0.6}
+              - {id: opens33, point: [5.650, 10.840, 0], color: fixed, size: 0.6}
+              - {id: openf0, line: [open1, open0], color: ink, width: 2.0}
+              - {id: openf1, line: [open3, open1], color: ink, width: 2.0}
+              - {id: openf2, line: [open5, open3], color: ink, width: 2.0}
+              - {id: openf3, line: [open7, open5], color: ink, width: 2.0}
+              - {id: openf4, line: [open9, open7], color: ink, width: 2.0}
+              - {id: openf5, line: [open1, open2], color: ink, width: 2.0}
+              - {id: openf6, line: [open2, open0], color: ink, width: 2.0}
+              - {id: openf7, line: [open3, open4], color: ink, width: 2.0}
+              - {id: openf8, line: [open4, open2], color: ink, width: 2.0}
+              - {id: openf9, line: [open5, open6], color: ink, width: 2.0}
+              - {id: openf10, line: [open6, open4], color: ink, width: 2.0}
+              - {id: openf11, line: [open7, open8], color: ink, width: 2.0}
+              - {id: openf12, line: [open8, open6], color: ink, width: 2.0}
+              - {id: openf13, line: [open9, open10], color: ink, width: 2.0}
+              - {id: openf14, line: [open10, open8], color: ink, width: 2.0}
+              - {id: openf15, line: [open2, open11], color: ink, width: 2.0}
+              - {id: openf16, line: [open11, open0], color: ink, width: 2.0}
+              - {id: openf17, line: [open4, open12], color: ink, width: 2.0}
+              - {id: openf18, line: [open12, open11], color: ink, width: 2.0}
+              - {id: openf19, line: [open6, open13], color: ink, width: 2.0}
+              - {id: openf20, line: [open13, open12], color: ink, width: 2.0}
+              - {id: openf21, line: [open8, open14], color: ink, width: 2.0}
+              - {id: openf22, line: [open14, open13], color: ink, width: 2.0}
+              - {id: openf23, line: [open10, open15], color: ink, width: 2.0}
+              - {id: openf24, line: [open15, open14], color: ink, width: 2.0}
+              - {id: openf25, line: [open11, open16], color: ink, width: 2.0}
+              - {id: openf26, line: [open16, open0], color: ink, width: 2.0}
+              - {id: openf27, line: [open12, open17], color: ink, width: 2.0}
+              - {id: openf28, line: [open17, open16], color: ink, width: 2.0}
+              - {id: openf29, line: [open13, open18], color: ink, width: 2.0}
+              - {id: openf30, line: [open18, open17], color: ink, width: 2.0}
+              - {id: openf31, line: [open14, open19], color: ink, width: 2.0}
+              - {id: openf32, line: [open19, open18], color: ink, width: 2.0}
+              - {id: openf33, line: [open15, open20], color: ink, width: 2.0}
+              - {id: openf34, line: [open20, open19], color: ink, width: 2.0}
+              - {id: openf35, line: [open16, open21], color: ink, width: 2.0}
+              - {id: openf36, line: [open21, open0], color: ink, width: 2.0}
+              - {id: openf37, line: [open17, open22], color: ink, width: 2.0}
+              - {id: openf38, line: [open22, open21], color: ink, width: 2.0}
+              - {id: openf39, line: [open18, open23], color: ink, width: 2.0}
+              - {id: openf40, line: [open23, open22], color: ink, width: 2.0}
+              - {id: openf41, line: [open19, open24], color: ink, width: 2.0}
+              - {id: openf42, line: [open24, open23], color: ink, width: 2.0}
+              - {id: openf43, line: [open20, open25], color: ink, width: 2.0}
+              - {id: openf44, line: [open25, open24], color: ink, width: 2.0}
+          - eq: {tex: '2 \cdot 20 = 40\ \text{equations} \qquad 45\ \text{unknowns} \qquad k = 5\ \text{free states}', align: left, size: 24}
+      - say: 'No compression-only diagram exists. A straight edge cannot turn the thrust that arrives at it.'
+        do:
+          - move: {point: open0, to: [3.000, 0.500, 0], dur: 1.6}
+          - move: {point: open1, to: [3.000, 1.056, 0], dur: 1.6, with: true}
+          - move: {point: open2, to: [3.000, 1.056, 0], dur: 1.6, with: true}
+          - move: {point: open3, to: [3.000, 2.167, 0], dur: 1.6, with: true}
+          - move: {point: open4, to: [3.000, 2.167, 0], dur: 1.6, with: true}
+          - move: {point: open5, to: [3.000, 3.278, 0], dur: 1.6, with: true}
+          - move: {point: open6, to: [3.000, 3.278, 0], dur: 1.6, with: true}
+          - move: {point: open7, to: [3.000, 4.389, 0], dur: 1.6, with: true}
+          - move: {point: open8, to: [3.000, 4.389, 0], dur: 1.6, with: true}
+          - move: {point: open9, to: [3.000, 5.426, 0], dur: 1.6, with: true}
+          - move: {point: open10, to: [3.000, 5.426, 0], dur: 1.6, with: true}
+          - move: {point: open11, to: [3.000, 1.056, 0], dur: 1.6, with: true}
+          - move: {point: open12, to: [3.000, 2.167, 0], dur: 1.6, with: true}
+          - move: {point: open13, to: [3.000, 3.278, 0], dur: 1.6, with: true}
+          - move: {point: open14, to: [3.000, 4.389, 0], dur: 1.6, with: true}
+          - move: {point: open15, to: [3.000, 5.426, 0], dur: 1.6, with: true}
+          - move: {point: open16, to: [3.000, 1.056, 0], dur: 1.6, with: true}
+          - move: {point: open17, to: [3.000, 2.167, 0], dur: 1.6, with: true}
+          - move: {point: open18, to: [3.000, 3.278, 0], dur: 1.6, with: true}
+          - move: {point: open19, to: [3.000, 4.389, 0], dur: 1.6, with: true}
+          - move: {point: open20, to: [3.000, 5.426, 0], dur: 1.6, with: true}
+          - move: {point: open21, to: [3.000, 1.056, 0], dur: 1.6, with: true}
+          - move: {point: open22, to: [3.000, 2.167, 0], dur: 1.6, with: true}
+          - move: {point: open23, to: [3.000, 3.278, 0], dur: 1.6, with: true}
+          - move: {point: open24, to: [3.000, 4.389, 0], dur: 1.6, with: true}
+          - move: {point: open25, to: [3.000, 5.426, 0], dur: 1.6, with: true}
+          - color: {target: openf5, color: pink, with: true}
+          - color: {target: openf7, color: pink, with: true}
+          - color: {target: openf9, color: pink, with: true}
+          - color: {target: openf11, color: pink, with: true}
+          - color: {target: openf13, color: pink, with: true}
+          - color: {target: openf15, color: pink, with: true}
+          - color: {target: openf17, color: pink, with: true}
+          - color: {target: openf19, color: pink, with: true}
+          - color: {target: openf21, color: pink, with: true}
+          - color: {target: openf23, color: pink, with: true}
+          - color: {target: openf25, color: pink, with: true}
+          - color: {target: openf27, color: pink, with: true}
+          - color: {target: openf29, color: pink, with: true}
+          - color: {target: openf31, color: pink, with: true}
+          - color: {target: openf33, color: pink, with: true}
+          - color: {target: openf35, color: pink, with: true}
+          - color: {target: openf37, color: pink, with: true}
+          - color: {target: openf39, color: pink, with: true}
+          - color: {target: openf41, color: pink, with: true}
+          - color: {target: openf43, color: pink, with: true}
+          - {text: 'Pink sides are flipped: tension.', align: left}
+  - title: OPEN EDGE, ARCHED
+    steps:
+      - say: 'Bend the open edge inwards: it becomes an edge arch.'
+        do:
+          - remove: [openb0, openb1, openb2, openb3, openb4, openb5, openb6, openb7, openb8, openb9, openb10, openb11, openb12, openb13, openb14, openb15, openb16, openb17, openb18, openb19, openb20, openb21, openb22, openb23, openb24, openb25, openb26, openb27, openb28, openb29, openb30, openb31, openb32, openb33, openb34, openb35, openb36, openb37, openb38, openb39, openb40, openb41, openb42, openb43, openb44, opens0, opens1, opens2, opens3, opens4, opens10, opens16, opens22, opens28, opens29, opens30, opens31, opens32, opens33, openf0, openf1, openf2, openf3, openf4, openf5, openf6, openf7, openf8, openf9, openf10, openf11, openf12, openf13, openf14, openf15, openf16, openf17, openf18, openf19, openf20, openf21, openf22, openf23, openf24, openf25, openf26, openf27, openf28, openf29, openf30, openf31, openf32, openf33, openf34, openf35, openf36, openf37, openf38, openf39, openf40, openf41, openf42, openf43, openf44]
+          - add:
+              - {id: archb0, line: [[0.350, 6.600, 0], [1.410, 6.943, 0]], color: ink, width: 2.0}
+              - {id: archb1, line: [[0.350, 7.660, 0], [1.410, 7.660, 0]], color: ink, width: 2.0}
+              - {id: archb2, line: [[0.350, 8.720, 0], [1.410, 8.720, 0]], color: ink, width: 2.0}
+              - {id: archb3, line: [[0.350, 9.780, 0], [1.410, 9.780, 0]], color: ink, width: 2.0}
+              - {id: archb4, line: [[0.350, 10.840, 0], [1.410, 10.840, 0]], color: ink, width: 2.0}
+              - {id: archb5, line: [[1.410, 6.943, 0], [1.410, 7.660, 0]], color: ink, width: 2.0}
+              - {id: archb6, line: [[1.410, 6.943, 0], [2.470, 7.154, 0]], color: ink, width: 2.0}
+              - {id: archb7, line: [[1.410, 7.660, 0], [1.410, 8.720, 0]], color: ink, width: 2.0}
+              - {id: archb8, line: [[1.410, 7.660, 0], [2.470, 7.660, 0]], color: ink, width: 2.0}
+              - {id: archb9, line: [[1.410, 8.720, 0], [1.410, 9.780, 0]], color: ink, width: 2.0}
+              - {id: archb10, line: [[1.410, 8.720, 0], [2.470, 8.720, 0]], color: ink, width: 2.0}
+              - {id: archb11, line: [[1.410, 9.780, 0], [1.410, 10.840, 0]], color: ink, width: 2.0}
+              - {id: archb12, line: [[1.410, 9.780, 0], [2.470, 9.780, 0]], color: ink, width: 2.0}
+              - {id: archb13, line: [[1.410, 10.840, 0], [1.410, 11.900, 0]], color: ink, width: 2.0}
+              - {id: archb14, line: [[1.410, 10.840, 0], [2.470, 10.840, 0]], color: ink, width: 2.0}
+              - {id: archb15, line: [[2.470, 7.154, 0], [2.470, 7.660, 0]], color: ink, width: 2.0}
+              - {id: archb16, line: [[2.470, 7.154, 0], [3.530, 7.154, 0]], color: ink, width: 2.0}
+              - {id: archb17, line: [[2.470, 7.660, 0], [2.470, 8.720, 0]], color: ink, width: 2.0}
+              - {id: archb18, line: [[2.470, 7.660, 0], [3.530, 7.660, 0]], color: ink, width: 2.0}
+              - {id: archb19, line: [[2.470, 8.720, 0], [2.470, 9.780, 0]], color: ink, width: 2.0}
+              - {id: archb20, line: [[2.470, 8.720, 0], [3.530, 8.720, 0]], color: ink, width: 2.0}
+              - {id: archb21, line: [[2.470, 9.780, 0], [2.470, 10.840, 0]], color: ink, width: 2.0}
+              - {id: archb22, line: [[2.470, 9.780, 0], [3.530, 9.780, 0]], color: ink, width: 2.0}
+              - {id: archb23, line: [[2.470, 10.840, 0], [2.470, 11.900, 0]], color: ink, width: 2.0}
+              - {id: archb24, line: [[2.470, 10.840, 0], [3.530, 10.840, 0]], color: ink, width: 2.0}
+              - {id: archb25, line: [[3.530, 7.154, 0], [3.530, 7.660, 0]], color: ink, width: 2.0}
+              - {id: archb26, line: [[3.530, 7.154, 0], [4.590, 6.943, 0]], color: ink, width: 2.0}
+              - {id: archb27, line: [[3.530, 7.660, 0], [3.530, 8.720, 0]], color: ink, width: 2.0}
+              - {id: archb28, line: [[3.530, 7.660, 0], [4.590, 7.660, 0]], color: ink, width: 2.0}
+              - {id: archb29, line: [[3.530, 8.720, 0], [3.530, 9.780, 0]], color: ink, width: 2.0}
+              - {id: archb30, line: [[3.530, 8.720, 0], [4.590, 8.720, 0]], color: ink, width: 2.0}
+              - {id: archb31, line: [[3.530, 9.780, 0], [3.530, 10.840, 0]], color: ink, width: 2.0}
+              - {id: archb32, line: [[3.530, 9.780, 0], [4.590, 9.780, 0]], color: ink, width: 2.0}
+              - {id: archb33, line: [[3.530, 10.840, 0], [3.530, 11.900, 0]], color: ink, width: 2.0}
+              - {id: archb34, line: [[3.530, 10.840, 0], [4.590, 10.840, 0]], color: ink, width: 2.0}
+              - {id: archb35, line: [[4.590, 6.943, 0], [4.590, 7.660, 0]], color: ink, width: 2.0}
+              - {id: archb36, line: [[4.590, 6.943, 0], [5.650, 6.600, 0]], color: ink, width: 2.0}
+              - {id: archb37, line: [[4.590, 7.660, 0], [4.590, 8.720, 0]], color: ink, width: 2.0}
+              - {id: archb38, line: [[4.590, 7.660, 0], [5.650, 7.660, 0]], color: ink, width: 2.0}
+              - {id: archb39, line: [[4.590, 8.720, 0], [4.590, 9.780, 0]], color: ink, width: 2.0}
+              - {id: archb40, line: [[4.590, 8.720, 0], [5.650, 8.720, 0]], color: ink, width: 2.0}
+              - {id: archb41, line: [[4.590, 9.780, 0], [4.590, 10.840, 0]], color: ink, width: 2.0}
+              - {id: archb42, line: [[4.590, 9.780, 0], [5.650, 9.780, 0]], color: ink, width: 2.0}
+              - {id: archb43, line: [[4.590, 10.840, 0], [4.590, 11.900, 0]], color: ink, width: 2.0}
+              - {id: archb44, line: [[4.590, 10.840, 0], [5.650, 10.840, 0]], color: ink, width: 2.0}
+              - {id: archs0, point: [0.350, 6.600, 0], color: fixed, size: 0.6}
+              - {id: archs1, point: [0.350, 7.660, 0], color: fixed, size: 0.6}
+              - {id: archs2, point: [0.350, 8.720, 0], color: fixed, size: 0.6}
+              - {id: archs3, point: [0.350, 9.780, 0], color: fixed, size: 0.6}
+              - {id: archs4, point: [0.350, 10.840, 0], color: fixed, size: 0.6}
+              - {id: archs10, point: [1.410, 11.900, 0], color: fixed, size: 0.6}
+              - {id: archs16, point: [2.470, 11.900, 0], color: fixed, size: 0.6}
+              - {id: archs22, point: [3.530, 11.900, 0], color: fixed, size: 0.6}
+              - {id: archs28, point: [4.590, 11.900, 0], color: fixed, size: 0.6}
+              - {id: archs29, point: [5.650, 6.600, 0], color: fixed, size: 0.6}
+              - {id: archs30, point: [5.650, 7.660, 0], color: fixed, size: 0.6}
+              - {id: archs31, point: [5.650, 8.720, 0], color: fixed, size: 0.6}
+              - {id: archs32, point: [5.650, 9.780, 0], color: fixed, size: 0.6}
+              - {id: archs33, point: [5.650, 10.840, 0], color: fixed, size: 0.6}
+              - {id: archf0, line: [arch1, arch0], color: ink, width: 2.0}
+              - {id: archf1, line: [arch3, arch1], color: ink, width: 2.0}
+              - {id: archf2, line: [arch5, arch3], color: ink, width: 2.0}
+              - {id: archf3, line: [arch7, arch5], color: ink, width: 2.0}
+              - {id: archf4, line: [arch9, arch7], color: ink, width: 2.0}
+              - {id: archf5, line: [arch1, arch2], color: ink, width: 2.0}
+              - {id: archf6, line: [arch2, arch0], color: ink, width: 2.0}
+              - {id: archf7, line: [arch3, arch4], color: ink, width: 2.0}
+              - {id: archf8, line: [arch4, arch2], color: ink, width: 2.0}
+              - {id: archf9, line: [arch5, arch6], color: ink, width: 2.0}
+              - {id: archf10, line: [arch6, arch4], color: ink, width: 2.0}
+              - {id: archf11, line: [arch7, arch8], color: ink, width: 2.0}
+              - {id: archf12, line: [arch8, arch6], color: ink, width: 2.0}
+              - {id: archf13, line: [arch9, arch10], color: ink, width: 2.0}
+              - {id: archf14, line: [arch10, arch8], color: ink, width: 2.0}
+              - {id: archf15, line: [arch2, arch11], color: ink, width: 2.0}
+              - {id: archf16, line: [arch11, arch0], color: ink, width: 2.0}
+              - {id: archf17, line: [arch4, arch12], color: ink, width: 2.0}
+              - {id: archf18, line: [arch12, arch11], color: ink, width: 2.0}
+              - {id: archf19, line: [arch6, arch13], color: ink, width: 2.0}
+              - {id: archf20, line: [arch13, arch12], color: ink, width: 2.0}
+              - {id: archf21, line: [arch8, arch14], color: ink, width: 2.0}
+              - {id: archf22, line: [arch14, arch13], color: ink, width: 2.0}
+              - {id: archf23, line: [arch10, arch15], color: ink, width: 2.0}
+              - {id: archf24, line: [arch15, arch14], color: ink, width: 2.0}
+              - {id: archf25, line: [arch11, arch16], color: ink, width: 2.0}
+              - {id: archf26, line: [arch16, arch0], color: ink, width: 2.0}
+              - {id: archf27, line: [arch12, arch17], color: ink, width: 2.0}
+              - {id: archf28, line: [arch17, arch16], color: ink, width: 2.0}
+              - {id: archf29, line: [arch13, arch18], color: ink, width: 2.0}
+              - {id: archf30, line: [arch18, arch17], color: ink, width: 2.0}
+              - {id: archf31, line: [arch14, arch19], color: ink, width: 2.0}
+              - {id: archf32, line: [arch19, arch18], color: ink, width: 2.0}
+              - {id: archf33, line: [arch15, arch20], color: ink, width: 2.0}
+              - {id: archf34, line: [arch20, arch19], color: ink, width: 2.0}
+              - {id: archf35, line: [arch16, arch21], color: ink, width: 2.0}
+              - {id: archf36, line: [arch21, arch0], color: ink, width: 2.0}
+              - {id: archf37, line: [arch17, arch22], color: ink, width: 2.0}
+              - {id: archf38, line: [arch22, arch21], color: ink, width: 2.0}
+              - {id: archf39, line: [arch18, arch23], color: ink, width: 2.0}
+              - {id: archf40, line: [arch23, arch22], color: ink, width: 2.0}
+              - {id: archf41, line: [arch19, arch24], color: ink, width: 2.0}
+              - {id: archf42, line: [arch24, arch23], color: ink, width: 2.0}
+              - {id: archf43, line: [arch20, arch25], color: ink, width: 2.0}
+              - {id: archf44, line: [arch25, arch24], color: ink, width: 2.0}
+          - eq: {tex: '2 \cdot 20 = 40\ \text{equations} \qquad 45\ \text{unknowns} \qquad k = 5\ \text{free states}', align: left, size: 24}
+      - say: 'Parallel after 20 iterations. The fan in $\Gamma^*$ is the force diagram of that arch.'
+        do:
+          - move: {point: arch0, to: [3.000, 0.500, 0], dur: 1.6}
+          - move: {point: arch1, to: [2.478, 2.114, 0], dur: 1.6, with: true}
+          - move: {point: arch2, to: [2.678, 2.114, 0], dur: 1.6, with: true}
+          - move: {point: arch3, to: [2.478, 2.956, 0], dur: 1.6, with: true}
+          - move: {point: arch4, to: [2.678, 2.956, 0], dur: 1.6, with: true}
+          - move: {point: arch5, to: [2.478, 3.851, 0], dur: 1.6, with: true}
+          - move: {point: arch6, to: [2.678, 3.851, 0], dur: 1.6, with: true}
+          - move: {point: arch7, to: [2.478, 4.710, 0], dur: 1.6, with: true}
+          - move: {point: arch8, to: [2.678, 4.710, 0], dur: 1.6, with: true}
+          - move: {point: arch9, to: [2.478, 5.500, 0], dur: 1.6, with: true}
+          - move: {point: arch10, to: [2.678, 5.500, 0], dur: 1.6, with: true}
+          - move: {point: arch11, to: [3.000, 2.114, 0], dur: 1.6, with: true}
+          - move: {point: arch12, to: [3.000, 2.956, 0], dur: 1.6, with: true}
+          - move: {point: arch13, to: [3.000, 3.851, 0], dur: 1.6, with: true}
+          - move: {point: arch14, to: [3.000, 4.710, 0], dur: 1.6, with: true}
+          - move: {point: arch15, to: [3.000, 5.500, 0], dur: 1.6, with: true}
+          - move: {point: arch16, to: [3.322, 2.114, 0], dur: 1.6, with: true}
+          - move: {point: arch17, to: [3.322, 2.956, 0], dur: 1.6, with: true}
+          - move: {point: arch18, to: [3.322, 3.851, 0], dur: 1.6, with: true}
+          - move: {point: arch19, to: [3.322, 4.710, 0], dur: 1.6, with: true}
+          - move: {point: arch20, to: [3.322, 5.500, 0], dur: 1.6, with: true}
+          - move: {point: arch21, to: [3.522, 2.114, 0], dur: 1.6, with: true}
+          - move: {point: arch22, to: [3.522, 2.956, 0], dur: 1.6, with: true}
+          - move: {point: arch23, to: [3.522, 3.851, 0], dur: 1.6, with: true}
+          - move: {point: arch24, to: [3.522, 4.710, 0], dur: 1.6, with: true}
+          - move: {point: arch25, to: [3.522, 5.500, 0], dur: 1.6, with: true}
+  - title: WHAT THE PATTERNS SAY
+    steps:
+      - say: 'The turn by $90^\circ$ always works. Whether a parallel diagram exists is decided by the plan.'
+        do:
+          - eq: {tex: '\mathbf{C}_i^T\mathbf{U}\,\mathbf{q} = \mathbf{0} \quad \mathbf{C}_i^T\mathbf{V}\,\mathbf{q} = \mathbf{0} \qquad k = m - \text{rank}', align: left, size: 26}
+          - {text: '**3 bars per node:** $k \le 1$. One diagram, and only for special plans.', align: left}
+          - {text: '**4 bars per node:** a few states. Strong distortion leaves none in compression.', align: left}
+          - {text: '**Triangles:** many states.  **Open edges:** must be arches in plan.', align: left}
