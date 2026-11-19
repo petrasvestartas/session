@@ -5,7 +5,7 @@ use crate::{
     camera::{Camera, View},
     engine::gpu::{FrameInput, Gpu, ObjectRow, Upload, device::DeviceSetup},
 };
-use session_rust::{Arrowhead, BRep, Geometry, Matrix, Mesh, NurbsCurve, Point, Xform};
+use session_rust::{Arrowhead, BRep, Geometry, Mesh, NurbsCurve, Point, Xform};
 use winit::{
     event::{ElementState, WindowEvent},
     keyboard::{Key, NamedKey},
@@ -64,18 +64,6 @@ pub fn start() -> Result<(), wasm_bindgen::JsValue> {
                 .union_with(&row.bounds.transformed(&row.place));
             upload.obj.rows.push(row);
         }
-        let mut matrix = Matrix::new(2, 3);
-        matrix.name = "Kernel Matrix".into();
-        matrix.cell = 150.0;
-        matrix.data = vec![-2.0, 0.0, 2.0, 1.0, -1.0, 3.0];
-        let drawn = walk::matrix::walk(upload.lanes.get_mut(), &matrix.to_component(), 3);
-        let mut row = ObjectRow::new(Xform::translation(-225.0, 600.0, 0.0), drawn.flags);
-        row.bounds = drawn.bounds;
-        row.faces = drawn.faces;
-        upload
-            .bounds
-            .union_with(&row.bounds.transformed(&row.place));
-        upload.obj.rows.push(row);
         gpu.set_scene(&upload);
         gpu.view.show_grid = false;
         gpu.view.opacity = 1.0;

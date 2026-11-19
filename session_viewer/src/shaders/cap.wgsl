@@ -148,26 +148,6 @@ fn cap_samples(at: vec2<i32>, selected: bool) -> u32 {
     return mask;
 }
 
-// Both outline masks over the caps.
-struct CapMasks {
-    @location(0) solid: vec4<f32>, // every solid's mask
-    @location(1) selected: vec4<f32>, // the selection's mask
-    @builtin(sample_mask) mask: u32, // samples showing a cap
-}
-
-@fragment
-// Section caps into both masks: every cap for instance 0, selected caps for instance 1.
-fn fs_cap_masks(in: CapVertex) -> CapMasks {
-    let selected = in.plane == 1u;
-    let mask = cap_samples(vec2<i32>(in.pos.xy), selected);
-
-    if (mask == 0u) {
-        discard;
-    }
-
-    return CapMasks(vec4<f32>(1.0), vec4<f32>(select(0.0, 1.0, selected)), mask);
-}
-
 // The selection mask over the caps.
 struct CapSelection {
     @location(0) selected: vec4<f32>, // the selection's mask

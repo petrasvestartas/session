@@ -192,11 +192,6 @@ pub(super) fn cap_pipelines(ctx: &GpuCtx, l: &Layouts, target: Target) -> CapPip
         format: wgpu::TextureFormat::R8Unorm, // one byte per pixel
         samples: target.samples,
     };
-    let masks = build(
-        ctx,
-        mask,
-        &base.with("section cap masks", "fs_cap_masks").masks(),
-    );
     let selection = build(
         ctx,
         mask,
@@ -208,7 +203,6 @@ pub(super) fn cap_pipelines(ctx: &GpuCtx, l: &Layouts, target: Target) -> CapPip
         count,
         count_placed: None,
         cap,
-        masks,
         selection,
     }
 }

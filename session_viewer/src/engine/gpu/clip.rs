@@ -186,7 +186,6 @@ struct CapPipelines {
     count: Pipeline,               // crossings behind one plane
     count_placed: Option<Pipeline>, // the same for instanced solids, made on the first
     cap: Pipeline,                 // section caps into the face pass
-    masks: Pipeline,               // caps into both outline masks
     selection: Pipeline,           // selected caps into the selection mask
 }
 
@@ -471,13 +470,6 @@ impl Clip {
         self.primitives = Some((targets.gradient.view.clone(), group));
     }
 
-    /// The caps into both outline masks of an open mask pass.
-    pub fn draw_cap_masks(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
-        self.pipes
-            .as_ref()
-            .map_or(0, |pipes| self.draw_primitives(pass, b, &pipes.masks, 2))
-    }
-
     /// The selected caps into the open selection mask pass.
     pub fn draw_cap_selection(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
         self.pipes.as_ref().map_or(0, |pipes| {
@@ -760,11 +752,9 @@ impl Pass for Clip {
         }
     }
 
-    fn in_masks(&self, g: &Gpu, pass: &mut wgpu::RenderPass<'_>, b: &Binds, both: bool) -> u32 {
+    fn in_masks(&self, g: &Gpu, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
         if self.cap_planes(&g.view).1 == 0 {
             0
-        } else if both {
-            self.draw_cap_masks(pass, b)
         } else {
             self.draw_cap_selection(pass, b)
         }

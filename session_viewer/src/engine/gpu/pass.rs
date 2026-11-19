@@ -55,8 +55,8 @@ pub trait Pass: Lane + Any {
     /// Bind what its outline mask draws read.
     fn bind_masks(&mut self, _g: &Gpu) {}
 
-    /// Draws into the open outline mask pass, `both` masks at once or the selection's alone.
-    fn in_masks(&self, _g: &Gpu, _pass: &mut wgpu::RenderPass<'_>, _b: &Binds, _both: bool) -> u32 {
+    /// Draws the selection into the open outline mask pass.
+    fn in_masks(&self, _g: &Gpu, _pass: &mut wgpu::RenderPass<'_>, _b: &Binds) -> u32 {
         0
     }
 

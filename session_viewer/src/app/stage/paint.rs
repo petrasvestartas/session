@@ -729,7 +729,7 @@ pub fn paint(
     if !whole.is_stacked() {
         out.add(EShape::line_segment(
             [f.pt([x, 96.0]), f.pt([x, H - 56.0])],
-            Stroke::new(1.0, c32([faint[0], faint[1], faint[2], 0.5])),
+            Stroke::new(1.0_f32, c32([faint[0], faint[1], faint[2], 0.5])),
         ));
     }
     // the 3D layer stays on its side of the divider, whatever the camera does

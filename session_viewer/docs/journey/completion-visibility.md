@@ -63,7 +63,7 @@ All `20` files below compile inside checkpoint `geometry` (`npm --prefix ../sess
 --8<-- "session_viewer/src/shaders/triangle.wgsl:41:94"
 ```
 
-2. **`src/shaders/face_coverage.wgsl`** inspects the `2×u16` `physical` attachment across all `SAMPLES` to emit fractional solid coverage (`fs_fraction`) and exact `@builtin(sample_mask)` masks (`fs_samples`):
+2. **`src/shaders/face_coverage.wgsl`** inspects the `2×u16` `physical` attachment across all `SAMPLES` to emit fractional solid coverage (`fs_fraction`):
 
 ```wgsl
 --8<-- "session_viewer/src/shaders/face_coverage.wgsl:1:31"

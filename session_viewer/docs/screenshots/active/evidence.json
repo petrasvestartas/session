@@ -58,20 +58,6 @@
       "caption": "Tutorial 6 (rows): two 112-byte GPU Instance rows with independent placement, tint, reveal and pickability."
     },
     {
-      "asset": "geometry-four-objects-1280.png",
-      "sourceCapture": "session_viewer/target/completion-browser16/captures/1280-geometry.png",
-      "sha256": "2ee546863e221ac8af1000275c2a594cb4e10c8d5e5190074e66212c4a0ca738",
-      "bytes": 33902,
-      "caption": "Tutorial 7 (geometry): mesh cube, BRep cube, 2x3 Matrix and arrowed NURBS curve rendered by the production GPU lanes."
-    },
-    {
-      "asset": "geometry-reveal-1280.png",
-      "sourceCapture": "session_viewer/target/completion-browser16/captures/1280-geometry-reveal.png",
-      "sha256": "8eda5054b4bef41ad6d58f0f27577a0d68eebf41fe3ea741577f7a4b662995d0",
-      "bytes": 34435,
-      "caption": "Tutorial 7 (geometry): row reveal = 0.5 shortening each sampled curve segment while preserving arrowheads."
-    },
-    {
       "asset": "decoding-summary-1280.png",
       "sourceCapture": "session_viewer/target/completion-browser16/captures/1280-decoding.png",
       "sha256": "6f9a3370892623e85293e951da3eed5aab3f630679f14d18271ca9f9d56c1370",

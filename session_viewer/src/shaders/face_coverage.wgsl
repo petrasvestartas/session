@@ -29,26 +29,3 @@ fn fs_fraction(@builtin(position) position: vec4<f32>) -> @location(0) vec4<f32>
 
     return vec4<f32>(f32(count) / f32(SAMPLES));
 }
-
-// Full coverage and the samples that take it.
-struct Samples {
-    @location(0) coverage: vec4<f32>, // 1 on every written sample
-    @builtin(sample_mask) mask: u32, // samples that show a face
-};
-
-@fragment
-// Full coverage on the samples that show a face.
-fn fs_samples(@builtin(position) position: vec4<f32>) -> Samples {
-    let p = vec2<i32>(position.xy);
-    var mask = 0u;
-
-    for (var s = 0u; s < SAMPLES; s++) {
-        mask |= u32(face_at(p, s)) << s;
-    }
-
-    if (mask == 0u) {
-        discard;
-    }
-
-    return Samples(vec4<f32>(1.0), mask);
-}

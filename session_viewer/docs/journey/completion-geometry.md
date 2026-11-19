@@ -1,17 +1,14 @@
 # Render kernel geometry
 
-Convert `session_rust` meshes, BReps, arrowed NURBS curves, planes, point clouds, scene text and numerical `Matrix` objects into compact GPU lane tables and draw them through `16` specialized WGSL lane shaders in one multi-pass frame encoder.
-
-![Tutorial 7 output: mesh cube, BRep cube, 2x3 Matrix and arrowed NURBS curve at 1280x800](../screenshots/active/geometry-four-objects-1280.png)
-![Row reveal = 0.5 shortening each sampled curve segment while preserving arrowheads](../screenshots/active/geometry-reveal-1280.png)
+Convert `session_rust` meshes, BReps, arrowed NURBS curves, planes, point clouds and scene text into compact GPU lane tables and draw them through `15` specialized WGSL lane shaders in one multi-pass frame encoder.
 
 ## Prerequisites and ownership
 
-Requires [6. Place and update object rows](completion-rows.md). Checkpoint `geometry` (`167` files) retains Tutorials 1–6 unchanged and adds `98` files across `src/app/walk/`, `src/engine/gpu/`, `src/shaders/` and [examples/course/geometry.rs](../../examples/course/geometry.rs). Continue directly into companion chapter [7.1 Decide which ink is visible](completion-visibility.md) (`20` visibility, clipping, outline and SSAO files in this same checkpoint).
+Requires [6. Place and update object rows](completion-rows.md). Checkpoint `geometry` (`164` files) retains Tutorials 1–6 unchanged and adds `95` files across `src/app/walk/`, `src/engine/gpu/`, `src/shaders/` and [examples/course/geometry.rs](../../examples/course/geometry.rs). Continue directly into companion chapter [7.1 Decide which ink is visible](completion-visibility.md) (`20` visibility, clipping, outline and SSAO files in this same checkpoint).
 
 ## Build
 
-Materialize checkpoint `geometry` to inspect and compile the complete GPU renderer and four-object checkpoint scene:
+Materialize checkpoint `geometry` to inspect and compile the complete GPU renderer and three-object checkpoint scene:
 
 ```sh
 npm --prefix ../session_tests run course -- checkpoint geometry ../session_viewer/target/learn-geometry
@@ -145,9 +142,9 @@ npm --prefix ../session_tests run course -- checkpoint geometry ../session_viewe
 --8<-- "session_viewer/src/shaders/grid.wgsl:1:38"
 ```
 
-### Step 3. Shade SDF dots, vertex markers, point-cloud splats, `7`-segment matrices, scene text and the private gumball (`glyph`, `sphere`, `splat`, `splat_resolve`, `matrix`, `text_*`, `widget`)
+### Step 3. Shade SDF dots, vertex markers, point-cloud splats, scene text and the private gumball (`glyph`, `sphere`, `splat`, `splat_resolve`, `text_*`, `widget`)
 
-![3-vertex circumscribed SDF dots, EDL point-cloud splats, 7-segment matrix cells, 3 scene text shaders and private depth-tested widget tile](../illustrations/stage/07c-glyphs-splats-matrix-widget.svg)
+![3-vertex circumscribed SDF dots, EDL point-cloud splats, 3 scene text shaders and private depth-tested widget tile](../illustrations/stage/07c-glyphs-splats-widget.svg)
 
 | File | Specification |
 | --- | --- |
@@ -187,28 +184,12 @@ npm --prefix ../session_tests run course -- checkpoint geometry ../session_viewe
 
 | File | Specification |
 | --- | --- |
-| [src/app/walk/matrix.rs](../../src/app/walk/matrix.rs) | Validates dimensions, computes nonzero min/max range, and packs a `16`-word header plus `3` words per cell (`f32` colour + integer whole/thousandths). |
-| [src/engine/gpu/matrices.rs](../../src/engine/gpu/matrices.rs) | Stores variable-length packed matrices in one storage word buffer indexed by per-matrix block starts for `6`-vertex quad draws. |
-| [src/shaders/matrix.wgsl](../../src/shaders/matrix.wgsl) | Shades distinct zero vs min/max cells and renders crisp procedural `7`-segment digits, minus signs and decimals without font textures. |
-
-3. **`src/shaders/matrix.wgsl`** draws an entire `R × C` numerical `Matrix` on a single `6`-vertex quad, formatting `[whole, signed_thousandths]` procedurally with `7`-segment signed-distance strokes so large entries retain exact decimal places without font atlases:
-
-```rust
---8<-- "session_viewer/src/app/walk/matrix.rs:kernel-matrix-upload"
-```
-
-```wgsl
---8<-- "session_viewer/src/shaders/matrix.wgsl:7:38"
-```
-
-| File | Specification |
-| --- | --- |
 | [src/engine/gpu/text_plate.rs](../../src/engine/gpu/text_plate.rs) | Emits `6`-vertex rounded label backing quads (depth-tested before overlays) preserving pre-clip centre, half-size and corner radius. |
 | [src/shaders/text_plate.wgsl](../../src/shaders/text_plate.wgsl) | Evaluates screen-derivative SDF rounded plates (black, or yellow when selected) and writes `row + 1` into the pick attachment. |
 | [src/shaders/text_plane.wgsl](../../src/shaders/text_plane.wgsl) | Samples rasterized world-plane glyph textures with uniform derivative control flow and full-plate pick coverage across interior spaces. |
 | [src/shaders/text_outline.wgsl](../../src/shaders/text_outline.wgsl) | Draws triangulated sheet lettering from the arena with object-ID pick output and `0` surface-triangle ID so letters never occlude as solids. |
 
-4. **`src/shaders/text_plate.wgsl`**, **`src/shaders/text_plane.wgsl`** and **`src/shaders/text_outline.wgsl`** render rounded label backing pills, textured `3D`/screen glyph quads, and triangulated CAD sheet outlines (`primitive = 0`):
+3. **`src/shaders/text_plate.wgsl`**, **`src/shaders/text_plane.wgsl`** and **`src/shaders/text_outline.wgsl`** render rounded label backing pills, textured `3D`/screen glyph quads, and triangulated CAD sheet outlines (`primitive = 0`):
 
 ```wgsl
 --8<-- "session_viewer/src/shaders/text_plate.wgsl:1:33"
@@ -229,18 +210,18 @@ npm --prefix ../session_tests run course -- checkpoint geometry ../session_viewe
 | [src/engine/gpu/widget.rs](../../src/engine/gpu/widget.rs) | Renders the gumball into a private depth-tested tile (`96 B` uniform) and composites it over the scene so solids never bury active handles. |
 | [src/shaders/widget.wgsl](../../src/shaders/widget.wgsl) | Highlights the hovered/active handle in orange inside the private tile and unpremultiplies RGB safely during canvas alpha composite. |
 
-5. **`src/shaders/widget.wgsl`** shades the `10`-handle manipulation gumball inside its own depth-tested tile (`widget.rect`) so handles occlude each other cleanly in `3D` while floating unobstructed above scene solids:
+4. **`src/shaders/widget.wgsl`** shades the `10`-handle manipulation gumball inside its own depth-tested tile (`widget.rect`) so handles occlude each other cleanly in `3D` while floating unobstructed above scene solids:
 
 ```wgsl
 --8<-- "session_viewer/src/shaders/widget.wgsl:1:37"
 ```
 
-### Step 4. Pace submissions and assemble the `4`-object scene (`present.rs`, `pacing.rs`, `geometry.rs`)
+### Step 4. Pace submissions and assemble the `3`-object scene (`present.rs`, `pacing.rs`, `geometry.rs`)
 
 - `src/engine/gpu/present.rs` updates frame uniforms, widgets and text, reconfigures suboptimal/outdated surfaces, submits the encoded frame, and schedules idle post-present pipeline warming.
 - `src/engine/gpu/pacing.rs` (`FramePacing`) gates redraws behind an `Arc` acquire/release queue-completion callback so slow frames never build an unbounded submission backlog.
 
-Wire the mesh cube, BRep cube, `2×3` `Matrix` and double-arrow NURBS curve in `examples/course/geometry.rs`:
+Wire the mesh cube, BRep cube and double-arrow NURBS curve in `examples/course/geometry.rs`:
 
 ```rust
 --8<-- "session_viewer/examples/course/geometry.rs:course-geometry"
@@ -250,7 +231,7 @@ Wire the mesh cube, BRep cube, `2×3` `Matrix` and double-arrow NURBS curve in `
 
 Serve checkpoint `geometry` and open `http://127.0.0.1:8780/?tutorial=geometry`:
 
-- Mesh cube, BRep cube, `2×3` `Matrix` and double-arrow NURBS curve render together; arrow keys orbit, `P` toggles projection, `F` fits bounds.
+- Mesh cube, BRep cube and double-arrow NURBS curve render together; arrow keys orbit, `P` toggles projection, `F` fits bounds.
 - `R` toggles `0.5` curve segment reveal; `W` toggles curve strokes while BRep surface borders stay intact; `O` toggles solid face shading/occlusion.
 
 ## Predict and try
@@ -259,7 +240,7 @@ Press `R` (`0.5` reveal), orbit `45°` with `ArrowRight`, then press `R` again: 
 
 ## Question and answer
 
-**How do a triangle mesh, a NURBS curve and a numerical `Matrix` move together under one transform despite completely different GPU vertex formats?**
+**How do a triangle mesh, a BRep and a NURBS curve move together under one transform despite completely different GPU vertex formats?**
 Every primitive stores the same `u32` `Instance` row index; each lane's vertex shader fetches `instances[id]` + `translations[id]` from `@group(2)` after decoding its own lane buffer.
 
 ## Validation

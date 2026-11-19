@@ -40,7 +40,7 @@ Use this order; omit an empty section instead of filling it with boilerplate:
 - Runnable Rust, WGSL, TOML and deck listings come from source includes, never separately typed copies in Markdown. Use named section markers; retain them when moving code.
 - Include kernel code from the live kernel rather than copying it into a lesson. Keep font and other asset licenses.
 - Use plain Markdown supported by the Vue site. No MkDocs-only admonitions, tabs or attribute syntax.
-- Use D2 for course flow diagrams; keep source and rendered artifacts together. Do not hand-edit generated SVG positions.
+- Draw tutorial diagrams in the session viewer (a stage deck or scene) and keep the deck source beside the captured image. No Mermaid. Existing D2 figures stay until redrawn; do not hand-edit generated SVG positions.
 
 ## Course tooling and evidence
 

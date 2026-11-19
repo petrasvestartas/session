@@ -116,7 +116,6 @@ struct PipelineKey {
     scene_samples: Option<u32>,         // sets SCENE_MSAA in the shader
     clipping: Option<bool>,             // sets CLIPPING in an ink shader
     physical: bool,                     // also writes the triangle id target
-    masks: bool,                        // writes both outline masks
     target: Target,                     // color format and samples
 }
 
@@ -164,7 +163,6 @@ impl DepthMode {
 pub enum ColorWrite {
     Opaque,  // overwrite
     Blended, // alpha blend
-    Max,     // keep the larger value; for masks
     Add,     // add to the value; for counts
     Nothing, // write nothing; the fragment shader has side effects
 }
@@ -193,20 +191,6 @@ impl ColorWrite {
                     wgpu::ColorWrites::ALL,
                 )
             }
-            ColorWrite::Max => {
-                let max = wgpu::BlendComponent {
-                    src_factor: wgpu::BlendFactor::One,
-                    dst_factor: wgpu::BlendFactor::One,
-                    operation: wgpu::BlendOperation::Max,
-                };
-                (
-                    Some(wgpu::BlendState {
-                        color: max,
-                        alpha: max,
-                    }),
-                    wgpu::ColorWrites::ALL,
-                )
-            }
         }
     }
 }
@@ -225,7 +209,6 @@ pub struct PipelineDesc<'a> {
     pub depth: DepthMode,                                   // how depth is used
     pub scene_samples: Option<u32>,                         // sets SCENE_MSAA in the shader
     pub physical: bool,                                     // also writes the triangle id target
-    pub masks: bool, // writes both outline masks with MAX blending
 }
 
 impl<'a> PipelineDesc<'a> {
@@ -248,7 +231,6 @@ impl<'a> PipelineDesc<'a> {
             depth: DepthMode::Opaque,
             scene_samples: None,
             physical: false,
-            masks: false,
         }
     }
 
@@ -281,12 +263,6 @@ impl<'a> PipelineDesc<'a> {
     /// A copy that also writes the triangle id target.
     pub fn physical(mut self) -> Self {
         self.physical = true;
-        self
-    }
-
-    /// A copy that writes both outline masks.
-    pub fn masks(mut self) -> Self {
-        self.masks = true;
         self
     }
 
@@ -449,7 +425,6 @@ pub fn build(ctx: &GpuCtx, target: Target, desc: &PipelineDesc) -> Pipeline {
         // ink pipelines are rebuilt on every retarget, so they alone may drop their clip tests
         clipping: desc.scene_samples.map(|_| ctx.cache.clipping.get()),
         physical: desc.physical,
-        masks: desc.masks,
         target,
     };
     let mut pipelines = ctx.cache.pipelines.borrow_mut();
@@ -487,24 +462,6 @@ fn compile(device: &wgpu::Device, desc: &PipelineKey) -> wgpu::RenderPipeline {
         blend,
         write_mask,
     })];
-
-    // two mask targets with MAX blending
-    if desc.masks {
-        let max = wgpu::BlendComponent {
-            src_factor: wgpu::BlendFactor::One,
-            dst_factor: wgpu::BlendFactor::One,
-            operation: wgpu::BlendOperation::Max,
-        };
-        let coverage = Some(wgpu::ColorTargetState {
-            format: target.format,
-            blend: Some(wgpu::BlendState {
-                color: max,
-                alpha: max,
-            }),
-            write_mask: wgpu::ColorWrites::ALL,
-        });
-        targets = vec![coverage.clone(), coverage];
-    }
 
     // the triangle id target
     if desc.physical {

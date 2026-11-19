@@ -1,5 +1,3 @@
-use super::*;
-
 /// Vertex slot 0: the arena's packed vertex (position, normal, color).
 pub fn vertex_layout() -> wgpu::VertexBufferLayout<'static> {
     crate::engine::gpu::arena::GpuVertex::layout()
@@ -7,7 +5,7 @@ pub fn vertex_layout() -> wgpu::VertexBufferLayout<'static> {
 
 #[cfg(all(test, not(target_arch = "wasm32")))]
 mod meshes_tests {
-    use super::*;
+    use super::super::created;
     use crate::engine::gpu::{FrameInput, Gpu, ObjectRow, Upload};
     use session_rust::{RenderVertex, Xform};
 

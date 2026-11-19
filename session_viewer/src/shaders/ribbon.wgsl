@@ -575,23 +575,11 @@ fn vs_selected(@builtin(vertex_index) vid: u32, @location(0) slot: u32) -> VsOut
     return stroke_vertex(vid, 2u);
 }
 
-// Pick ids and outline masks drop hidden ink, so they keep culling back edges.
+// Pick ids drop hidden ink, so they keep culling back edges.
 @vertex
 fn vs_front(@builtin(vertex_index) vid: u32, @location(0) slot: u32) -> VsOut {
     slot_row = slot;
     return stroke_vertex(vid, 0u);
-}
-
-@vertex
-fn vs_front_unselected(@builtin(vertex_index) vid: u32, @location(0) slot: u32) -> VsOut {
-    slot_row = slot;
-    return stroke_vertex(vid, 1u);
-}
-
-@vertex
-fn vs_front_selected(@builtin(vertex_index) vid: u32, @location(0) slot: u32) -> VsOut {
-    slot_row = slot;
-    return stroke_vertex(vid, 2u);
 }
 
 fn dash_coverage(in: VsOut, h: f32) -> f32 {
@@ -718,48 +706,6 @@ fn fs_main(in: VsOut, @builtin(sample_index) sample: u32) -> InkColor {
     }
 
     return InkColor(vec4<f32>(in.color.rgb, in.color.a * alpha));
-}
-
-// Visible stroke coverage into an outline mask.
-@fragment
-fn fs_mask(in: VsOut, @builtin(sample_index) sample: u32) -> @location(0) vec4<f32> {
-    let alpha = coverage(in);
-
-    if (alpha <= 0.0 || axis_cut(in) || !ink_visible(in.pos.xy, ink_axis(in), sample, (instances[in.inst_id].flags & FLAG_SMOOTH) != 0u)) {
-        discard;
-    }
-
-    return vec4<f32>(alpha);
-}
-
-// Output into both outline masks at once.
-struct MaskPair {
-    @location(0) solid: vec4<f32>, // every solid's mask
-    @location(1) selected: vec4<f32>, // the selection's mask
-};
-
-// Unselected stroke: into the solid mask only.
-@fragment
-fn fs_masks(in: VsOut, @builtin(sample_index) sample: u32) -> MaskPair {
-    let alpha = coverage(in);
-
-    if (alpha <= 0.0 || axis_cut(in) || !ink_visible(in.pos.xy, ink_axis(in), sample, (instances[in.inst_id].flags & FLAG_SMOOTH) != 0u)) {
-        discard;
-    }
-
-    return MaskPair(vec4<f32>(alpha), vec4<f32>(0.0));
-}
-
-@fragment
-// Selected stroke: into both masks.
-fn fs_masks_selected(in: VsOut, @builtin(sample_index) sample: u32) -> MaskPair {
-    let alpha = coverage(in);
-
-    if (alpha <= 0.0 || axis_cut(in) || !ink_visible(in.pos.xy, ink_axis(in), sample, (instances[in.inst_id].flags & FLAG_SMOOTH) != 0u)) {
-        discard;
-    }
-
-    return MaskPair(vec4<f32>(alpha), vec4<f32>(alpha));
 }
 
 // Bit that marks a pick id as a stroke.

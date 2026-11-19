@@ -125,7 +125,7 @@ npm --prefix ../session_tests run course -- foundations
 npm --prefix ../session_tests run course -- diagrams --check
 ```
 
-Foundation examples are Rust programs with assertions. Flow diagrams use D2 0.9.0 from `target/tools/d2-v0.9.0/bin/d2`; the TypeScript command renders or verifies them. Edit D2 sources, not generated SVG text positions.
+Foundation examples are Rust programs with assertions. New tutorial diagrams are drawn in the session viewer as stage decks or scenes, with the deck source kept beside the captured image; no Mermaid. Existing flow diagrams use D2 0.9.0 from `target/tools/d2-v0.9.0/bin/d2` until redrawn; the TypeScript command renders or verifies them. Edit D2 sources, not generated SVG text positions.
 
 ## Build the Vue site
 

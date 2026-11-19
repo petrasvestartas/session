@@ -35,6 +35,7 @@ const _: () = assert!(std::mem::size_of::<CylinderSegment>() == 40);
 pub const SILHOUETTE_SAG: f32 = -0.0;
 
 /// True for the sag of a pipe drawn only where it is a silhouette.
+#[cfg(test)]
 pub fn is_silhouette(sag: f32) -> bool {
     sag.is_sign_negative()
 }
@@ -303,17 +304,13 @@ impl SegTable {
     }
 }
 
-/// The nine segment pipelines.
+/// The five segment pipelines.
 struct SegPipelines {
-    ribbon: Pipeline,           // plain lines in color
-    unselected: Pipeline,       // unselected objects' lines
-    selected: Pipeline,         // selected objects' lines
-    id_ribbon: Pipeline,        // object ids
-    id_edge: Pipeline,          // source edge ids
-    mask_unselected: Pipeline,  // unselected edges into the solid mask
-    mask_selected: Pipeline,    // selected edges into a mask
-    masks_unselected: Pipeline, // unselected edges into both masks
-    masks_selected: Pipeline,   // selected edges into both masks
+    ribbon: Pipeline,     // plain lines in color
+    unselected: Pipeline, // unselected objects' lines
+    selected: Pipeline,   // selected objects' lines
+    id_ribbon: Pipeline,  // object ids
+    id_edge: Pipeline,    // source edge ids
 }
 
 /// Lines on the GPU: edges as pipes, curves as ribbons, streamed sheets in a table of their own.
@@ -595,32 +592,6 @@ impl SegmentLane {
         draws
     }
 
-    /// Draw every edge into the solid mask.
-    pub fn draw_solid_mask(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
-        self.draw_table(pass, b, &self.gpu.mask_unselected, &self.pipes)
-            + self.draw_table(pass, b, &self.gpu.mask_selected, &self.pipes)
-    }
-
-    /// Draw the selected objects' edges into a mask.
-    pub fn draw_selection_mask(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
-        if self.selected_rows.is_empty() {
-            return 0;
-        }
-
-        self.draw_table(pass, b, &self.gpu.mask_selected, &self.pipes)
-    }
-
-    /// Draw every edge into both masks at once.
-    pub fn draw_masks(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
-        self.draw_table(pass, b, &self.gpu.masks_unselected, &self.pipes)
-            + self.draw_table(pass, b, &self.gpu.masks_selected, &self.pipes)
-    }
-
-    /// Draw the edges in color.
-    pub fn draw_pipes(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
-        self.draw_table(pass, b, &self.gpu.ribbon, &self.pipes)
-    }
-
     /// Draw the lines and curves in color.
     pub fn draw_ribbons(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
         self.draw_table(pass, b, &self.gpu.ribbon, &self.ribbons)
@@ -733,7 +704,7 @@ impl SegmentLane {
     }
 }
 
-/// Build the nine segment pipelines.
+/// Build the five segment pipelines.
 fn build_pipelines(ctx: &GpuCtx, l: &Layouts, shader: &Shader, target: Target) -> SegPipelines {
     let groups = [&l.mvp, &l.line, &l.ink_instance, &l.segment_rows];
     // always drawn, the shader tests depth; the one vertex buffer is the instance slots
@@ -741,11 +712,6 @@ fn build_pipelines(ctx: &GpuCtx, l: &Layouts, shader: &Shader, target: Target) -
     let quad = PipelineDesc::new(shader, &groups, &slots, TriangleList)
         .scene_samples(target.samples)
         .depth(DepthMode::Always);
-    // masks are one-channel textures
-    let mask = Target {
-        format: wgpu::TextureFormat::R8Unorm, // one byte per pixel
-        samples: target.samples,
-    };
 
     SegPipelines {
         unselected: build(
@@ -784,38 +750,6 @@ fn build_pipelines(ctx: &GpuCtx, l: &Layouts, shader: &Shader, target: Target) -
                 .with("edge.id", "fs_edge_id")
                 .vertex("vs_front")
                 .scene_samples(1),
-        ),
-        mask_unselected: build(
-            ctx,
-            mask,
-            &quad
-                .with("ribbon.mask", "fs_mask")
-                .vertex("vs_front_unselected")
-                .color(ColorWrite::Max),
-        ),
-        mask_selected: build(
-            ctx,
-            mask,
-            &quad
-                .with("ribbon.mask.selected", "fs_mask")
-                .vertex("vs_front_selected")
-                .color(ColorWrite::Max),
-        ),
-        masks_unselected: build(
-            ctx,
-            mask,
-            &quad
-                .with("ribbon.masks", "fs_masks")
-                .vertex("vs_front_unselected")
-                .masks(),
-        ),
-        masks_selected: build(
-            ctx,
-            mask,
-            &quad
-                .with("ribbon.masks.selected", "fs_masks_selected")
-                .vertex("vs_front_selected")
-                .masks(),
         ),
     }
 }

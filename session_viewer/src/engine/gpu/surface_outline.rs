@@ -883,7 +883,7 @@ impl Pass for Outline {
                 draws += g.arena.draw_selection_mask(&mut pass, &b);
                 draws += g.arena.source_faces.draw_mask(&mut pass, &b);
                 for other in &g.passes {
-                    draws += other.in_masks(g, &mut pass, &b, false);
+                    draws += other.in_masks(g, &mut pass, &b);
                 }
             }
             g.mark(encoder, "masks"); // register:gtao

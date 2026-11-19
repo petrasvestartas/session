@@ -257,22 +257,6 @@ fn fs_face_highlight(in: VsOut, @builtin(front_facing) front: bool) -> @location
     return shade(in, front);
 }
 
-// Output into both outline masks at once.
-struct MaskPair {
-    @location(0) solid: vec4<f32>, // every solid's mask
-    @location(1) selected: vec4<f32>, // the selection's mask
-};
-
-@fragment
-// Every face into the solid mask; selected ones into both.
-fn fs_masks(in: VsOut) -> MaskPair {
-    if (in.xray != 0u || cut(in)) {
-        discard;
-    }
-
-    return MaskPair(vec4<f32>(1.0), vec4<f32>(f32(in.selected != 0u)));
-}
-
 // One corner of a closed solid, for counting crossings behind a clipping plane.
 struct CountOut {
     @builtin(position) pos: vec4<f32>, // clip position

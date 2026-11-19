@@ -15,7 +15,6 @@ pub mod objects;
 pub mod slots; // register:slots
 
 pub mod lane; // register:lane
-pub mod matrices; // register:matrices
 #[cfg(target_arch = "wasm32")]
 mod pacing;
 pub mod pass; // register:pass

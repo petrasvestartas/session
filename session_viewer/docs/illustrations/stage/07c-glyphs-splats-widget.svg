@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 425" width="960" height="425">
+  <rect x="0.5" y="0.5" width="959" height="424" fill="#ffffff" stroke="#e4e7e8" stroke-width="1"/>
+  <line x1="460.8" y1="54" x2="460.8" y2="403" stroke="#e4e7e8" stroke-width="1"/>
+  <text x="26" y="32" font-family="Georgia, 'Times New Roman', serif" font-size="14.2" font-weight="700" fill="#007bc4">MARKERS, SPLATS, TEXT AND GUMBALL</text>
+  <text x="482.8" y="32" font-family="Georgia, 'Times New Roman', serif" font-size="13.0" fill="#111111">Cut SDF dots in 3 vertices, resolve EDL splats, and shade scene text.</text>
+  <text x="30" y="74" font-family="Georgia, 'Times New Roman', serif" font-size="13.5" font-weight="400" fill="#007bc4">glyph.wgsl (3-vertex SDF disc) &amp; sphere.wgsl taper</text>
+  <polygon points="116,109.04 73.6,182.48 158.4,182.48" fill="#a9c9ff" fill-opacity="0.16" stroke="#111111" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="116" cy="158" r="24.48" fill="#ff8fbd" fill-opacity="0.45" stroke="#ff2d7a" stroke-width="2.2"/>
+  <circle cx="116" cy="158" r="3" fill="#111111"/>
+  <circle cx="116" cy="109.04" r="3.4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <circle cx="73.6" cy="182.48" r="3.4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <circle cx="158.4" cy="182.48" r="3.4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <text x="116" y="202" font-family="Georgia, 'Times New Roman', serif" font-size="11.2" fill="#111111" font-weight="700" text-anchor="middle">1 triangle / dot</text>
+  <text x="214" y="114" font-family="Georgia, 'Times New Roman', serif" font-size="12" fill="#007bc4" font-weight="700">48 B GlyphPoint + 6 face normals</text>
+  <text x="214" y="138" font-family="Georgia, 'Times New Roman', serif" font-size="11.6" fill="#111111">• Culled when all neighbour faces</text>
+  <text x="224" y="156" font-family="Georgia, 'Times New Roman', serif" font-size="11.6" fill="#666666">turn away from the eye.</text>
+  <text x="214" y="180" font-family="Georgia, 'Times New Roman', serif" font-size="11.6" fill="#111111">• Tapers down to 0.15× when mesh</text>
+  <text x="224" y="198" font-family="Georgia, 'Times New Roman', serif" font-size="11.6" fill="#666666">spacing &lt; 3 diameters.</text>
+  <text x="30" y="238" font-family="Georgia, 'Times New Roman', serif" font-size="13.5" font-weight="400" fill="#007bc4">splat + splat_resolve (EDL)  &amp;  widget.wgsl private tile</text>
+  <rect x="38" y="256" width="182" height="112" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.6"/>
+  <circle cx="76" cy="296" r="16" fill="#007bc4" fill-opacity="0.65" stroke="#111111" stroke-width="1.2"/>
+  <circle cx="98" cy="288" r="16" fill="#a9c9ff" fill-opacity="0.65" stroke="#111111" stroke-width="1.2"/>
+  <circle cx="122" cy="302" r="16" fill="#ff5c9a" fill-opacity="0.65" stroke="#111111" stroke-width="1.2"/>
+  <circle cx="148" cy="292" r="16" fill="#ffc400" fill-opacity="0.65" stroke="#111111" stroke-width="1.2"/>
+  <text x="48" y="338" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10" fill="#111111" font-weight="500">splat: 40-word LOD runs</text>
+  <text x="48" y="356" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10" fill="#007bc4" font-weight="500">resolve: log2(z) EDL shade</text>
+  <rect x="242" y="256" width="188" height="112" rx="4" fill="#ffe38a" fill-opacity="0.22" stroke="#ff7a1a" stroke-width="1.8" stroke-dasharray="5 3"/>
+  <line x1="318" y1="322" x2="364" y2="322" stroke="#ff2d7a" stroke-width="2.2" stroke-linecap="round"/>
+  <polygon points="376,322 364,323.8 364,320.2" fill="#ff2d7a" stroke="none"/>
+  <line x1="318" y1="322" x2="318" y2="282" stroke="#007bc4" stroke-width="2.2" stroke-linecap="round"/>
+  <polygon points="318,270 319.8,282 316.2,282" fill="#007bc4" stroke="none"/>
+  <line x1="318" y1="322" x2="290.15" y2="339.59" stroke="#ff7a1a" stroke-width="2.6" stroke-linecap="round"/>
+  <polygon points="280,346 289.18,338.07 291.11,341.11" fill="#ff7a1a" stroke="none"/>
+  <path d="M 318 294 A 28 28 0 0 1 346 322" fill="none" stroke="#00c46a" stroke-width="2"/>
+  <circle cx="318" cy="322" r="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <text x="252" y="360" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10" fill="#ff7a1a" font-weight="500">96 B Widget · 10 handles</text>
+  <text x="486" y="74" font-family="Georgia, 'Times New Roman', serif" font-size="13.5" font-weight="400" fill="#007bc4">Three scene text shaders (plates, UV quads, arena outlines)</text>
+  <text x="556" y="86" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#111111" font-weight="500" text-anchor="middle">SDF rounded pill</text>
+  <text x="706" y="86" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#007bc4" font-weight="500" text-anchor="middle">UV coverage atlas</text>
+  <text x="856" y="86" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.5" fill="#ff2d7a" font-weight="500" text-anchor="middle">arena mesh letters</text>
+  <rect x="486" y="92" width="140" height="40" rx="4.5" fill="#ffc400" stroke="none"/>
+  <text x="556" y="115.67" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.8" fill="#111111" font-weight="500" text-anchor="middle">text_plate.wgsl</text>
+  <rect x="636" y="92" width="140" height="40" rx="4.5" fill="#a9c9ff" stroke="none"/>
+  <text x="706" y="115.67" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.8" fill="#111111" font-weight="500" text-anchor="middle">text_plane.wgsl</text>
+  <rect x="786" y="92" width="140" height="40" rx="4.5" fill="#ff5c9a" stroke="none"/>
+  <text x="856" y="115.67" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace" font-size="10.8" fill="#111111" font-weight="500" text-anchor="middle">text_outline.wgsl</text>
+  <text x="486" y="162" font-family="Georgia, 'Times New Roman', serif" font-size="11.8" fill="#111111">• <tspan font-family="monospace" font-size="11.0">text_plate</tspan>: derivative-AA rounded rectangle behind depth-tested labels.</text>
+  <text x="486" y="186" font-family="Georgia, 'Times New Roman', serif" font-size="11.8" fill="#111111">• <tspan font-family="monospace" font-size="11.0">text_plane</tspan>: uniform <tspan font-family="monospace" font-size="11.0">fwidth</tspan> sampling + full-box pick across spaces.</text>
+  <text x="486" y="210" font-family="Georgia, 'Times New Roman', serif" font-size="11.8" fill="#111111">• <tspan font-family="monospace" font-size="11.0">text_outline</tspan>: writes <tspan font-family="monospace" font-size="11.0">primitive = 0</tspan> so sheet letters never hide lines.</text>
+  <rect x="0.5" y="421.5" width="959" height="3" fill="#e4e7e8"/>
+  <rect x="0.5" y="421.5" width="353.68" height="3" fill="#007bc4"/>
+</svg>

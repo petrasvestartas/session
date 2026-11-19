@@ -115,7 +115,6 @@ impl ArenaRows {
 /// Pipelines that draw solid faces as masks.
 struct ArenaPipelines {
     selection_mask: Pipeline, // marks selected faces
-    masks: Pipeline,          // both masks in one pass
 }
 
 /// All mesh geometry on the GPU, in five growing buffers.
@@ -328,11 +327,6 @@ impl ArenaLane {
                 .draw_physical_ids(pass, b, &self.outline_buffers(&self.print))
     }
 
-    /// Both coverage masks from one pass over the faces.
-    pub fn draw_masks(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
-        self.draw_run(pass, b, &self.pipes.masks, &self.faces)
-    }
-
     /// Draw object ids of sheet lettering.
     pub fn draw_text_ids(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
         self.outline_text
@@ -519,17 +513,6 @@ fn build_pipelines(ctx: &GpuCtx, l: &Layouts, shader: &Shader, target: Target) -
             &base
                 .with("triangle.selection_mask", "fs_selection_mask")
                 .depth(crate::engine::pipelines::DepthMode::ReadOnlyEqual),
-        ),
-        masks: build(
-            ctx,
-            Target {
-                format: wgpu::TextureFormat::R8Unorm, // one byte per pixel
-                samples: target.samples,
-            },
-            &base
-                .with("triangle.masks", "fs_masks")
-                .depth(crate::engine::pipelines::DepthMode::ReadOnlyEqual)
-                .masks(),
         ),
     }
 }

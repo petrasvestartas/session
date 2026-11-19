@@ -32,7 +32,6 @@ struct FacePipelines {
     pick: Pipeline,           // face id per pixel
     highlight: Pipeline,      // selected face in color
     mask: Pipeline,           // selected face into a mask
-    masks: Pipeline,          // selected face into both masks
 }
 
 impl Faces {
@@ -202,15 +201,6 @@ impl Faces {
         self.draw(pass, binds, &self.pipes.mask)
     }
 
-    /// Draw the selected face into both masks.
-    pub fn draw_masks(&self, pass: &mut wgpu::RenderPass<'_>, binds: &Binds) -> u32 {
-        if self.active.is_none() {
-            return 0;
-        }
-
-        self.draw(pass, binds, &self.pipes.masks)
-    }
-
     /// Draw every face with `pipeline`; returns the draw count.
     fn draw(&self, pass: &mut wgpu::RenderPass<'_>, binds: &Binds, pipeline: &Pipeline) -> u32 {
         let Some(group) = &self.group else {
@@ -316,17 +306,6 @@ fn pipelines(
             .with("selected face mask", "fs_selection_mask")
             .depth(DepthMode::ReadOnlyEqual),
     );
-    let masks = build(
-        ctx,
-        Target {
-            format: wgpu::TextureFormat::R8Unorm, // one byte per pixel
-            samples: target.samples,
-        },
-        &base
-            .with("selected face masks", "fs_masks")
-            .depth(DepthMode::ReadOnlyEqual)
-            .masks(),
-    );
     // same faces, plain vertex shader
     let object_base = base.vertex("vs_triangle");
     let physical = build(
@@ -359,7 +338,6 @@ fn pipelines(
         pick,
         highlight,
         mask,
-        masks,
         physical,
         opaque,
         clipped,

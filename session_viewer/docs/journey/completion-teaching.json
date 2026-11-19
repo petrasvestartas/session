@@ -1082,7 +1082,7 @@
   {
     "path": "src/app/decode.rs",
     "owner": "decoding",
-    "sourceSha256": "daba5c300d87168c17c86d4118ff1f2c0f92cec3e49a2adba95d617221956d17",
+    "sourceSha256": "5b4e1d219859cd1030f04f22f883aa71067b381f6947abe52e58391c89afe1c7",
     "explanation": {
       "page": "journey/completion-decoding.md",
       "heading": "### Step 1: Enforce explicit byte, object-count and hierarchy bounds",
@@ -1195,7 +1195,7 @@
     "sourceSha256": "397a00a8a1f4cda1f34ba244a40f5a842f27b1c83d7affc298d0f4276d396340",
     "explanation": {
       "page": "journey/completion-geometry.md",
-      "heading": "### Step 3. Shade SDF dots, vertex markers, point-cloud splats, `7`-segment matrices, scene text and the private gumball (`glyph`, `sphere`, `splat`, `splat_resolve`, `matrix`, `text_*`, `widget`)",
+      "heading": "### Step 3. Shade SDF dots, vertex markers, point-cloud splats, scene text and the private gumball (`glyph`, `sphere`, `splat`, `splat_resolve`, `text_*`, `widget`)",
       "paragraph": "Computes `3`-axis arrow, quarter-ring arc and scale-ball `Xform` deltas from ray-axis closest points, plane angles (`90°` snap) and pivot reach."
     }
   },
@@ -1292,7 +1292,7 @@
   {
     "path": "src/app/live.rs",
     "owner": "application",
-    "sourceSha256": "6d5a0f0ffc90647a8b4ccaec4a5b88818c6e36769b527f70f626337ab72b2c46",
+    "sourceSha256": "496e4377b781e5ec541b9abe16586d2c3ab4755ef81b73dc10d0b8c121ba1b69",
     "explanation": {
       "page": "journey/completion-streaming.md",
       "heading": "### Step 3: Live `EventSource` notifications and atomic `ETag` swaps",
@@ -1312,7 +1312,7 @@
   {
     "path": "src/app/loader.rs",
     "owner": "application",
-    "sourceSha256": "3ab28bd0f96144d4fcfa5493769dec9d6ff19cc69f4ba990c11adcd47b9b43d3",
+    "sourceSha256": "5da82e4156fc007c6b166c62b33ce72afd9ddd7553f06261fd7e90859b87bec7",
     "explanation": {
       "page": "journey/completion-loading.md",
       "heading": "### Step 2: Guard routes, load generations and `RangeGate` permits",
@@ -1402,7 +1402,7 @@
   {
     "path": "src/app/scene.rs",
     "owner": "application",
-    "sourceSha256": "7061a49e1a1acecfb6a384bd5b06effbc11741f74004fa0090670035d3140be4",
+    "sourceSha256": "2606f846a03b1edbc8fde39f74720fd1d826e5c6aafd7350e3b7f96537046105",
     "explanation": {
       "page": "journey/completion-documents.md",
       "heading": "### Step 1: Map `(doc_idx, GUID)` placements onto GPU rows and `Footprint` spans",
@@ -1582,7 +1582,7 @@
   {
     "path": "src/app/scene_text.rs",
     "owner": "application",
-    "sourceSha256": "6daa354260babf371a4916ee28fb05f8243f4560c327b4c30f00412fa727426a",
+    "sourceSha256": "97d41fc1b759873571e9cd87695f78923b641c11d8c2aea4ebaed09fe2094da0",
     "explanation": {
       "page": "journey/completion-text.md",
       "heading": "### Step 3: Selectable document nameplates and DOM metric verification",
@@ -2115,7 +2115,7 @@
     "sourceSha256": "84313f8cf50c315742e31ecab2080efe9c0487eb57e6a835241aaa5e3c846ed0",
     "explanation": {
       "page": "journey/completion-geometry.md",
-      "heading": "### Step 3. Shade SDF dots, vertex markers, point-cloud splats, `7`-segment matrices, scene text and the private gumball (`glyph`, `sphere`, `splat`, `splat_resolve`, `matrix`, `text_*`, `widget`)",
+      "heading": "### Step 3. Shade SDF dots, vertex markers, point-cloud splats, scene text and the private gumball (`glyph`, `sphere`, `splat`, `splat_resolve`, `text_*`, `widget`)",
       "paragraph": "Declares the additive module boundary re-exporting `walk_cloud` now and registering `stream.rs` in checkpoint `application`."
     }
   },
@@ -2125,7 +2125,7 @@
     "sourceSha256": "15b06db4cbef9bd3a1cd05af8a43a6861b0685845498d63ae91bde683b695377",
     "explanation": {
       "page": "journey/completion-geometry.md",
-      "heading": "### Step 3. Shade SDF dots, vertex markers, point-cloud splats, `7`-segment matrices, scene text and the private gumball (`glyph`, `sphere`, `splat`, `splat_resolve`, `matrix`, `text_*`, `widget`)",
+      "heading": "### Step 3. Shade SDF dots, vertex markers, point-cloud splats, scene text and the private gumball (`glyph`, `sphere`, `splat`, `splat_resolve`, `text_*`, `widget`)",
       "paragraph": "Packs kernel `PointCloud` positions, colours and complete normal arrays (`NO_NORMALS` when absent) with file-level `point_size` override."
     }
   },
@@ -2200,16 +2200,6 @@
     }
   },
   {
-    "path": "src/app/walk/matrix.rs",
-    "owner": "geometry",
-    "sourceSha256": "b6735b4df9b65e9d377f15ae371a410994693aa5043e3ca46c02676c79a70aeb",
-    "explanation": {
-      "page": "journey/completion-geometry.md",
-      "heading": "### Step 3. Shade SDF dots, vertex markers, point-cloud splats, `7`-segment matrices, scene text and the private gumball (`glyph`, `sphere`, `splat`, `splat_resolve`, `matrix`, `text_*`, `widget`)",
-      "paragraph": "Validates dimensions, computes nonzero min/max range, and packs a `16`-word header plus `3` words per cell (`f32` colour + integer whole/thousandths)."
-    }
-  },
-  {
     "path": "src/app/walk/mesh.rs",
     "owner": "geometry",
     "sourceSha256": "a070c4a31a303339687adfffd579446e31f33d44c4a3a5c4ca49cd216265e060",
@@ -2242,7 +2232,7 @@
   {
     "path": "src/app/walk/mod.rs",
     "owner": "geometry",
-    "sourceSha256": "4f0a9780bf204cdef61267a28b08a1c2d8d472ebe92f9dce7beb8ef2d7608085",
+    "sourceSha256": "4b885dd7ec122a4dd5c731cbe8c3c448b246fa6bf7e04aedc66fd200dbac7ad8",
     "explanation": {
       "page": "journey/completion-geometry.md",
       "heading": "### Step 1. Walk meshes, BRep trims and shared `20`-byte arena vertices (`slot_table.wgsl`)",
@@ -2352,7 +2342,7 @@
   {
     "path": "src/engine/gpu/arena.rs",
     "owner": "geometry",
-    "sourceSha256": "7f0d4e53f55d3a1bf384da7ac7781766b8faf4e9f7038ab0dc2c29bb7f6e6441",
+    "sourceSha256": "cbf44c46ffeb4c1ee24c98586fb33555c93f7ab1ad9d4061cc27a7e7d9f7a7a7",
     "explanation": {
       "page": "journey/completion-geometry.md",
       "heading": "### Step 1. Walk meshes, BRep trims and shared `20`-byte arena vertices (`slot_table.wgsl`)",
@@ -2392,7 +2382,7 @@
   {
     "path": "src/engine/gpu/clip.rs",
     "owner": "geometry",
-    "sourceSha256": "ee32a1e79f4a4fa8625787b5b6a9e86b46ad9cff45dcd66cd73e47e7d90230a7",
+    "sourceSha256": "10d579e9bf16be0c155dfa302052b60e9a8368daddbc82759882f3e4b6ae110f",
     "explanation": {
       "page": "journey/completion-visibility.md",
       "heading": "### Step 4. Cap section planes, dilate outlines and integrate GTAO horizons (`cap.wgsl`, `surface_outline.wgsl`, `ambient_*.wgsl`, `ssao.wgsl`)",
@@ -2412,7 +2402,7 @@
   {
     "path": "src/engine/gpu/clip/pipelines.rs",
     "owner": "geometry",
-    "sourceSha256": "483249eef637d0deff02d1e80d96ad5ab56247e18e76faeff2fdc26cd4fdab73",
+    "sourceSha256": "a6140c3823f00daeab3930b5ed0b95b05c516304c4fa4bd2278b1f8f87bbcfd7",
     "explanation": {
       "page": "journey/completion-visibility.md",
       "heading": "### Step 4. Cap section planes, dilate outlines and integrate GTAO horizons (`cap.wgsl`, `surface_outline.wgsl`, `ambient_*.wgsl`, `ssao.wgsl`)",
@@ -2435,14 +2425,14 @@
     "sourceSha256": "ebf520f190ed3924efa465cdeac6d743ee9c2f1db337067955ba08d96959e3a5",
     "explanation": {
       "page": "journey/completion-geometry.md",
-      "heading": "### Step 3. Shade SDF dots, vertex markers, point-cloud splats, `7`-segment matrices, scene text and the private gumball (`glyph`, `sphere`, `splat`, `splat_resolve`, `matrix`, `text_*`, `widget`)",
+      "heading": "### Step 3. Shade SDF dots, vertex markers, point-cloud splats, scene text and the private gumball (`glyph`, `sphere`, `splat`, `splat_resolve`, `text_*`, `widget`)",
       "paragraph": "Maps source point intervals to GPU `Chunk` offsets (`row_of` -> `None` when non-resident) with independent octree and normal bases."
     }
   },
   {
     "path": "src/engine/gpu/context.rs",
     "owner": "geometry",
-    "sourceSha256": "e90e75e6513d2571719624df9f7af7fc30500813470a0bd3d3c706ec5fcfebfe",
+    "sourceSha256": "27cddd275b4e70d5fa46f4c2426d752415f5c1fabc2d11d3abedf76132df5499",
     "explanation": {
       "page": "journey/completion-geometry.md",
       "heading": "### Step 1. Walk meshes, BRep trims and shared `20`-byte arena vertices (`slot_table.wgsl`)",
@@ -2462,7 +2452,7 @@
   {
     "path": "src/engine/gpu/faces.rs",
     "owner": "geometry",
-    "sourceSha256": "b48b373d830c28cb9e9456e421390d7f326b4910c9608f487dcf1834be78ff71",
+    "sourceSha256": "b224803a213ba4f5dcf5f5e304535fcd97fcc51db4134b54af7154bbb1cee394",
     "explanation": {
       "page": "journey/completion-geometry.md",
       "heading": "### Step 1. Walk meshes, BRep trims and shared `20`-byte arena vertices (`slot_table.wgsl`)",
@@ -2485,14 +2475,14 @@
     "sourceSha256": "f992838e16e6792174214bd4ab67040e33026b9d471fad5b988ebd0597716970",
     "explanation": {
       "page": "journey/completion-geometry.md",
-      "heading": "### Step 3. Shade SDF dots, vertex markers, point-cloud splats, `7`-segment matrices, scene text and the private gumball (`glyph`, `sphere`, `splat`, `splat_resolve`, `matrix`, `text_*`, `widget`)",
+      "heading": "### Step 3. Shade SDF dots, vertex markers, point-cloud splats, scene text and the private gumball (`glyph`, `sphere`, `splat`, `splat_resolve`, `text_*`, `widget`)",
       "paragraph": "Stores `48 B` `GlyphPoint` records (position, signed radius, colour, row and up to `6` packed face normals) for dots and vertex markers."
     }
   },
   {
     "path": "src/engine/gpu/hull.rs",
     "owner": "rows",
-    "sourceSha256": "6546c2c6e49f166cd132b819585bbd5182c180fb882dbe2456a77a3cf376e751",
+    "sourceSha256": "cb0306cb3261767f9f87eb42bde9e301c3c4a1b2a225d0334e25fe2305919ed8",
     "explanation": {
       "page": "journey/completion-rows.md",
       "heading": "### Step 2. Pin the `112`-byte `Instance` layout and `GrowBuf` table",
@@ -2562,7 +2552,7 @@
   {
     "path": "src/engine/gpu/lane.rs",
     "owner": "geometry",
-    "sourceSha256": "b42d937e91e0ad5bfd33469285cf99309a78e854177fd8bd504cf50d8b352371",
+    "sourceSha256": "9f1105819b85d8a38d82fc11862fb438bc54a53774802e4f4a3cd450f7e75f76",
     "explanation": {
       "page": "journey/completion-visibility.md",
       "heading": "### Step 1. Unify every lane under `Lane` and `RowLane` (`src/engine/gpu/lane.rs`)",
@@ -2575,24 +2565,14 @@
     "sourceSha256": "75dc349e43f44ca3bbbcc26a88f7bc3d56189a4268b0a2e3523e7903e9148a08",
     "explanation": {
       "page": "journey/completion-geometry.md",
-      "heading": "### Step 3. Shade SDF dots, vertex markers, point-cloud splats, `7`-segment matrices, scene text and the private gumball (`glyph`, `sphere`, `splat`, `splat_resolve`, `matrix`, `text_*`, `widget`)",
+      "heading": "### Step 3. Shade SDF dots, vertex markers, point-cloud splats, scene text and the private gumball (`glyph`, `sphere`, `splat`, `splat_resolve`, `text_*`, `widget`)",
       "paragraph": "Traverses resident octree nodes against projected pixel spacing, camera distance and scale, clamping selected spans to uploaded residency."
-    }
-  },
-  {
-    "path": "src/engine/gpu/matrices.rs",
-    "owner": "geometry",
-    "sourceSha256": "00f606b5056037de1bf3923c7874202bd1877af7591759713e48ca46a3d5a1de",
-    "explanation": {
-      "page": "journey/completion-geometry.md",
-      "heading": "### Step 3. Shade SDF dots, vertex markers, point-cloud splats, `7`-segment matrices, scene text and the private gumball (`glyph`, `sphere`, `splat`, `splat_resolve`, `matrix`, `text_*`, `widget`)",
-      "paragraph": "Stores variable-length packed matrices in one storage word buffer indexed by per-matrix block starts for `6`-vertex quad draws."
     }
   },
   {
     "path": "src/engine/gpu/mod.rs",
     "owner": "frame",
-    "sourceSha256": "56a8e0538e0981ccc17f5baf98ed9f60acb42d3db2b1c9cf44ab6188731ecdf1",
+    "sourceSha256": "b53eb4d681185c0b6daada206b6aa071e6f19a879ac200bcc4129b2cc15b290b",
     "explanation": {
       "page": "journey/completion-frame.md",
       "heading": "### Step 1. Create `Cargo.toml`, `Cargo.lock` and module roots",
@@ -2655,14 +2635,14 @@
     "sourceSha256": "9e5916950f6658ad02b28aae1e009cfdc4546c4a4c4ba24c59c9194a7675b427",
     "explanation": {
       "page": "journey/completion-geometry.md",
-      "heading": "### Step 4. Pace submissions and assemble the `4`-object scene (`present.rs`, `pacing.rs`, `geometry.rs`)",
+      "heading": "### Step 4. Pace submissions and assemble the `3`-object scene (`present.rs`, `pacing.rs`, `geometry.rs`)",
       "paragraph": "`src/engine/gpu/pacing.rs` (`FramePacing`) gates redraws behind an `Arc` acquire/release queue-completion callback so slow frames never build an unbounded submission backlog."
     }
   },
   {
     "path": "src/engine/gpu/pass.rs",
     "owner": "geometry",
-    "sourceSha256": "cce6cc842567b136d01ab84d8ef1e39a5b149063128a5df932babf6950c80dc6",
+    "sourceSha256": "a29df0f2b49d8aa1972fb0739c5a4ad2fb50414a29dc6bc7ca463cd31fe213f1",
     "explanation": {
       "page": "journey/completion-geometry.md",
       "heading": "### Step 2. Extrude mitered ribbons, `0.30` arrows, planes, grids and backdrop (`ribbon.wgsl`, `arrow.wgsl`, `vector.wgsl`, `plane.wgsl`, `grid.wgsl`, `background.wgsl`)",
@@ -2705,7 +2685,7 @@
     "sourceSha256": "98e20200ffcd612032d034ff8bf6d87ec81dd7e0cb4b6c35f45192f0ece58c16",
     "explanation": {
       "page": "journey/completion-geometry.md",
-      "heading": "### Step 4. Pace submissions and assemble the `4`-object scene (`present.rs`, `pacing.rs`, `geometry.rs`)",
+      "heading": "### Step 4. Pace submissions and assemble the `3`-object scene (`present.rs`, `pacing.rs`, `geometry.rs`)",
       "paragraph": "`src/engine/gpu/present.rs` updates frame uniforms, widgets and text, reconfigures suboptimal/outdated surfaces, submits the encoded frame, and schedules idle post-present pipeline warming."
     }
   },
@@ -2722,7 +2702,7 @@
   {
     "path": "src/engine/gpu/segments.rs",
     "owner": "geometry",
-    "sourceSha256": "f44565ff517b0a9bbc7d0248b537a46edde66861d24509f76abf6ee3b346550c",
+    "sourceSha256": "b798fe15ba6c40e5823d3545ebe5d298e708b024c5189d782815030e3c0b2ae0",
     "explanation": {
       "page": "journey/completion-geometry.md",
       "heading": "### Step 2. Extrude mitered ribbons, `0.30` arrows, planes, grids and backdrop (`ribbon.wgsl`, `arrow.wgsl`, `vector.wgsl`, `plane.wgsl`, `grid.wgsl`, `background.wgsl`)",
@@ -2745,7 +2725,7 @@
     "sourceSha256": "378f8b97c64859e1a0d4c45f58dd01f4f0af844645dd8af31eac69954e35276f",
     "explanation": {
       "page": "journey/completion-geometry.md",
-      "heading": "### Step 3. Shade SDF dots, vertex markers, point-cloud splats, `7`-segment matrices, scene text and the private gumball (`glyph`, `sphere`, `splat`, `splat_resolve`, `matrix`, `text_*`, `widget`)",
+      "heading": "### Step 3. Shade SDF dots, vertex markers, point-cloud splats, scene text and the private gumball (`glyph`, `sphere`, `splat`, `splat_resolve`, `text_*`, `widget`)",
       "paragraph": "Emits `160 B` (`40`-word) splat draw records cached by camera/LOD/revision key into dedicated `1×` colour and reverse-Z depth targets."
     }
   },
@@ -2802,7 +2782,7 @@
   {
     "path": "src/engine/gpu/surface_outline.rs",
     "owner": "geometry",
-    "sourceSha256": "25a9c85dcc0d431e2d88a65cc5de033c7b25a6414b894740d9b06d0371b5210d",
+    "sourceSha256": "4addd38a8030d3826134dd2486f1c56353168fb6c7e395fa4279b3c2ee8a34f6",
     "explanation": {
       "page": "journey/completion-visibility.md",
       "heading": "### Step 4. Cap section planes, dilate outlines and integrate GTAO horizons (`cap.wgsl`, `surface_outline.wgsl`, `ambient_*.wgsl`, `ssao.wgsl`)",
@@ -2865,7 +2845,7 @@
     "sourceSha256": "b7ec607e1759845577f9c10596ebfea2377bef4f3777ced791f0592f6a71a9c1",
     "explanation": {
       "page": "journey/completion-geometry.md",
-      "heading": "### Step 3. Shade SDF dots, vertex markers, point-cloud splats, `7`-segment matrices, scene text and the private gumball (`glyph`, `sphere`, `splat`, `splat_resolve`, `matrix`, `text_*`, `widget`)",
+      "heading": "### Step 3. Shade SDF dots, vertex markers, point-cloud splats, scene text and the private gumball (`glyph`, `sphere`, `splat`, `splat_resolve`, `text_*`, `widget`)",
       "paragraph": "Emits `6`-vertex rounded label backing quads (depth-tested before overlays) preserving pre-clip centre, half-size and corner radius."
     }
   },
@@ -2945,7 +2925,7 @@
     "sourceSha256": "89e1986353d281db23313eb5f3d3c294fd4a7b5e42c6051d76e22ecdf3a44003",
     "explanation": {
       "page": "journey/completion-geometry.md",
-      "heading": "### Step 3. Shade SDF dots, vertex markers, point-cloud splats, `7`-segment matrices, scene text and the private gumball (`glyph`, `sphere`, `splat`, `splat_resolve`, `matrix`, `text_*`, `widget`)",
+      "heading": "### Step 3. Shade SDF dots, vertex markers, point-cloud splats, scene text and the private gumball (`glyph`, `sphere`, `splat`, `splat_resolve`, `text_*`, `widget`)",
       "paragraph": "Renders the gumball into a private depth-tested tile (`96 B` uniform) and composites it over the scene so solids never bury active handles."
     }
   },
@@ -2955,7 +2935,7 @@
     "sourceSha256": "89d73dd598c5a0f7639409e724f3df910c09f3ffcf21de16f0cbbd8e669c7306",
     "explanation": {
       "page": "journey/completion-geometry.md",
-      "heading": "### Step 3. Shade SDF dots, vertex markers, point-cloud splats, `7`-segment matrices, scene text and the private gumball (`glyph`, `sphere`, `splat`, `splat_resolve`, `matrix`, `text_*`, `widget`)",
+      "heading": "### Step 3. Shade SDF dots, vertex markers, point-cloud splats, scene text and the private gumball (`glyph`, `sphere`, `splat`, `splat_resolve`, `text_*`, `widget`)",
       "paragraph": "Builds the static CSS-sized gumball mesh once with `10` handle IDs matching `gizmo.rs` hit-test geometry."
     }
   },
@@ -2992,7 +2972,7 @@
   {
     "path": "src/engine/pipelines/core.rs",
     "owner": "rows",
-    "sourceSha256": "e8772a78252be84671a26723a24e29d5afd5611f0c976464e48be8e72cfc5fc4",
+    "sourceSha256": "a5335bf3da733819812efb5b073b1f237646c9de6e610046e49ca275ed098177",
     "explanation": {
       "page": "journey/completion-rows.md",
       "heading": "### Step 3. Declare `@group(0..2)` bind layouts and lazy pipeline compilation",
@@ -3002,7 +2982,7 @@
   {
     "path": "src/engine/pipelines/geometry.rs",
     "owner": "geometry",
-    "sourceSha256": "7ad7d6f1d08e751f0a3d4707fc6726c4f14139d366a1fe86289997b033ccdb88",
+    "sourceSha256": "69f15af8be6362a9ca303da2ecaeb348ba0aaf27dd5d2fb78e866e2eadd5c415",
     "explanation": {
       "page": "journey/completion-geometry.md",
       "heading": "### Step 1. Walk meshes, BRep trims and shared `20`-byte arena vertices (`slot_table.wgsl`)",
@@ -3102,7 +3082,7 @@
   {
     "path": "src/selftest/stroke_witness.rs",
     "owner": "application",
-    "sourceSha256": "d7d2bd03edc3e7f384eff7034cad2018b94f10732bd996dec34aa910d96b50e4",
+    "sourceSha256": "4639c08832244360cdf549e9c2a2da969e043e5ee415d9e9e72949a254580d70",
     "explanation": {
       "page": "journey/completion-debugging.md",
       "heading": "### Step 2: Headless `selftest` CPU ray oracle and software witnesses",
@@ -3162,7 +3142,7 @@
   {
     "path": "src/shaders/cap.wgsl",
     "owner": "geometry",
-    "sourceSha256": "1892c0314d7ed98949f6f56711e2cb002ec29b2c1c1c46ff9c4b31357ef7bde9",
+    "sourceSha256": "b9afd793c10b8c9a64027e47e108e7f8e219590ebc8101e096f407ed2115b83f",
     "explanation": {
       "page": "journey/completion-visibility.md",
       "heading": "### Step 4. Cap section planes, dilate outlines and integrate GTAO horizons (`cap.wgsl`, `surface_outline.wgsl`, `ambient_*.wgsl`, `ssao.wgsl`)",
@@ -3182,11 +3162,11 @@
   {
     "path": "src/shaders/face_coverage.wgsl",
     "owner": "geometry",
-    "sourceSha256": "e4b37b7fa30f5cf6237a0aa7e20287ad36b3cdd07893e43899e2bc33fb1ddd16",
+    "sourceSha256": "776f20a05ba03f8db70f82538d70b40712d345bf6890110848198270b441fdf9",
     "explanation": {
       "page": "journey/completion-visibility.md",
       "heading": "### Step 3. Shade solid faces, extract MSAA coverage and test ink visibility (`triangle.wgsl`, `face_coverage.wgsl`, `ink_visibility.wgsl`)",
-      "paragraph": "2. **`src/shaders/face_coverage.wgsl`** inspects the `2×u16` `physical` attachment across all `SAMPLES` to emit fractional solid coverage (`fs_fraction`) and exact `@builtin(sample_mask)` masks (`fs_samples`):"
+      "paragraph": "2. **`src/shaders/face_coverage.wgsl`** inspects the `2×u16` `physical` attachment across all `SAMPLES` to emit fractional solid coverage (`fs_fraction`):"
     }
   },
   {
@@ -3195,7 +3175,7 @@
     "sourceSha256": "f02c43132ae3cd3612262275c3dc71f751c0507e86a3ede948d0fd1fc2314cc4",
     "explanation": {
       "page": "journey/completion-geometry.md",
-      "heading": "### Step 3. Shade SDF dots, vertex markers, point-cloud splats, `7`-segment matrices, scene text and the private gumball (`glyph`, `sphere`, `splat`, `splat_resolve`, `matrix`, `text_*`, `widget`)",
+      "heading": "### Step 3. Shade SDF dots, vertex markers, point-cloud splats, scene text and the private gumball (`glyph`, `sphere`, `splat`, `splat_resolve`, `text_*`, `widget`)",
       "paragraph": "1. **`src/shaders/glyph.wgsl`** circumscribes each `48 B` `GlyphPoint` with one `3`-vertex equilateral triangle `(0, 2), (-1.732, -1), (1.732, -1)` and cuts the anti-aliased circle in the fragment shader, while **`src/shaders/sphere.wgsl`** tapers dense mesh vertex markers down to `TAPER_MIN = 0.15`:"
     }
   },
@@ -3217,16 +3197,6 @@
       "page": "journey/completion-visibility.md",
       "heading": "### Step 3. Shade solid faces, extract MSAA coverage and test ink visibility (`triangle.wgsl`, `face_coverage.wgsl`, `ink_visibility.wgsl`)",
       "paragraph": "3. **`src/shaders/ink_visibility.wgsl`** carries neighbour depth along verified planar surfaces (`ink_pair_planar`) and adds `ink_sag_slack(sag, gradient)` when testing tile triangles so curved BRep edges rising above grazing facets stay unbroken while rear edges disappear cleanly:"
-    }
-  },
-  {
-    "path": "src/shaders/matrix.wgsl",
-    "owner": "geometry",
-    "sourceSha256": "0f319930e6a82b89909f4d71447b2d1b2d82cd11f2c4071f5f62e635e83ce620",
-    "explanation": {
-      "page": "journey/completion-geometry.md",
-      "heading": "### Step 3. Shade SDF dots, vertex markers, point-cloud splats, `7`-segment matrices, scene text and the private gumball (`glyph`, `sphere`, `splat`, `splat_resolve`, `matrix`, `text_*`, `widget`)",
-      "paragraph": "3. **`src/shaders/matrix.wgsl`** draws an entire `R × C` numerical `Matrix` on a single `6`-vertex quad, formatting `[whole, signed_thousandths]` procedurally with `7`-segment signed-distance strokes so large entries retain exact decimal places without font atlases:"
     }
   },
   {
@@ -3282,7 +3252,7 @@
   {
     "path": "src/shaders/ribbon.wgsl",
     "owner": "geometry",
-    "sourceSha256": "6108dc8853ed7166d3ab7c1e05c44160814145c4f7923b7bae5670943a184f3a",
+    "sourceSha256": "b093afe3893219c3173bfa50390fe187099f739c8a0dd9163a7a27b7ccf66f55",
     "explanation": {
       "page": "journey/completion-geometry.md",
       "heading": "### Step 2. Extrude mitered ribbons, `0.30` arrows, planes, grids and backdrop (`ribbon.wgsl`, `arrow.wgsl`, `vector.wgsl`, `plane.wgsl`, `grid.wgsl`, `background.wgsl`)",
@@ -3325,7 +3295,7 @@
     "sourceSha256": "4a4bbdb2853a6525beab037611cb9b2135ce42ad881154b8ab1d46c8e2c24a4a",
     "explanation": {
       "page": "journey/completion-geometry.md",
-      "heading": "### Step 3. Shade SDF dots, vertex markers, point-cloud splats, `7`-segment matrices, scene text and the private gumball (`glyph`, `sphere`, `splat`, `splat_resolve`, `matrix`, `text_*`, `widget`)",
+      "heading": "### Step 3. Shade SDF dots, vertex markers, point-cloud splats, scene text and the private gumball (`glyph`, `sphere`, `splat`, `splat_resolve`, `text_*`, `widget`)",
       "paragraph": "1. **`src/shaders/glyph.wgsl`** circumscribes each `48 B` `GlyphPoint` with one `3`-vertex equilateral triangle `(0, 2), (-1.732, -1), (1.732, -1)` and cuts the anti-aliased circle in the fragment shader, while **`src/shaders/sphere.wgsl`** tapers dense mesh vertex markers down to `TAPER_MIN = 0.15`:"
     }
   },
@@ -3335,7 +3305,7 @@
     "sourceSha256": "375bed442852f6bd755df5f802bdfeed77fb8dd5a13ce87069d098aebba6d16f",
     "explanation": {
       "page": "journey/completion-geometry.md",
-      "heading": "### Step 3. Shade SDF dots, vertex markers, point-cloud splats, `7`-segment matrices, scene text and the private gumball (`glyph`, `sphere`, `splat`, `splat_resolve`, `matrix`, `text_*`, `widget`)",
+      "heading": "### Step 3. Shade SDF dots, vertex markers, point-cloud splats, scene text and the private gumball (`glyph`, `sphere`, `splat`, `splat_resolve`, `text_*`, `widget`)",
       "paragraph": "2. **`src/shaders/splat.wgsl`** and **`src/shaders/splat_resolve.wgsl`** binary-search `40`-word octree draw runs and fold nearest-point `sdepth` + `scolor` into the scene depth buffer with logarithmic Eye-Dome Lighting:"
     }
   },
@@ -3345,7 +3315,7 @@
     "sourceSha256": "511ff9ed8a46fa07338d7335b8b8a54d4f808c06d8a823688d8d78e7360f417f",
     "explanation": {
       "page": "journey/completion-geometry.md",
-      "heading": "### Step 3. Shade SDF dots, vertex markers, point-cloud splats, `7`-segment matrices, scene text and the private gumball (`glyph`, `sphere`, `splat`, `splat_resolve`, `matrix`, `text_*`, `widget`)",
+      "heading": "### Step 3. Shade SDF dots, vertex markers, point-cloud splats, scene text and the private gumball (`glyph`, `sphere`, `splat`, `splat_resolve`, `text_*`, `widget`)",
       "paragraph": "2. **`src/shaders/splat.wgsl`** and **`src/shaders/splat_resolve.wgsl`** binary-search `40`-word octree draw runs and fold nearest-point `sdepth` + `scolor` into the scene depth buffer with logarithmic Eye-Dome Lighting:"
     }
   },
@@ -3375,8 +3345,8 @@
     "sourceSha256": "c06b165b85ee2a0bd20d0348f1aea3d1ce811a7fd76d66911380ef62fa8be03e",
     "explanation": {
       "page": "journey/completion-geometry.md",
-      "heading": "### Step 3. Shade SDF dots, vertex markers, point-cloud splats, `7`-segment matrices, scene text and the private gumball (`glyph`, `sphere`, `splat`, `splat_resolve`, `matrix`, `text_*`, `widget`)",
-      "paragraph": "4. **`src/shaders/text_plate.wgsl`**, **`src/shaders/text_plane.wgsl`** and **`src/shaders/text_outline.wgsl`** render rounded label backing pills, textured `3D`/screen glyph quads, and triangulated CAD sheet outlines (`primitive = 0`):"
+      "heading": "### Step 3. Shade SDF dots, vertex markers, point-cloud splats, scene text and the private gumball (`glyph`, `sphere`, `splat`, `splat_resolve`, `text_*`, `widget`)",
+      "paragraph": "3. **`src/shaders/text_plate.wgsl`**, **`src/shaders/text_plane.wgsl`** and **`src/shaders/text_outline.wgsl`** render rounded label backing pills, textured `3D`/screen glyph quads, and triangulated CAD sheet outlines (`primitive = 0`):"
     }
   },
   {
@@ -3385,8 +3355,8 @@
     "sourceSha256": "8694a4d32e4676415b28fa4727bf4c1645862e80f4cc4e65e41c79ab1e5451c3",
     "explanation": {
       "page": "journey/completion-geometry.md",
-      "heading": "### Step 3. Shade SDF dots, vertex markers, point-cloud splats, `7`-segment matrices, scene text and the private gumball (`glyph`, `sphere`, `splat`, `splat_resolve`, `matrix`, `text_*`, `widget`)",
-      "paragraph": "4. **`src/shaders/text_plate.wgsl`**, **`src/shaders/text_plane.wgsl`** and **`src/shaders/text_outline.wgsl`** render rounded label backing pills, textured `3D`/screen glyph quads, and triangulated CAD sheet outlines (`primitive = 0`):"
+      "heading": "### Step 3. Shade SDF dots, vertex markers, point-cloud splats, scene text and the private gumball (`glyph`, `sphere`, `splat`, `splat_resolve`, `text_*`, `widget`)",
+      "paragraph": "3. **`src/shaders/text_plate.wgsl`**, **`src/shaders/text_plane.wgsl`** and **`src/shaders/text_outline.wgsl`** render rounded label backing pills, textured `3D`/screen glyph quads, and triangulated CAD sheet outlines (`primitive = 0`):"
     }
   },
   {
@@ -3395,14 +3365,14 @@
     "sourceSha256": "5721973099036446bcd3310cb4ea28eb522b109009236602f4c00d757900b4cd",
     "explanation": {
       "page": "journey/completion-geometry.md",
-      "heading": "### Step 3. Shade SDF dots, vertex markers, point-cloud splats, `7`-segment matrices, scene text and the private gumball (`glyph`, `sphere`, `splat`, `splat_resolve`, `matrix`, `text_*`, `widget`)",
-      "paragraph": "4. **`src/shaders/text_plate.wgsl`**, **`src/shaders/text_plane.wgsl`** and **`src/shaders/text_outline.wgsl`** render rounded label backing pills, textured `3D`/screen glyph quads, and triangulated CAD sheet outlines (`primitive = 0`):"
+      "heading": "### Step 3. Shade SDF dots, vertex markers, point-cloud splats, scene text and the private gumball (`glyph`, `sphere`, `splat`, `splat_resolve`, `text_*`, `widget`)",
+      "paragraph": "3. **`src/shaders/text_plate.wgsl`**, **`src/shaders/text_plane.wgsl`** and **`src/shaders/text_outline.wgsl`** render rounded label backing pills, textured `3D`/screen glyph quads, and triangulated CAD sheet outlines (`primitive = 0`):"
     }
   },
   {
     "path": "src/shaders/triangle.wgsl",
     "owner": "geometry",
-    "sourceSha256": "ea26805ce07269fb242562ea71dec4fee114794d5cf24d385c2f1c2e9516960b",
+    "sourceSha256": "a6f217b662f14b7226c0ed390dcb6a0cf1327304488a1a0d331fcb715c80b20c",
     "explanation": {
       "page": "journey/completion-visibility.md",
       "heading": "### Step 3. Shade solid faces, extract MSAA coverage and test ink visibility (`triangle.wgsl`, `face_coverage.wgsl`, `ink_visibility.wgsl`)",
@@ -3435,14 +3405,14 @@
     "sourceSha256": "4337efb0b24e1fa1116db7dc9fb6690e3745433168a704ff7edd71597416f8d0",
     "explanation": {
       "page": "journey/completion-geometry.md",
-      "heading": "### Step 3. Shade SDF dots, vertex markers, point-cloud splats, `7`-segment matrices, scene text and the private gumball (`glyph`, `sphere`, `splat`, `splat_resolve`, `matrix`, `text_*`, `widget`)",
-      "paragraph": "5. **`src/shaders/widget.wgsl`** shades the `10`-handle manipulation gumball inside its own depth-tested tile (`widget.rect`) so handles occlude each other cleanly in `3D` while floating unobstructed above scene solids:"
+      "heading": "### Step 3. Shade SDF dots, vertex markers, point-cloud splats, scene text and the private gumball (`glyph`, `sphere`, `splat`, `splat_resolve`, `text_*`, `widget`)",
+      "paragraph": "4. **`src/shaders/widget.wgsl`** shades the `10`-handle manipulation gumball inside its own depth-tested tile (`widget.rect`) so handles occlude each other cleanly in `3D` while floating unobstructed above scene solids:"
     }
   },
   {
     "path": "src/state.rs",
     "owner": "application",
-    "sourceSha256": "87a222b7b03305ca3274e0bd50f1a696da62da31d766b548fe36d09e7057fca9",
+    "sourceSha256": "f9a777ae14105a7140f7af5d50a06692eb5b6fb245a24f3ce45cc14a949567e9",
     "explanation": {
       "page": "journey/completion-application.md",
       "heading": "### Step 1: Serialize async updates into one `State` owner",

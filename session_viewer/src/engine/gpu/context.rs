@@ -409,7 +409,6 @@ pub(crate) fn lane_shaders() -> Vec<(&'static str, &'static str)> {
     out.extend_from_slice(glyphs::SHADERS); // register:markers
     out.extend_from_slice(vectors::SHADERS); // register:strokes
     out.extend_from_slice(planes::SHADERS); // register:planes
-    out.extend_from_slice(matrices::SHADERS); // register:matrices
     out
 }
 

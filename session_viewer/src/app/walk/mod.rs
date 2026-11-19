@@ -28,7 +28,6 @@ pub mod display;
 pub mod display_features;
 pub mod encode;
 pub mod frames;
-pub mod matrix; // register:matrices
 pub mod mesh;
 pub mod mesh_ink;
 pub mod mesh_topology;
