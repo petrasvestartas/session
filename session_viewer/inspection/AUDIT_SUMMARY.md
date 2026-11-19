@@ -4,6 +4,9 @@ Audit of `session/session_viewer` at superproject HEAD `032cd8c0f`, 2026-11-19, 
 
 | Report | Phase | Content |
 |---|---|---|
+| [AGENT_BRIEF.md](AGENT_BRIEF.md) | — | **entry point for an agent**: reading order, rules, workflow, reporting |
+| [PRODUCT_BRIEF.md](PRODUCT_BRIEF.md) | — | what the viewer must become (replaces the product half of `Session Viewer.txt`) |
+| [TUTORIAL_PROMPT.md](TUTORIAL_PROMPT.md) | — | how tutorials are written and verified (replaces its tutorial half) |
 | [REPOSITORY_INSPECTION.md](REPOSITORY_INSPECTION.md) | 1 | layout, versions, builds and tests actually run, measured frame numbers, CI, disk |
 | [FEATURE_INVENTORY.md](FEATURE_INVENTORY.md) | 2 | every feature with status, source, tests, issues, tutorial; gaps vs brief §4 |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | 3 | module graph, lifecycle, ownership, cycles, coupling, target architecture |
