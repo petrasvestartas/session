@@ -1,8 +1,8 @@
 # Section plane design
 
-This capstone covers section planes, not the full current viewer. The complete destination also includes mathematical stage decks: early 2D layout and motion, then kernel geometry in scene rows, authored cameras, projected labels and deck playback checks. Follow the [current course](README.md) and [stage dependency audit](journey/stage-gap.md); the numbered clipping lesson linked below is archived.
+> **Design note (implemented in production):** Up to `6` simultaneous section planes with watertight stencil caps and hatch fills are implemented in `viewer-core/src/clipping.rs`, `src/engine/gpu/clip.rs`, `src/shaders/clip.wgsl`, and `src/shaders/cap.wgsl` — see **[Tutorial 12 · Transparency, finite-triangle tile visibility and section caps](journey/tutorial-twelve-visibility.md)**.
 
-[Lesson 18b](18b-clipping.md) builds this feature. This page keeps the design answers and acceptance criteria behind it, not the code.
+This capstone covers section planes, not the full current viewer. The complete destination also includes mathematical stage decks: early 2D layout and motion, then kernel geometry in scene rows, authored cameras, projected labels and deck playback checks. Follow the [17-tutorial course](README.md) and [stage dependency audit](journey/stage-gap.md); [archived lesson 18b](archived/18b-clipping.md) preserves the earlier standalone step.
 
 The feature is a **section plane**: a movable plane that cuts the scene, so faces, edges, markers and text on the far side disappear and a solid's interior becomes visible.
 

@@ -1,6 +1,8 @@
 # Adding a command line
 
-These are the design notes the command line grew from; the code is taught in [lesson 22](22-runtime-helpers.md) (the egui layer), [lesson 23](23-geometry-commands.md) (the command field and one verb per file in `app/command/verbs/`, listed in `REGISTRY`) and [lesson 23a](23a-tools.md) (tools that ask for points). Two decisions went the other way: the field is egui, not DOM markup, and a command is a registry entry, not a method on `State` picked from one table. The [walkthrough](command-line-walkthrough.md) shows it in use.
+> **Historical design proposal (superseded by production):** Sketches below (DOM `#viewer-command-input`, `src/state/command.rs`, `tests/command.cjs`) were superseded by the `egui` `src/command_dock/` widget, `viewer-core/src/command/` (`86` `Spec`s over `CommandHost`), `viewer-core/src/op.rs`, `session-viewer-cli`, and `tests/command-input.cjs` — see **[Tutorial 6](journey/tutorial-six-modeling.md)**, **[Tutorial 13](journey/tutorial-thirteen-commands.md)**, and **[Tutorial 14](journey/tutorial-fourteen-fastmcp.md)**.
+
+These are the design notes the command line grew from; the archived code is in [lesson 22](archived/22-runtime-helpers.md), [lesson 23](archived/23-geometry-commands.md) and [lesson 23a](archived/23a-tools.md). Two decisions went the other way: the field is `egui` (`command_dock`), not DOM markup, and a command is a `Spec` registry entry over `CommandHost`. The [walkthrough](command-line-walkthrough.md) shows it in use.
 
 ## The shape of the finished thing
 

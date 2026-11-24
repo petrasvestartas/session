@@ -1,0 +1,31 @@
+title: '3.2 · 2D Mathematics Stage'
+split: 0.50
+slides:
+  - title: 'OPENTYPE MATH AND STAGE MATRICES'
+    steps:
+      - say: 'Parse YAML slides, lay out OpenType MATH boxes on a 1600x900 frame, and draw rounded sign-coloured matrices.'
+        add:
+          - {id: flow, drawing: [
+              {polygon: [[110, 145], [700, 145], [700, 229], [110, 229]], fill: cell, color: ink, width: 2.0},
+              {point: [110, 187], color: accent, size: 5.0},
+              {arrow: [[405, 233], [405, 306]], color: blue, width: 3.0},
+              {polygon: [[110, 310], [700, 310], [700, 394], [110, 394]], fill: blue_band, color: ink, width: 2.0},
+              {point: [110, 352], color: accent, size: 5.0},
+              {arrow: [[405, 398], [405, 471]], color: blue, width: 3.0},
+              {polygon: [[110, 475], [700, 475], [700, 559], [110, 559]], fill: pink_band, color: ink, width: 2.0},
+              {point: [110, 517], color: accent, size: 5.0},
+              {arrow: [[405, 563], [405, 636]], color: blue, width: 3.0},
+              {polygon: [[110, 640], [700, 640], [700, 724], [110, 724]], fill: yellow_light, color: ink, width: 2.0},
+              {point: [110, 682], color: accent, size: 5.0}
+            ], at: [0, 0]}
+          - {id: h0, tex: '\text{deck.rs YAML -> Stage}', at: [136, 179], size: 21, color: ink}
+          - {id: s0, tex: '\text{slides, steps, blocks, palette}', at: [136, 209], size: 16, color: navy}
+          - {id: h1, tex: '\text{font.rs + tex.rs boxes}', at: [136, 344], size: 21, color: ink}
+          - {id: s1, tex: '\text{OpenType MATH axis, fractions, radicals}', at: [136, 374], size: 16, color: navy}
+          - {id: h2, tex: '\text{matrix.rs + flat.rs}', at: [136, 509], size: 21, color: ink}
+          - {id: s2, tex: '\text{rounded cells + 24x0.30 arrowheads}', at: [136, 539], size: 16, color: navy}
+          - {id: h3, tex: '\text{morph.rs + check.rs}', at: [136, 674], size: 21, color: ink}
+          - {id: s3, tex: '\text{symbol travel + zero-overlap audit}', at: [136, 704], size: 16, color: navy}
+        matrix: {id: M, rows: [[2, -1], [-1, 2]]}
+        eq: {tex: 'y_{\mathrm{rule}} = -y_{\mathrm{axis}},\qquad F_{\mathrm{stage}} = 1600 \times 900', align: left}
+        text: '**Invariant:** Positive matrix entries tint pink, negative entries tint blue, and 2D stage matrices stay independent of 3D scene lanes.'

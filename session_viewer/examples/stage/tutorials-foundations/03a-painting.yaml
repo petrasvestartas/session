@@ -1,0 +1,30 @@
+title: '3.1 · Compositing egui Shapes'
+split: 0.50
+slides:
+  - title: 'EGUI OVERLAY PAINTER'
+    steps:
+      - say: 'Tessellate 2D shapes and font deltas into clipped triangles and draw with LoadOp::Load over the scene.'
+        add:
+          - {id: flow, drawing: [
+              {polygon: [[110, 145], [700, 145], [700, 229], [110, 229]], fill: cell, color: ink, width: 2.0},
+              {point: [110, 187], color: accent, size: 5.0},
+              {arrow: [[405, 233], [405, 306]], color: blue, width: 3.0},
+              {polygon: [[110, 310], [700, 310], [700, 394], [110, 394]], fill: blue_band, color: ink, width: 2.0},
+              {point: [110, 352], color: accent, size: 5.0},
+              {arrow: [[405, 398], [405, 471]], color: blue, width: 3.0},
+              {polygon: [[110, 475], [700, 475], [700, 559], [110, 559]], fill: yellow_light, color: ink, width: 2.0},
+              {point: [110, 517], color: accent, size: 5.0},
+              {arrow: [[405, 563], [405, 636]], color: blue, width: 3.0},
+              {polygon: [[110, 640], [700, 640], [700, 724], [110, 724]], fill: pink_band, color: ink, width: 2.0},
+              {point: [110, 682], color: accent, size: 5.0}
+            ], at: [0, 0]}
+          - {id: h0, tex: '\text{egui::Context::run_ui}', at: [136, 179], size: 21, color: ink}
+          - {id: s0, tex: '\text{logical CSS points + pixels_per_point}', at: [136, 209], size: 16, color: navy}
+          - {id: h1, tex: '\text{textures_delta.set}', at: [136, 344], size: 21, color: ink}
+          - {id: s1, tex: '\text{upload glyph/image atlases before draw}', at: [136, 374], size: 16, color: navy}
+          - {id: h2, tex: '\text{tessellate -> update_buffers}', at: [136, 509], size: 21, color: ink}
+          - {id: s2, tex: '\text{ClippedPrimitive vertex/index uploads}', at: [136, 539], size: 16, color: navy}
+          - {id: h3, tex: '\text{RenderPass (LoadOp::Load)}', at: [136, 674], size: 21, color: ink}
+          - {id: s3, tex: '\text{composites UI over 3D colour target}', at: [136, 704], size: 16, color: navy}
+        eq: {tex: 'x_{\mathrm{px}} = x_{\mathrm{pt}} \cdot \mathrm{ppp},\qquad \mathrm{free}_{t} \rightarrow \mathrm{drop}_{t+1}', align: left}
+        text: '**Invariant:** Defer textures_delta.free until the start of the next frame so in-flight draw calls never sample freed textures.'

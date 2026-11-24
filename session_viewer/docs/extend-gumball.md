@@ -1,6 +1,8 @@
 # Adding a gumball
 
-These are the design notes the gumball grew from; [lesson 21](21-editing.md) teaches the drag (`app/gesture/`, `state/drag.rs`) and [lesson 25](25-gumball.md) draws the solid widget. Two decisions went the other way: the widget draws in the lane types the control net already uses rather than in a private lane, and the drag is committed once on release rather than per frame. Read this for the reasoning; read the lessons for what runs.
+> **Historical design proposal (superseded by production):** Sketches below (`src/engine/gpu/gizmo.rs`, `src/shaders/gizmo.wgsl`, `src/math.rs`, 10-handle world-only layout) were superseded by the shipped 13-handle (`World`/`Object`/`CPlane` + planar quads) implementation in `viewer-core/src/gizmo.rs`, `src/engine/gpu/widget.rs`, `src/engine/gpu/widget_mesh.rs`, and `src/shaders/widget.wgsl` — see **[Tutorial 8 · Gumball widget and interactive handles](journey/tutorial-eight-gumball.md)**.
+
+These are the design notes the gumball grew from; [lesson 21](archived/21-editing.md) teaches the drag (`app/gesture/`, `state/drag.rs`) and [lesson 25](archived/25-gumball.md) draws the solid widget. Two decisions went the other way: the widget draws in a dedicated `widget.rs` pass rather than borrowing control lanes, and the drag is committed once on release rather than per frame. Read this for the reasoning; read [Tutorial 8](journey/tutorial-eight-gumball.md) for what runs.
 
 ## The widget
 

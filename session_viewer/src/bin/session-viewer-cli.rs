@@ -29,12 +29,13 @@ mod cli {
             Some("exec") => run_exec(&args[1..]),
             Some("serve") => run_serve(&args[1..]),
             Some("schema") => run_schema(&args[1..]),
+            Some("render-stage") => run_render_stage(&args[1..]),
             Some("-h" | "--help" | "help") | None => {
                 print_usage();
                 Ok(())
             }
             Some(other) => Err(format!(
-                "unknown subcommand `{other}` (expected `exec`, `serve`, or `schema`)"
+                "unknown subcommand `{other}` (expected `exec`, `serve`, `schema`, or `render-stage`)"
             )),
         }
     }
@@ -44,8 +45,51 @@ mod cli {
             "Usage:\n  \
              session-viewer-cli exec [<scene>...] [--open <path>] [--op <json>]... [--cmd <line>]... [--save <out.session>] [--export-obj <out.obj>] [--render <out.ppm>] [--width <W>] [--height <H>]\n  \
              session-viewer-cli serve [--stdio] [--open <path>]\n  \
-             session-viewer-cli schema [--markdown]"
+             session-viewer-cli schema [--markdown]\n  \
+             session-viewer-cli render-stage <deck_dir>... [--width <W>] [--height <H>]"
         );
+    }
+
+    fn run_render_stage(args: &[String]) -> Result<(), String> {
+        let mut dirs = Vec::new();
+        let mut width = 1280u32;
+        let mut height = 720u32;
+        let mut i = 0usize;
+        while i < args.len() {
+            match args[i].as_str() {
+                "--width" => {
+                    i += 1;
+                    width = args
+                        .get(i)
+                        .ok_or("--width needs a positive integer")?
+                        .parse()
+                        .map_err(|_| "invalid --width")?;
+                }
+                "--height" => {
+                    i += 1;
+                    height = args
+                        .get(i)
+                        .ok_or("--height needs a positive integer")?
+                        .parse()
+                        .map_err(|_| "invalid --height")?;
+                }
+                arg if arg.starts_with('-') => {
+                    return Err(format!("unknown render-stage flag `{arg}`"));
+                }
+                dir => dirs.push(dir.to_string()),
+            }
+            i += 1;
+        }
+        if dirs.is_empty() {
+            return Err("render-stage requires at least one <deck_dir>".into());
+        }
+        for dir in dirs {
+            let written = session_viewer::selftest::render_stage_deck_ppms(&dir, width, height)?;
+            for path in written {
+                println!("{path}");
+            }
+        }
+        Ok(())
     }
 
     fn execute_with_render(host: &mut HeadlessHost, req: Request) -> Response {

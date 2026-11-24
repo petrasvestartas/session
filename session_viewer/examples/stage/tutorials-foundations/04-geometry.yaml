@@ -1,0 +1,30 @@
+title: '4 · Geometry Walk, Arenas and Scene Rows'
+split: 0.50
+slides:
+  - title: 'SOURCE WALK TO GPU LANES'
+    steps:
+      - say: 'Walk kernel objects into packed 20-byte vertices, slot-mapped faces, ribbons, arrows and 112-byte Instance rows.'
+        add:
+          - {id: flow, drawing: [
+              {polygon: [[110, 145], [700, 145], [700, 229], [110, 229]], fill: cell, color: ink, width: 2.0},
+              {point: [110, 187], color: accent, size: 5.0},
+              {arrow: [[405, 233], [405, 306]], color: blue, width: 3.0},
+              {polygon: [[110, 310], [700, 310], [700, 394], [110, 394]], fill: blue_band, color: ink, width: 2.0},
+              {point: [110, 352], color: accent, size: 5.0},
+              {arrow: [[405, 398], [405, 471]], color: blue, width: 3.0},
+              {polygon: [[110, 475], [700, 475], [700, 559], [110, 559]], fill: yellow_light, color: ink, width: 2.0},
+              {point: [110, 517], color: accent, size: 5.0},
+              {arrow: [[405, 563], [405, 636]], color: blue, width: 3.0},
+              {polygon: [[110, 640], [700, 640], [700, 724], [110, 724]], fill: pink_band, color: ink, width: 2.0},
+              {point: [110, 682], color: accent, size: 5.0}
+            ], at: [0, 0]}
+          - {id: h0, tex: '\text{session_rust Geometry}', at: [136, 179], size: 21, color: ink}
+          - {id: s0, tex: '\text{Mesh, BRep, NurbsCurve, Line, Plane}', at: [136, 209], size: 16, color: navy}
+          - {id: h1, tex: '\text{viewer-core::walk::*}', at: [136, 344], size: 21, color: ink}
+          - {id: s1, tex: '\text{chord budget, crease ink, octahedral n}', at: [136, 374], size: 16, color: navy}
+          - {id: h2, tex: '\text{Arena (20 B) + Slots + Lanes}', at: [136, 509], size: 21, color: ink}
+          - {id: s2, tex: '\text{faces, segments, vectors, glyphs, planes}', at: [136, 539], size: 16, color: navy}
+          - {id: h3, tex: '\text{Instance (112 B) + Scene tombs}', at: [136, 674], size: 21, color: ink}
+          - {id: s3, tex: '\text{(doc, guid) identity + O(1) undo graves}', at: [136, 704], size: 16, color: navy}
+        eq: {tex: '\mathrm{PackedVertex} = 20\,\mathrm{B},\qquad \mathrm{Instance} = 112\,\mathrm{B}', align: left}
+        text: '**Invariant:** Translations update only the 16 B camera-anchored translation slot, leaving the 64 B model matrix untouched.'

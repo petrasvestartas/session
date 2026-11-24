@@ -1,0 +1,30 @@
+title: '13 · Command Dock and Native CLI'
+split: 0.50
+slides:
+  - title: 'DOCK WIDGET, PHONE IME AND CLI'
+    steps:
+      - say: 'Decouple command_dock via the Commands trait, bridge mobile IME input, and run headless commands in session-viewer-cli.'
+        add:
+          - {id: flow, drawing: [
+              {polygon: [[110, 145], [700, 145], [700, 229], [110, 229]], fill: cell, color: ink, width: 2.0},
+              {point: [110, 187], color: accent, size: 5.0},
+              {arrow: [[405, 233], [405, 306]], color: blue, width: 3.0},
+              {polygon: [[110, 310], [700, 310], [700, 394], [110, 394]], fill: blue_band, color: ink, width: 2.0},
+              {point: [110, 352], color: accent, size: 5.0},
+              {arrow: [[405, 398], [405, 471]], color: blue, width: 3.0},
+              {polygon: [[110, 475], [700, 475], [700, 559], [110, 559]], fill: yellow_light, color: ink, width: 2.0},
+              {point: [110, 517], color: accent, size: 5.0},
+              {arrow: [[405, 563], [405, 636]], color: blue, width: 3.0},
+              {polygon: [[110, 640], [700, 640], [700, 724], [110, 724]], fill: pink_band, color: ink, width: 2.0},
+              {point: [110, 682], color: accent, size: 5.0}
+            ], at: [0, 0]}
+          - {id: h0, tex: '\text{agent.rs + ui/phone.rs}', at: [136, 179], size: 21, color: ink}
+          - {id: s0, tex: '\text{DOM input proxy for mobile keyboards}', at: [136, 209], size: 16, color: navy}
+          - {id: h1, tex: '\text{command_dock::CommandLine}', at: [136, 344], size: 21, color: ink}
+          - {id: s1, tex: '\text{Commands trait, tab suffix, 200-line log}', at: [136, 374], size: 16, color: navy}
+          - {id: h2, tex: '\text{CommandHost + HeadlessHost}', at: [136, 509], size: 21, color: ink}
+          - {id: s2, tex: '\text{all 86 verbs run without window or GPU}', at: [136, 539], size: 16, color: navy}
+          - {id: h3, tex: '\text{session-viewer-cli}', at: [136, 674], size: 21, color: ink}
+          - {id: s3, tex: '\text{exec, serve --stdio, schema, render-stage}', at: [136, 704], size: 16, color: navy}
+        eq: {tex: '\mathrm{Dock} \xrightarrow{\mathrm{Commands}} \mathrm{parse} \xrightarrow{\mathrm{Action}} \mathrm{CommandHost}', align: left}
+        text: '**Invariant:** command_dock imports zero crate:: modules so standalone lessons and production share one widget.'

@@ -56,7 +56,7 @@ Every complete case command still fails two separate history-frame assertions. A
 | Arrows | Shared vector/plane shader, 64-byte vector rows and field-by-field `arrow_corner` arguments. |
 | BRep display | Curve quality, parameter recovery, contact display and silhouettes. |
 | Documents and hierarchy | Graph attributes, feature/own lines, scene publication and redraw state. |
-| Rendering and self-test | Matrix lane, backdrop, splat selection, pacing, current oracle and stroke witnesses. |
+| Rendering and self-test | Backdrop, splat selection, pacing, current oracle and stroke witnesses. |
 | Build and loading | Font/raster dependencies, release configuration, deck copying and fetch alongside wasm. |
 
 The journey's current arrow checkpoint still teaches a different shader. Its production notes do not establish implementation parity. The [debugging guide](../debugging.md#probe-a-phone-only-shader-failure) explains the device-probe method and the field-argument constraint.

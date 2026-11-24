@@ -1,0 +1,9 @@
+name: 'Tutorials 12–17 · Visibility, CLI, FastMCP, Formats, Performance and Application'
+theme: light
+chapters:
+  - 12-visibility.yaml
+  - 13-commands.yaml
+  - 14-fastmcp.yaml
+  - 15-formats.yaml
+  - 16-performance.yaml
+  - 17-application.yaml

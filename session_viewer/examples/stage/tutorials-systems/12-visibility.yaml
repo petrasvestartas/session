@@ -1,0 +1,30 @@
+title: '12 · Tile Visibility, Transparency and Caps'
+split: 0.50
+slides:
+  - title: 'PREFIX-SUM TILES AND SECTION PLANES'
+    steps:
+      - say: 'Bin projected triangles into screen tiles with atomicMax depth bounds, test stroke ink, and stencil-cap section cuts.'
+        add:
+          - {id: flow, drawing: [
+              {polygon: [[110, 145], [700, 145], [700, 229], [110, 229]], fill: cell, color: ink, width: 2.0},
+              {point: [110, 187], color: accent, size: 5.0},
+              {arrow: [[405, 233], [405, 306]], color: blue, width: 3.0},
+              {polygon: [[110, 310], [700, 310], [700, 394], [110, 394]], fill: blue_band, color: ink, width: 2.0},
+              {point: [110, 352], color: accent, size: 5.0},
+              {arrow: [[405, 398], [405, 471]], color: blue, width: 3.0},
+              {polygon: [[110, 475], [700, 475], [700, 559], [110, 559]], fill: yellow_light, color: ink, width: 2.0},
+              {point: [110, 517], color: accent, size: 5.0},
+              {arrow: [[405, 563], [405, 636]], color: blue, width: 3.0},
+              {polygon: [[110, 640], [700, 640], [700, 724], [110, 724]], fill: pink_band, color: ink, width: 2.0},
+              {point: [110, 682], color: accent, size: 5.0}
+            ], at: [0, 0]}
+          - {id: h0, tex: '\text{project_triangles.wgsl}', at: [136, 179], size: 21, color: ink}
+          - {id: s0, tex: '\text{screen AABB + per-tile atomicMax depth}', at: [136, 209], size: 16, color: navy}
+          - {id: h1, tex: '\text{scan_triangle_tiles.wgsl}', at: [136, 344], size: 21, color: ink}
+          - {id: s1, tex: '\text{prefix-sum offsets into shared pool}', at: [136, 374], size: 16, color: navy}
+          - {id: h2, tex: '\text{ink_visibility.wgsl}', at: [136, 509], size: 21, color: ink}
+          - {id: s2, tex: '\text{O(1) front early-out + vec4 load + 128 cap}', at: [136, 539], size: 16, color: navy}
+          - {id: h3, tex: '\text{clip.wgsl + cap.wgsl + Alpha}', at: [136, 674], size: 21, color: ink}
+          - {id: s3, tex: '\text{6 half-spaces, stencil caps, blended alpha}', at: [136, 704], size: 16, color: navy}
+        eq: {tex: 'd_i(\mathbf{p}) = \mathbf{n}_i \cdot \mathbf{p} - w_i < 0 \implies \mathrm{discard}', align: left}
+        text: '**Invariant:** Per-tile atomicMax depth cut resting ink time on view_local.yaml from 17.40 ms to 7.06 ms (-59.4%).'

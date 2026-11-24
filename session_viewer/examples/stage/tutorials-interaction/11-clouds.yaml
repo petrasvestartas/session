@@ -1,0 +1,30 @@
+title: '11 · Point Clouds, Octree LOD and Sheets'
+split: 0.50
+slides:
+  - title: 'OCTREE SPLATS, EDL AND SHEET QUERIES'
+    steps:
+      - say: 'Cull octree nodes against the clip frustum, stop splitting below 2 px spacing, shade splats with EDL, and slice sheets.'
+        add:
+          - {id: flow, drawing: [
+              {polygon: [[110, 145], [700, 145], [700, 229], [110, 229]], fill: cell, color: ink, width: 2.0},
+              {point: [110, 187], color: accent, size: 5.0},
+              {arrow: [[405, 233], [405, 306]], color: blue, width: 3.0},
+              {polygon: [[110, 310], [700, 310], [700, 394], [110, 394]], fill: blue_band, color: ink, width: 2.0},
+              {point: [110, 352], color: accent, size: 5.0},
+              {arrow: [[405, 398], [405, 471]], color: blue, width: 3.0},
+              {polygon: [[110, 475], [700, 475], [700, 559], [110, 559]], fill: yellow_light, color: ink, width: 2.0},
+              {point: [110, 517], color: accent, size: 5.0},
+              {arrow: [[405, 563], [405, 636]], color: blue, width: 3.0},
+              {polygon: [[110, 640], [700, 640], [700, 724], [110, 724]], fill: pink_band, color: ink, width: 2.0},
+              {point: [110, 682], color: accent, size: 5.0}
+            ], at: [0, 0]}
+          - {id: h0, tex: '\text{LodNode octree (lod.rs)}', at: [136, 179], size: 21, color: ink}
+          - {id: s0, tex: '\text{8-corner frustum cull + lod_px = 2.0}', at: [136, 209], size: 16, color: navy}
+          - {id: h1, tex: '\text{splat.wgsl -> splat_resolve.wgsl}', at: [136, 344], size: 21, color: ink}
+          - {id: s1, tex: '\text{screen discs + Eye-Dome Lighting}', at: [136, 374], size: 16, color: navy}
+          - {id: h2, tex: '\text{250k streamed cloud chunks}', at: [136, 509], size: 21, color: ink}
+          - {id: s2, tex: '\text{HTTP Range pages + browser frame yields}', at: [136, 539], size: 16, color: navy}
+          - {id: h3, tex: '\text{cloud_query + sheet_query}', at: [136, 674], size: 21, color: ink}
+          - {id: s3, tex: '\text{cancellable paged CPU/side-table picks}', at: [136, 704], size: 16, color: navy}
+        eq: {tex: '\frac{\mathrm{spacing}_{\mathrm{node}}}{s_{\mathrm{world/px}}} \le 2.0\,\mathrm{px} \implies \text{draw node}', align: left}
+        text: '**Invariant:** Dropping a pending pick token immediately cancels in-flight cloud or sheet page scans.'

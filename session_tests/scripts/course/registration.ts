@@ -15,7 +15,7 @@ export function assertRegistrationExtension(name: string, before: string, after:
         if (!code) continue;
         const declaration = /^(?:pub(?:\(crate\))? )?mod \w+;$/.test(code);
         const reexport = /^pub(?:\(crate\))? use [\w:*{}, ]+;$/.test(code);
-        const attribute = /^#\[(?:cfg\([\w\s=",()]+\)|path = "[\w./-]+")\]$/.test(code);
+        const attribute = /^#\[(?:cfg\([\w\s=",()]+\)|allow\([\w\s,]+\)|path = "[\w./-]+")\]$/.test(code);
         const entry = /^\("(frame|painting|mathematics|dock|camera|rows|geometry|decoding)", \1::start\),$/.test(code)
             || code === '("application", crate::run_web),';
         assert(declaration || reexport || attribute

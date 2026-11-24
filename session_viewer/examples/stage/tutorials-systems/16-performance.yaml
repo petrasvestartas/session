@@ -1,0 +1,30 @@
+title: '16 · Pacing Tiers, Timers and Self-Tests'
+split: 0.50
+slides:
+  - title: 'INSTRUMENTATION AND ORACLE HARNESS'
+    steps:
+      - say: 'Track rolling p50/p95/p99 frame stats, step navigation quality tiers only on sustained slow drags, and verify pixels.'
+        add:
+          - {id: flow, drawing: [
+              {polygon: [[110, 145], [700, 145], [700, 229], [110, 229]], fill: cell, color: ink, width: 2.0},
+              {point: [110, 187], color: accent, size: 5.0},
+              {arrow: [[405, 233], [405, 306]], color: blue, width: 3.0},
+              {polygon: [[110, 310], [700, 310], [700, 394], [110, 394]], fill: blue_band, color: ink, width: 2.0},
+              {point: [110, 352], color: accent, size: 5.0},
+              {arrow: [[405, 398], [405, 471]], color: blue, width: 3.0},
+              {polygon: [[110, 475], [700, 475], [700, 559], [110, 559]], fill: yellow_light, color: ink, width: 2.0},
+              {point: [110, 517], color: accent, size: 5.0},
+              {arrow: [[405, 563], [405, 636]], color: blue, width: 3.0},
+              {polygon: [[110, 640], [700, 640], [700, 724], [110, 724]], fill: pink_band, color: ink, width: 2.0},
+              {point: [110, 682], color: accent, size: 5.0}
+            ], at: [0, 0]}
+          - {id: h0, tex: '\text{FrameStats [p50, p95, p99]}', at: [136, 179], size: 21, color: ink}
+          - {id: s0, tex: '\text{CpuSplit + RedrawCauses + AtomicU64 GPU}', at: [136, 209], size: 16, color: navy}
+          - {id: h1, tex: '\text{NavigationQuality (tiers 0..=3)}', at: [136, 344], size: 21, color: ink}
+          - {id: s1, tex: '\text{drops costly passes only on slow drag runs}', at: [136, 374], size: 16, color: navy}
+          - {id: h2, tex: '\text{PassTimer + ?inspect=perf}', at: [136, 509], size: 21, color: ink}
+          - {id: s2, tex: '\text{ink sub-pass GPU timestamps + LoAF}', at: [136, 539], size: 16, color: navy}
+          - {id: h3, tex: '\text{selftest::oracle + witness}', at: [136, 674], size: 21, color: ink}
+          - {id: s3, tex: '\text{100% visible edge continuity checks}', at: [136, 704], size: 16, color: navy}
+        eq: {tex: 'T_{\mathrm{ink}}(\text{view_local}):\quad 17.40\,\mathrm{ms} \longrightarrow 7.06\,\mathrm{ms}\ \ (-59.4\%)', align: left}
+        text: '**Invariant:** Bare pointer hover over the 3D canvas triggers zero scene redraws unless a >= 50 ms hover pick changes row.'

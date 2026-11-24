@@ -2,6 +2,7 @@
 nav:
   - Before you start:
     - Start here: docs/README.md
+    - Active course overview: docs/journey/active.md
     - Course route: docs/journey.md
     - Save and recover: docs/journey/recovery.md
     - Corrections: docs/journey/corrections.md
@@ -9,56 +10,76 @@ nav:
     - Command-line revision: docs/journey/command-line.md
     - Complete lesson checklist: docs/journey/roadmap.md
     - Release evidence: docs/journey/release.md
+  - Tutorials:
+    - "01 · Project architecture and browser initialization": docs/journey/tutorial-one-startup.md
+    - "02 · WebGPU and wgpu initialization": docs/journey/tutorial-two-wgpu.md
+    - "03 · Rendering engine and shared shaders": docs/journey/tutorial-three-rendering.md
+    - "03.1 · Compositing egui shapes and text": docs/journey/tutorial-three-painting.md
+    - "03.2 · Laying out and animating 2D mathematics": docs/journey/tutorial-three-mathematics.md
+    - "04 · Geometry and scene data structures": docs/journey/tutorial-four-geometry.md
+    - "05 · Camera and navigation": docs/journey/tutorial-five-camera.md
+    - "06 · Object creation and transformations": docs/journey/tutorial-six-modeling.md
+    - "07 · Picking and selection": docs/journey/tutorial-seven-picking.md
+    - "08 · Gumball widget and interactive handles": docs/journey/tutorial-eight-gumball.md
+    - "09 · Layers, hierarchy, panels and instancing": docs/journey/tutorial-nine-layers.md
+    - "10 · Display modes: outlines, Arctic SSAO and scene text": docs/journey/tutorial-ten-display.md
+    - "11 · Point clouds, octree LOD and sheets": docs/journey/tutorial-eleven-clouds.md
+    - "12 · Transparency, tile visibility and section caps": docs/journey/tutorial-twelve-visibility.md
+    - "13 · Command dock, completion, history and native CLI": docs/journey/tutorial-thirteen-commands.md
+    - "14 · Shared Op API, browser execute_op and FastMCP": docs/journey/tutorial-fourteen-fastmcp.md
+    - "15 · File formats, protobuf decode and .session archives": docs/journey/tutorial-fifteen-formats.md
+    - "16 · Performance tiers, GPU timing and self-tests": docs/journey/tutorial-sixteen-performance.md
+    - "17 · Complete application reconstruction and Scene3 stage": docs/journey/tutorial-seventeen-application.md
   - Reference guides:
-    - Complete implementation: docs/reference-course.md
+    - Complete implementation: docs/archived/reference-course.md
     - Viewer map and time plan: docs/map.md
     - Reference workflow: docs/how-to-learn.md
     - Rust foundations: docs/foundations.md
     - Words before code: docs/words.md
   - Course:
-    - "00 · Empty project to a WASM message": docs/00-environment.md
-    - "01 · First WebGPU frame": docs/01-first-frame.md
-    - "02 · Camera": docs/02-camera.md
-    - "03 · Object rows and identity": docs/03-identity.md
-    - "04a · Meshes on the GPU": docs/04a-meshes.md
-    - "04b · Strokes and arrows": docs/04b-strokes.md
-    - "04c · Markers": docs/04c-markers.md
-    - "04d · Point clouds": docs/04d-clouds.md
-    - "05 · Depth and visible ink": docs/05-visibility.md
-    - "06 · CAD face rules": docs/06-cad-contract.md
-    - "07 · Shared boundaries": docs/07-boundaries.md
-    - "08 · Trims, holes and periodic seams": docs/08-trimming.md
-    - "09 · Normals and shading": docs/09-normals.md
-    - "10 · Text shaping": docs/10-text-layout.md
-    - "11 · Text rendering": docs/11-text-rendering.md
-    - "12 · The viewer shell and picking": docs/12-picking.md
-    - "13 · Source controls and cloud picks": docs/13-controls.md
-    - "14 · Loading scenes": docs/14-loading.md
-    - "15 · Publication and streamed reads": docs/15-publication.md
-    - "16 · Resource accounting and release": docs/16-accounting.md
-    - "17 · Source faces, text objects and one silhouette": docs/17-source-presentation.md
-    - "18 · Finite-triangle visibility": docs/18-finite-visibility.md
-    - "18a · Instancing": docs/18a-instancing.md
-    - "18b · Clipping planes and section caps": docs/18b-clipping.md
-    - "19 · Sheets: batched drawings with lazy metadata": docs/19-sheets.md
-    - "20 · The document and its rows": docs/20-history.md
-    - "21 · Direct editing": docs/21-editing.md
-    - "22 · The egui layer": docs/22-runtime-helpers.md
-    - "23 · The command line: one verb per file": docs/23-geometry-commands.md
-    - "23a · Tools that ask for points": docs/23a-tools.md
-    - "23b · Shapes": docs/23b-shapes.md
-    - "23c · Surfacing": docs/23c-surfacing.md
-    - "23d · Annotate and measure": docs/23d-annotate-measure.md
-    - "24 · Snapping": docs/24-placed-controls.md
-    - "25 · Draw a solid, readable gumball": docs/25-gumball.md
-    - "26 · The nested session panel": docs/26-nested-panel.md
-    - "30 · The layers panel and the layer tree": docs/30-layer-tree.md
-    - "31 · Split curves and faces": docs/31-splitting.md
-    - "32 · Ambient occlusion": docs/32-colors-lighting.md
-    - "33 · GTAO, Arctic and Outline": docs/33-contact-shadows.md
-    - "35 · Attributes On|Off": docs/35-attributes.md
-    - "36 · Translucent faces and Opacity": docs/36-translucent-faces.md
-    - "37 · Self-test: the finished viewer": docs/37-command-dock.md
+    - "00 · Empty project to a WASM message": docs/archived/00-environment.md
+    - "01 · First WebGPU frame": docs/archived/01-first-frame.md
+    - "02 · Camera": docs/archived/02-camera.md
+    - "03 · Object rows and identity": docs/archived/03-identity.md
+    - "04a · Meshes on the GPU": docs/archived/04a-meshes.md
+    - "04b · Strokes and arrows": docs/archived/04b-strokes.md
+    - "04c · Markers": docs/archived/04c-markers.md
+    - "04d · Point clouds": docs/archived/04d-clouds.md
+    - "05 · Depth and visible ink": docs/archived/05-visibility.md
+    - "06 · CAD face rules": docs/archived/06-cad-contract.md
+    - "07 · Shared boundaries": docs/archived/07-boundaries.md
+    - "08 · Trims, holes and periodic seams": docs/archived/08-trimming.md
+    - "09 · Normals and shading": docs/archived/09-normals.md
+    - "10 · Text shaping": docs/archived/10-text-layout.md
+    - "11 · Text rendering": docs/archived/11-text-rendering.md
+    - "12 · The viewer shell and picking": docs/archived/12-picking.md
+    - "13 · Source controls and cloud picks": docs/archived/13-controls.md
+    - "14 · Loading scenes": docs/archived/14-loading.md
+    - "15 · Publication and streamed reads": docs/archived/15-publication.md
+    - "16 · Resource accounting and release": docs/archived/16-accounting.md
+    - "17 · Source faces, text objects and one silhouette": docs/archived/17-source-presentation.md
+    - "18 · Finite-triangle visibility": docs/archived/18-finite-visibility.md
+    - "18a · Instancing": docs/archived/18a-instancing.md
+    - "18b · Clipping planes and section caps": docs/archived/18b-clipping.md
+    - "19 · Sheets: batched drawings with lazy metadata": docs/archived/19-sheets.md
+    - "20 · The document and its rows": docs/archived/20-history.md
+    - "21 · Direct editing": docs/archived/21-editing.md
+    - "22 · The egui layer": docs/archived/22-runtime-helpers.md
+    - "23 · The command line: one verb per file": docs/archived/23-geometry-commands.md
+    - "23a · Tools that ask for points": docs/archived/23a-tools.md
+    - "23b · Shapes": docs/archived/23b-shapes.md
+    - "23c · Surfacing": docs/archived/23c-surfacing.md
+    - "23d · Annotate and measure": docs/archived/23d-annotate-measure.md
+    - "24 · Snapping": docs/archived/24-placed-controls.md
+    - "25 · Draw a solid, readable gumball": docs/archived/25-gumball.md
+    - "26 · The nested session panel": docs/archived/26-nested-panel.md
+    - "30 · The layers panel and the layer tree": docs/archived/30-layer-tree.md
+    - "31 · Split curves and faces": docs/archived/31-splitting.md
+    - "32 · Ambient occlusion": docs/archived/32-colors-lighting.md
+    - "33 · GTAO, Arctic and Outline": docs/archived/33-contact-shadows.md
+    - "35 · Attributes On|Off": docs/archived/35-attributes.md
+    - "36 · Translucent faces and Opacity": docs/archived/36-translucent-faces.md
+    - "37 · Self-test: the finished viewer": docs/archived/37-command-dock.md
   - Reference:
     - "Architecture": ARCHITECTURE.md
     - "Shared Operation API": docs/operations.md

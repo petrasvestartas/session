@@ -1,40 +1,53 @@
 # Cumulative viewer course
 
-Build the Session Viewer across nine cumulative Rust and `wgpu` checkpoints. Every checkpoint compiles and runs, keeps earlier implementations in place, and adds only its own modules and declared registrations.
+Build the Session Viewer across **17 complete, code-first tutorials** (`408` whole-file `--8<--` source includes: `197` `session_viewer/src` files, `182` `viewer-core/src` files, `9` support files, `.cargo/config.toml`, `13` course checkpoint entries, and `6` `session_mcp` FastMCP files), backed by **9 acyclic cumulative Cargo assemblies** (`frame` through `application`).
 
-![Nine cumulative checkpoints from 13 files (frame) to 370 files (application)](../illustrations/stage/00-course-map.svg)
+![Production shell, App -> State -> Mode, StageApp + Scene3 bridge, and 388 verified production files (native wgpu readback of stage deck)](../../examples/stage/tutorials-systems/17-application.png)
 
-## Subjects
+## 17 Tutorials (Sequential Reading Order)
 
-| # | Tutorial | ID | Files | Visible output |
+| # | Tutorial | Assembly | Full-file includes | Visible / verified result |
 | --- | --- | --- | --- | --- |
-| 1 | [Open a GPU frame](completion-frame.md) | `frame` | `13` | Cleared white WebGPU canvas |
-| 2 | [Paint shapes and text](completion-painting.md) | `painting` | `15` | `egui` pink triangle and bottom-left label |
-| 3 | [Lay out and animate mathematics](completion-mathematics.md) | `mathematics` | `42` | `1600×900` TeX equations, matrices and 2D constructions |
-| 4 | [Enter commands](completion-dock.md) | `dock` | `46` | Persistent command bar, history and option chips |
-| 5 | [Project and fit a scene](completion-camera.md) | `camera` | `48` | Perspective orbit, ray unprojection and bounds fit |
-| 6 | [Place and update object rows](completion-rows.md) | `rows` | `69` | `112 B` GPU `Instance` table and `6` shared WGSL headers |
-| 7 | [Render kernel geometry](completion-geometry.md) + [7.1 Visibility](completion-visibility.md) | `geometry` | `167` | All `33` WGSL shaders: meshes, BRep ink, curves, clouds and SSAO |
-| 8 | [Decode a document](completion-decoding.md) | `decoding` | `171` | Bounded `512 MiB` protobuf validation and decode |
-| 9 | [Run the application](completion-application.md) (+ chapters 9.1..9.9) | `application` | `370` | Full `352/352` production viewer (`production.html`) |
+| 1 | [Project architecture and browser initialization](tutorial-one-startup.md) | `frame` | `14` | `viewer-core` + `session_viewer` workspace and `#canvas` loop |
+| 2 | [WebGPU and `wgpu` initialization](tutorial-two-wgpu.md) | `frame` | `9` | `256 MiB` device, first-error latch, reverse-Z/MSAA/ID targets |
+| 3 | [Rendering engine and shared shaders](tutorial-three-rendering.md) | `rows` | `19` | `build.rs` `#include` assembly, `PRELUDE`, bind groups `0..=3` |
+| 3.1 | [Compositing `egui` shapes and text](tutorial-three-painting.md) | `painting` | `2` | `egui` overlay tessellation and deferred texture-free pass |
+| 3.2 | [Laying out and animating 2D mathematics](tutorial-three-mathematics.md) | `mathematics` | `23` | `1600×900` OpenType MATH, rounded 2D matrices, `24×0.30` arrows |
+| 4 | [Geometry and scene data structures](tutorial-four-geometry.md) | `rows` / `geometry` | `75` | `20 B` vertices, arenas, ribbons, arrows, `112 B` `Instance` rows |
+| 5 | [Camera and navigation](tutorial-five-camera.md) | `camera` / `application` | `10` | `f64` camera rebasing, reverse-Z orbit/pan/zoom, `State` hub |
+| 6 | [Object creation and transformations](tutorial-six-modeling.md) | `application` | `79` | `86`-spec `REGISTRY`, `CPlane`, `OSnap`, `0`-step preview, `Undo` |
+| 7 | [Picking and selection](tutorial-seven-picking.md) | `application` | `14` | Hover + click `Rg32Uint` ID window and unified `SelectionState` |
+| 8 | [Gumball widget and interactive handles](tutorial-eight-gumball.md) | `geometry` / `application` | `8` | 13-handle `World`/`Object`/`CPlane` gizmo and single-commit drag |
+| 9 | [Layers, hierarchy, panels and instancing](tutorial-nine-layers.md) | `geometry` / `application` | `25` | Virtualized `Layers`/`Properties`/`Graph` panels and `InstanceRef` |
+| 10 | [Display modes: outlines, Arctic SSAO, attributes and scene text](tutorial-ten-display.md) | `geometry` / `application` | `30` | Coverage-mask silhouettes, GTAO `ssao.wgsl`, `glyphon` text lanes |
+| 11 | [Point clouds, octree LOD and sheets](tutorial-eleven-clouds.md) | `geometry` / `application` | `17` | Frustum-culled octree (`lod_px = 2.0`), EDL splats, `250k` chunks |
+| 12 | [Transparency, finite-triangle tile visibility and section caps](tutorial-twelve-visibility.md) | `geometry` / `application` | `14` | `atomicMax` tile depth, prefix-sum visibility, `Alpha`, section caps |
+| 13 | [Command dock, completion, history and native CLI](tutorial-thirteen-commands.md) | `dock` / `application` | `17` | Decoupled `command_dock`, phone IME, and `session-viewer-cli` |
+| 14 | [Shared `Op` API, browser `execute_op` and FastMCP server](tutorial-fourteen-fastmcp.md) | `dock` / `application` | `10` | `49` serde `Op`s (`4,076 ops/s`), WASM bridge, Python `session_mcp` |
+| 15 | [File formats, bounded protobuf decode, `.session` archives and live reload](tutorial-fifteen-formats.md) | `decoding` / `application` | `23` | `<= 512 MiB` wire validation, canonical `.session`, ETag/SSE reload |
+| 16 | [Performance tiers, GPU timing, diagnostics and headless self-tests](tutorial-sixteen-performance.md) | `rows` / `application` | `11` | `[p50, p95, p99]` `FrameStats`, `PassTimer`, and `selftest::oracle` |
+| 17 | [Complete application reconstruction and real-scene stage](tutorial-seventeen-application.md) | `application` | `8` | `StageApp + spatial::Scene3` 3D stage lens and `388/388` parity |
 
-## Materialize any checkpoint
+## Materialize any cumulative assembly
 
-From `session_tests`, list or materialize any checkpoint into a new directory without overwriting existing files:
+From `session_tests`, materialize any of the 9 acyclic Cargo assemblies (`frame`, `painting`, `mathematics`, `dock`, `camera`, `rows`, `geometry`, `decoding`, `application`) into a fresh directory:
 
 ```sh
-npm run course -- list
 npm run course -- checkpoint frame ../session_viewer/target/learn-frame
+npm run course -- active-audit
+npm run course -- teaching
 ```
 
-Build and serve using the shared cache and guards in [Maintaining](../maintaining.md). Checkpoint `application` builds `production.html`.
+Build and serve using the shared cache and guards in [Maintaining](../maintaining.md). Checkpoint `application` emits the complete `388`-file production workspace (`production.html`).
 
 ## Acceptance
 
-The route is **incomplete**. Eight of its nine executable subjects are accepted: frame, painting, mathematics, dock, camera, rows, geometry and decoding. Application remains pending. [Evidence](release.md) and each lesson record native, wasm and browser scope separately from physical-device verification.
+All `9` subjects in [active-course.json](active-course.json) are marked `"acceptance": "pending"` until reviewed in a hardware WebGPU browser and on physical mobile devices (the Linux build host's Chromium WebGPU adapter renders black). Native and compilation gates are verified at HEAD:
 
-`course -- teaching` verifies all `360` source-bound prose witnesses across all `352` Rust/WGSL files and `8` support files (`Cargo.toml`, `Cargo.lock`, `build.rs`, `Trunk.toml`, `index.html`, `assets/diagnostics.js`, `assets/text-quality.html`, `assets/view_local.yaml`), with `17` binary/font/licence exclusions in [completion-asset-exclusions.json](completion-asset-exclusions.json). Open items for whole-course completion are the [application GPU instancing comparison](release/completion-application-gpu-diagnostic-windows-20261116.json) (`31` pixels differing by `3` levels vs `<= 2`), physical-device runs, and `Save` JSON whitespace/key normalization; see [production reconciliation](release/completion-production-reconciliation-20261118e.json) and [stage reconciliation](release/completion-stage-reconciliation-windows-20261118e.json).
+- `course -- active-audit`: `passed: true` (`0` failures, `0` missing, `0` extra, `0` rewritten files across all 9 assemblies).
+- `course -- teaching`: `388 / 388` production and support files bound by SHA-256 to their owning `Tutorial 1`–`Tutorial 17` explanations (`0` missing, `0` errors).
+- `cargo check --target wasm32-unknown-unknown -j8` (`0` warnings), `cargo xtest -j8` (`626` passed, `0` failed), `pytest ../session_mcp/tests/test_mcp_parity.py` (`3/3` passed), and `DOCS_STRICT_LINKS=1` Vite production build (`0` errors).
 
 ## Historical reconstruction
 
-[Historical contents](contents.md), [checkpoint progress](roadmap.md) and the [former route](../archived/cumulative-route-20261115.md) preserve `course.json` (`npm run course -- historical-list`) and its `1,298` historical checkpoints unchanged.
+[Historical contents](contents.md), [checkpoint progress](roadmap.md) and the [former route](../archived/cumulative-route-20261115.md) preserve `course.json` (`npm run course -- historical-list`) and the archived `00`–`37` lessons under `docs/archived/`.

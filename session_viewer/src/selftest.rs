@@ -717,6 +717,203 @@ pub fn render_headless_host(
     Ok(ink)
 }
 
+/// Validate every step of a stage deck for errors and overlaps, and render each chapter's settled slide to `<stem>.ppm` beside its YAML.
+pub fn render_stage_deck_ppms(
+    deck_dir: &str,
+    width: u32,
+    height: u32,
+) -> Result<Vec<String>, String> {
+    use crate::app::stage::{deck, font, presentation::Presentation};
+    let w = width.clamp(320, 4096);
+    let h = height.clamp(240, 4096);
+    let font_dir = concat!(env!("CARGO_MANIFEST_DIR"), "/assets/stage/");
+    let font_files: Vec<Vec<u8>> = font::FILES
+        .iter()
+        .map(|name| {
+            std::fs::read(format!("{font_dir}{name}"))
+                .map_err(|e| format!("cannot read stage font {name}: {e}"))
+        })
+        .collect::<Result<_, _>>()?;
+    let fonts = font::Fonts::new(font_files).map_err(|e| format!("stage fonts: {e}"))?;
+
+    let dir = std::path::Path::new(deck_dir);
+    let index_src = std::fs::read_to_string(dir.join("index.yaml"))
+        .map_err(|e| format!("cannot read {deck_dir}/index.yaml: {e}"))?;
+    let index = deck::index(&index_src).map_err(|e| format!("{deck_dir}/index.yaml: {e}"))?;
+    let mut chapters = Vec::with_capacity(index.chapters.len());
+    for file in &index.chapters {
+        let src = std::fs::read_to_string(dir.join(file))
+            .map_err(|e| format!("cannot read {deck_dir}/{file}: {e}"))?;
+        chapters.push(deck::chapter(&src, file).map_err(|e| format!("{deck_dir}/{file}: {e}"))?);
+    }
+
+    let mut gpu = pollster::block_on(Gpu::new_headless(w, h))
+        .map_err(|e| format!("headless GPU unavailable: {e}"))?;
+    gpu.view.show_grid = false;
+
+    let total_chapters = chapters.len();
+    let chapter_files = index.chapters.clone();
+    let mut presentation = Presentation::new(fonts, index, chapters, Vec::new(), 0.0);
+    let egui_ctx = egui::Context::default();
+    let screen = egui::Rect::from_min_size(egui::Pos2::ZERO, egui::vec2(w as f32, h as f32));
+    let mut written = Vec::with_capacity(total_chapters);
+
+    for ch_idx in 0..total_chapters {
+        let ch_num = ch_idx + 1;
+        let total_steps: usize = presentation.stage.chapters[ch_idx]
+            .slides
+            .iter()
+            .map(|s| s.steps.len())
+            .sum();
+        for step in 1..=total_steps {
+            presentation.stage.open_at(ch_num, step, 0.0);
+            presentation.stage.tick(10_000.0);
+            presentation.stage.changed = true;
+            let output = egui_ctx.run_ui(
+                egui::RawInput {
+                    screen_rect: Some(screen),
+                    ..Default::default()
+                },
+                |root| {
+                    let _ = presentation.paint(root.painter(), screen, 1.0);
+                },
+            );
+            let ui = gpu.ui.get_or_insert_with(|| {
+                crate::engine::gpu::ui::Ui::new(&gpu.ctx.device, gpu.config.format)
+            });
+            ui.prepare(&gpu.ctx.device, &gpu.ctx.queue, &egui_ctx, output, [w, h]);
+            if !presentation.stage.errors.is_empty() {
+                return Err(format!(
+                    "{deck_dir} chapter {ch_num} ({}) step {step} errors: {:?}",
+                    chapter_files[ch_idx], presentation.stage.errors
+                ));
+            }
+            let overlaps = presentation.stage.overlaps();
+            if !overlaps.is_empty() {
+                return Err(format!(
+                    "{deck_dir} chapter {ch_num} ({}) step {step} overlaps: {:?}",
+                    chapter_files[ch_idx], overlaps
+                ));
+            }
+        }
+
+        presentation.stage.open_at(ch_num, total_steps, 0.0);
+        presentation.stage.tick(10_000.0);
+        presentation.stage.changed = true;
+        for _ in 0..2 {
+            let output = egui_ctx.run_ui(
+                egui::RawInput {
+                    screen_rect: Some(screen),
+                    ..Default::default()
+                },
+                |root| {
+                    let _ = presentation.paint(root.painter(), screen, 1.0);
+                },
+            );
+            let ui = gpu.ui.get_or_insert_with(|| {
+                crate::engine::gpu::ui::Ui::new(&gpu.ctx.device, gpu.config.format)
+            });
+            ui.prepare(&gpu.ctx.device, &gpu.ctx.queue, &egui_ctx, output, [w, h]);
+        }
+        let bg = presentation.stage.palette("bg");
+        let input = FrameInput {
+            view_proj: Xform::new(),
+            clear: wgpu::Color {
+                r: f64::from(bg[0]),
+                g: f64::from(bg[1]),
+                b: f64::from(bg[2]),
+                a: 1.0,
+            },
+            now_ms: 10_000.0,
+        };
+        let rgba = gpu.render_offscreen(&input);
+        let stem = chapter_files[ch_idx]
+            .strip_suffix(".yaml")
+            .unwrap_or(&chapter_files[ch_idx]);
+        let out_ppm = dir.join(format!("{stem}.ppm"));
+        let out_str = out_ppm.to_string_lossy().into_owned();
+        write_ppm(&out_str, &rgba, w, h).map_err(|e| format!("cannot write {out_str}: {e}"))?;
+        written.push(out_str);
+    }
+    Ok(written)
+}
+
+#[cfg(test)]
+mod tutorial_stage_tests {
+    use crate::app::stage::{deck, font, presentation::Presentation};
+
+    const TUTORIAL_DECKS: [&str; 3] = [
+        "tutorials-foundations",
+        "tutorials-interaction",
+        "tutorials-systems",
+    ];
+
+    #[test]
+    fn tutorial_stage_diagrams_play_cleanly_without_overlaps_or_errors() {
+        let font_dir = concat!(env!("CARGO_MANIFEST_DIR"), "/assets/stage/");
+        let files: Vec<Vec<u8>> = font::FILES
+            .iter()
+            .map(|f| std::fs::read(format!("{font_dir}{f}")).expect("stage font"))
+            .collect();
+        let screen = egui::Rect::from_min_size(egui::Pos2::ZERO, egui::vec2(1280.0, 720.0));
+
+        for name in TUTORIAL_DECKS {
+            let dir = format!("{}/examples/stage/{name}/", env!("CARGO_MANIFEST_DIR"));
+            let idx_path = format!("{dir}index.yaml");
+            if !std::path::Path::new(&idx_path).exists() {
+                continue;
+            }
+            let fonts = font::Fonts::new(files.clone()).expect("fonts parse");
+            let index = deck::index(&std::fs::read_to_string(&idx_path).unwrap()).unwrap();
+            let chapter_files = index.chapters.clone();
+            let chapters: Vec<deck::Chapter> = chapter_files
+                .iter()
+                .map(|c| {
+                    let src = std::fs::read_to_string(format!("{dir}{c}")).unwrap();
+                    deck::chapter(&src, c).unwrap_or_else(|e| panic!("{name}/{c}: {e}"))
+                })
+                .collect();
+            let count = chapters.len();
+            let mut p = Presentation::new(fonts, index, chapters, Vec::new(), 0.0);
+            for ch in 0..count {
+                let steps: usize = p.stage.chapters[ch]
+                    .slides
+                    .iter()
+                    .map(|s| s.steps.len())
+                    .sum();
+                assert!(steps >= 1, "{name}/{} has no steps", chapter_files[ch]);
+                for step in 1..=steps {
+                    p.stage.open_at(ch + 1, step, 0.0);
+                    p.stage.tick(10_000.0);
+                    let ctx = egui::Context::default();
+                    let _ = ctx.run_ui(
+                        egui::RawInput {
+                            screen_rect: Some(screen),
+                            ..Default::default()
+                        },
+                        |root| {
+                            let _ = p.paint(root.painter(), screen, 1.0);
+                        },
+                    );
+                    assert!(
+                        p.stage.errors.is_empty(),
+                        "{name}/{} step {step} errors: {:?}",
+                        chapter_files[ch],
+                        p.stage.errors
+                    );
+                    let overlaps = p.stage.overlaps();
+                    assert!(
+                        overlaps.is_empty(),
+                        "{name}/{} step {step} overlaps: {:?}",
+                        chapter_files[ch],
+                        overlaps
+                    );
+                }
+            }
+        }
+    }
+}
+
 /// Check one BRep file's edge ids.
 fn check_cad_edge_file(scene: &mut Scene, gpu: &mut Gpu, path: &str) {
     scene.clear(gpu);

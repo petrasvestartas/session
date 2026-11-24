@@ -6,7 +6,7 @@ The [November 12 coverage audit](journey/coverage-audit-2026-11-12.json) records
 
 The stage adds `src/app/stage/`: font metrics, TeX, glyph painting, layout, matrices and motion belong to the early mathematics subject; geometry, camera projection, scene rows, the net solver and loading belong to its later scene subject. See the [stage dependency audit](journey/stage-gap.md). Its `spatial.rs` uses real scene rows, while `paint.rs` paints mathematical glyphs through egui.
 
-Current object effects, stroke trims, non-pickable rows, shared arrow rendering and Matrix display also require current subject owners. A file listed in a source inventory is not necessarily taught. The links below open the first and last additions of the historical implementation.
+Current object effects, stroke trims, non-pickable rows and shared arrow rendering require current subject owners (see [Tutorials 1–17](README.md)). A file listed in a source inventory is not necessarily taught. The links below open the first and last additions of the historical implementation.
 
 | File | Responsibility | First addition | Last addition |
 | --- | --- | --- | --- |

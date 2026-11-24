@@ -5,133 +5,104 @@
   "subjects": [
     {
       "id": "frame",
-      "title": "Open a GPU frame",
-      "page": "journey/completion-frame.md",
+      "title": "Project architecture, browser start and wgpu initialization",
+      "page": "journey/tutorial-one-startup.md",
       "prerequisites": [],
-      "chapters": [],
-      "acceptance": "accepted",
-      "review": {
-        "path": "journey/release/completion-frame-acceptance-20261118d.json",
-        "sha256": "d152f0d956ce2e9c23b7e9f6947625ff21fc411efaca6d6d0e2a4222cccddf85"
-      }
+      "chapters": [
+        "journey/tutorial-two-wgpu.md"
+      ],
+      "acceptance": "pending"
     },
     {
       "id": "painting",
-      "title": "Paint shapes and text",
-      "page": "journey/completion-painting.md",
+      "title": "Compositing egui shapes and text",
+      "page": "journey/tutorial-three-painting.md",
       "prerequisites": [
         "frame"
       ],
       "chapters": [],
-      "acceptance": "accepted",
-      "review": {
-        "path": "journey/release/completion-painting-acceptance-20261118d.json",
-        "sha256": "05128744cb6714d981765f849c91527d4d0473074881f9f19dda6b2e8b2bea0c"
-      }
+      "acceptance": "pending"
     },
     {
       "id": "mathematics",
-      "title": "Lay out and animate mathematics",
-      "page": "journey/completion-mathematics.md",
+      "title": "Laying out and animating 2D mathematics",
+      "page": "journey/tutorial-three-mathematics.md",
       "prerequisites": [
         "painting"
       ],
       "chapters": [],
-      "acceptance": "accepted",
-      "review": {
-        "path": "journey/release/completion-mathematics-acceptance-20261118d.json",
-        "sha256": "0d570183525b546f33ce6c6f7ca425b41b5b65f49c8dbf7cea5a62018cd723c4"
-      }
+      "acceptance": "pending"
     },
     {
       "id": "dock",
-      "title": "Enter commands",
-      "page": "journey/completion-dock.md",
+      "title": "Command dock, native CLI and FastMCP integration",
+      "page": "journey/tutorial-thirteen-commands.md",
       "prerequisites": [
         "mathematics"
       ],
-      "chapters": [],
-      "acceptance": "accepted",
-      "review": {
-        "path": "journey/release/completion-dock-acceptance-20261118d.json",
-        "sha256": "8277c83b58b174005a95485461680d2a0295066763de140977a396caec56750c"
-      }
+      "chapters": [
+        "journey/tutorial-fourteen-fastmcp.md"
+      ],
+      "acceptance": "pending"
     },
     {
       "id": "camera",
-      "title": "Project and fit a scene",
-      "page": "journey/completion-camera.md",
+      "title": "Camera rebasing and navigation",
+      "page": "journey/tutorial-five-camera.md",
       "prerequisites": [
         "dock"
       ],
       "chapters": [],
-      "acceptance": "accepted",
-      "review": {
-        "path": "journey/release/completion-camera-acceptance-20261118d.json",
-        "sha256": "76c78289a99abef0efc0fa4ce5cdf9279ecb52bbd3f7110ffef38aada510bb2e"
-      }
+      "acceptance": "pending"
     },
     {
       "id": "rows",
-      "title": "Place and update object rows",
-      "page": "journey/completion-rows.md",
+      "title": "Rendering engine, WGSL prelude and geometry data structures",
+      "page": "journey/tutorial-three-rendering.md",
       "prerequisites": [
         "camera"
       ],
-      "chapters": [],
-      "acceptance": "accepted",
-      "review": {
-        "path": "journey/release/completion-rows-acceptance-20261118d.json",
-        "sha256": "59d508d3d2afcc765a17a936a773fd9a595de3ce0f41730ebd50fa8543cbac77"
-      }
+      "chapters": [
+        "journey/tutorial-four-geometry.md"
+      ],
+      "acceptance": "pending"
     },
     {
       "id": "geometry",
-      "title": "Render kernel geometry",
-      "page": "journey/completion-geometry.md",
+      "title": "Display modes, point clouds and finite-triangle visibility",
+      "page": "journey/tutorial-ten-display.md",
       "prerequisites": [
         "rows"
       ],
       "chapters": [
-        "journey/completion-visibility.md"
+        "journey/tutorial-eleven-clouds.md",
+        "journey/tutorial-twelve-visibility.md"
       ],
-      "acceptance": "accepted",
-      "review": {
-        "path": "journey/release/completion-geometry-acceptance-20261118d.json",
-        "sha256": "116d6ff1f450c52da36732ddb294a3d3628c61243627c7c26b91802d6b1c9cb2"
-      }
+      "acceptance": "pending"
     },
     {
       "id": "decoding",
-      "title": "Decode a document",
-      "page": "journey/completion-decoding.md",
+      "title": "File formats, bounded protobuf decode and archives",
+      "page": "journey/tutorial-fifteen-formats.md",
       "prerequisites": [
         "geometry"
       ],
       "chapters": [],
-      "acceptance": "accepted",
-      "review": {
-        "path": "journey/release/completion-decoding-acceptance-20261118d.json",
-        "sha256": "51d55df524296390976dfae2cf570b1222024782f860c1a269649abbdb5e9529"
-      }
+      "acceptance": "pending"
     },
     {
       "id": "application",
-      "title": "Run the application",
-      "page": "journey/completion-application.md",
+      "title": "Complete application reconstruction",
+      "page": "journey/tutorial-seventeen-application.md",
       "prerequisites": [
         "decoding"
       ],
       "chapters": [
-        "journey/completion-documents.md",
-        "journey/completion-commands.md",
-        "journey/completion-input.md",
-        "journey/completion-modeling.md",
-        "journey/completion-loading.md",
-        "journey/completion-text.md",
-        "journey/completion-streaming.md",
-        "journey/stage-scene.md",
-        "journey/completion-debugging.md"
+        "journey/tutorial-six-modeling.md",
+        "journey/tutorial-seven-picking.md",
+        "journey/tutorial-eight-gumball.md",
+        "journey/tutorial-nine-layers.md",
+        "journey/tutorial-sixteen-performance.md"
       ],
       "acceptance": "pending"
     }

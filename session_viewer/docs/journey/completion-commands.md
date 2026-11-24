@@ -19,7 +19,7 @@ Chapter `9.2` of [9. Run the application](completion-application.md) (`applicati
 - `src/app/command/verbs/mod.rs` expands `verbs!` into `REGISTRY` so every command registers completion, option chips, help and parsing in one place without editing the dock widget.
 - `viewer-core/src/command/host.rs` defines `CommandHost` and the pure-Rust `HeadlessHost`, `src/state/host.rs` implements `CommandHost` for `State` over one authoritative `SelectionState`, and `viewer-core/src/command/headless_tests.rs` executes all `86` registered specs in `REGISTRY` natively without a window, `egui` or GPU.
 - `viewer-core/src/op.rs` defines the serde-serializable `Op` API (`Request`, `Response`, `Reply`, `OpError`, `ObjectRef`, `LayerRef` and `execute`) shared by typed command verbs, browser `execute_op`, the native CLI and the Python FastMCP server.
-- `src/bin/session_viewer_cli.rs` builds the native `session-viewer-cli` binary supporting `exec`, persistent `serve --stdio` JSONL dispatch, headless PPM `render_frame` capture and Markdown schema generation.
+- `src/bin/session-viewer-cli.rs` builds the native `session-viewer-cli` binary supporting `exec`, persistent `serve --stdio` JSONL dispatch, headless PPM `render_frame` capture and Markdown schema generation.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/command/mod.rs:command-contract"

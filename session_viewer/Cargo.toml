@@ -11,10 +11,6 @@ edition = "2024"
 [lib]
 crate-type = ["cdylib", "rlib"]  # rlib so examples/selftest.rs can link the crate
 
-[[bin]]
-name = "session-viewer-cli"
-path = "src/bin/session_viewer_cli.rs"
-
 [dependencies]
 viewer-core = { path = "viewer-core" }
 session_rust = { path = "../session_rust", default-features = false, features = ["viewer-display"] } # no mini-tests in the wasm

@@ -1,69 +1,54 @@
 # What this is built on
 
-Two kinds of thing belong here: the libraries the viewer links against, checkable in `Cargo.toml`, and the ideas it borrows, explained here rather than linked away.
+Two kinds of references belong here: the pinned crates and packages the viewer workspace links against (verifiable in `Cargo.toml`, `viewer-core/Cargo.toml`, `Cargo.lock`, and `session_mcp/pyproject.toml`), and the authoritative specifications and rendering algorithms implemented across [Tutorials 1–17](README.md).
 
-Where this viewer uses a known technique, the course draws it rather than linking to someone else's explanation of it.
+## Workspace crates and pinned versions
 
-## The libraries
+Every Rust version below is pinned in `session_viewer/Cargo.toml` / `viewer-core/Cargo.toml` and locked in `Cargo.lock` (Rust `1.97.1`, `resolver = "3"`):
 
-Every version below is pinned in `session_viewer/Cargo.toml` and locked by `Cargo.lock`, which the course installs unmodified at lesson 00.
-
-| Crate | Version | What it does here |
+| Crate / package | Version | Role and owning tutorial |
 |---|---|---|
-| `wgpu` | 29.0 | The WebGPU implementation. In the browser a thin layer over the browser's own WebGPU; natively it reaches Vulkan, Metal or DX12, so the same code runs under `cargo xtest`. |
-| `winit` | 0.30 | The window and event loop. On the web it is the canvas and its pointer, keyboard and touch events. |
-| `glyphon` | =0.11.0 | Glyph atlas and text renderer on top of wgpu. Pinned exactly: it is the release that matches wgpu 29. |
-| `wasm-bindgen` 0.2, `wasm-bindgen-futures` 0.4, `web-sys` 0.3, `js-sys` 0.3 | The bridge to the browser: the DOM, `fetch`, `EventSource`, `performance.now`. |
-| `bytemuck` | 1 | `Pod`/`Zeroable`, which let a `#[repr(C)]` struct be viewed as bytes for the GPU without a copy. |
-| `prost` | 0.14 | Protobuf decoding for the `.pb` documents. |
-| `serde` 1.0, `serde_json` 1.0, `serde_yaml_ng` 0.10, `toml` =0.8.23 | Manifest parsing in three formats with one set of semantics — a test asserts the three agree — plus session JSON validation, sheet side tables and the live source. `toml` is pinned exactly. |
-| `anyhow` | 1.0 | One error type at the boundaries, so `?` composes. |
-| `log` 0.4, `console_log` 1.0, `console_error_panic_hook` 0.1.6 | Diagnostics that survive the wasm boundary. Without the panic hook a Rust panic reaches the console as `unreachable executed` and nothing else. |
-| `getrandom` | 0.2 (`js`) | Randomness in the browser, where the usual system source does not exist. |
-| `naga` | =29.0.4 (`wgsl-in`) | Parses every shader in the mirror tests, so `cargo xtest` catches a WGSL mistake without a GPU. |
-| `pollster` | 0.4 (native only) | Blocks on the async device setup in the native harness, so the same code path serves the browser and the tests. |
-| `session_rust` | path | The geometry kernel, shared with the C++ and Python implementations. It links wgpu for the shared display type `RenderVertex` and for the GPU buffers a `Mesh` caches. |
+| `viewer-core` | workspace path | UI- and GPU-independent core (`Scene`, `walk::*`, `CommandHost`, `HeadlessHost`, `SelectionState`, `op::Op`, `session_io`); links zero `wgpu`/`winit`/`egui`/`web-sys` crates ([Tutorial 1](journey/tutorial-one-startup.md), [Tutorial 14](journey/tutorial-fourteen-fastmcp.md)). |
+| `wgpu` | `29.0.4` | WebGPU implementation in the browser and Vulkan / Metal / DX12 natively under `cargo xtest` and `session-viewer-cli` ([Tutorial 2](journey/tutorial-two-wgpu.md)). |
+| `naga` | `=29.0.4` (`wgsl-in`) | Offline WGSL parser and layout validator run by `cargo xtest` without needing a GPU ([Tutorial 3](journey/tutorial-three-rendering.md)). |
+| `winit` | `0.30.13` | Cross-platform window and canvas pointer, wheel, keyboard, and touch event loop ([Tutorial 1](journey/tutorial-one-startup.md), [Tutorial 5](journey/tutorial-five-camera.md)). |
+| `egui`, `egui-wgpu` | `=0.34.3` | Immediate-mode 2D UI tessellation and overlay renderer for the mathematics stage, virtualized layer/properties panels, and command dock ([Tutorial 3.1](journey/tutorial-three-painting.md), [Tutorial 9](journey/tutorial-nine-layers.md), [Tutorial 13](journey/tutorial-thirteen-commands.md)). |
+| `glyphon` | `=0.11.0` | `cosmic-text` shaping and GPU glyph atlas for 3D world-plane, screen-plate, and outlined scene labels ([Tutorial 10](journey/tutorial-ten-display.md)). |
+| `swash`, `ttf-parser` | `0.2`, `0.25` | OpenType `MATH` table metrics, glyph rasterization, and Euclidean alpha-halo dilation for `1600×900` stage slides ([Tutorial 3.2](journey/tutorial-three-mathematics.md)). |
+| `wasm-bindgen` `0.2`, `wasm-bindgen-futures` `0.4`, `web-sys` `0.3`, `js-sys` `0.3` | pinned in `Cargo.lock` | Browser DOM, `fetch`, HTTP `Range` streaming, `EventSource`, `Performance`, and `execute_op` / `postMessage` automation ([Tutorial 1](journey/tutorial-one-startup.md), [Tutorial 14](journey/tutorial-fourteen-fastmcp.md), [Tutorial 15](journey/tutorial-fifteen-formats.md)). |
+| `bytemuck` | `1` | Zero-copy `Pod`/`Zeroable` views over `#[repr(C)]` GPU structs (`PackedVertex` `20 B`, `Instance` `112 B`) ([Tutorial 4](journey/tutorial-four-geometry.md)). |
+| `prost` | `0.14` | Protobuf wire encoding/decoding for `.pb` geometry documents and `.session` archives ([Tutorial 15](journey/tutorial-fifteen-formats.md)). |
+| `serde` `1.0`, `serde_json` `1.0`, `serde_yaml_ng` `0.10`, `toml` `=0.8.23` | pinned in `Cargo.lock` | Manifest parsing across YAML/JSON/TOML, stage deck parsing, and typed JSON `Op` serialization ([Tutorial 3.2](journey/tutorial-three-mathematics.md), [Tutorial 14](journey/tutorial-fourteen-fastmcp.md), [Tutorial 15](journey/tutorial-fifteen-formats.md)). |
+| `pollster` | `0.4` (native) | Synchronous executor driving `Gpu::new_headless` in `cargo xtest` and `session-viewer-cli` ([Tutorial 2](journey/tutorial-two-wgpu.md), [Tutorial 13](journey/tutorial-thirteen-commands.md)). |
+| `session_rust` | path (`../../session_rust`) | Shared CAD/structural geometry kernel (`Mesh`, `BRep`, `NurbsCurve`, `NurbsSurface`, `PointCloud`, `Element`, `Session`) ([Tutorial 4](journey/tutorial-four-geometry.md), [Tutorial 6](journey/tutorial-six-modeling.md)). |
+| `session_mcp` | `0.1.0` (`../session_mcp`) | Python `FastMCP` server (`31` tools, `3` `scene://` resources) driving `session-viewer-cli serve --stdio` ([Tutorial 14](journey/tutorial-fourteen-fastmcp.md)). |
 
-Trunk builds the page; `wasm-bindgen` generates the JavaScript that instantiates the module. Lesson 00 draws that chain.
+## Authoritative external specifications and guides
 
-![Four tools and four artefacts: cargo produces a .wasm a browser cannot load on its own, wasm-bindgen writes the JavaScript that can, Trunk assembles the page, and the browser runs start().](illustrations/toolchain.svg)
+Check API signatures and validation rules against these primary sources for the pinned versions above:
 
-## Where the authority lives
+- **WebGPU Specification** (`https://www.w3.org/TR/webgpu/` / `https://gpuweb.github.io/gpuweb/`) — adapter/device limits, texture usage flags, buffer alignment (`256 B` row pitch), and render/compute pass rules ([Tutorial 2](journey/tutorial-two-wgpu.md), [Tutorial 12](journey/tutorial-twelve-visibility.md)).
+- **WGSL Specification** (`https://www.w3.org/TR/WGSL/` / `https://gpuweb.github.io/gpuweb/wgsl/`) — uniform/storage address-space layout, `atomicMax`, subgroup-free prefix scans, and derivative uniformity ([Tutorial 3](journey/tutorial-three-rendering.md), [Tutorial 12](journey/tutorial-twelve-visibility.md)).
+- **MDN WebGPU API Reference** (`https://developer.mozilla.org/en-US/docs/Web/API/WebGPU_API`) — browser `GPUCanvasContext`, device-loss handling, and `devicePixelRatio` sizing ([Tutorial 1](journey/tutorial-one-startup.md), [Tutorial 2](journey/tutorial-two-wgpu.md)).
+- **`wgpu` `29.x` Rust Documentation** (`https://docs.rs/wgpu/29.0.4/wgpu/`) — Rust types for `wgpu 29.0.4` (`PollType::Wait`, `TexelCopyBufferInfo`, `RenderPass::forget_lifetime`) ([Tutorial 2](journey/tutorial-two-wgpu.md), [Tutorial 3.1](journey/tutorial-three-painting.md)).
+- **WebGPU Fundamentals & WebGPU Samples** (`https://webgpufundamentals.org/`, `https://webgpu.github.io/webgpu-samples/`) — practical patterns for bind-group organization, reversed-Z depth, and compute prefix sums ([Tutorial 3](journey/tutorial-three-rendering.md), [Tutorial 12](journey/tutorial-twelve-visibility.md)).
+- **Force Density Method (Linkwitz & Schek, 1971 / Schek, 1974)** — branch-node equilibrium `D_N x_N = p - D_F x_F` solved and animated in `stage/net.rs` ([Tutorial 3.2](journey/tutorial-three-mathematics.md), [Tutorial 17](journey/tutorial-seventeen-application.md)).
 
-Three documents decide what is legal; no tutorial overrides them:
+## Rendering and geometry techniques in this codebase
 
-- **The WebGPU specification** (`gpuweb.github.io/gpuweb/`) — what an adapter, device, pipeline and bind group are, and every validation rule your errors come from.
-- **The WGSL specification** (`gpuweb.github.io/gpuweb/wgsl/`) — the shading language: types, alignment, entry points, builtins.
-- **The `wgpu` API documentation** (`docs.rs/wgpu`) — the Rust shape of all of the above, version by version.
-
-These URLs were not fetched while this page was written: treat them as the place to look, not as a citation. Which to open: an error at pipeline creation is a WebGPU rule, an error inside a shader a WGSL rule, a signature that does not match an API question.
-
-## The ideas, and where the course draws them
-
-
-| Idea | The problem it solves | Drawn in | Built in |
+| Technique | Problem solved | Tutorial | Production module(s) |
 |---|---|---|---|
-| **Reverse-Z depth** | Float depth crowds its precision at the far plane, where you need it least. Swapping near and far puts it near the eye. | [frustum](02-camera.md), [ink-visibility](05-visibility.md) | `camera.rs` swaps the planes, every depth-testing `DepthMode` compares `Greater` or `GreaterEqual` |
-| **Depth-gradient carried ink** | A thick stroke's fragments sit beside its axis and read the wrong surface's depth. The surface slope carries the depth from fragment to axis. | [ink-visibility](05-visibility.md) | `shaders/ink_visibility.wgsl` |
-| **Finite-triangle visibility** | A depth plane is infinite; a triangle is not. Binning projected triangles into screen tiles lets an edge be hidden only by geometry that really covers it. | [finite-triangle](18-finite-visibility.md), [tiles](18-finite-visibility.md) | `engine/gpu/triangle_tiles.rs` |
-| **Octahedral normal encoding** | A unit vector has two degrees of freedom, so it does not need three floats. Two 8-bit numbers are enough for shading and culling. | [normals](09-normals.md) | `app/walk/encode.rs`, `shaders/normals.wgsl` |
-| **Newell's normal** | The cross product of the first two edges inverts on a reflex corner; a sum over all edges cannot. | [cad-contract](06-cad-contract.md) | `app/walk/mesh_topology.rs` |
-| **Screen-space ribbons** | A line with a constant pixel width is not geometry with a width; it is a quad expanded in screen space, with exact coverage rather than a distance ramp. | [ribbon](04b-strokes.md), [joins](17-source-presentation.md) | `shaders/ribbon.wgsl` |
-| **Eye-Dome Lighting** | A point cloud with no normals reads flat. Comparing a pixel's depth with its neighbours' gives shape for free. | [splat-resolve](04d-clouds.md) | `shaders/splat_resolve.wgsl` |
-| **Octree level of detail** | Drawing every point of a large cloud is wasted work when their spacing projects below a pixel. | [lod](04d-clouds.md) | `engine/gpu/lod.rs` |
-| **Prefix-sum allocation** | Per-tile lists with a fixed cap either waste memory or overflow. Counting first, then scanning into offsets, lets dense tiles borrow from sparse ones. | [tiles](18-finite-visibility.md) | `shaders/scan_triangle_tiles.wgsl` |
-| **Coverage mask silhouettes** | An outline drawn as geometry fights the geometry it outlines. A coverage mask plus a dilation is one full-screen pass and always closes. | [masks](17-source-presentation.md) | `engine/gpu/surface_outline.rs` |
-| **ID-buffer picking** | A CPU ray-caster is a second answer to "what is visible here" and will eventually disagree with the picture. Re-rendering ids cannot. | [picking](12-picking.md) | `engine/gpu/pick.rs` |
-| **Camera rebasing** | f32 has about seven digits; CAD coordinates do not fit. Subtracting an anchor near the camera before converting keeps the digits that matter. | [spaces](02-camera.md) | `camera.rs`, `engine/gpu/objects.rs` |
+| **Reverse-Z depth (`[1, 0]`)** | Cancels perspective `1/z` clustering against IEEE-754 `f32` exponent spacing near `0.0`. | [Tutorial 2](journey/tutorial-two-wgpu.md), [Tutorial 5](journey/tutorial-five-camera.md) | `viewer-core/src/camera.rs`, `src/engine/gpu/targets.rs` |
+| **Camera-anchored rebasing** | Subtracts an `f64` anchor near `camera.target` before `f32` conversion so kilometre-scale survey coordinates keep sub-mm precision. | [Tutorial 4](journey/tutorial-four-geometry.md), [Tutorial 5](journey/tutorial-five-camera.md) | `src/engine/gpu/objects/table.rs`, `src/shaders/scene.wgsl` |
+| **Octahedral unit normals** | Packs unit normals into two `snorm8` bytes inside the `20 B` `PackedVertex`. | [Tutorial 3](journey/tutorial-three-rendering.md), [Tutorial 4](journey/tutorial-four-geometry.md) | `viewer-core/src/rows/encode.rs`, `src/shaders/normals.wgsl` |
+| **Newell polygon normal** | Computes robust face orientation across concave and reflex polygon loops without inverting on collinear corners. | [Tutorial 4](journey/tutorial-four-geometry.md) | `viewer-core/src/walk/mesh_topology.rs` |
+| **Screen-space ribbons & `24×0.30` arrows** | Expands constant-pixel-width antialiased strokes and Force-Density arrowheads with `1.0 px` tuck overlap and zero base seam. | [Tutorial 4](journey/tutorial-four-geometry.md) | `src/shaders/ribbon.wgsl`, `src/shaders/arrow.wgsl`, `src/engine/gpu/vectors.rs` |
+| **Prefix-sum tile binning + `atomicMax` depth** | Bins projected triangles into screen tiles with frontmost depth early-out (`-59.4%` ink time on `view_local.yaml`). | [Tutorial 12](journey/tutorial-twelve-visibility.md) | `src/engine/gpu/triangle_tiles.rs`, `src/shaders/ink_visibility.wgsl` |
+| **Coverage-mask silhouettes & GTAO** | Dilates binary solid coverage for gap-free selection/surface outlines and integrates horizon slices for `Arctic` shading. | [Tutorial 10](journey/tutorial-ten-display.md) | `src/engine/gpu/surface_outline.rs`, `src/engine/gpu/ssao.rs` |
+| **Octree LOD & Eye-Dome Lighting** | Frustum-culls point-cloud octants, halts splitting below `2.0 px` spacing, and shades normal-free splats from depth jumps. | [Tutorial 11](journey/tutorial-eleven-clouds.md) | `src/engine/gpu/lod.rs`, `src/shaders/splat_resolve.wgsl` |
+| **Generation-stamped `Rg32Uint` ID picking** | Re-renders exact `(row + 1, sub)` IDs in a cursor window with non-cancelling hover pre-selection. | [Tutorial 7](journey/tutorial-seven-picking.md) | `src/engine/gpu/pick.rs`, `viewer-core/src/selection.rs` |
+| **Single `Op` seam over `CommandHost`** | Executes identical geometry/layer/view operations from the dock, native CLI, browser `execute_op`, and Python FastMCP. | [Tutorial 14](journey/tutorial-fourteen-fastmcp.md) | `viewer-core/src/op.rs`, `session_mcp/src/session_mcp/server.py` |
 
-## The CAD comparison
+## CAD boundary-representation comparison
 
-This project cites external source code line by line in one place: the boundary-representation contract, because somebody else answered "what should a CAD viewer do with a trimmed face" first, and well. [The CAD design record](cad-design.md) lists the exact OCCT files and revisions the contract was compared against, with commit-pinned links, and what was taken and what was decided differently.
-
-## Reading this repository instead
-
-The most reliable reference for this viewer is the viewer. Three places answer most questions faster than a search:
-
-- [The map](map.md) — where any file sits, and what it is allowed to know.
-- `ARCHITECTURE.md` — the module graph, the owners table, one frame's passes in order, and the Rust ↔ WGSL interface tables.
-- `cargo xtest` — the shader mirror tests. To know whether Rust and WGSL still agree about a struct, run the test that asserts it rather than reading both.
+[The CAD design record](cad-design.md) documents the commit-pinned Open CASCADE (`OCCT`) comparison behind the BRep trim, crease, and silhouette rules in `viewer-core/src/walk/brep*.rs`, alongside [`ARCHITECTURE.md`](../ARCHITECTURE.md) and [`operations.md`](operations.md).

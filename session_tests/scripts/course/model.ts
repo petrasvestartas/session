@@ -228,7 +228,7 @@ export function materializedContent(name: string, text: string, destination: str
     const targetDir = path.dirname(path.join(destination, name));
     const kernel = path.relative(targetDir, path.join(viewer, '../session_rust')).split(path.sep).join('/');
     const wood = woodDependency(text);
-    let content = text.replaceAll('../../../session_rust', kernel).replaceAll('../../../../session_rust', kernel);
+    let content = text.replace(/(?:\.\.\/)+session_rust/g, kernel);
     if (wood) content = content.replace(/(^wood\s*=\s*\{[^}\n]*path\s*=\s*")[^"]+"/m,
         (_, prefix) => prefix + path.relative(targetDir, wood).split(path.sep).join('/') + '"');
     return content;

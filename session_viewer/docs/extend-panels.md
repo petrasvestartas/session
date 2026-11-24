@@ -1,6 +1,8 @@
 # Adding panels: tree, types and graph
 
-These are the design notes the panels grew from; [lesson 22](22-runtime-helpers.md) builds the egui layer and its `PANELS` list, [lesson 26](26-nested-panel.md) the nested session panel and [lesson 30](30-layer-tree.md) the layers panel with its tree, bulbs, locks and colours. Read this for the reasoning; read the lessons for what runs.
+> **Historical design proposal (superseded by production):** Sketches below (`src/app/filter.rs`, `src/app/panel.rs`, `src/engine/gpu/panel.rs`) were superseded by `viewer-core/src/hierarchy.rs`, `viewer-core/src/layers.rs`, and the virtualized `egui` panels in `src/app/ui/{layers,graph,properties}.rs` + `src/state/panel.rs` — see **[Tutorial 9 · Layers, hierarchy, panels and instancing](journey/tutorial-nine-layers.md)**.
+
+These are the design notes the panels grew from; [lesson 22](archived/22-runtime-helpers.md) builds the egui layer, [lesson 26](archived/26-nested-panel.md) the nested session panel and [lesson 30](archived/30-layer-tree.md) the layers panel with its tree, bulbs, locks and colours. Read this for the reasoning; read [Tutorial 9](journey/tutorial-nine-layers.md) for what runs.
 
 ## One visibility set, three filters
 

@@ -1,0 +1,9 @@
+name: 'Tutorials 6–11 · Modeling, Picking, Gumball, Layers, Display and Clouds'
+theme: light
+chapters:
+  - 06-modeling.yaml
+  - 07-picking.yaml
+  - 08-gumball.yaml
+  - 09-layers.yaml
+  - 10-display.yaml
+  - 11-clouds.yaml
