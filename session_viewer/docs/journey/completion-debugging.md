@@ -47,18 +47,18 @@ Chapter `9.9` of [9. Run the application](completion-application.md) (`applicati
 
 | File | Specification |
 | --- | --- |
-| [scene_sync/testing.rs](../../src/app/scene_sync/testing.rs) | Models `settle` upload bookkeeping on the CPU and compares incremental edits bit-for-bit against a fresh multi-document walk (`verify`). |
-| [scene_sync/tests.rs](../../src/app/scene_sync/tests.rs) | Runs `150`-step seeded random edit sequences (including a `4,096 B` tomb cap and cache on/off parity) against the fresh-scene oracle. |
-| [scene_sync/panel_tests.rs](../../src/app/scene_sync/panel_tests.rs) | Verifies point create/delete/undo row identity survival and exact group-to-descendant row targeting in `Hierarchy`. |
-| [scene_sync/editing_tests.rs](../../src/app/scene_sync/editing_tests.rs) | Verifies `100`-point cloud tomb burial/unbury, forced tomb-cap release, post-compaction `Undo` rebuild and multi-document single-step deletion. |
-| [scene_sync/commands_tests.rs](../../src/app/scene_sync/commands_tests.rs) | Bounds `200`-frame growing-curve previews to `<= 16` reallocations and checks `100,000`-object vs `1,000`-object incremental edit scaling. |
-| [scene_sync/split_tests.rs](../../src/app/scene_sync/split_tests.rs) | Verifies incremental row synchronization, cutter preservation and `Undo` restoration across BRep/mesh split edits. |
+| [scene_sync/testing.rs](../../viewer-core/src/scene_sync/testing.rs) | Models `settle` upload bookkeeping on the CPU and compares incremental edits bit-for-bit against a fresh multi-document walk (`verify`). |
+| [scene_sync/tests.rs](../../viewer-core/src/scene_sync/tests.rs) | Runs `150`-step seeded random edit sequences (including a `4,096 B` tomb cap and cache on/off parity) against the fresh-scene oracle. |
+| [scene_sync/panel_tests.rs](../../viewer-core/src/scene_sync/panel_tests.rs) | Verifies point create/delete/undo row identity survival and exact group-to-descendant row targeting in `Hierarchy`. |
+| [scene_sync/editing_tests.rs](../../viewer-core/src/scene_sync/editing_tests.rs) | Verifies `100`-point cloud tomb burial/unbury, forced tomb-cap release, post-compaction `Undo` rebuild and multi-document single-step deletion. |
+| [scene_sync/commands_tests.rs](../../viewer-core/src/scene_sync/commands_tests.rs) | Bounds `200`-frame growing-curve previews to `<= 16` reallocations and checks `100,000`-object vs `1,000`-object incremental edit scaling. |
+| [scene_sync/split_tests.rs](../../viewer-core/src/scene_sync/split_tests.rs) | Verifies incremental row synchronization, cutter preservation and `Undo` restoration across BRep/mesh split edits. |
 
 | File | Specification |
 | --- | --- |
-| [walk/application_tests.rs](../../src/app/walk/application_tests.rs) | Verifies element feature/contact polygon ribbons, dots and parent-row ID inheritance when element annotations toggle on/off. |
-| [walk/brep/application_tests.rs](../../src/app/walk/brep/application_tests.rs) | Verifies rational cylindrical NURBS border-to-face vertex sharing, preserved source `.pb` bytes and exact `Δz` surface-preview pipe offsets. |
-| [walk/frames/application_tests.rs](../../src/app/walk/frames/application_tests.rs) | Checks occluded grey plane grids vs visible overlay RGB axis arrows, half-size scaling and `1`/`3`/`15 px` stroke widths. |
+| [walk/application_tests.rs](../../viewer-core/src/walk/application_tests.rs) | Verifies element feature/contact polygon ribbons, dots and parent-row ID inheritance when element annotations toggle on/off. |
+| [walk/brep/application_tests.rs](../../viewer-core/src/walk/brep/application_tests.rs) | Verifies rational cylindrical NURBS border-to-face vertex sharing, preserved source `.pb` bytes and exact `Δz` surface-preview pipe offsets. |
+| [walk/frames/application_tests.rs](../../src/engine/gpu/scene_gpu_tests/frames.rs) | Checks occluded grey plane grids vs visible overlay RGB axis arrows, half-size scaling and `1`/`3`/`15 px` stroke widths. |
 | [gpu/backdrop/application_tests.rs](../../src/engine/gpu/backdrop/application_tests.rs) | Verifies `0` changed pixels on `WARP` when rebasing the construction grid from `(0, 0, 0)` to `10^12` units and back. |
 | [gpu/clip/tests.rs](../../src/engine/gpu/clip/tests.rs) | Parses WGSL via `naga` to verify `ClipUniform` byte offsets against `offset_of!` and tests closed-cube section hatches on GPU. |
 | [gpu/clip/editing_tests.rs](../../src/engine/gpu/clip/editing_tests.rs) | Verifies live clipping-plane transforms, open-mesh non-capping and section restoration across interactive edits. |

@@ -1027,7 +1027,7 @@ pub fn stored_report_probe(text: &str) -> Result<String, wasm_bindgen::JsValue> 
 ```rust
 use wasm_bindgen::{JsCast, JsValue};
 
-thread_local! { static REPORT: RefCell<Option<Report>> = const { RefCell::new(None) }; }
+thread_local! { static REPORT: RefCell<Option<Report>> = const { RefCell::new() }; }
 
 fn context() -> Result<Context, JsValue> {
     let window = web_sys::window().ok_or("No browser window")?;
@@ -1105,9 +1105,9 @@ Edit the existing block to match this code; keep unchanged lines:
 use wasm_bindgen::{JsCast, JsValue};
 
 thread_local! {
-    static REPORT: RefCell<Option<Report>> = const { RefCell::new(None) };
-    static STORE: RefCell<Option<crate::report_storage::Store>> = const { RefCell::new(None) };
-    static PREVIOUS: RefCell<Option<Report>> = const { RefCell::new(None) };
+    static REPORT: RefCell<Option<Report>> = const { RefCell::new() };
+    static STORE: RefCell<Option<crate::report_storage::Store>> = const { RefCell::new() };
+    static PREVIOUS: RefCell<Option<Report>> = const { RefCell::new() };
 }
 
 fn context() -> Result<Context, JsValue> {

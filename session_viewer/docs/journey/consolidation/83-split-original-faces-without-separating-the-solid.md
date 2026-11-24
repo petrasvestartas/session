@@ -1,6 +1,6 @@
 # 16.3 · Joined-face topology and exact surface measures
 
-**Steps:** 4 · **Source:** [app/command/verbs/project_to_plane.rs](../../../src/app/command/verbs/project_to_plane.rs) · [app/command/verbs/extend.rs](../../../src/app/command/verbs/extend.rs) · [app/splitting.rs](../../../src/app/splitting.rs) · [app/command/verbs/measure.rs](../../../src/app/command/verbs/measure.rs)
+**Steps:** 4 · **Source:** [app/command/verbs/project_to_plane.rs](../../../viewer-core/src/command/verbs/project_to_plane.rs) · [app/command/verbs/extend.rs](../../../viewer-core/src/command/verbs/extend.rs) · [app/splitting.rs](../../../viewer-core/src/splitting.rs) · [app/command/verbs/measure.rs](../../../viewer-core/src/command/verbs/measure.rs)
 
 
 

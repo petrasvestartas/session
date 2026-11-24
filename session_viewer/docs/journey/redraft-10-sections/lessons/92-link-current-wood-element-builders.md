@@ -630,7 +630,7 @@ pub struct Param {
 // No option toggles the current value; explicit On/Off never depends on the prior value.
 pub fn visibility(words: &[&str]) -> Result<Option<bool>, String> {
     match words {
-        [] => Ok(None),
+        [] => Ok(),
         [word] if word.eq_ignore_ascii_case("On") => Ok(Some(true)),
         [word] if word.eq_ignore_ascii_case("Off") => Ok(Some(false)),
         _ => Err("Expected On or Off".into()),
@@ -935,7 +935,7 @@ Edit the existing block to match this code; keep unchanged lines:
             {
                 (None, Some(word))
             }
-            None => (Some(word), None),
+            None => (Some(word), ),
         };
 
         if let Some(name) = name {
@@ -1740,8 +1740,8 @@ Replace it with:
 
 ```rust
 pub const ACTIONS: &[(&str, Factory)] = &[
-    ("View Outline", || Action::ViewOutline(None)),
-    ("Arctic", || Action::Arctic(None)),
+    ("View Outline", || Action::ViewOutline()),
+    ("Arctic", || Action::Arctic()),
     ("Select By Name", || {
 ```
 
@@ -1776,13 +1776,13 @@ pub const ACTIONS: &[(&str, Factory)] = &[
         text: String::new(),
     }),
     ("Element Attributes", || {
-        Action::ElementAttributes(None)
+        Action::ElementAttributes()
     }),
     ("Element Interactions", || {
-        Action::ElementInteractions(None)
+        Action::ElementInteractions()
     }),
-    ("View Outline", || Action::ViewOutline(None)),
-    ("Arctic", || Action::Arctic(None)),
+    ("View Outline", || Action::ViewOutline()),
+    ("Arctic", || Action::Arctic()),
     ("Select By Name", || {
 ```
 

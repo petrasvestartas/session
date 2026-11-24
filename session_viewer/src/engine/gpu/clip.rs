@@ -12,7 +12,7 @@ use crate::engine::pipelines::{
     ColorWrite, DepthMode, Layouts, Pipeline, PipelineDesc, Target, build, instance_id_layout,
     layout, scene_module, vertex_layout,
 };
-use session_rust::{AABB, Xform};
+use session_rust::Xform;
 use std::ops::Range;
 use wgpu::PrimitiveTopology::TriangleList;
 use wgpu::{BufferBindingType, ShaderStages, TextureSampleType};
@@ -34,36 +34,7 @@ const CAP: &str = shader!("cap.wgsl");
 /// The face shader the section counts share.
 const TRIANGLE: &str = shader!("triangle.wgsl");
 
-/// One clipping plane in world space.
-#[derive(Clone, Copy, Debug, Default, PartialEq)]
-pub struct ClipPlane {
-    pub normal: [f64; 3], // unit normal toward the kept side
-    pub offset: f64,      // kept where normal · p + offset >= 0
-    pub origin: [f64; 3], // a point on the plane, where the hatch starts
-    pub hatch: [f64; 3],  // unit direction across the hatch lines, in the plane
-}
-
-impl ClipPlane {
-    /// Signed distance of world point `p`; below zero is cut away.
-    pub fn distance(&self, p: [f64; 3]) -> f64 {
-        dot(self.normal, p) + self.offset
-    }
-
-    /// True when the plane passes through the box, or so near it, with the scene origin at
-    /// `anchor`, that f32 rounding on the GPU may cut a face lying on the plane.
-    pub fn crosses(&self, b: &AABB, anchor: [f64; 3]) -> bool {
-        let reach =
-            self.normal[0].abs() * b.hx + self.normal[1].abs() * b.hy + self.normal[2].abs() * b.hz;
-        let center = [b.cx, b.cy, b.cz];
-        let size = b.hx + b.hy + b.hz;
-        let local: f64 = (0..3).map(|i| (center[i] - anchor[i]).abs()).sum();
-        let world: f64 = center.iter().map(|v| v.abs()).sum();
-        // 32 times CLIP_SLACK in clip.wgsl, plus the f32 rounding of the vertices themselves
-        let slack =
-            (local + size + self.distance(anchor).abs()) / 4096.0 + (world + size) / 1048576.0;
-        self.distance(center).abs() <= reach + slack
-    }
-}
+pub use crate::rows::ClipPlane;
 
 /// What the uniform is built from each frame.
 pub struct ClipView<'a> {

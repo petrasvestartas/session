@@ -359,7 +359,7 @@ Replace it with:
 **Locate this block:**
 
 ```rust
-    static PREVIOUS: RefCell<Option<Report>> = const { RefCell::new(None) };
+    static PREVIOUS: RefCell<Option<Report>> = const { RefCell::new() };
 }
 
 fn context() -> Result<Context, JsValue> {
@@ -368,8 +368,8 @@ fn context() -> Result<Context, JsValue> {
 Replace it with:
 
 ```rust
-    static PREVIOUS: RefCell<Option<Report>> = const { RefCell::new(None) };
-    static BEAT: RefCell<Option<crate::timer::Timer>> = const { RefCell::new(None) };
+    static PREVIOUS: RefCell<Option<Report>> = const { RefCell::new() };
+    static BEAT: RefCell<Option<crate::timer::Timer>> = const { RefCell::new() };
 }
 
 fn context() -> Result<Context, JsValue> {
@@ -611,7 +611,7 @@ use crate::{browser_report as report, listeners::Listeners};
 use std::{cell::RefCell, rc::Rc};
 use wasm_bindgen::{JsCast, JsValue, closure::Closure};
 
-thread_local! { static ACTIVE: RefCell<Option<(Rc<()>, Listeners)>> = const { RefCell::new(None) }; }
+thread_local! { static ACTIVE: RefCell<Option<(Rc<()>, Listeners)>> = const { RefCell::new() }; }
 
 fn current(token: &Rc<()>) -> bool {
     ACTIVE.with(|slot| {
@@ -863,7 +863,7 @@ use crate::{browser_report as report, listeners::Listeners};
 use std::{cell::RefCell, rc::Rc};
 use wasm_bindgen::{JsCast, JsValue, closure::Closure};
 
-thread_local! { static ACTIVE: RefCell<Option<(Rc<()>, Listeners)>> = const { RefCell::new(None) }; }
+thread_local! { static ACTIVE: RefCell<Option<(Rc<()>, Listeners)>> = const { RefCell::new() }; }
 
 fn current(token: &Rc<()>) -> bool {
     ACTIVE.with(|slot| {
@@ -947,7 +947,7 @@ use crate::{
 use std::{cell::RefCell, rc::Rc};
 use wasm_bindgen::{JsCast, JsValue, closure::Closure};
 
-thread_local! { static ACTIVE: RefCell<Option<(Rc<()>, Listeners, Suspension)>> = const { RefCell::new(None) }; }
+thread_local! { static ACTIVE: RefCell<Option<(Rc<()>, Listeners, Suspension)>> = const { RefCell::new() }; }
 
 fn current(token: &Rc<()>) -> bool {
     ACTIVE.with(|slot| {

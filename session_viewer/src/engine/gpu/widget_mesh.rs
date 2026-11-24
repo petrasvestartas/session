@@ -1,4 +1,4 @@
-use crate::app::gizmo::{ARM, BALL_AT, HUB};
+use crate::rows::gizmo::{ARM, BALL_AT, HUB};
 use std::f32::consts::{FRAC_PI_2, PI, TAU};
 
 #[repr(C)]

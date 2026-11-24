@@ -2,7 +2,7 @@
 
 ## Current hierarchy and graph panel
 
-Expand a document tree, select its objects and inspect graph connections without losing source identity when displayed rows change. The prerequisites are document identity, source trees, scene-row lookup and egui input ownership. [hierarchy.rs](../../../src/app/hierarchy.rs) owns the flattened presentation model; [ui/graph.rs](../../../src/app/ui/graph.rs) draws its graph rows.
+Expand a document tree, select its objects and inspect graph connections without losing source identity when displayed rows change. The prerequisites are document identity, source trees, scene-row lookup and egui input ownership. [hierarchy.rs](../../../viewer-core/src/hierarchy.rs) owns the flattened presentation model; [ui/graph.rs](../../../src/app/ui/graph.rs) draws its graph rows.
 
 `Hierarchy::refresh` compares the scene's row revision before rebuilding. Nodes are stored parent-first; `end` marks the end of a subtree and `rows` addresses a slice of object rows. A separate lookup resolves `(document, GUID)` to a current row. The document qualifier matters: equal GUID text in two imported documents must not resolve through one global table.
 
@@ -20,7 +20,7 @@ The tree uses pages of 128 nodes and explicit node, indexed-row and edge limits.
 
 The runnable checkpoint below covers its existing tree and input model. Cumulative production hierarchy/graph parity and fresh browser acceptance remain pending.
 
-**Steps:** 5 · **Source:** [app/hierarchy.rs](../../../src/app/hierarchy.rs) · [app/layers.rs](../../../src/app/layers.rs) · [app/ui/layers.rs](../../../src/app/ui/layers.rs) · [app/gesture/mod.rs](../../../src/app/gesture/mod.rs)
+**Steps:** 5 · **Source:** [app/hierarchy.rs](../../../viewer-core/src/hierarchy.rs) · [app/layers.rs](../../../viewer-core/src/layers.rs) · [app/ui/layers.rs](../../../src/app/ui/layers.rs) · [app/gesture/mod.rs](../../../src/app/gesture/mod.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">

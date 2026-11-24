@@ -224,12 +224,13 @@ export function woodDependency(manifest: string, root = viewer) {
 }
 
 export function materializedContent(name: string, text: string, destination: string) {
-    if (name !== 'Cargo.toml') return text;
-    const kernel = path.relative(destination, path.join(viewer, '../session_rust')).split(path.sep).join('/');
+    if (name !== 'Cargo.toml' && name !== 'viewer-core/Cargo.toml') return text;
+    const targetDir = path.dirname(path.join(destination, name));
+    const kernel = path.relative(targetDir, path.join(viewer, '../session_rust')).split(path.sep).join('/');
     const wood = woodDependency(text);
-    let content = text.replaceAll('../../../session_rust', kernel);
+    let content = text.replaceAll('../../../session_rust', kernel).replaceAll('../../../../session_rust', kernel);
     if (wood) content = content.replace(/(^wood\s*=\s*\{[^}\n]*path\s*=\s*")[^"]+"/m,
-        (_, prefix) => prefix + path.relative(destination, wood).split(path.sep).join('/') + '"');
+        (_, prefix) => prefix + path.relative(targetDir, wood).split(path.sep).join('/') + '"');
     return content;
 }
 

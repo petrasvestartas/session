@@ -49,7 +49,7 @@ Chapter `9.3` of [9. Run the application](completion-application.md) (`applicati
 | File | Specification |
 | --- | --- |
 | [src/app/input.rs](../../src/app/input.rs) | Enforces `> 10 CSS px` (or `> 4 px` held `200 ms`) drag hysteresis, distinguishes right-click repeat from right-drag orbit, and cancels touch edits when a second finger lands. |
-| [src/app/selection.rs](../../src/app/selection.rs) | Separates parent row ID from `SelectionMode` (`Object`, `Edge`, `Face`, `ControlId`), building finite control cages while keeping cloud points GPU-resident. |
+| [src/app/selection.rs](../../viewer-core/src/selection.rs) | Separates parent row ID from `SelectionMode` (`Object`, `Edge`, `Face`, `ControlId`), building finite control cages while keeping cloud points GPU-resident. |
 | [src/app/ui/phone.rs](../../src/app/ui/phone.rs) | Routes `CommandAgent` text/keys to the topmost open panel field ahead of the dock, skipping inline completion suffixes and active IME compositions. |
 | [src/app/ui/overlay.rs](../../src/app/ui/overlay.rs) | Converts physical preview pixels once into `egui` points to draw rubber-band lines, dashed crossing boxes, snap squares and padded measurement chips. |
 | [src/state/box_select.rs](../../src/state/box_select.rs) | Applies `Ctrl`-remove before `Shift`-add on release (solid window left-to-right, dashed crossing right-to-left) and refuses start during active drawing/splitting. |
@@ -57,7 +57,7 @@ Chapter `9.3` of [9. Run the application](completion-application.md) (`applicati
 | [src/state/sheet_query.rs](../../src/state/sheet_query.rs) | Highlights picked sheet entities immediately on the parent row and resolves optional `.meta` side-table names under a generation token. |
 
 ```rust
---8<-- "session_viewer/src/app/selection.rs:input-selection"
+--8<-- "session_viewer/viewer-core/src/selection.rs:input-selection"
 ```
 
 ## Run and observe

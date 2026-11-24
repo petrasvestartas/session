@@ -1,68 +1,109 @@
 # Session Viewer architecture
 
-Reference for the finished viewer: one browser application, Rust compiled to WebAssembly, winit for input, wgpu over browser WebGPU. The [implementation reference](docs/reference-course.md) covers the complete implementation. The [shorter courses](docs/journey.md) are being developed toward the same destination; this page describes the finished viewer.
+Reference for the finished viewer: one browser application, Rust compiled to WebAssembly, `winit` for windowing and input, `wgpu` over browser WebGPU (no WebGL fallback), backed by a UI- and GPU-independent Cargo workspace crate (`viewer-core`). The [learning journey](docs/journey.md) covers the cumulative implementation.
 
-## Module graph
+## Workspace & module graph
+
+The workspace splits pure geometry, document synchronization, command parsing/execution and display-row staging (`viewer-core`, depending on `session_rust`, `bytemuck`, `prost`, `serde`, `serde_json` and `serde_yml` — zero `wgpu`, `winit`, `egui`, `web-sys`, `wasm-bindgen`, `js-sys` or `glyphon` dependencies) from the WebGPU renderer, `egui` overlays, presentation stage and browser runtime (`session_viewer`).
 
 ```mermaid
 %%{init: {"flowchart": {"useMaxWidth": false, "wrappingWidth": 320}, "themeVariables": {"primaryColor": "#ffffff", "primaryTextColor": "#111111", "primaryBorderColor": "#111111", "lineColor": "#ffffff", "secondaryColor": "#ffffff", "tertiaryColor": "#ffffff", "edgeLabelBackground": "#111111"}}}%%
 graph TD
-    lib["lib.rs · App<br/>winit events, Msg handlers"] --> state["state.rs · State<br/>camera · selection · frame demand"]
-    state --> camera["camera.rs"]
-    state --> scene["app/scene.rs · Scene<br/>Rc&lt;Session&gt; documents, placements, row maps"]
-    state --> gpu["engine/gpu/mod.rs · Gpu<br/>device, layouts, targets, lanes"]
-    state --> text_state["state/text.rs · labels"]
-    state --> cq["state/cloud_query.rs · source pages"]
-    lib --> loader["app/loader.rs · fetch, validate, stage"]
-    loader --> manifest["app/manifest.rs · validate.rs · decode.rs · stream.rs"]
-    scene --> walk["app/walk/* · producers<br/>mesh · brep · curves · cloud · points · text"]
-    walk --> upload["engine/gpu/upload.rs · Upload<br/>typed rows, no wgpu types"]
-    upload --> gpu
-    gpu --> lanes["lanes: arena · segments · glyphs · cloud+splat · text · surface_outline · triangle_tiles"]
-    gpu --> pick["gpu/pick.rs · Picker"]
-    gpu --> render["gpu/render.rs · frame list"]
-    lanes --> shaders["shaders/*.wgsl"]
-    input["app/input.rs · touch.rs"] --> state
+    subgraph web["session_viewer (browser + headless GPU)"]
+        runtime["app/runtime.rs · App & Msg<br/>winit events, redraw scheduling"]
+        state["state.rs · State<br/>impl CommandHost · Gpu + Window + SelectionState"]
+        gpu["engine/gpu/context.rs · Gpu<br/>impl GpuSink · device, layouts, targets, lanes"]
+        lanes["lanes: arena · segments · glyphs · cloud+splat · text · surface_outline · triangle_tiles"]
+        pick["gpu/pick.rs · Picker"]
+        render["gpu/render.rs · frame list"]
+        shaders["shaders/*.wgsl"]
+        ui["app/ui/* · command_dock/* · gpu/ui.rs<br/>egui panels & command completion"]
+        stage["app/stage/*<br/>slide decks · TeX layout · Mode&lt;State&gt;"]
+        loader["app/loader.rs · fetch.rs · live.rs<br/>browser fetch & streaming"]
+        input["app/input.rs · touch.rs · gesture/*"]
+        selftest["selftest/*<br/>native offscreen pixel & perf harness"]
+    end
+
+    subgraph core["viewer-core (UI- & GPU-free)"]
+        host["command/host.rs · CommandHost & HeadlessHost"]
+        cmd["command/* · 80 registered verbs"]
+        scene["scene.rs · Scene · scene_sync/* · edit.rs · layers.rs"]
+        walk["walk/* · producers<br/>mesh · brep · curves · cloud · points · sheet"]
+        rows["rows/* · Upload · Instance (112 B) · ObjectRow"]
+        sink["sink.rs · GpuSink"]
+        cam["camera.rs · selection.rs · snap.rs · cplane.rs · gizmo.rs"]
+        decode["decode.rs · validate.rs · manifest.rs · stream.rs · session_io.rs"]
+    end
+
+    runtime --> state
+    runtime --> ui
+    runtime --> stage
+    runtime --> loader
+    input --> state
+    state --> host
+    state --> scene
+    state --> cam
+    state --> gpu
+    loader --> decode
+    cmd --> host
+    cmd --> scene
+    scene --> walk
+    scene --> sink
+    walk --> rows
+    gpu --> sink
+    gpu --> rows
+    gpu --> lanes
+    gpu --> pick
+    gpu --> render
+    lanes --> shaders
+    selftest --> gpu
+    selftest --> scene
 ```
 
-The one upward flow is a pick answer: `Picker` returns a row and sub-ID, `Scene` maps them to a source identity, `State` selects.
+Two trait seams keep dependencies strictly one-way (`session_viewer → viewer-core → session_rust`):
 
-Higher layers drive lower ones, never the reverse: a shader knows an object row, `Scene` knows which source object that row is, and input asks `State` to select rather than touching a buffer.
+1. **`CommandHost` (`viewer-core/src/command/host.rs`):** every command verb (`Action::run(&self, host: &mut dyn CommandHost)`) and interactive `Tool` operates against `CommandHost`. `State` (`src/state/host.rs`) implements it for the live browser/windowed viewer; `HeadlessHost` implements it in pure Rust so all 80 registered verbs execute in native tests (and CLI/MCP automation) without a window, `egui` or GPU.
+2. **`GpuSink` (`viewer-core/src/sink.rs`):** `Scene` stages typed `Upload` rows (`viewer-core/src/rows/`) and flushes incremental row patches, selection/visibility flags and compactions through `impl GpuSink`, implemented by `Gpu` in `src/engine/gpu/sink.rs` and by CPU-only ledgers in headless tests.
+
+The one upward runtime data flow is a pick answer: `Picker` returns an object row and sub-ID, `Scene` maps them to a source `(doc, guid)` identity, and `State` updates its single authoritative `SelectionState`.
 
 ## Owners
 
 | Owner | Responsibility |
 |---|---|
-| `lib.rs::App` | Window and event loop, `Msg` handlers, the one place a redraw is requested |
-| `state.rs::State` | Camera and selection transitions, `needs_frame` / `dirty`, pick requests |
-| `state/text.rs` | Selected-object names, source text presentation |
-| `state/cloud_query.rs` | Streamed-cloud source queries across pages, original-ID resolution |
-| `state/sheet_query.rs`, `app/sheet_query.rs` | Sheet entity metadata: two ranged reads of the side table on selection |
-| `app/walk/sheet.rs` | A sheet slice into ribbon segments with per-segment source ids |
-| `app/scene.rs::Scene` | Retained `Rc<Session>` documents, placements, row → source maps |
-| `app/scene_text.rs` | Stable rows for authored text and document titles |
-| `app/selection.rs` | `SelectionMode`, `ControlId`, `Controls` |
-| `app/modeling.rs`, `app/edit.rs` | Validated source transactions and placed control edits |
-| `app/scene_sync.rs` | Reconcile changed identities; queue the resulting GPU work |
-| `app/scene_sync/notes.rs` | Translate commit, undo and redo into the same invalidation notes |
-| `app/scene_sync/nodes.rs` | Resolve tree nodes and world placements; maintain the node cache |
-| `app/scene_sync/allocation.rs`, `tombs.rs`, `compaction.rs` | Allocate display rows, retain deleted rows for undo, reclaim unused storage |
-| `app/scene_sync/preview.rs` | Capture and update one dragged object's display data |
-| `app/hierarchy.rs`, `state/panel.rs` | Bounded tree/graph index and shared select/hide actions |
-| `app/ui/`, `gpu/ui.rs` | egui input/widget state, then GPU buffers and font textures |
-| `app/gizmo.rs`, `gpu/widget.rs` | Handle hit tests and one reusable unlit mesh with a temporary antialiasing tile |
-| `app/walk/` | Source geometry → typed `Upload` rows with source identity and bounds |
-| `engine/gpu/mod.rs::Gpu` | One device and queue, layouts, frame uniforms, targets, every lane |
-| `gpu/arena.rs` | Mesh vertex, index and object columns; `faces.rs` source-face rows; `triangle_tiles.rs` finite-visibility cache |
-| `gpu/segments.rs` | Joined boundary pipes and standalone ribbons with source-edge IDs |
-| `gpu/glyphs.rs`, `cloud.rs`, `splat.rs` | Markers and control dots; cloud LOD nodes; point splat prelude and resolve |
-| `gpu/surface_outline.rs` | Ordinary and selected coverage masks rasterized in one pass, block maxima of each, one black compositor that skips every pixel no covered texel can reach; the masks are reused while camera, geometry and selection stand still |
-| `gpu/text.rs`, `text_plate.rs`, `text_plane.rs`, `text_outline.rs` | Shaped glyph runs, plates, fixed-plane text, imported outlines |
-| `gpu/pick.rs::Picker` | ID targets, bounded readback windows, generations and cancellation |
-| `gpu/buffers.rs` | Buffer allocation and numbered resource groups, including sparse bindings |
-| `gpu/clip/pipelines.rs`, `gpu/ssao/pipelines.rs` | Pipeline construction separated from pass state and execution |
-| `pipelines/bindings.rs` | Shared buffer and texture binding descriptions; passes choose their actual binding contracts |
-| `app/loader.rs`, `fetch.rs`, `live.rs`, `stream.rs` | Fetching, validation, staged replacement, bounded ranged reads |
+| `src/lib.rs` | Crate root declarations, shader table macro, WASM entry exports and `viewer-core` re-exports |
+| `src/app/runtime.rs::App` | `winit` window and event loop, `Msg` handlers, the one place a redraw is requested |
+| `src/state.rs::State`, `src/state/host.rs` | Window + `Gpu` + `Scene` + `Camera` + authoritative `SelectionState`, `impl CommandHost`, `needs_frame` / `dirty`, pick requests |
+| `src/state/text.rs` | Selected-object names, source text presentation |
+| `src/state/cloud_query.rs`, `viewer-core/src/cloud_query.rs` | Streamed-cloud source queries across pages, original-ID resolution |
+| `src/state/sheet_query.rs`, `viewer-core/src/sheet_query.rs` | Sheet entity metadata: two ranged reads of the `SHM1` side table on selection |
+| `viewer-core/src/command/` | Declarative `Spec` registry (`verbs!`, 80 specs), parser, `CommandHost`, `HeadlessHost`, `Tool` and `Recipe` |
+| `viewer-core/src/scene.rs::Scene` | Retained `Rc<Session>` documents, placements, `(doc, guid) ↔ row` maps |
+| `viewer-core/src/scene_text.rs` | Stable rows for authored text and document titles |
+| `viewer-core/src/selection.rs` | `SelectionState`, `SelectionMode`, `ControlId`, `Controls` |
+| `viewer-core/src/modeling.rs`, `viewer-core/src/edit.rs` | Validated source transactions (`MAX_STEPS`-bounded undo/redo in `edit.rs`) and placed control edits |
+| `viewer-core/src/scene_sync.rs` | Reconcile changed identities; queue the resulting `GpuSink` work |
+| `viewer-core/src/scene_sync/notes.rs` | Translate commit, undo and redo into the same invalidation notes |
+| `viewer-core/src/scene_sync/nodes.rs` | Resolve tree nodes and world placements; maintain the node cache |
+| `viewer-core/src/scene_sync/allocation.rs`, `tombs.rs`, `compaction.rs` | Allocate display rows, retain deleted rows for undo, reclaim unused storage |
+| `viewer-core/src/scene_sync/preview.rs` | Capture and update one dragged object's display data |
+| `viewer-core/src/hierarchy.rs`, `src/state/panel.rs` | Bounded tree/graph index and shared select/hide/colour actions |
+| `viewer-core/src/walk/` | Source geometry → typed `Upload` rows (`viewer-core/src/rows/`) with source identity and bounds |
+| `viewer-core/src/gizmo.rs`, `src/engine/gpu/widget.rs` | Handle hit-test math in `viewer-core`, rendered into one reusable unlit mesh with a temporary antialiasing tile |
+| `src/app/ui/`, `src/command_dock/`, `src/engine/gpu/ui.rs` | `egui` panels (`panels!`), pure command-dock completion model/view, then GPU buffers and font textures |
+| `src/app/stage/` | Interactive presentation engine: YAML slide decks, TeX math layout, 2D rounded matrix diagrams and 3D `Mode<State>` scenes |
+| `src/engine/gpu/context.rs::Gpu` (re-exported by `engine/gpu/mod.rs`) | One `wgpu` device and queue (`Gpu::new` takes an `Arc<winit::window::Window>`; `Gpu::new_headless` runs offscreen without `winit`), layouts, frame uniforms, targets, every lane, `impl GpuSink` |
+| `src/engine/gpu/arena.rs` | Mesh vertex, index and object columns; `faces.rs` source-face rows; `triangle_tiles.rs` finite-visibility cache |
+| `src/engine/gpu/segments.rs` | Joined boundary pipes and standalone ribbons with source-edge IDs |
+| `src/engine/gpu/glyphs.rs`, `cloud.rs`, `splat.rs` | Markers and control dots; cloud octree LOD nodes (`lod.rs`); point splat prelude and EDL resolve |
+| `src/engine/gpu/surface_outline.rs` | Ordinary and selected coverage masks rasterized in one pass, block maxima of each, one black compositor that skips uncovered tiles |
+| `src/engine/gpu/text.rs`, `text_plate.rs`, `text_plane.rs`, `text_outline.rs` | Shaped glyph runs, plates, fixed-plane text, imported outlines |
+| `src/engine/gpu/pick.rs::Picker` | ID targets, bounded readback windows, generations and cancellation |
+| `src/engine/gpu/buffers.rs` | Buffer allocation, `O(1)` `truncate`, and numbered resource groups |
+| `src/engine/gpu/clip/pipelines.rs`, `ssao/pipelines.rs` | Pipeline construction separated from pass state and execution |
+| `src/engine/pipelines/bindings.rs` | Shared buffer and texture binding descriptions |
+| `src/app/loader.rs`, `fetch.rs`, `live.rs`, `viewer-core/src/stream.rs` | Browser fetching, validation, staged replacement, bounded ranged reads |
+| `src/selftest/` | Native headless offscreen pixel assertions, GPU timestamp profiling and benchmark harness |
 
 ![Source documents become display data; input and picking share the same scene identity.](docs/illustrations/ownership.svg)
 
@@ -71,29 +112,29 @@ Higher layers drive lower ones, never the reverse: a shader knows an object row,
 | Representation | Example | Lifetime and precision |
 |---|---|---|
 | Source | One BRep face, its trim uses, original edge IDs | Retained `Session` data, f64 |
-| Display | Triangles, ordered boundary node chains, curved edges sampled from their own curves, markers | Rebuilt on geometry change; source maps kept |
+| Display | Triangles, ordered boundary node chains, curved edges sampled from their own curves, markers | Rebuilt on geometry change; source maps kept (`viewer-core/src/rows/`) |
 | GPU | Packed vertices, `Instance` rows, draw ranges | Object-relative f32 plus rebased translations |
 
 Selecting a source face (Ctrl+Shift) selects the face, not a tessellation triangle. Every segment of one BRep edge carries the original edge ID. `Controls` shows original vertices or control points, not display subdivisions.
 
-A curved BRep edge is drawn from its own 3D curve, one chord per 4° of turning (`display_chain` in `walk/brep_edges.rs`), not from the face mesh's coarse boundary: the face mesh keeps its 16 steps around a small bore while the edge gets 90, so a circle reads as round at any zoom within reason. The dense samples pass exactly through every mesh vertex of the chain, each display segment is mapped to the chain segment it lies on for its incident-facet normals and its `surface_boundaries` entry, and it carries a sag: how far it rises off the facets, which the hidden-line test takes as slack (below). A straight edge keeps its two vertices. `VIEWER_COARSE_EDGES` draws every edge from the mesh vertices again, for comparison.
+A curved BRep edge is drawn from its own 3D curve, one chord per 4° of turning (`display_chain` in `viewer-core/src/walk/brep_edges.rs`), not from the face mesh's coarse boundary: the face mesh keeps its 16 steps around a small bore while the edge gets 90, so a circle reads as round at any zoom within reason. The dense samples pass exactly through every mesh vertex of the chain, each display segment is mapped to the chain segment it lies on for its incident-facet normals and its `surface_boundaries` entry, and it carries a sag: how far it rises off the facets, which the hidden-line test takes as slack (below). A straight edge keeps its two vertices. `VIEWER_COARSE_EDGES` draws every edge from the mesh vertices again, for comparison.
 
-Congruent BReps of one document are walked once (`walk/brep_shapes.rs`): while `Scene::add_file` walks, each BRep gets a key from its topology, parameters, weights, colours and its 3D points in a frame found from its own control points; the first BRep of a key is walked and its rows are kept, and every later copy gets them turned and moved into place, its row, ids and facing words rewritten. A floor's hundreds of identical dowels and screws mesh once each; a mirrored copy or a different parameterization keys apart and walks on its own.
+Congruent BReps of one document are walked once (`viewer-core/src/walk/brep_shapes.rs`): while `Scene::add_file` walks, each BRep gets a key from its topology, parameters, weights, colours and its 3D points in a frame found from its own control points; the first BRep of a key is walked and its rows are kept, and every later copy gets them turned and moved into place, its row, ids and facing words rewritten. A floor's hundreds of identical dowels and screws mesh once each; a mirrored copy or a different parameterization keys apart and walks on its own.
 
-Source transactions become notes before synchronization starts. Node resolution, retained undo rows and compaction live below that coordinator, in private modules. Their tests remain separate from runtime code and retain their original test paths. Preview padding belongs to `gpu/upload_padding.rs`: it knows the layout of each display table, while synchronization only reserves and accounts for the returned rows.
+Source transactions become notes before synchronization starts. Node resolution, retained undo rows and compaction live below that coordinator, in private modules. Preview padding belongs to `viewer-core/src/rows/upload_padding.rs`: it knows the layout of each display table, while synchronization only reserves and accounts for the returned rows.
 
-Shape and curve-gathering commands share option matching in `app/command/tool/options.rs`. It excludes Finish and Cancel actions, matches multi-word choices without changing their order, and returns how many input words the command consumed.
+Shape and curve-gathering commands share option matching in `viewer-core/src/command/tool/options.rs`. It excludes Finish and Cancel actions, matches multi-word choices without changing their order, and returns how many input words the command consumed.
 
 ## A frame
 
-The browser permits one redraw batch at a time, including UI uploads and picking. If the GPU is busy, input continues updating the camera and commands; GPU completion requests a redraw of the latest state. No old camera frames accumulate in the queue, and completion does not wake an idle view. Native headless rendering retains its synchronous readback path.
+By default (`?inflight=1`, configurable `1..=4` via `VIEWER_INFLIGHT` / `?inflight=`), the browser permits one redraw batch in flight at a time, including UI uploads and picking. If the GPU is busy, input continues updating the camera and commands; GPU completion requests a redraw of the latest state and records submit-to-completion latency. No old camera frames accumulate in the queue, and completion does not wake an idle view. Native headless rendering retains its synchronous readback path.
 
 `Gpu::encode_frame` in `gpu/render.rs`:
 
 ```mermaid
 %%{init: {"flowchart": {"useMaxWidth": false, "wrappingWidth": 320}, "themeVariables": {"primaryColor": "#ffffff", "primaryTextColor": "#111111", "primaryBorderColor": "#111111", "lineColor": "#ffffff", "secondaryColor": "#ffffff", "tertiaryColor": "#ffffff", "edgeLabelBackground": "#111111"}}}%%
 flowchart TD
-    A["triangle_tile_pass<br/>project triangles, bin into screen tiles<br/>(only when camera or geometry changed)"] --> B["point_pass<br/>cloud splat prelude"]
+    A["triangle_tile_pass<br/>project triangles, bin into screen tiles + per-tile max depth<br/>(only when camera or geometry changed)"] --> B["point_pass<br/>cloud splat prelude"]
     B --> C["begin_faces: backdrop, grid, opaque faces, cloud resolve<br/>writes Depth32Float + Rgba16Float gradient/primitive metadata"]
     C --> D["selection mask · solid mask<br/>R8Unorm coverage against physical depth"]
     D --> E["begin_ink: face highlight, print geometry, unselected strokes,<br/>selected solid strokes, black silhouette, selected standalone curves,<br/>markers, text"]
@@ -105,27 +146,25 @@ flowchart TD
 
 Order matters twice in the ink pass: selected solid strokes go below the silhouette so their yellow fringe cannot narrow its black border, and selected standalone curves go above it so a coincident mesh edge cannot erase them. Both obey physical occlusion.
 
-Section caps, ambient occlusion and the outline masks are passes: each owns its GPU state in one module, impls `Pass` (`gpu/pass.rs`: hooks before, in and after the face pass, the masks, the ink and the id pass) and is named once in `pass::PASSES`, which `render.rs` walks in order. Shared WGSL is included once: `pipelines::PRELUDE` ends every scene shader, and `build.rs` expands `#include "file.wgsl"` lines in the compute and point shaders.
+Instancing, section caps, ambient occlusion and the outline masks are passes: each owns its GPU state in one module, implements `Pass` (`gpu/pass.rs`: hooks before, in and after the face pass, the masks, the ink and the id pass) and is named once in `pass::PASSES`, which `render.rs` walks in order. Shared WGSL is included once: `pipelines::PRELUDE` ends every scene shader, and `build.rs` expands `#include "file.wgsl"` lines in the compute and point shaders.
 
-The gumball tile is rendered and composited after scene ink; egui draws the final interface. Both overlays use their own layouts and avoid writing scene depth. Their sample counts do not depend on scene MSAA.
+The gumball tile is rendered and composited after scene ink; `egui` draws the final interface. Both overlays use their own layouts and avoid writing scene depth. Their sample counts do not depend on scene MSAA.
 
 ![Physical surfaces, readable source ink, one black silhouette, then foreground annotations.](docs/illustrations/frame.svg)
 
 ## Memory
 
-Per-pixel attachments dominate: at 4x MSAA the colour, depth and `Rgba16Float` metadata targets cost 64 bytes per physical pixel, at 1x 12. `Targets::samples_for` chooses 4x only for solid geometry, inside the adapter's pixel budget (9 Mpx discrete, 2.5 Mpx integrated, 4.2 Mpx unknown), and below two physical pixels per CSS pixel, where the pixel density already halves the stair-steps; `?msaa=4` and `?msaa=1` force it. `?dpr=1.5` caps the device pixel ratio the canvas is rendered at, for people who prefer memory over crispness; by default it is capped at 2 (`view::DEFAULT_MAX_DPR`): a phone's third device pixel per CSS pixel is invisible and would cost 2.25x the pixels of every pass and attachment, and `?dpr=3` asks for it back. Every size-bound texture is an `Attachment`, whose drop calls `destroy()`: wgpu's WebGPU backend frees nothing on drop, so the old attachments of every resize would otherwise wait for the JavaScript garbage collector - a window drag (one resize a frame, 64 bytes per pixel each at 4x) lost the device on a scene of twelve objects. `replace_buffer` does the same for a table that grew or a pool that was resized, and `State::resize` applies at most one resize per 100 ms while a drag lasts. Slow navigation uses temporary ink and outline tiers while dragging; release returns to full visibility detail. Sustained slow navigation preserves the chosen canvas resolution and antialiasing. Only a page reloaded after device loss sets `view::reduce`: device scale 1, no antialiasing, in memory only. On a lost device the page reloads itself once with the browser's reason in `?recovered=`; `adopt_recovery` on the reloaded page reduces, takes the parameter back out of the address, and the status line names the reason; a second loss shows the error panel. `?inspect=1` publishes `gpu_texture_estimate_bytes` and `gpu_buffer_capacity_bytes`; these estimates exclude browser overhead and renderer-private allocations.
-
-The browser prepares the solid-scene face, ribbon and triangle-list pipelines while the early scene body downloads, using the actual capped canvas dimensions. Picking and selection remain lazy. Arctic warm-up runs only when enabled and after the GPU completes the first geometry frame; the automatic slow-interaction quality reduction waits for that completion too.
+Per-pixel attachments dominate: at 4× MSAA the colour, depth and `Rgba16Float` metadata targets cost 64 bytes per physical pixel, at 1× 12. `Targets::samples_for` chooses 4× only for solid geometry, inside the adapter's pixel budget (9 Mpx discrete, 2.5 Mpx integrated, 4.2 Mpx unknown), and below two physical pixels per CSS pixel, where the pixel density already halves the stair-steps; `?msaa=4` and `?msaa=1` force it. `?dpr=1.5` caps the device pixel ratio the canvas is rendered at (cached once on startup; default `view::DEFAULT_MAX_DPR = 2.0`), and `?dpr=3` asks for full native DPR back. Every size-bound texture is an `Attachment`, whose drop calls `destroy()`: `wgpu`'s WebGPU backend frees nothing on drop, so the old attachments of every resize would otherwise wait for the JavaScript garbage collector. `replace_buffer` does the same for a table that grew or a pool that was resized, and `State::resize` applies at most one resize per 100 ms while a drag lasts. Slow navigation uses temporary ink and outline tiers while dragging; release returns to full visibility detail. Only a page reloaded after device loss sets `view::reduce`: device scale 1, no antialiasing, in memory only. `?inspect=1` publishes `gpu_texture_estimate_bytes` and `gpu_buffer_capacity_bytes` (`?inspect=perf` publishes lightweight frame/CPU/GPU timing stats only).
 
 ## Depth and visible ink
 
 - Depth is reversed: near is larger, the clear value is zero, opaque faces compare `Greater`.
-- Huge close-up triangles use homogeneous depth anchored at the viewport centre; bounded distant triangles fit depth relative to a nearby screen corner; the near-clipped polygon still determines coverage. Strokes derive their screen line from original clip ends and measure coverage near the viewport centre. Placement roundoff scales with rebased coordinates and eye distance. The [close-up regression report](docs/journey/line-visibility.md) explains the failure and native/Chrome checks.
+- Huge close-up triangles use homogeneous depth anchored at the viewport centre; bounded distant triangles fit depth relative to a nearby screen corner; the near-clipped polygon still determines coverage. Strokes derive their screen line from original clip ends and measure coverage near the viewport centre. The [close-up regression report](docs/journey/line-visibility.md) explains the failure and native/Chrome checks.
 - A stroke covers samples beside its axis. The ink shader transfers the winning primitive's depth to the axis through the stored gradient before comparing, so a line on a surface is not hidden by the surface beside it.
-- Before testing stroke visibility, `ribbon.wgsl` rejects expanded screen boxes that cannot reach the viewport. The margin includes world radius, selected pen width and cap/filter expansion; an axis outside the viewport can still draw its visible fringe. This avoids visibility and joint work for off-screen strokes at close zoom without changing canvas resolution.
-- A stroke drawn off its faces by `sag` mm (a curved edge's exact samples between the facets' vertices) carries that sag to the fragment stage as a depth and a pixel term (`sag_terms` in `ribbon.wgsl`), and every visibility test adds `ink_sag_slack`: the rise itself plus the rise in pixels times the surface's screen depth gradient, so a facet seen at a grazing angle, whose depth changes by its whole length within the rise, cannot hide the exact rim of the bore it approximates. It is the polygon offset of the fixed pipeline; a nearer face of another object still hides the stroke unless it is as thin on screen as the sag.
-- A stroke of a sampled surface that one triangle covers at both ends, nearer than each by more than the tolerance and that slack, is dropped in the vertex stage (`segment_covered` in `ribbon.wgsl`): depth is affine along a projected segment and across a triangle, so the ends decide the middle, and the hidden ink's fragments never run the tests below. The dowel bores of a timber floor are mostly such strokes.
-- A neighbouring triangle's plane can cross the axis outside the triangle. The finite fallback in `triangle_tiles.rs` then tests the actual triangles that intersect the axis's screen tile: projected records (six `vec4<f32>` each), per-tile counts, a prefix scan, and filled `(primitive, max depth)` lists. Overflowing or incomplete lists keep the conservative rejection. The list pool is sized for the scene, two references per tile plus eight per triangle, and the scan writes the words it needed into the first record; the CPU reads that back a frame later and grows the pool before the next projection; a pending report keeps a resting view drawing until it is consumed, so a small scene never pays the 64 MB ceiling of a 262 144-tile grid.
+- Before testing stroke visibility, `ribbon.wgsl` rejects expanded screen boxes that cannot reach the viewport.
+- A stroke drawn off its faces by `sag` mm carries that sag to the fragment stage as a depth and a pixel term (`sag_terms` in `ribbon.wgsl`), and every visibility test adds `ink_sag_slack`.
+- A stroke of a sampled surface that one triangle covers at both ends is dropped in the vertex stage (`segment_covered` in `ribbon.wgsl`).
+- A neighbouring triangle's plane can cross the axis outside the triangle. The finite fallback in `triangle_tiles.rs` bins projected triangles into 16×16 screen tiles alongside a per-tile `atomicMax` frontmost depth bound (`TileRecord.values[3]`): `ink_visibility.wgsl` exits in `O(1)` when no triangle in the tile can beat the stroke, otherwise scanning vectorized `vec4<u32>` entries (capped at 128 per tile).
 
 ![A triangle's plane extends beyond its footprint; the line is visible outside the actual triangle.](docs/illustrations/finite-triangle.svg)
 
@@ -143,51 +182,40 @@ Bind group scheme for every draw (`engine/pipelines/layouts.rs`):
 | 2 | 6–7 | projected triangles and tile lists | finite-visibility storage read by `ink_visibility.wgsl` |
 | 3 | n | the lane's own rows (`ink_rows`, `segment_rows`, `points`) | e.g. `@group(3) @binding(0) var<storage, read> segments: array<StrokeSegment>` |
 
-`Instance` (`gpu/instance.rs`) is one 96-byte row: `model: [f32;16]`, `color: [f32;4]`, `flags: u32`, `thickness`, `spacing`, `_pad`. The translation column is zero; the rebased translation is the 16-byte row at group 2 binding 1, so a re-anchor rewrites 16 bytes per object. Flag bits: selected, hidden, inside, print, open, sheet, smooth. Layout tests in `instance.rs` compare the Rust size and offsets with the WGSL declaration.
+`Instance` (`viewer-core/src/rows/instance.rs`, mirrored in `src/shaders/scene.wgsl`) is one **112-byte** row: `model: [f32; 16]` (64 B, translation column zeroed), `color: [f32; 4]` (16 B), `flags: u32`, `ao_radius: f32`, `spacing: f32`, `_pad: u32` (`edge_color` RGBA8 in WGSL), and `effect: [f32; 4]` (line reveal, point scale and two reserved floats). The rebased translation is the 16-byte row at group 2 binding 1, so a re-anchor rewrites 16 bytes per object. Layout tests in `engine/gpu/instance/validation.rs` compare the Rust size and member offsets against the compiled WGSL declarations via `naga`.
 
-Meshes are vertex-pulled: `triangle.wgsl` reads `face_vertices`, `face_objects`, `face_indices` from storage at group 3 instead of a vertex buffer. Textures: color surface format, `Depth32Float` physical depth, `Rgba16Float` metadata (gradient in xy, packed primitive ID in zw), `R8Unorm` coverage masks, `Rg32Uint` pick IDs with their own `Depth32Float` and metadata.
+Source-face mesh draws are vertex-pulled: `triangle.wgsl` reads `face_vertices`, `face_objects` and `face_indices` from storage at group 3, whereas coverage masks (`face_coverage.wgsl`) bind the vertex and index buffers directly (`arena.rs`). Textures: colour surface format, `Depth32Float` physical depth, `Rgba16Float` metadata (gradient in `xy`, packed primitive ID in `zw`), `R8Unorm` coverage masks, `Rg32Uint` pick IDs with their own `Depth32Float` and metadata.
 
 ## Flows
 
-**Camera.** Pointer delta → `Input` → `Camera::orbit / pan / zoom_at` (f64, target + distance + quaternion) → `view_proj_anchored(aspect, anchor)` with reversed depth and a near plane at a fraction of the focus distance → `FrameUniforms` (`mvp`, eye, ortho half-height) → group 0.
+**Camera.** Pointer delta → `Input` → `Camera::orbit / pan / zoom_at` (`viewer-core/src/camera.rs`, f64, target + distance + quaternion) → `view_proj_anchored(aspect, anchor)` with reversed depth → `FrameUniforms` (`mvp`, eye, ortho half-height) → group 0.
 
-**Geometry.** `Msg::File` → `Scene` retains the document → `app/walk/*` produce `Upload` rows (arena, segments, glyphs, cloud, object rows, bounds) with source maps → `Gpu::set_scene` appends rows to lane buffers and rebinds → `render.rs` draws ranges.
+**Geometry.** `Msg::File` → `Scene` retains the document → `viewer-core/src/walk/*` produce `Upload` rows (arena, segments, glyphs, cloud, object rows, bounds) with source maps → `Scene::upload_to(&mut impl GpuSink)` appends rows to lane buffers and rebinds → `render.rs` draws ranges.
 
-**Picking.** Pointer up without a drag → `State::request_selection` records mode, generation, camera → `id_pass` renders IDs into an attachment the size of the window around the cursor plus a three-texel halo, not the canvas: the pick pass sees the scene through the sub-frustum of that window (`PickView::clip_transform`), with the projection factors scaled so pens and markers keep their pixel size, and the visibility test addresses the canvas-wide tiles through `LineUniform::origin` → `Picker` maps a bounded copy asynchronously → row and sub-ID → `Scene::object_at / edge_at / face_at` → `SelectionMode` → `Instance::FLAG_SELECTED` uploaded → redraw. A camera, scene or mode change retires answers from an older generation. The ID, depth and metadata targets therefore cost a few kilobytes instead of 20 bytes per canvas pixel.
+**Picking.** Pointer up without a drag → `State::request_selection` records mode, generation, camera → `id_pass` renders IDs into a cropped window around the cursor plus a three-texel halo (`PickView::clip_transform`) → `Picker` maps a bounded copy asynchronously → row and sub-ID → `Scene::object_at / edge_at / face_at` → `SelectionState` → `Instance::FLAG_SELECTED` uploaded → redraw.
 
-**Document history.** The kernel `Session` keeps a `History` of transactions: a removal's record is the tombstone undo restores from, `replace` is the recorded edit, and every save purges the buffer. The viewer commits modeling operations through `Session` transactions and rebuilds display rows through `Scene::rebuild`; pointer movement previews GPU rows and commits once on release.
+**Document history.** The kernel `Session` keeps a `History` of transactions (`viewer-core/src/edit.rs`, bounded to `MAX_STEPS` undo entries): a removal's record is the tombstone undo restores from, `replace` is the recorded edit, and every save purges the buffer.
 
-**Sheets.** A drawing publishes as one `Sheet` message (`Objects.sheets`, field 17): packed fixed-width `coords`, `colors`, `widths` and `source_ids`, so `stream.rs` locates the arrays from the first kilobytes and the loader streams segments by byte range under a segment budget. The whole sheet is one object row and one ribbon draw; every segment carries its entity id through `SegRows.ribbon_ids`. A pick resolves row plus segment to the entity, and `sheet_query.rs` reads its GUID, name and kind from the `.meta` side table in two ranged reads, cached per sheet with the table's ETag. The kernel never decodes a sheet.
+**Sheets.** A drawing publishes as one `Sheet` message (`Objects.sheets`, field 17): packed fixed-width `coords`, `colors`, `widths` and `source_ids`, located by `viewer-core/src/stream.rs` from the first 8 KiB and streamed by byte range. A pick resolves row plus segment to the entity, and `sheet_query.rs` reads its GUID, name and kind from the `.meta` side table in two ranged reads.
 
-**Controls.** The `Controls` command → `Controls` collects original vertices or control points of the selected parent → marker rows uploaded with `ControlId` → a control pick returns the original identity, not the marker slot. Streamed clouds query every eligible source page (`state/cloud_query.rs`) independently of display LOD and apply the final visible original ID.
+**Controls.** The `Controls` command collects original vertices or control points into `SelectionState.controls` → marker rows uploaded with `ControlId` → dragging a mesh control patches GPU vertices in `O(1)` via `MeshPreview` and commits once on release.
 
-**Text.** String, font, size → `engine/text.rs` shapes glyph runs with the bundled Noto fonts → `TextPlacement` (Screen, Anchor, Nameplate, WorldPlane, WorldBillboard) → `TextLane::prepare` chooses the physical raster size once per DPR → coverage atlas → plate pass and glyph pass; fixed-plane text uses `text_plane.wgsl` with perspective-correct rounded plates that also serve the ID pass.
+**Text.** String, font, size → `engine/text.rs` shapes glyph runs with the bundled Noto fonts → `TextPlacement` (`Screen`, `Anchor`, `Nameplate`, `WorldPlane`, `WorldBillboard`) → `TextLane::prepare` rasterizes once per DPR into a coverage atlas.
 
-**Loading.** Route → manifest (TOML, YAML or JSON) → `validate.rs` checks counts, indices, transforms → protobuf decode → `PendingDocument` staged with a request generation → `Msg::File` in manifest order. Stale generations are dropped; a malformed document keeps the last valid scene.
+**Loading.** Route → manifest (YAML/TOML/JSON) → `validate.rs` checks counts, indices, transforms → `decode.rs` decodes `Body` in 25k-object chunks yielding between chunks and between 250k-point cloud slices → `Msg::File` in manifest order.
 
 ## Lifecycles
 
 | Change | Required work | Reused work |
 |---|---|---|
 | Camera, DPR or resize | Uniforms, placement, finite-visibility projection, targets; cancel stale picks | Documents, tessellation, shaped text, the visibility pool's grown size |
-| Selection or color | Object flags, selected labels, masks, redraw | Mesh buffers, projected-triangle cache |
+| Selection or colour | Object flags, selected labels, masks, redraw | Mesh buffers, projected-triangle cache |
 | Hide or show | Visibility flags, projection invalidation, text visibility | Source geometry and identity |
 | Document replacement | Source maps, display data, bounds, caches; cancel stale work | Device and pipelines |
 | Text content or font | Reshape changed runs, raster, bounds | Unchanged glyph resources |
-| Idle | Nothing submitted | Everything |
+| Idle (including bare canvas hover) | Nothing submitted (`0` hover redraws) | Everything |
 
 `reset` keeps capacity for an edit rebuild; `release` returns scene-sized storage on replacement. `SourceCache` (`app/inspection/source_memory.rs`) holds `Weak<Session>` identities, so measuring retained source payload never extends a document's lifetime.
-
-| Retained data | Invalidate or release |
-|---|---|
-| Hierarchy row index | `row_revision` changes or scene clears; at most 200,000 nodes / 1,000,000 row references |
-| Gumball mesh and uniform | Fixed 371,616 bytes until renderer destruction |
-| Gumball tile | Replaced on tile-size change; destroyed on deselect; at most 36 MiB |
-| egui command state | 2,048 input characters, eight history entries; no source geometry |
-| egui fonts and draw buffers | Process texture frees between frames; remaining textures free with renderer; private capacity is outside inspection counters |
-| Source history | Kernel transactions retain undo data; no whole-document memory cap is claimed |
-
-Loader routing state, live polling and the small UI model have one-page lifetimes. The application does not offer repeated mount/unmount in one page. Releasing allocations also does not shrink WebAssembly linear memory back to the operating system. Resource counters measure named allocations, not total browser memory.
 
 ## Input
 
@@ -197,30 +225,24 @@ Loader routing state, live polling and the small UI model have one-page lifetime
 | Left click | Select or toggle one source object |
 | Left drag on an object | Move it or its selection on the ground, snapped when Snap is on; one undo step; Escape or a release over a panel puts it back |
 | Left click on a gumball handle | A number box beside it: Move mm, Rotate deg or Scale factor; Enter applies one undo step, Escape closes |
-| Ctrl + left click | Select an original mesh, BRep or NURBS edge |
-| Ctrl + Shift + left click | Select an original face; a nearby eligible edge wins |
+| Ctrl + left click / Ctrl + Shift + left click | Select an original edge / original face |
+| Unfocused keys `F`, `H`, `S`, `Delete`, `Ctrl+Z`, `Ctrl+Y`, `Ctrl+A` | Fit, Hide Selected, Snap toggle, Delete, Undo, Redo, Select All (`app/keys.rs`) |
 | Printable typing | Focus the command dock immediately and retain the first character |
 | Enter / Escape | Submit or finish the active command / cancel or clear |
-| Right click | Repeat the last successful command; interactive tools ask for fresh points |
+| Right click | Repeat the last successful command |
 | One-finger drag / two-finger drag / pinch | Orbit / pan / zoom on phones |
-| Typed View Top, View Side, View Isometric, View Reset, Fit | Standard directions, reset and framing |
-| Typed View Perspective, View Orthographic, View Show Edges, View Outline On | Projection and display settings |
-| Typed View Hide Selected, View Show All, View Names, Controls | Visibility, names and original controls |
 
-## Editing overlays
+## Editing overlays & stage
 
-`app/ui/mod.rs` owns the egui context and translates winit input into panel actions and commands; each panel (number box, command line, layers) is one file under `app/ui/` that keeps its own state and implements `Panel` (fill from `State`, show, apply, keys, phone field, taps, test snapshot), named once in the `panels!` list; clicks and lines to run come back through one `Output`. `engine/gpu/ui.rs` owns its renderer and font textures and draws after the scene. Printable text focuses the command input before delivery unless another text field owns it. Keyboard feature shortcuts are absent; Enter/Escape and text editing remain. The white/black visuals follow the archive customization. The old DOM command and layer listeners are removed.
-
-The gumball owns one fixed mesh and 96-byte uniform, plus a selected-only antialiasing tile capped at 1024×1024. Its shader uses unlit colors; the tile uses 4× MSAA and 2× resolution before compositing. Deselect destroys the tile. Neither overlay owns document geometry. UI hit-box snapshots are opt-in with `?inspect=1`.
+`app/ui/mod.rs` owns the `egui` context and translates `winit` input into panel actions and commands; each panel (number box, command line, virtualized layers/graph) implements `Panel` and is registered in `panels!`. `command_dock/` holds the standalone completion/chip model and view. `app/stage/` implements `Mode<State>` for interactive technical slide decks (YAML choreography, TeX math layout, 2D rounded matrix diagrams and 3D equilibrium scenes).
 
 ## Adding a feature
 
-For a new geometry family: a `walk/` producer that emits existing `Upload` rows with bounds and source identity; a new lane only when storage or drawing differs, one file plus one `// register:` line in `lane::REGISTRY`; then exercise select, hide, replace and release. For a new left-button tool: one file in `app/gesture/`, its `mod` line and one `// register:` line in `GESTURES`. For new per-feature state: one field line in `state/features.rs` (`Features`, reached as `state.features`), its per-frame work one line in `BEFORE_PICKS` or `AFTER_PICKS`. For a new panel: one file in `app/ui/` and one line in `panels!`. Command and panel tests live beside their owners in `command/tests.rs` and `ui/command_line/tests.rs`, preserving their module names.
+- **New command verb:** one file in `viewer-core/src/command/verbs/` implementing `Action::run(&self, host: &mut dyn CommandHost)` and one line in `verbs!` (`REGISTRY`), covered automatically by `headless_tests.rs`.
+- **New geometry family:** a `viewer-core/src/walk/` producer emitting `Upload` rows; a new GPU lane only when storage or drawing differs (`RowSpec` in `viewer-core/src/rows/patch.rs` + `Registered` in `engine/gpu/lane.rs`).
+- **New left-button gesture:** one file in `src/app/gesture/` and one `// register:` line in `GESTURES`.
+- **New per-feature state:** one field in `src/state/features.rs` (`Features`) and one hook in `BEFORE_PICKS` or `AFTER_PICKS`.
+- **New optional render pass:** one `Pass` impl in `src/engine/gpu/` and one `// register:` line in `pass::PASSES`.
+- **New UI panel:** one file in `src/app/ui/` and one line in `panels!`.
 
-Command metadata uses `Spec::new` for common defaults; a verb declares only its exceptions. Shared tool options live in `app/command/tool/options.rs`.
-
-For a new command: one file in `app/command/verbs/` and one line in `verbs!`, which declares the module and adds its `SPEC` to `REGISTRY`. For a new optional pass: one `Pass` impl in `gpu/` and one `// register:` line in `pass::PASSES`; shared WGSL goes in one file, named in `PRELUDE` or `#include`d. For a shader change: read its Rust mirror, bindings, color and ID entry points, sample count and release path together, and check the layout test in `instance.rs`. Never mutate a vertex buffer behind `Scene`: it is the source of truth for picking, controls and undo.
-
-Each of these is a later lesson's whole contribution to an earlier lesson's file, so the course stays write-once; [Maintaining the course](docs/maintaining.md) says how the lesson crates are cut.
-
-The CAD geometry contract (shared boundaries, trims, pcurves, provenance) is in the [CAD design record](docs/cad-design.md).
+The CAD geometry contract (shared boundaries, trims, pcurves, provenance) is in the [CAD design record](docs/cad-design.md), and the frame-timing methodology is in [Benchmarking](docs/benchmarking.md).

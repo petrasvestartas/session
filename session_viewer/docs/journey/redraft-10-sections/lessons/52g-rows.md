@@ -1,6 +1,6 @@
 # 8.2 · Tree presentation with explicit input ownership
 
-**Steps:** 5 · **Source:** [app/hierarchy.rs](../../../../src/app/hierarchy.rs) · [app/layers.rs](../../../../src/app/layers.rs) · [app/ui/layers.rs](../../../../src/app/ui/layers.rs) · [app/gesture/mod.rs](../../../../src/app/gesture/mod.rs)
+**Steps:** 5 · **Source:** [app/hierarchy.rs](../../../../viewer-core/src/hierarchy.rs) · [app/layers.rs](../../../../viewer-core/src/layers.rs) · [app/ui/layers.rs](../../../../src/app/ui/layers.rs) · [app/gesture/mod.rs](../../../../src/app/gesture/mod.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -829,7 +829,7 @@ fn nested_tree_rows_keep_original_guids_precise_world_placements_and_readonly_at
     assert_eq!(model[1][12], model[0][12]);
     assert_eq!(model[1][13], 0.25);
     assert!(e.scene.visible(id[1]));
-    assert_eq!(e.scene.pick_id(id[1].value()), None);
+    assert_eq!(e.scene.pick_id(id[1].value()), );
     let before = e.scene.objects()[1]
         .geometry()
         .unwrap()

@@ -1,6 +1,6 @@
 # 5.5 · One visibility policy and shared surface depth
 
-**Steps:** 2 · **Source:** [app/walk/curves.rs](../../../../src/app/walk/curves.rs) · [engine/gpu/segments.rs](../../../../src/engine/gpu/segments.rs) · [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl) · [shaders/vector.wgsl](../../../../src/shaders/vector.wgsl)
+**Steps:** 2 · **Source:** [app/walk/curves.rs](../../../../viewer-core/src/walk/curves.rs) · [engine/gpu/segments.rs](../../../../src/engine/gpu/segments.rs) · [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl) · [shaders/vector.wgsl](../../../../src/shaders/vector.wgsl)
 
 ## <a id="checkpoint-39-visible"></a>1. Resolve visibility for every drawing kind
 
@@ -437,7 +437,7 @@ fn invisible_original_sources_remain_owned_but_cannot_fit_or_pick() {
     assert_eq!(scene.paths().len(), 2);
     assert_eq!(scene.points().len(), 1);
     assert!(scene.bounds().is_none());
-    assert!(scene.next(None).is_none());
+    assert!(scene.next().is_none());
     assert!(scene.control_markers().is_empty());
     assert!(
         scene
@@ -457,7 +457,7 @@ fn selection_cycles_past_hidden_sources_without_changing_their_rows() {
     let visible = scene
         .insert(PreparedMesh::new(Mesh::create_box(1.0, 1.0, 1.0)).unwrap())
         .unwrap();
-    assert_eq!(scene.next(None), Some(visible));
+    assert_eq!(scene.next(), Some(visible));
     assert_eq!(scene.next(Some(hidden)), Some(visible));
     assert_eq!(scene.next(Some(visible)), Some(visible));
     let ray = Camera::default().ray([0.0, 0.0]).unwrap();

@@ -1,6 +1,6 @@
 # 16.1 · Projection, extension and stable edit targets
 
-**Steps:** 31 · **Source:** [app/command/verbs/project_to_plane.rs](../../../../src/app/command/verbs/project_to_plane.rs) · [app/command/verbs/extend.rs](../../../../src/app/command/verbs/extend.rs) · [app/splitting.rs](../../../../src/app/splitting.rs) · [app/command/verbs/measure.rs](../../../../src/app/command/verbs/measure.rs)
+**Steps:** 31 · **Source:** [app/command/verbs/project_to_plane.rs](../../../../viewer-core/src/command/verbs/project_to_plane.rs) · [app/command/verbs/extend.rs](../../../../viewer-core/src/command/verbs/extend.rs) · [app/splitting.rs](../../../../viewer-core/src/splitting.rs) · [app/command/verbs/measure.rs](../../../../viewer-core/src/command/verbs/measure.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -151,7 +151,7 @@ fn extent(points: &[Point]) -> f64 {
     };
     points
         .iter()
-        .map(|point| first.distance(point, None))
+        .map(|point| first.distance(point, ))
         .fold(0.0, f64::max)
 }
 
@@ -262,9 +262,9 @@ mod tests {
         );
 
         let mut mesh = Mesh::new();
-        let key = mesh.add_vertex(p(0.0, 0.0, 5.0), None);
-        mesh.add_vertex(p(10.0, 0.0, 6.0), None);
-        mesh.add_vertex(p(0.0, 10.0, 7.0), None);
+        let key = mesh.add_vertex(p(0.0, 0.0, 5.0), );
+        mesh.add_vertex(p(10.0, 0.0, 6.0), );
+        mesh.add_vertex(p(0.0, 10.0, 7.0), );
         mesh.vertex
             .get_mut(&key)
             .unwrap()
@@ -465,7 +465,7 @@ pub fn plane_moved(plane: &Plane, xform: &Xform) -> Option<Plane> {
     let b = (&origin + &plane.x_axis()).transformed(xform);
     let c = (&origin + &plane.y_axis()).transformed(xform);
     let normal = (&b - &a).cross(&(&c - &a));
-    (normal.magnitude() > 1e-14).then(|| Plane::from_point_normal(a, normal, None))
+    (normal.magnitude() > 1e-14).then(|| Plane::from_point_normal(a, normal, ))
 }
 ```
 
@@ -503,7 +503,7 @@ pub fn plane_moved(plane: &Plane, xform: &Xform) -> Option<Plane> {
     let b = (&origin + &plane.x_axis()).transformed(xform);
     let c = (&origin + &plane.y_axis()).transformed(xform);
     let normal = (&b - &a).cross(&(&c - &a));
-    (normal.magnitude() > 1e-14).then(|| Plane::from_point_normal(a, normal, None))
+    (normal.magnitude() > 1e-14).then(|| Plane::from_point_normal(a, normal, ))
 }
 ```
 
@@ -534,7 +534,7 @@ pub fn plane_moved(plane: &Plane, xform: &Xform) -> Option<Plane> {
     let b = (&origin + &plane.x_axis()).transformed(xform);
     let c = (&origin + &plane.y_axis()).transformed(xform);
     let normal = (&b - &a).cross(&(&c - &a));
-    (normal.magnitude() > 1e-14).then(|| Plane::from_point_normal(a, normal, None))
+    (normal.magnitude() > 1e-14).then(|| Plane::from_point_normal(a, normal, ))
 }
 
 /// A ray moved by `xform` with a unit direction, so a scaled object's triangles are not taken for parallel.
@@ -711,7 +711,7 @@ mod tests {
             nearest_px(&lines, (50.0, 8.0), 12.0),
             Some(1)
         );
-        assert_eq!(nearest_px(&lines, (50.0, 40.0), 12.0), None);
+        assert_eq!(nearest_px(&lines, (50.0, 40.0), 12.0), );
     }
 
     /// A stretched plane keeps its points on it.
@@ -1057,7 +1057,7 @@ fn by_length(
         let grown = grow(curve, end, s).ok_or("Cannot extend this curve")?;
         Ok(beyond(curve, &grown, end)
             .ok_or("Cannot extend this curve")?
-            .length(None))
+            .length())
     };
     let (mut s0, mut f0) = (0.0, -distance);
     let mut s1 = distance / speed;
@@ -1122,7 +1122,7 @@ fn straight(from: &Point, direction: &Vector, reach: &Reach) -> Result<Point, St
                 // a probe reaching past every control point of the boundary
                 let reach = (0..curve.m_cv_count)
                     .filter_map(|i| curve.get_cv(i))
-                    .map(|p| p.distance(from, None))
+                    .map(|p| p.distance(from, ))
                     .fold(1.0, f64::max)
                     * 2.0;
                 let probe = NurbsCurve::create(
@@ -1252,10 +1252,10 @@ fn to_boundary(
                 .abs(),
             Cutter::Curve(boundary) => boundary
                 .closest_point(&from)
-                .distance(&from, None),
+                .distance(&from, ),
         })
         .fold(f64::INFINITY, f64::min)
-        .max(curve.length(None) * 0.05);
+        .max(curve.length() * 0.05);
     let mut s = away / speed;
 
     for _ in 0..7 {
@@ -1397,7 +1397,7 @@ mod tests {
         assert!(
             ends(&grown)
                 .1
-                .distance(&Point::new(100., 0., 0.), None)
+                .distance(&Point::new(100., 0., 0.), )
                 < 1e-9
         );
         let grown = extended(
@@ -1409,14 +1409,14 @@ mod tests {
         assert!(
             ends(&grown)
                 .0
-                .distance(&Point::new(-20., 0., 0.), None)
+                .distance(&Point::new(-20., 0., 0.), )
                 < 1e-9
         );
         let grown = extended(&source, End::Start, &Reach::Distance(25.)).unwrap();
         assert!(
             ends(&grown)
                 .0
-                .distance(&Point::new(-25., 0., 0.), None)
+                .distance(&Point::new(-25., 0., 0.), )
                 < 1e-9
         );
         assert_eq!(
@@ -1472,7 +1472,7 @@ mod tests {
             grown
                 .get_point(2)
                 .unwrap()
-                .distance(&Point::new(100., 0., 0.), None)
+                .distance(&Point::new(100., 0., 0.), )
                 < 1e-9
         );
         let closed = Polyline::new(vec![
@@ -1512,8 +1512,8 @@ mod tests {
         let Geometry::NurbsCurve(longer) = &grown.geometry else {
             panic!()
         };
-        assert!((longer.length(None) - curve.length(None) - 20.0).abs() < 1e-6 * 20.0);
-        assert!(longer.point_at(d1).distance(&before.0, None) < 1e-9);
+        assert!((longer.length() - curve.length() - 20.0).abs() < 1e-6 * 20.0);
+        assert!(longer.point_at(d1).distance(&before.0, ) < 1e-9);
         let (mut after, mut was) = (longer.tangent_at(d1), before.1);
         after.normalize_self();
         was.normalize_self();
@@ -1553,7 +1553,7 @@ pub fn extended(geometry: &Geometry, end: End, reach: &Reach) -> Result<Grown, S
             let (from, direction) =
                 tip(geometry, end).ok_or("This line has no length")?;
             let to = straight(&from, &direction, reach)?;
-            let grow = from.distance(&to, None);
+            let grow = from.distance(&to, );
             let mut next = (**line).clone();
 
             match end {
@@ -2509,7 +2509,7 @@ Edit the existing block to match this code; keep unchanged lines:
                 return Err("The end direction is singular".into());
             }
             let to = (&from + &(&along * distance)).transformed(&back);
-            return Ok(Reach::Distance(to.distance(&tip, None)));
+            return Ok(Reach::Distance(to.distance(&tip, )));
         }
         let mut cutters = Vec::new();
         let mut meshes = Vec::new();
@@ -4498,7 +4498,7 @@ pub fn face_index(
         Geometry::Line(_)
         | Geometry::Polyline(_)
         | Geometry::NurbsCurve(_)
-        | Geometry::NurbsSurface(_) => Ok(None),
+        | Geometry::NurbsSurface(_) => Ok(),
         Geometry::BRep(brep) => brep_face(brep, selected).map(Some),
         Geometry::Element(element) => match element.geometry() {
             session_rust::element::ElementGeometry::BRep(brep) => {

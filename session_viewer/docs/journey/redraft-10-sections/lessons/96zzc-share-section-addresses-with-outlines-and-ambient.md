@@ -986,7 +986,7 @@ Require exactly the remaining uniform and crossing-count allocation. Require rel
         "selection retains original closedness cache"
     );
     scene.clear();
-    r.set_scene(&scene, None);
+    r.set_scene(&scene, );
     pixels(&r);
     assert_eq!(r.cap_usage()[0], 24);
     assert_eq!(r.cap_usage()[1], 0);
@@ -1024,7 +1024,7 @@ Edit the existing block to match this code; keep unchanged lines:
         "selection retains original closedness cache"
     );
     scene.clear();
-    r.set_scene(&scene, None);
+    r.set_scene(&scene, );
     pixels(&r);
     assert_eq!(r.cap_usage()[0], 16);
     assert_eq!(r.cap_usage()[1], 0);
@@ -1919,7 +1919,7 @@ fn actual_compact_surface_upload_uses_twenty_bytes_per_vertex_and_releases() {
     let uploads = gpu.stats();
     pixels(&gpu);
     assert_eq!(gpu.stats(), uploads);
-    gpu.set_scene(&Scene::empty(), None);
+    gpu.set_scene(&Scene::empty(), );
     assert_eq!(gpu.usage(), [0; 4]);
 }
 ```

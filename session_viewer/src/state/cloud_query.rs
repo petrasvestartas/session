@@ -43,7 +43,7 @@ impl State {
             parent,
             cloud: true,
             ..
-        } = self.selection
+        } = self.selection.mode
         else {
             return false;
         };
@@ -210,12 +210,12 @@ impl State {
         };
         let Some(best) = query.best else { return };
         let id = ControlId::Point(source);
-        self.selection = SelectionMode::Controls {
+        self.selection.mode = SelectionMode::Controls {
             parent: query.parent,
             selected: Some(id),
             cloud: true,
         };
-        self.controls.points = vec![crate::app::selection::Control { id, position }]; // the one dot shown
+        self.selection.controls.points = vec![crate::app::selection::Control { id, position }]; // the one dot shown
         self.gpu.splat.set_point(None);
         self.upload_controls();
         self.status(&format!(

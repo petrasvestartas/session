@@ -1,6 +1,6 @@
 # Current command grammar
 
-Registered names, static option counts and aliases were checked against the maintained [registry source](../../src/app/command/verbs/mod.rs) at `66ff54224`: 80 registered names, 117 static options and 15 aliases. The bare-form messages retain the historical parser observations at `2f96b35d225015cfcb9bfe5e8ec66565ef99aa28`; this source audit does not claim a new parser execution.
+Registered names, static option counts and aliases were checked against the maintained [registry source](../../viewer-core/src/command/verbs/mod.rs) at `66ff54224`: 80 registered names, 117 static options and 15 aliases. The bare-form messages retain the historical parser observations at `2f96b35d225015cfcb9bfe5e8ec66565ef99aa28`; this source audit does not claim a new parser execution.
 
 [Historical parser observations](current-command-registry.json). That snapshot includes the retired Wood constructor commands. Parsing constructs an action; it does not prove that it succeeds on a particular selection. [Behavior and exercises](current-viewer.md) records the earlier October 9 checkpoint.
 

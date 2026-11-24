@@ -1,6 +1,6 @@
 # 21.4 · Reversed depth and homogeneous near clipping
 
-**Steps:** 3 · **Source:** [camera.rs](../../../src/camera.rs) · [state.rs](../../../src/state.rs) · [engine/gpu/objects.rs](../../../src/engine/gpu/objects.rs) · [engine/gpu/frame.rs](../../../src/engine/gpu/frame.rs)
+**Steps:** 3 · **Source:** [camera.rs](../../../viewer-core/src/camera.rs) · [state.rs](../../../src/state.rs) · [engine/gpu/objects.rs](../../../src/engine/gpu/objects.rs) · [engine/gpu/frame.rs](../../../src/engine/gpu/frame.rs)
 
 
 

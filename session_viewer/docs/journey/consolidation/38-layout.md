@@ -4,7 +4,7 @@
 
 Keep the authored NURBS curve and derive a connected display stroke from it. The prerequisites are the kernel curve representation, object-row identity and the joined-stroke lane. This subject owns curve sampling and its source-to-display mapping; the [stroke subject](36-chain.md) owns joins, dashes and arrowheads.
 
-Read `sample` in [display.rs](../../../src/app/walk/display.rs), then `walk_nurbscurve_quality` in [curves.rs](../../../src/app/walk/curves.rs). Sampling returns curve parameters, so every displayed point is evaluated on the original curve. Rational control points are divided by their weights before measuring geometric deviation. The sampler first separates knot spans, then subdivides exact subcurves with an explicit stack. A piece can become one chord when its control polygon stays within the requested deviation and its successive directions satisfy the angle bound.
+Read `sample` in [display.rs](../../../viewer-core/src/walk/display.rs), then `walk_nurbscurve_quality` in [curves.rs](../../../viewer-core/src/walk/curves.rs). Sampling returns curve parameters, so every displayed point is evaluated on the original curve. Rational control points are divided by their weights before measuring geometric deviation. The sampler first separates knot spans, then subdivides exact subcurves with an explicit stack. A piece can become one chord when its control polygon stays within the requested deviation and its successive directions satisfy the angle bound.
 
 The segment budget is at most 4,096 and subdivision depth is at most 16. Reaching a limit reports `limited`; it does not prove that the requested tolerance was met. Finite-quality candidate work records failure so an incomplete refinement is not silently accepted. A flat curve can need only its two domain endpoints. More control points do not by themselves imply more displayed segments.
 
@@ -16,7 +16,7 @@ The walker evaluates those parameters in double precision, converts positions to
 
 The checkpoint below exercises source ownership and visible sampled curves. Its cumulative adoption of the production bounded sampler remains unfinished; the production source explanation is not checkpoint-parity acceptance.
 
-**Steps:** 5 · **Source:** [app/walk/curves.rs](../../../src/app/walk/curves.rs) · [engine/gpu/segments.rs](../../../src/engine/gpu/segments.rs) · [shaders/ribbon.wgsl](../../../src/shaders/ribbon.wgsl) · [shaders/vector.wgsl](../../../src/shaders/vector.wgsl)
+**Steps:** 5 · **Source:** [app/walk/curves.rs](../../../viewer-core/src/walk/curves.rs) · [engine/gpu/segments.rs](../../../src/engine/gpu/segments.rs) · [shaders/ribbon.wgsl](../../../src/shaders/ribbon.wgsl) · [shaders/vector.wgsl](../../../src/shaders/vector.wgsl)
 
 ## Production curve ends and marker clearance
 
@@ -25,7 +25,7 @@ The maintained viewer samples the original NURBS evaluator at the parameters sel
 Read the complete end-head construction in the owning walker:
 
 ```rust
---8<-- "session_viewer/src/app/walk/curves.rs:curve-heads"
+--8<-- "session_viewer/viewer-core/src/walk/curves.rs:curve-heads"
 ```
 
 `HEAD_ONLY` gives the vector lane responsibility for the triangular head without adding a second shaft. The start head reverses the first segment so its tip points outward. The ribbon's corresponding head flag stops its body under the head; both records retain the same object identity, colour and width. A zero-length terminal segment supplies no direction, so it emits no heads.
@@ -33,7 +33,7 @@ Read the complete end-head construction in the owning walker:
 Endpoint clearance is a separate upload operation:
 
 ```rust
---8<-- "session_viewer/src/app/walk/curves.rs:endpoint-clearance"
+--8<-- "session_viewer/viewer-core/src/walk/curves.rs:endpoint-clearance"
 ```
 
 A visible kernel point within the rendered-position tolerance supplies its encoded display radius. A point with default width supplies the default marker clearance. The upload stores these radii on vector ends and ribbon segments; interior chain segments have their trims cleared. The shader converts the encoded radius at the endpoint's depth and adds filter clearance before drawing. Hiding the marker removes its clearance contribution without changing the original curve.

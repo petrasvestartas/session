@@ -1,6 +1,6 @@
 # 7.4 · Precise snapping with derived search caches
 
-**Steps:** 8 · **Source:** [app/command/mod.rs](../../../../src/app/command/mod.rs) · [app/command/tool.rs](../../../../src/app/command/tool.rs) · [app/cplane.rs](../../../../src/app/cplane.rs) · [app/snap.rs](../../../../src/app/snap.rs)
+**Steps:** 8 · **Source:** [app/command/mod.rs](../../../../viewer-core/src/command/mod.rs) · [app/command/tool.rs](../../../../viewer-core/src/command/tool.rs) · [app/cplane.rs](../../../../viewer-core/src/cplane.rs) · [app/snap.rs](../../../../viewer-core/src/snap.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -1020,7 +1020,7 @@ impl Draft {
         }
         self.points = points;
         self.cursor = None;
-        Ok(None)
+        Ok()
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
@@ -1064,7 +1064,7 @@ impl Draft {
         self.points = points;
         self.cursor = None;
         self.snapped = None;
-        Ok(None)
+        Ok()
 ```
 
 ### 2. `src/editor.rs`
@@ -1219,7 +1219,7 @@ Replace it with:
 ```rust
 pub const ACTIONS: &[(&str, Factory)] = &[
     ("Snap", || {
-        Action::Snap(crate::snap::Setting::Objects(None))
+        Action::Snap(crate::snap::Setting::Objects())
     }),
     ("Snap On", || {
         Action::Snap(crate::snap::Setting::Objects(Some(true)))
@@ -1228,7 +1228,7 @@ pub const ACTIONS: &[(&str, Factory)] = &[
         Action::Snap(crate::snap::Setting::Objects(Some(false)))
     }),
     ("Grid Snap", || {
-        Action::Snap(crate::snap::Setting::Grid(None))
+        Action::Snap(crate::snap::Setting::Grid())
     }),
     ("Grid Snap On", || {
         Action::Snap(crate::snap::Setting::Grid(Some(true)))
@@ -1790,7 +1790,7 @@ fn snapping_settings_preserve_a_draft_and_typed_coordinates_bypass_grid_rounding
         editor.draft.as_ref().unwrap().cursor,
         Some([0., 0., 0.])
     );
-    assert_eq!(editor.draft.as_ref().unwrap().snapped, None);
+    assert_eq!(editor.draft.as_ref().unwrap().snapped, );
     editor
         .apply(Action::ToolPoint([
             0.987654321012345,

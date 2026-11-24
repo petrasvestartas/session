@@ -1,6 +1,6 @@
 # 12.4 · Charged residency and current streamed pages
 
-**Steps:** 31 · **Source:** [app/manifest.rs](../../../../src/app/manifest.rs) · [app/session_io.rs](../../../../src/app/session_io.rs) · [app/stream.rs](../../../../src/app/stream.rs) · [app/range_gate.rs](../../../../src/app/range_gate.rs)
+**Steps:** 31 · **Source:** [app/manifest.rs](../../../../viewer-core/src/manifest.rs) · [app/session_io.rs](../../../../viewer-core/src/session_io.rs) · [app/stream.rs](../../../../viewer-core/src/stream.rs) · [app/range_gate.rs](../../../../viewer-core/src/range_gate.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -693,7 +693,7 @@ mod tests {
             next(u32::MAX - 3, u32::MAX, 10),
             Some(u32::MAX - 3..u32::MAX)
         );
-        assert_eq!(next(0, 1, 0), None);
+        assert_eq!(next(0, 1, 0), );
         assert_eq!(
             temporary_page_bytes(2_000_000),
             Some(320_000_000)
@@ -1218,7 +1218,7 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-            assert!(Page::decode(0..1, 1, &raw, None).is_err());
+            assert!(Page::decode(0..1, 1, &raw, ).is_err());
         }
     }
 ```
@@ -1226,7 +1226,7 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 Replace it with:
 
 ```rust
-            assert!(Page::decode(0..1, 1, &raw, None).is_err());
+            assert!(Page::decode(0..1, 1, &raw, ).is_err());
         }
     }
 }
@@ -1246,7 +1246,7 @@ mod attribute_tests {
             .into_iter()
             .flat_map(f64::to_le_bytes)
             .collect::<Vec<_>>();
-        let page = Page::decode(0..2, 2, &raw, None)
+        let page = Page::decode(0..2, 2, &raw, )
             .unwrap()
             .attributes(
                 vec![0xff00_00ff, 0x80ff_0000],
@@ -1265,13 +1265,13 @@ mod attribute_tests {
         assert_eq!(tail.bytes(), 48);
         assert!(page.slice(2..3).is_err());
         assert!(
-            Page::decode(0..2, 2, &raw, None)
+            Page::decode(0..2, 2, &raw, )
                 .unwrap()
                 .attributes(vec![1], vec![])
                 .is_err()
         );
         assert!(
-            Page::decode(0..2, 2, &raw, None)
+            Page::decode(0..2, 2, &raw, )
                 .unwrap()
                 .attributes(vec![], vec![1])
                 .is_err()
@@ -1448,7 +1448,7 @@ impl Prepared {
             nodes: Rc::new(nodes),
             bounds: Bounds { min, max },
             pages: RefCell::new(Cache::new(budget)),
-            root: RefCell::new(None),
+            root: RefCell::new(),
             generation: RefCell::new(Default::default()),
             loaded: std::cell::Cell::new(0),
         }))
@@ -1780,7 +1780,7 @@ mod tests {
             .into_iter()
             .flat_map(f64::to_le_bytes)
             .collect::<Vec<_>>();
-        let overlap = Page::decode(1..2, 2, &raw, None).unwrap();
+        let overlap = Page::decode(1..2, 2, &raw, ).unwrap();
         let charge = budget.reserve(overlap.bytes()).unwrap();
         assert!(prepared.adopt(overlap, charge).is_err());
         assert_eq!(prepared.pages.borrow().len(), 1);
@@ -3839,7 +3839,7 @@ impl Editor {
             }
             Action::PickMode(mode) => {
                 if mode != crate::pick_sources::Mode::Control {
-                    self.scene.cloud_controls(None);
+                    self.scene.cloud_controls();
                 }
                 self.pick_mode = mode;
                 self.selected = None;
@@ -5318,7 +5318,7 @@ impl Editor {
             }
             Action::PickMode(mode) => {
                 if mode != crate::pick_sources::Mode::Control {
-                    self.scene.cloud_controls(None);
+                    self.scene.cloud_controls();
                 }
                 self.pick_mode = mode;
                 self.selected = None;
@@ -5567,7 +5567,7 @@ fn streamed_owners_share_sources_keep_original_ids_and_refuse_incomplete_save() 
         &scene.streams()[1].prepared
     ));
     assert_eq!(scene.streams()[1].point_px, 7.);
-    assert_eq!(scene.next(None), Some(first));
+    assert_eq!(scene.next(), Some(first));
     assert_eq!(scene.next(Some(first)), Some(second));
     assert!(
         crate::scene_archive::save(&scene)
@@ -6386,7 +6386,7 @@ Edit the existing block to match this code; keep unchanged lines:
     assert_eq!(renderer.cloud_usage()[0], 64);
     assert_eq!(renderer.cloud_usage()[2], uploads);
     scene.clear();
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     assert_eq!(renderer.cloud_usage(), [0; 5]);
 }
 ```
@@ -6398,7 +6398,7 @@ Edit the existing block to match this code; keep unchanged lines:
     assert_eq!(renderer.cloud_usage()[0], 64);
     assert_eq!(renderer.cloud_usage()[2], uploads);
     scene.clear();
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     assert_eq!(renderer.cloud_usage(), [0; 5]);
 }
 
@@ -6445,7 +6445,7 @@ fn actual_streamed_pages_pick_original_ids_share_uploads_and_release_after_evict
     let uploads = renderer.cloud_usage()[2];
     let copy = scene.copy_row(owner, false).unwrap();
     scene.translate(copy, [0.2, 0., 0.]).unwrap();
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     colour_pixels(&mut renderer);
     assert_eq!(
         renderer.cloud_usage()[2],
@@ -6453,7 +6453,7 @@ fn actual_streamed_pages_pick_original_ids_share_uploads_and_release_after_evict
         "Placed owners share original page uploads"
     );
     Rc::make_mut(&mut scene.view).lock(&[owner, copy], true);
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     renderer
         .request_pick([-0.5, 0.5], identity())
         .unwrap();
@@ -6465,7 +6465,7 @@ fn actual_streamed_pages_pick_original_ids_share_uploads_and_release_after_evict
         held.upgrade().is_some(),
         "GPU page owner retains precise pick identities"
     );
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     assert!(held.upgrade().is_none());
     renderer
         .request_pick([-0.5, 0.5], identity())
@@ -6486,7 +6486,7 @@ fn actual_streamed_pages_pick_original_ids_share_uploads_and_release_after_evict
         Part::CloudPoint(10)
     );
     scene.clear();
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     drop(prepared);
     assert_eq!(renderer.cloud_usage(), [0; 5]);
     assert!(weak.upgrade().is_none());
@@ -6765,7 +6765,7 @@ Replace it with:
             .unwrap();
         let original = Rc::clone(scene.objects()[0].geometry().unwrap());
         for manifest in [b"items: [{file: mesh.pb, encoding: gzip, size: 2}, {file: mesh.pb, encoding: gzip, size: 3}]".as_slice(),b"items: [{file: mesh.pb, encoding: brotli, size: 24}]".as_slice()] {
-            assert!(index.manifest("scene",Some("bad".into()),manifest).is_err());assert_eq!(index.etag("scene"),None);assert_eq!(index.urls(),["files/mesh.pb"]);assert!(index.replacement(&scene).unwrap().is_none());assert!(Rc::ptr_eq(scene.objects()[0].geometry().unwrap(),&original));
+            assert!(index.manifest("scene",Some("bad".into()),manifest).is_err());assert_eq!(index.etag("scene"),);assert_eq!(index.urls(),["files/mesh.pb"]);assert!(index.replacement(&scene).unwrap().is_none());assert!(Rc::ptr_eq(scene.objects()[0].geometry().unwrap(),&original));
         }
         assert!(
             index
@@ -6956,7 +6956,7 @@ mod streamed_tests {
     }
     pub fn replacement(&mut self, previous: &Scene) -> Result<Option<Scene>, String> {
         if !self.pending {
-            return Ok(None);
+            return Ok();
 ```
 
 Replace it with:
@@ -7004,7 +7004,7 @@ Replace it with:
     }
     pub fn replacement(&mut self, previous: &Scene) -> Result<Option<Scene>, String> {
         if !self.pending {
-            return Ok(None);
+            return Ok();
 ```
 
 ## <a id="checkpoint-68x-prepare-a-coarse-pin-and-bounded-prefix"></a>26. Prepare a coarse pin and bounded prefix
@@ -7519,7 +7519,7 @@ use std::{
                 owner.delivery = Some(Ok(Box::new(scene)));
                 true
             }
-            Ok(None) => false,
+            Ok() => false,
             Err(error) => {
                 if owner.last_error.as_ref() == Some(&error) {
                     false
@@ -7645,7 +7645,7 @@ Edit the existing block to match this code; keep unchanged lines:
                 owner.delivery = Some(Ok(Box::new(scene)));
                 true
             }
-            Ok(None) => false,
+            Ok() => false,
             Err(error) => {
                 if owner.last_error.as_ref() == Some(&error) {
                     false
@@ -7829,7 +7829,7 @@ async fn read(
         let mut state = state.borrow_mut();
         if !state.active {
             state.delivery = None;
-            return Ok(None);
+            return Ok();
         }
         state
             .delivery
@@ -7846,7 +7846,7 @@ Edit the existing block to match this code; keep unchanged lines:
         let mut owner = state.borrow_mut();
         if !owner.active {
             owner.delivery = None;
-            return Ok(None);
+            return Ok();
         }
         let scene = owner.delivery.take().transpose()?;
         if let Some(next) = scene.as_ref() {

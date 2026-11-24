@@ -340,7 +340,7 @@ Edit the existing block to match this code; keep unchanged lines:
     pixels(&gpu);
     let retained = gpu.instances.ordinary.clone();
     assert!(scene.remove(b));
-    gpu.set_scene(&scene, None);
+    gpu.set_scene(&scene, );
     assert_eq!(gpu.instances.ordinary[&a].1, retained[&a].1);
     assert_eq!(
         gpu.instances.ordinary[&copy].1,
@@ -359,7 +359,7 @@ Edit the existing block to match this code; keep unchanged lines:
             .unwrap(),
         )
         .unwrap();
-    gpu.set_scene(&scene, None);
+    gpu.set_scene(&scene, );
     assert_eq!(
         gpu.instances.ordinary[&fresh].1,
         retained[&b].1
@@ -1283,7 +1283,7 @@ impl Faces {
             assert_eq!(mesh.id, owner);
             let geometry = &mesh.geometry;
             if geometry.source.parts.triangles.is_empty() {
-                self.rows.push(None);
+                self.rows.push();
                 continue;
             }
             // Vertex pulling reads the existing index and position buffers; one small per-triangle stream adds original face identity.
@@ -1481,7 +1481,7 @@ impl Faces {
             assert_eq!(mesh.id, owner);
             let geometry = &mesh.geometry;
             if geometry.source.parts.triangles.is_empty() {
-                self.rows.push(None);
+                self.rows.push();
                 continue;
             }
             // Vertex pulling reads the existing index and position buffers; one small per-triangle stream adds original face identity.
@@ -2182,7 +2182,7 @@ Replace it with:
         shaded,
         "Exact uniform and shared ambient properties"
     );
-    r.set_scene(&scene, None);
+    r.set_scene(&scene, );
     r.set_ambient(false);
     r.set_ambient(true);
     assert_eq!(pixels(&r, &matrix), shaded);
@@ -2997,7 +2997,7 @@ Replace it with:
         }
     }
     pub fn set(&mut self, device: &wgpu::Device, meshes: &[GpuMesh]) {
-        self.set_records(device, meshes, None)
+        self.set_records(device, meshes, )
     }
     pub fn set_records(
         &mut self,
@@ -4219,7 +4219,7 @@ Edit the existing block to match this code; keep unchanged lines:
         stored,
         "Exact uniform and shared cap crossing pixels"
     );
-    r.set_scene(&scene, None);
+    r.set_scene(&scene, );
     r.select_objects(&scene, &[owner]).unwrap();
     assert_eq!(pixels(&r), stored);
     assert_eq!(r.stats()[0], uploads);
@@ -4648,7 +4648,7 @@ Prepare immutable current arena groups before encoding either crossing pass. Use
         planes: u32,
     ) {
         let Some(target) = &self.target else { return };
-        encoder.clear_buffer(&self.records, 0, None);
+        encoder.clear_buffer(&self.records, 0, );
         for pipeline in [&self.pipes.count, &self.pipes.nearest] {
             let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 label: Some("original section count and nearest owner"),
@@ -4697,7 +4697,7 @@ Edit the existing block to match this code; keep unchanged lines:
         records: Option<&crate::instance_gpu::Lane>,
     ) {
         let Some(target) = &self.target else { return };
-        encoder.clear_buffer(&self.records, 0, None);
+        encoder.clear_buffer(&self.records, 0, );
         let extra = [
             wgpu::BindGroupEntry {
                 binding: 0,
@@ -4918,7 +4918,7 @@ Edit the existing block to match this code; keep unchanged lines:
         Some([owner.value(), 0]),
         "Uniform fallback retains the full original owner"
     );
-    r.set_scene(&scene, None);
+    r.set_scene(&scene, );
     assert_eq!(
         picked(&mut r, [0.3, 0.2]),
         Some([owner.value(), 0]),

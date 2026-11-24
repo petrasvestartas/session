@@ -12,14 +12,7 @@ pub type Slot = [u32; 2];
 /// Texels per row of the slot table; the shaders split an index by it.
 const TABLE_WIDTH: u32 = 1024;
 
-/// One definition drawn once per instance: its shared rows and the slots of its instances.
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
-pub struct Draw {
-    pub faces: Range<u32>,   // solid face indices
-    pub pipes: Range<u32>,   // edge segments
-    pub ribbons: Range<u32>, // line segments
-    pub slots: Range<u32>,   // instance slots, never slot 0
-}
+pub use crate::rows::{Definition, SlotDraw as Draw};
 
 /// The slot at locations 0 and 1, stepped per instance: row and id base.
 const SLOT_FACES: [wgpu::VertexAttribute; 2] = [
@@ -283,15 +276,6 @@ const SPARE_IDS: u32 = 4096;
 /// Slots a full run of `len` instances of `triangles` triangles moves with.
 fn grown_cap(len: u32, triangles: u32) -> u32 {
     len + len / 4 + (SPARE_IDS / triangles.max(1)).min(4)
-}
-
-/// One definition as the scene holds it: its instance rows in slot order and its shared rows.
-pub struct Definition<'a> {
-    pub key: u32,            // names the definition for as long as it lives
-    pub rows: &'a [u32],     // instance rows; a member keeps its position until it leaves
-    pub faces: Range<u32>,   // solid face indices
-    pub pipes: Range<u32>,   // edge segments
-    pub ribbons: Range<u32>, // line segments
 }
 
 /// A run of slots and triangle ids: one definition's instances and room to grow, or free.

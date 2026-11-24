@@ -1,6 +1,6 @@
 # 14.5 · Round solids and exact planar conics
 
-**Steps:** 11 · **Source:** [app/walk/sheet.rs](../../../../src/app/walk/sheet.rs) · [app/sheet_query.rs](../../../../src/app/sheet_query.rs) · [app/stream.rs](../../../../src/app/stream.rs) · [app/cplane.rs](../../../../src/app/cplane.rs)
+**Steps:** 11 · **Source:** [app/walk/sheet.rs](../../../../viewer-core/src/walk/sheet.rs) · [app/sheet_query.rs](../../../../viewer-core/src/sheet_query.rs) · [app/stream.rs](../../../../viewer-core/src/stream.rs) · [app/cplane.rs](../../../../viewer-core/src/cplane.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -396,7 +396,7 @@ mod tests {
         assert!(mesh.is_closed());
 
         for q in corners(&made) {
-            assert!((q.distance(&center, None) - 300.0).abs() < 2e-4 * 300.0); // the kernel patches are within 1e-4 of the sphere
+            assert!((q.distance(&center, ) - 300.0).abs() < 2e-4 * 300.0); // the kernel patches are within 1e-4 of the sphere
         }
 
         assert!(
@@ -778,7 +778,7 @@ mod tests {
         assert!(curve.is_closed());
 
         for q in corners(&made) {
-            assert!((q.distance(&center, None) - 10.0).abs() < 1e-9);
+            assert!((q.distance(&center, ) - 10.0).abs() < 1e-9);
             assert!((q[1] - 2.0).abs() < 1e-9);
         }
     }
@@ -927,7 +927,7 @@ mod tests {
         assert!(
             curve
                 .point_at(curve.domain().0)
-                .distance(&p(0.0, 20.0, 0.0), None)
+                .distance(&p(0.0, 20.0, 0.0), )
                 < 1e-9
         );
 
@@ -1321,7 +1321,7 @@ fn read_points(frame: &Frame, answers: &[Answer]) -> Result<Part, String> {
         Answer::Number(length) => frame.at(*length, 0.0, 0.0),
         Answer::Point(end) => end.clone(),
     };
-    let chord = positive(start.distance(&end, None), "The chord")?;
+    let chord = positive(start.distance(&end, ), "The chord")?;
     let [u, v, _] = frame.local(&end);
     part.frame = frame.turned(u, v);
     part.sizes.push(chord);
@@ -1342,7 +1342,7 @@ fn read_points(frame: &Frame, answers: &[Answer]) -> Result<Part, String> {
     let offset =
         &(&normal.cross(&ab) * ac.dot(&ac)) + &(&ac.cross(&normal) * ab.dot(&ab));
     let center = &start - (&offset * (0.5 / normal.dot(&normal)));
-    let radius = center.distance(&start, None);
+    let radius = center.distance(&start, );
     let x = (&start - &center).normalized();
     let z = normal.normalized();
     let circle = Frame {
@@ -1442,7 +1442,7 @@ mod tests {
     /// Every sample of a curve lies at `radius` from `center`.
     fn round(curve: &Geometry, center: &Point, radius: f64) -> bool {
         corners(curve).iter().all(|q| {
-            (q.distance(center, None) - radius).abs() <= 1e-12 * radius.max(1.0) * 10.0
+            (q.distance(center, ) - radius).abs() <= 1e-12 * radius.max(1.0) * 10.0
         })
     }
 
@@ -1464,7 +1464,7 @@ mod tests {
         assert!(
             curve
                 .point_at(curve.domain().1)
-                .distance(&p(0.0, 500.0, 0.0), None)
+                .distance(&p(0.0, 500.0, 0.0), )
                 < 1e-9
         );
         let three = [
@@ -1491,7 +1491,7 @@ mod tests {
         assert!(
             curve
                 .point_at(curve.domain().1)
-                .distance(&p(10.0, 0.0, 0.0), None)
+                .distance(&p(10.0, 0.0, 0.0), )
                 < 1e-9
         );
 
@@ -1527,19 +1527,19 @@ mod tests {
         assert!(
             curve
                 .point_at(a)
-                .distance(&p(0.0, 0.0, 0.0), None)
+                .distance(&p(0.0, 0.0, 0.0), )
                 < 1e-9
         );
         assert!(
             curve
                 .point_at(b)
-                .distance(&p(10.0, 0.0, 0.0), None)
+                .distance(&p(10.0, 0.0, 0.0), )
                 < 1e-9
         );
         assert!(
             corners(&made)
                 .iter()
-                .any(|q| q.distance(&p(5.0, 5.0, 0.0), None) < 0.5)
+                .any(|q| q.distance(&p(5.0, 5.0, 0.0), ) < 0.5)
         );
         assert!(corners(&made).iter().all(|q| q[1] >= -1e-9));
         let bulge = [

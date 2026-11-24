@@ -3240,7 +3240,7 @@ fn actual_cloud_pixels_and_whole_ids_keep_cached_source_uploads_density_and_lock
     }
     renderer.set_density(1.);
     Rc::make_mut(&mut scene.view).lock(&[cloud], true);
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     renderer
         .request_pick([0., 0.], identity())
         .unwrap();
@@ -3250,7 +3250,7 @@ fn actual_cloud_pixels_and_whole_ids_keep_cached_source_uploads_density_and_lock
         "The locked cloud writes zero while occluding the mesh"
     );
     Rc::make_mut(&mut scene.view).hide(&[cloud], true);
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     renderer
         .request_pick([0., 0.], identity())
         .unwrap();
@@ -3260,7 +3260,7 @@ fn actual_cloud_pixels_and_whole_ids_keep_cached_source_uploads_density_and_lock
     );
     assert_eq!(source.to_proto(), before);
     scene.clear();
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     assert_eq!(renderer.cloud_usage(), [0; 5]);
 }
 #[test]
@@ -3287,7 +3287,7 @@ fn actual_cloud_copy_and_normal_shading_preserve_one_source_and_release_all_deri
     assert_eq!(renderer.cloud_usage()[2], 1);
     let copy = scene.copy_row(cloud, false).unwrap();
     scene.translate(copy, [0., 0.3, 0.]).unwrap();
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     colour_pixels(&mut renderer);
     assert_eq!(
         renderer.cloud_usage()[2],
@@ -3304,7 +3304,7 @@ fn actual_cloud_copy_and_normal_shading_preserve_one_source_and_release_all_deri
     );
     drop(source);
     scene.clear();
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     assert_eq!(renderer.cloud_usage(), [0; 5]);
     assert!(weak.upgrade().is_none());
 }
@@ -3412,7 +3412,7 @@ fn actual_large_cloud_changes_detail_with_the_view_and_reuses_its_original_uploa
     assert_eq!(renderer.cloud_usage()[0], 64);
     assert_eq!(renderer.cloud_usage()[2], uploads);
     scene.clear();
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     assert_eq!(renderer.cloud_usage(), [0; 5]);
 }
 ```

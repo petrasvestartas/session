@@ -1,6 +1,6 @@
 # 16.5 · Text, Plane, Trim and integrated editing commands
 
-**Steps:** 52 · **Source:** [app/command/verbs/project_to_plane.rs](../../../../src/app/command/verbs/project_to_plane.rs) · [app/command/verbs/extend.rs](../../../../src/app/command/verbs/extend.rs) · [app/splitting.rs](../../../../src/app/splitting.rs) · [app/command/verbs/measure.rs](../../../../src/app/command/verbs/measure.rs)
+**Steps:** 52 · **Source:** [app/command/verbs/project_to_plane.rs](../../../../viewer-core/src/command/verbs/project_to_plane.rs) · [app/command/verbs/extend.rs](../../../../viewer-core/src/command/verbs/extend.rs) · [app/splitting.rs](../../../../viewer-core/src/splitting.rs) · [app/command/verbs/measure.rs](../../../../viewer-core/src/command/verbs/measure.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -1414,7 +1414,7 @@ Edit the existing block to match this code; keep unchanged lines:
             owner.valid(scene)?;
             if let Some(plane) = as_plane(&owner.source) {
                 if let Some(plane) = plane_moved(&plane, &owner.model) {
-                    blades.push((Cutter::Plane(plane), None))
+                    blades.push((Cutter::Plane(plane), ))
                 }
                 continue;
             }
@@ -1564,7 +1564,7 @@ Edit the existing block to match this code; keep unchanged lines:
                     if let Some(hit) = hits.first() {
                         let distance = hit
                             .transformed(&cut.owner.model)
-                            .distance(&ray.origin, None);
+                            .distance(&ray.origin, );
                         if best.is_none_or(|(near, _)| distance < near) {
                             best = Some((distance, (i, part)))
                         }
@@ -5543,7 +5543,7 @@ Edit the existing block to match this code; keep unchanged lines:
             } else if self.draft.is_some() || self.plane_menu {
                 self.apply(Action::CancelTool)
             } else {
-                self.apply(Action::Picked(None))
+                self.apply(Action::Picked())
             };
         }
         if !matches!(
@@ -6314,7 +6314,7 @@ impl Intent {
                 return Err("Move needs finite coordinates");
             }
             if offset.iter().all(|v| *v == 0.) {
-                return Ok(None);
+                return Ok();
             }
         }
         if let Some(pending) = crate::command_request::Pending::capture(action, editor)
@@ -6324,7 +6324,7 @@ impl Intent {
             }
         }
         if editor.selected_objects().len() > 1 {
-            return Ok(None);
+            return Ok();
         }
         Self::capture(action, editor.whole_selection())
     }
@@ -6624,7 +6624,7 @@ Replace it with:
 ```rust
 pub const ACTIONS: &[(&str, Factory)] = &[
     ("Snap", || {
-        Action::Snap(crate::snap::Setting::Objects(None))
+        Action::Snap(crate::snap::Setting::Objects())
     }),
 ```
 
@@ -6651,7 +6651,7 @@ pub const ACTIONS: &[(&str, Factory)] = &[
         Action::Arrowhead(session_rust::Arrowhead::NONE)
     }),
     ("Snap", || {
-        Action::Snap(crate::snap::Setting::Objects(None))
+        Action::Snap(crate::snap::Setting::Objects())
     }),
 ```
 
@@ -6661,7 +6661,7 @@ pub const ACTIONS: &[(&str, Factory)] = &[
 
 ```rust
         if line == "Escape" {
-            return Ok(None);
+            return Ok();
         }
 ```
 
@@ -7402,7 +7402,7 @@ Replace it with:
                 let closing = matches!(&action, Action::Close);
                 let unloading = matches!(&action, Action::UnloadSources);
                 let waiting = if editor.selected_objects().len() > 1 {
-                    Ok(None)
+                    Ok()
                 } else {
                     crate::edit_intent::Intent::capture(
                         &action,

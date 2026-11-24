@@ -1,6 +1,6 @@
 # 19.2 · Original Element ancestry and derived feature trees
 
-**Steps:** 10 · **Source:** [app/session_io.rs](../../../../src/app/session_io.rs) · [app/command/mod.rs](../../../../src/app/command/mod.rs) · [app/hierarchy.rs](../../../../src/app/hierarchy.rs) · [app/scene.rs](../../../../src/app/scene.rs)
+**Steps:** 10 · **Source:** [app/session_io.rs](../../../../viewer-core/src/session_io.rs) · [app/command/mod.rs](../../../../viewer-core/src/command/mod.rs) · [app/hierarchy.rs](../../../../viewer-core/src/hierarchy.rs) · [app/scene.rs](../../../../viewer-core/src/scene.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -382,7 +382,7 @@ Replace it with:
 ) -> Result<Option<proto::TreeNode>, &'static str> {
     let original = &doc.nodes[index];
     if original.derived {
-        return Ok(None);
+        return Ok();
     }
     let mut node = original.source.clone();
 ```
@@ -991,7 +991,7 @@ pub fn session() -> Session {
         vec![line.clone()],
         "unclaimed",
     ));
-    let host = session.add_element(host, None);
+    let host = session.add_element(host, );
     session.add(&TreeNode::new("attributes"), Some(&host));
     let attributes = host
         .borrow()
@@ -1008,7 +1008,7 @@ pub fn session() -> Session {
         "axis",
     ));
     let child = session.add_element(child, Some(&attributes));
-    let source = session.add_element(source, None);
+    let source = session.add_element(source, );
     let host = host.borrow().name.clone();
     let child = child.borrow().name.clone();
     let source = source.borrow().name.clone();

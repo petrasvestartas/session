@@ -1026,7 +1026,7 @@ Replace it with:
 ```rust
     for opacity in [0., 0.5, 0.95] {
         gpu.set_opacity(opacity);
-        gpu.set_scene(&scene, None);
+        gpu.set_scene(&scene, );
         let stored = pixels(&gpu);
         let addresses = primitive_pixels(&gpu, &gpu.primitive.texture);
         gpu.instances.ordinary.clear();
@@ -1039,7 +1039,7 @@ Replace it with:
             primitive_pixels(&gpu, &gpu.primitive.texture),
             addresses
         );
-        gpu.set_scene(&scene, None);
+        gpu.set_scene(&scene, );
 ```
 
 Replace it with:
@@ -1047,7 +1047,7 @@ Replace it with:
 ```rust
     for opacity in [0., 0.5, 0.95] {
         gpu.set_opacity(opacity);
-        gpu.set_scene(&scene, None);
+        gpu.set_scene(&scene, );
         let stored = pixels(&gpu);
         let addresses = primitive_pixels(&gpu, &gpu.targets.primitive.texture);
         gpu.instances.ordinary.clear();
@@ -1060,7 +1060,7 @@ Replace it with:
             primitive_pixels(&gpu, &gpu.targets.primitive.texture),
             addresses
         );
-        gpu.set_scene(&scene, None);
+        gpu.set_scene(&scene, );
 ```
 
 **Locate this block:**
@@ -1068,7 +1068,7 @@ Replace it with:
 ```rust
     for opacity in [0., 0.5, 0.95, 1.] {
         gpu.set_opacity(opacity);
-        gpu.set_scene(&scene, None);
+        gpu.set_scene(&scene, );
         let stored = pixels(&gpu);
         let addresses = primitive_pixels(&gpu, &gpu.primitive.texture);
         gpu.instances.ordinary.clear();
@@ -1081,7 +1081,7 @@ Replace it with:
             primitive_pixels(&gpu, &gpu.primitive.texture),
             addresses
         );
-        gpu.set_scene(&scene, None);
+        gpu.set_scene(&scene, );
 ```
 
 Replace it with:
@@ -1089,7 +1089,7 @@ Replace it with:
 ```rust
     for opacity in [0., 0.5, 0.95, 1.] {
         gpu.set_opacity(opacity);
-        gpu.set_scene(&scene, None);
+        gpu.set_scene(&scene, );
         let stored = pixels(&gpu);
         let addresses = primitive_pixels(&gpu, &gpu.targets.primitive.texture);
         gpu.instances.ordinary.clear();
@@ -1102,7 +1102,7 @@ Replace it with:
             primitive_pixels(&gpu, &gpu.targets.primitive.texture),
             addresses
         );
-        gpu.set_scene(&scene, None);
+        gpu.set_scene(&scene, );
 ```
 
 **Locate this block:**
@@ -1118,7 +1118,7 @@ Replace it with:
         primitive_pixels(&gpu, &gpu.primitive.texture),
         addresses
     );
-    gpu.set_scene(&scene, None);
+    gpu.set_scene(&scene, );
 ```
 
 Replace it with:
@@ -1134,7 +1134,7 @@ Replace it with:
         primitive_pixels(&gpu, &gpu.targets.primitive.texture),
         addresses
     );
-    gpu.set_scene(&scene, None);
+    gpu.set_scene(&scene, );
 ```
 
 **Locate this block:**
@@ -1150,7 +1150,7 @@ Replace it with:
         primitive_pixels(&gpu, &gpu.primitive.texture),
         addresses
     );
-    gpu.set_scene(&scene, None);
+    gpu.set_scene(&scene, );
 ```
 
 Replace it with:
@@ -1166,7 +1166,7 @@ Replace it with:
         primitive_pixels(&gpu, &gpu.targets.primitive.texture),
         addresses
     );
-    gpu.set_scene(&scene, None);
+    gpu.set_scene(&scene, );
 ```
 
 **Locate this block:**
@@ -1178,7 +1178,7 @@ Replace it with:
             primitive_pixels(&gpu, &gpu.primitive.texture),
             addresses
         );
-        gpu.set_highlight(&scene, None).unwrap();
+        gpu.set_highlight(&scene, ).unwrap();
 ```
 
 Replace it with:
@@ -1190,7 +1190,7 @@ Replace it with:
             primitive_pixels(&gpu, &gpu.targets.primitive.texture),
             addresses
         );
-        gpu.set_highlight(&scene, None).unwrap();
+        gpu.set_highlight(&scene, ).unwrap();
 ```
 
 **Locate this block:**
@@ -1302,7 +1302,7 @@ Replace it with:
 **Locate this block:**
 
 ```rust
-    gpu.set_scene(&Scene::empty(), None);
+    gpu.set_scene(&Scene::empty(), );
     cap_primitive_frame(&gpu);
     assert!(
         primitive_pixels(&gpu, &gpu.primitive.texture)
@@ -1314,7 +1314,7 @@ Replace it with:
 Replace it with:
 
 ```rust
-    gpu.set_scene(&Scene::empty(), None);
+    gpu.set_scene(&Scene::empty(), );
     cap_primitive_frame(&gpu);
     assert!(
         primitive_pixels(&gpu, &gpu.targets.primitive.texture)
@@ -1388,7 +1388,7 @@ Replace it with:
 **Locate this block:**
 
 ```rust
-    gpu.set_scene(&Scene::empty(), None);
+    gpu.set_scene(&Scene::empty(), );
     pixels(&gpu);
     assert!(
         primitive_pixels(&gpu, &gpu.primitive.texture)
@@ -1400,7 +1400,7 @@ Replace it with:
 Replace it with:
 
 ```rust
-    gpu.set_scene(&Scene::empty(), None);
+    gpu.set_scene(&Scene::empty(), );
     pixels(&gpu);
     assert!(
         primitive_pixels(&gpu, &gpu.targets.primitive.texture)
@@ -1439,7 +1439,7 @@ Replace it with:
 
 ```rust
     .unwrap();
-    gpu.set_scene(&instances, None);
+    gpu.set_scene(&instances, );
     pixels(&gpu);
     let placed = primitive_pixels(&gpu, &gpu.primitive.texture);
     let ids = gpu
@@ -1451,7 +1451,7 @@ Replace it with:
 
 ```rust
     .unwrap();
-    gpu.set_scene(&instances, None);
+    gpu.set_scene(&instances, );
     pixels(&gpu);
     let placed = primitive_pixels(&gpu, &gpu.targets.primitive.texture);
     let ids = gpu
@@ -1839,8 +1839,8 @@ Replace it with:
 **Locate this block:**
 
 ```rust
-            text: std::cell::RefCell::new(None),
-            text_error: std::cell::RefCell::new(None),
+            text: std::cell::RefCell::new(),
+            text_error: std::cell::RefCell::new(),
             format,
             device,
             queue,
@@ -1850,8 +1850,8 @@ Replace it with:
 Replace it with:
 
 ```rust
-            text: std::cell::RefCell::new(None),
-            text_error: std::cell::RefCell::new(None),
+            text: std::cell::RefCell::new(),
+            text_error: std::cell::RefCell::new(),
             format,
             output_format,
             device,
@@ -3293,7 +3293,7 @@ Replace it with:
                 cache: None,
             })
         };
-        let pipeline = create(None);
+        let pipeline = create();
         let ordinary_pipeline = create(Some(wgpu::BlendState::ALPHA_BLENDING));
         let records = crate::object_rows::Rows::new(
             &crate::text_gpu_support::GpuCtx::new(device, queue),
@@ -3389,7 +3389,7 @@ fn pipelines(
         })
     };
     (
-        create(None),
+        create(),
         create(Some(wgpu::BlendState::ALPHA_BLENDING)),
     )
 }
@@ -4820,7 +4820,7 @@ impl Ink {
             color,
             pick,
             layout,
-            bindings: RefCell::new(None),
+            bindings: RefCell::new(),
         }
     }
     fn group(
@@ -5029,7 +5029,7 @@ impl Ink {
             pick,
             query,
             spec: (format, stride, grid, varying),
-            bindings: RefCell::new(None),
+            bindings: RefCell::new(),
         }
     }
     pub fn set_samples(&mut self, device: &wgpu::Device, samples: u32) {
@@ -8704,7 +8704,7 @@ fn opaque_cloud_depth_clears_occluded_physical_triangle_and_cap_addresses() {
             let owner = scene
                 .insert_cloud(crate::cloud::Prepared::new(source.clone()).unwrap())
                 .unwrap();
-            r.set_scene(&scene, None);
+            r.set_scene(&scene, );
             r.set_clipping(clipped, true);
             let after_pixels = crate::cap_gpu_tests::pixels_at(&r, matrix);
             let after = physical(&r);
@@ -8818,7 +8818,7 @@ fn actual_nearer_cloud_hides_original_ink_without_hiding_front_sources() {
             let cloud = scene
                 .insert_cloud(crate::cloud::Prepared::new(points.clone()).unwrap())
                 .unwrap();
-            r.set_scene(&scene, None);
+            r.set_scene(&scene, );
             let actual = crate::cap_gpu_tests::pixels_at(&r, matrix);
             let z_after = physical(&r);
             for (prior, current) in z_before.iter().zip(&z_after) {
@@ -8837,7 +8837,7 @@ fn actual_nearer_cloud_hides_original_ink_without_hiding_front_sources() {
             let geometry = r.meshes[0].geometry.clone();
             let cloud_uploads = r.cloud_usage()[2];
             scene.translate(ink, [0., 0., -0.5]).unwrap();
-            r.set_scene(&scene, None);
+            r.set_scene(&scene, );
             let front = crate::cap_gpu_tests::pixels_at(&r, matrix);
             let visible = crate::cap_gpu_tests::at(&front, 208, 96);
             assert!(
@@ -8854,7 +8854,7 @@ fn actual_nearer_cloud_hides_original_ink_without_hiding_front_sources() {
                 ink.value()
             );
             scene.translate(ink, [0., 0., 0.5]).unwrap();
-            r.set_scene(&scene, None);
+            r.set_scene(&scene, );
             assert!(
                 crate::cap_gpu_tests::pixels_at(&r, matrix) == actual,
                 "Restoring original placement restores exact hidden-ink pixels"
@@ -10778,7 +10778,7 @@ fn actual_text_sample_switches_keep_font_raster_sources_and_fresh_owner_queries(
     let owner = scene
         .insert_text(Prepared::new(Rc::new(name)).unwrap())
         .unwrap();
-    r.set_scene(&scene, None);
+    r.set_scene(&scene, );
     let source = serde_json::to_string(&*original).unwrap();
     let mut overlay = crate::text_example::label();
     overlay.text = "Sampled text".into();
@@ -10790,7 +10790,7 @@ fn actual_text_sample_switches_keep_font_raster_sources_and_fresh_owner_queries(
             .map(|v| v as f32),
     );
     let first = crate::cap_gpu_tests::pixels_at(&r, transform);
-    assert_eq!(r.text_error(), None);
+    assert_eq!(r.text_error(), );
     let stats = r.text_stats().unwrap();
     assert!(stats.world_plane_rasterizations > 0 && stats.raster_images > 0);
     let usage = r.text_scene_usage();
@@ -10802,7 +10802,7 @@ fn actual_text_sample_switches_keep_font_raster_sources_and_fresh_owner_queries(
     for count in [4, 1, 4] {
         retarget_basic_fixture(&mut r, count);
         let pixels = crate::cap_gpu_tests::pixels_at(&r, transform);
-        assert_eq!(r.text_error(), None);
+        assert_eq!(r.text_error(), );
         if count == 4 {
             assert!(pixels == first);
         } else {
@@ -12526,7 +12526,7 @@ Prepare cached original-radius/normal sample recipes and retarget only their ful
         let view = texture.create_view(&Default::default());
         let bytes = u64::from(size[0])
             * u64::from(size[1])
-            * u64::from(format.block_copy_size(None).unwrap());
+            * u64::from(format.block_copy_size().unwrap());
         Self {
 ```
 
@@ -12566,7 +12566,7 @@ Edit the existing block to match this code; keep unchanged lines:
         let view = texture.create_view(&Default::default());
         let bytes = u64::from(size[0])
             * u64::from(size[1])
-            * u64::from(format.block_copy_size(None).unwrap())
+            * u64::from(format.block_copy_size().unwrap())
             * u64::from(samples);
         Self {
 ```
@@ -14176,7 +14176,7 @@ impl Ambient {
             );
             self.writes += 1;
             if self.pipes.samples == 4 {
-                encoder.clear_buffer(&state.groups.buffers[1], 0, None);
+                encoder.clear_buffer(&state.groups.buffers[1], 0, );
                 encoder.clear_buffer(&state.groups.buffers[3], 4, Some(4));
             }
             let images = &state.images;
@@ -14809,7 +14809,7 @@ fn actual_four_sample_ambient_reads_original_properties_and_executes_sparse_corr
     camera.distance = 3.;
     let transform = camera.uniform();
     let first = crate::cap_gpu_tests::pixels_at(&r, transform);
-    assert_eq!(r.ambient_error(), None);
+    assert_eq!(r.ambient_error(), );
     let metadata = ambient_face_metadata(&r, &scene);
     let samples = read_ambient_samples(&r, &metadata);
     let (_, _, coarse) = r
@@ -14840,7 +14840,7 @@ fn actual_four_sample_ambient_reads_original_properties_and_executes_sparse_corr
     for count in [4, 1, 4] {
         retarget_basic_fixture(&mut r, count);
         let pixels = crate::cap_gpu_tests::pixels_at(&r, transform);
-        assert_eq!(r.ambient_error(), None);
+        assert_eq!(r.ambient_error(), );
         let (_, _, retained) = r
             .ambient
             .borrow()
@@ -15274,7 +15274,7 @@ fn actual_pyramid_uses_six_nearest_positive_depth_levels_and_keeps_radius_addres
     let r = renderer(&scene);
     r.set_depth_pyramid(true);
     pixels(&r);
-    assert_eq!(r.depth_pyramid_error(), None);
+    assert_eq!(r.depth_pyramid_error(), );
     let owner = r.pyramid.borrow();
     let owner = owner.as_ref().unwrap();
     let linear = owner.linear().unwrap();
@@ -15453,7 +15453,7 @@ fn actual_pyramid_uses_six_nearest_positive_depth_levels_and_keeps_radius_addres
             .unwrap()
             .set_samples(&r.device, samples);
         pixels(&r);
-        assert_eq!(r.depth_pyramid_error(), None);
+        assert_eq!(r.depth_pyramid_error(), );
         let owner = r.pyramid.borrow();
         let owner = owner.as_ref().unwrap();
         let linear = owner.linear().unwrap();
@@ -16405,8 +16405,8 @@ fn combined_original_families_keep_holes_ink_text_queries_and_exact_sample_retur
         r.set_ambient(true);
         r.set_samples(4);
         let first = pixels(&r, matrix);
-        assert_eq!(r.ambient_error(), None);
-        assert_eq!(r.text_error(), None);
+        assert_eq!(r.ambient_error(), );
+        assert_eq!(r.text_error(), );
         assert!(
             first
                 .chunks_exact(4)
@@ -16423,8 +16423,8 @@ fn combined_original_families_keep_holes_ink_text_queries_and_exact_sample_retur
         for count in [1, 4] {
             r.set_samples(count);
             let current = pixels(&r, matrix);
-            assert_eq!(r.ambient_error(), None);
-            assert_eq!(r.text_error(), None);
+            assert_eq!(r.ambient_error(), );
+            assert_eq!(r.text_error(), );
             if count == 4 {
                 assert!(
                     current == first,
@@ -16507,7 +16507,7 @@ fn combined_original_families_keep_holes_ink_text_queries_and_exact_sample_retur
     crate::plane_original::insert(&mut scene, Rc::new(plane)).unwrap();
     let clipped_archive =
         archive_contents(&crate::scene_archive::save(&scene).unwrap());
-    r.set_scene(&scene, None);
+    r.set_scene(&scene, );
     r.set_clipping(true, false);
     r.set_outlines(true);
     r.set_ambient(true);
@@ -16546,7 +16546,7 @@ fn combined_original_families_keep_holes_ink_text_queries_and_exact_sample_retur
     r.cloud_camera(&camera);
     r.set_samples(4);
     let clipped = pixels(&r, matrix);
-    assert_eq!(r.cap_error(), None);
+    assert_eq!(r.cap_error(), );
     assert!(
         r.cap_usage()[1] > 0,
         "Actual closed originals participate in cap composition"
@@ -16564,13 +16564,13 @@ fn combined_original_families_keep_holes_ink_text_queries_and_exact_sample_retur
         archive_contents(&crate::scene_archive::save(&scene).unwrap())
             == clipped_archive
     );
-    r.set_grid(None).unwrap();
+    r.set_grid().unwrap();
     r.set_ambient(false);
     r.set_outlines(false);
-    r.set_measurement(None).unwrap();
+    r.set_measurement().unwrap();
     r.set_guides(&crate::guide_gpu::Overlay::default())
         .unwrap();
-    r.set_preview(None).unwrap();
+    r.set_preview().unwrap();
     camera.set_view(View::Top);
     camera.fit(&scene.bounds().unwrap());
     let matrix = camera.uniform();
@@ -16707,7 +16707,7 @@ mod tests {
                 1
             );
         }
-        assert_eq!(budget(wgpu::DeviceType::Cpu), None);
+        assert_eq!(budget(wgpu::DeviceType::Cpu), );
         assert_eq!(
             samples(true, [900, 760], None, None, 1., false),
             1
@@ -17035,7 +17035,7 @@ fn automatic_sampling_eligibility_follows_active_faces_and_world_lettering() {
                 .unwrap(),
         ))
         .unwrap();
-    r.set_scene(&scene, None);
+    r.set_scene(&scene, );
     assert!(
         !r.has_solids(),
         "Original drawing pens are ribbons, not the reference arena's sheet fills"
@@ -17053,7 +17053,7 @@ fn automatic_sampling_eligibility_follows_active_faces_and_world_lettering() {
             .unwrap(),
         )
         .unwrap();
-    r.set_scene(&scene, None);
+    r.set_scene(&scene, );
     assert!(r.has_solids());
     r.set_opacity(0.);
     assert!(
@@ -17061,7 +17061,7 @@ fn automatic_sampling_eligibility_follows_active_faces_and_world_lettering() {
         "Eligibility describes geometry, not the current opacity"
     );
     Rc::make_mut(&mut scene.view).hide(&[mesh], true);
-    r.set_scene(&scene, None);
+    r.set_scene(&scene, );
     assert!(!r.has_solids());
     let mut isolated = session_rust::Mesh::new();
     isolated.add_vertex(
@@ -17076,7 +17076,7 @@ fn automatic_sampling_eligibility_follows_active_faces_and_world_lettering() {
     );
     let mut empty_faces = Scene::empty();
     empty_faces.insert(isolated).unwrap();
-    r.set_scene(&empty_faces, None);
+    r.set_scene(&empty_faces, );
     assert!(!r.has_solids());
     for kind in ["surface", "brep", "plane"] {
         let mut sample = Scene::empty();
@@ -17103,7 +17103,7 @@ fn automatic_sampling_eligibility_follows_active_faces_and_world_lettering() {
         }
         let owner = sample.objects()[0].id;
         let source = Rc::clone(&sample.objects()[0].mesh);
-        r.set_scene(&sample, None);
+        r.set_scene(&sample, );
         assert_eq!(
             r.has_solids(),
             kind != "plane",
@@ -17114,13 +17114,13 @@ fn automatic_sampling_eligibility_follows_active_faces_and_world_lettering() {
             &sample.objects()[0].mesh
         ));
         Rc::make_mut(&mut sample.view).hide(&[owner], true);
-        r.set_scene(&sample, None);
+        r.set_scene(&sample, );
         assert!(
             !r.has_solids(),
             "Hidden original source families do not qualify"
         );
     }
-    r.set_scene(&scene, None);
+    r.set_scene(&scene, );
     let mut text = crate::text_example::label();
     r.set_text(vec![text.clone()]).unwrap();
     assert!(

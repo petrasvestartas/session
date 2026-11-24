@@ -1137,7 +1137,7 @@ pub fn parse(words: &[&str]) -> Result<Request, String> {
         (Some("flip"), 1) => Ok(Request::Flip),
         (Some("hatch"), 1) => Ok(Request::Fill(Some(false))),
         (Some("solid"), 1) => Ok(Request::Fill(Some(true))),
-        (Some("fill"), 1) => Ok(Request::Fill(None)),
+        (Some("fill"), 1) => Ok(Request::Fill()),
         (Some("fill"), 2) => match words[1].to_ascii_lowercase().as_str() {
             "hatch" => Ok(Request::Fill(Some(false))),
             "solid" => Ok(Request::Fill(Some(true))),
@@ -5295,7 +5295,7 @@ fn scene(depth: f64, kind: u8, sloped: bool) -> (Scene, ObjectId, ObjectId) {
     (scene, solid, ink)
 }
 fn renderer(scene: &Scene, size: [u32; 2], density: f32) -> Renderer {
-    renderer_limit(scene, size, density, None)
+    renderer_limit(scene, size, density, )
 }
 fn renderer_limit(
     scene: &Scene,
@@ -5464,7 +5464,7 @@ fn actual_original_mesh_color_and_face_picks_share_the_world_cut_before_any_colo
     )
     .unwrap();
     crate::plane_original::insert(&mut scene, Rc::new(plane)).unwrap();
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     assert_eq!(
         picked(&mut renderer, [-0.3, 0.]),
         Some([solid.value(), 0])
@@ -5479,7 +5479,7 @@ fn actual_original_mesh_color_and_face_picks_share_the_world_cut_before_any_colo
     let kept = picked(&mut renderer, [-0.3, 0.]).unwrap();
     assert_eq!(kept[0], solid.value());
     assert!(kept[1] > 0);
-    assert_eq!(picked(&mut renderer, [0.3, 0.]), None);
+    assert_eq!(picked(&mut renderer, [0.3, 0.]), );
     renderer.set_clipping(false, true);
     let full = red_pixels(&renderer, size);
     assert!(
@@ -5612,7 +5612,7 @@ fn clipping_cloud_cache_color_and_original_u32_picks_follow_on_off_before_color(
         picked(&mut r, [-0.3, 0.]),
         Some([owner.value(), 0])
     );
-    assert_eq!(picked(&mut r, [0.3, 0.]), None);
+    assert_eq!(picked(&mut r, [0.3, 0.]), );
     let cut = red_pixels(&r, [320, 240]);
     let usage = r.cloud_usage();
     red_pixels(&r, [320, 240]);
@@ -5662,7 +5662,7 @@ fn clipping_sheet_centerline_color_and_crop_ids_preserve_original_source_entitie
         picked(&mut r, [-0.3, 0.]).unwrap()[0],
         owner.value()
     );
-    assert_eq!(picked(&mut r, [0.3, 0.]), None);
+    assert_eq!(picked(&mut r, [0.3, 0.]), );
     let cut = red_pixels(&r, [320, 240]);
     let uploads = r.sheet_usage()[3];
     r.set_clipping(false, true);
@@ -5708,9 +5708,9 @@ fn clipping_text_uses_the_sixth_original_world_plane_for_color_and_nameplate_pic
     }
     cut_x(&mut scene);
     let mut r = renderer(&scene, [320, 240], 1.);
-    assert_eq!(picked(&mut r, [0.3, 0.]), None);
+    assert_eq!(picked(&mut r, [0.3, 0.]), );
     red_pixels(&r, [320, 240]);
-    assert_eq!(r.text_error(), None);
+    assert_eq!(r.text_error(), );
     assert_eq!(r.text_stats().unwrap().requested_glyphs, 0);
     r.set_clipping(false, true);
     assert_eq!(
@@ -5718,7 +5718,7 @@ fn clipping_text_uses_the_sixth_original_world_plane_for_color_and_nameplate_pic
         Some([owner.value(), 0])
     );
     red_pixels(&r, [320, 240]);
-    assert_eq!(r.text_error(), None);
+    assert_eq!(r.text_error(), );
     assert!(r.text_stats().unwrap().requested_glyphs > 0);
 }
 ```

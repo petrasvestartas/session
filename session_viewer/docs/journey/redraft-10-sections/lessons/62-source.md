@@ -1644,8 +1644,8 @@ fn place(label: &TextLabel, frame: &TextFrame, scale: f32) -> Option<PlacedText>
                 depth: None,
             });
         }
-        TextPlacement::Anchor { world, offset } => (world, offset, None),
-        TextPlacement::Nameplate { world, .. } => (world, [0.0; 2], None),
+        TextPlacement::Anchor { world, offset } => (world, offset, ),
+        TextPlacement::Nameplate { world, .. } => (world, [0.0; 2], ),
         TextPlacement::WorldBillboard {
             world,
             world_height,
@@ -4046,8 +4046,8 @@ Replace it with:
         let faces = crate::face_pick::Faces::new(&device);
         let mesh_ink = crate::stroke_gpu::Lane::new(&device, format);
         let mut renderer = Self {
-            text: std::cell::RefCell::new(None),
-            text_error: std::cell::RefCell::new(None),
+            text: std::cell::RefCell::new(),
+            text_error: std::cell::RefCell::new(),
             format,
 ```
 
@@ -4060,8 +4060,8 @@ Replace it with:
             full_text_fonts: Default::default(),
             presentation_text: Default::default(),
             scene_text: Default::default(),
-            text: std::cell::RefCell::new(None),
-            text_error: std::cell::RefCell::new(None),
+            text: std::cell::RefCell::new(),
+            text_error: std::cell::RefCell::new(),
             format,
 ```
 
@@ -5185,7 +5185,7 @@ fn actual_owned_text_plane_respects_depth_integer_picks_selection_cache_and_clos
         .insert_text(Prepared::new(source.clone()).unwrap())
         .unwrap();
     drop(source);
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     assert_eq!(
         colour_pixels(&mut renderer),
         before,
@@ -5204,10 +5204,10 @@ fn actual_owned_text_plane_respects_depth_integer_picks_selection_cache_and_clos
             session_rust::Xform::translation(0., 0., -0.45),
         )
         .unwrap();
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     let front = colour_pixels(&mut renderer);
     assert_ne!(front, before);
-    assert_eq!(renderer.text_error(), None);
+    assert_eq!(renderer.text_error(), );
     assert!(
         front
             .chunks_exact(4)
@@ -5247,7 +5247,7 @@ fn actual_owned_text_plane_respects_depth_integer_picks_selection_cache_and_clos
         original
     );
     Rc::make_mut(&mut scene.view).lock(&[id], true);
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     renderer
         .request_pick([-0.06, -0.008], identity())
         .unwrap();
@@ -5256,7 +5256,7 @@ fn actual_owned_text_plane_respects_depth_integer_picks_selection_cache_and_clos
         "The locked plate remains an occluder without a selectable id"
     );
     Rc::make_mut(&mut scene.view).hide(&[id], true);
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     renderer
         .request_pick([-0.06, 0.02], identity())
         .unwrap();
@@ -5265,7 +5265,7 @@ fn actual_owned_text_plane_respects_depth_integer_picks_selection_cache_and_clos
         mesh.value()
     );
     scene.clear();
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     assert!(weak.upgrade().is_none());
     assert_eq!(renderer.text_scene_usage(), [0; 4]);
     assert_eq!(renderer.text_usage(), [0; 6]);
@@ -5311,7 +5311,7 @@ fn actual_anchor_nameplate_and_billboard_follow_the_current_depth_and_plate_rule
         let id = scene
             .insert_text(Prepared::new(Rc::new(source)).unwrap())
             .unwrap();
-        renderer.set_scene(&scene, None);
+        renderer.set_scene(&scene, );
         let after = colour_pixels(&mut renderer);
         assert_eq!(
             after != before,
@@ -5329,7 +5329,7 @@ fn actual_anchor_nameplate_and_billboard_follow_the_current_depth_and_plate_rule
                 mesh.value()
             }
         );
-        assert_eq!(renderer.text_error(), None);
+        assert_eq!(renderer.text_error(), );
         let fonts = vec![
             crate::text::FONT_BYTES.to_vec(),
             crate::text::FALLBACK_BYTES.to_vec(),
@@ -5368,7 +5368,7 @@ fn actual_world_text_clip_uses_canvas_coordinates_in_the_small_integer_pick_wind
         .unwrap();
     let mut renderer = renderer(&scene);
     let before = colour_pixels(&mut renderer);
-    assert_eq!(renderer.text_error(), None);
+    assert_eq!(renderer.text_error(), );
     let mut clean = Scene::demo();
     clean.clear();
     let mut no_text = super::pick_gpu_tests::renderer(&clean);

@@ -1,6 +1,6 @@
 # 7.5 · Temporary transforms with a fixed baseline
 
-**Steps:** 5 · **Source:** [app/command/mod.rs](../../../../src/app/command/mod.rs) · [app/command/tool.rs](../../../../src/app/command/tool.rs) · [app/cplane.rs](../../../../src/app/cplane.rs) · [app/snap.rs](../../../../src/app/snap.rs)
+**Steps:** 5 · **Source:** [app/command/mod.rs](../../../../viewer-core/src/command/mod.rs) · [app/command/tool.rs](../../../../viewer-core/src/command/tool.rs) · [app/cplane.rs](../../../../viewer-core/src/cplane.rs) · [app/snap.rs](../../../../viewer-core/src/snap.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -437,7 +437,7 @@ Replace it with:
 
 ```rust
                     }
-                    Ok(Some(Change::View)) | Ok(None) => {}
+                    Ok(Some(Change::View)) | Ok() => {}
                     Err(error) => {
                         report(&error);
 ```
@@ -455,7 +455,7 @@ Replace it with:
                             active_fault.clone(),
                         );
                     }
-                    Ok(Some(Change::View)) | Ok(None) => {}
+                    Ok(Some(Change::View)) | Ok() => {}
                     Err(error) => {
                         report(&error);
 ```
@@ -1189,7 +1189,7 @@ fn snap_switches_restore_hover_but_keep_accepted_base_and_cancel_restores_displa
     );
     e.apply(Action::ToolHover(Some([0.5, 0., 0.])))
         .unwrap();
-    e.apply(Action::ToolHover(None)).unwrap();
+    e.apply(Action::ToolHover()).unwrap();
     assert_eq!(
         e.edit_preview.as_ref().unwrap().matrix(),
         &Xform::identity().m

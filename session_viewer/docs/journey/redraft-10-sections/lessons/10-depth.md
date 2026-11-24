@@ -1507,7 +1507,7 @@ mod tests {
         let second = scene.objects()[1].id;
         assert!(scene.remove(first));
         assert_eq!(scene.objects()[0].id, second);
-        assert_eq!(scene.next(None), Some(second));
+        assert_eq!(scene.next(), Some(second));
         assert!(!scene.contains(first));
         scene.toggle_extra();
         assert_ne!(scene.objects()[1].id, first);

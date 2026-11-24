@@ -1,6 +1,6 @@
 # 14.4 · Solid questions, previews and one original commit
 
-**Steps:** 19 · **Source:** [app/walk/sheet.rs](../../../../src/app/walk/sheet.rs) · [app/sheet_query.rs](../../../../src/app/sheet_query.rs) · [app/stream.rs](../../../../src/app/stream.rs) · [app/cplane.rs](../../../../src/app/cplane.rs)
+**Steps:** 19 · **Source:** [app/walk/sheet.rs](../../../../viewer-core/src/walk/sheet.rs) · [app/sheet_query.rs](../../../../viewer-core/src/sheet_query.rs) · [app/stream.rs](../../../../viewer-core/src/stream.rs) · [app/cplane.rs](../../../../viewer-core/src/cplane.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -139,7 +139,7 @@ mod tests {
         assert!(matches!(mesh, Geometry::Mesh(_)));
 
         for q in corners(&mesh) {
-            assert!((q.distance(&center, None) - 300.0).abs() < 1e-9 * 300.0);
+            assert!((q.distance(&center, ) - 300.0).abs() < 1e-9 * 300.0);
         }
 
         let Geometry::BRep(brep) =
@@ -244,7 +244,7 @@ mod tests {
         assert!(matches!(mesh, Geometry::Mesh(_)));
 
         for q in corners(&mesh) {
-            assert!((q.distance(&center, None) - 300.0).abs() < 1e-9 * 300.0);
+            assert!((q.distance(&center, ) - 300.0).abs() < 1e-9 * 300.0);
         }
 
         let Geometry::BRep(brep) =
@@ -1962,7 +1962,7 @@ mod drift_tests {
     fn quick_and_held_mouse_events_keep_the_original_click_or_drag_owner() {
         let mut input = Gesture::default();
         assert!(input.press_at(1, 0, [10., 20.], false, 1000.));
-        assert_eq!(input.move_at(1, [15., 20.], 1060.), None);
+        assert_eq!(input.move_at(1, [15., 20.], 1060.), );
         assert_eq!(
             input.release_at(1, [19., 20.], 1150.),
             Some(Motion::Pick([19., 20.]))
@@ -1993,9 +1993,9 @@ mod drift_tests {
         let mut input = Gesture::default();
         assert!(!input.press_at(1, 0, [0., 0.], false, f64::NAN));
         assert!(input.press_at(1, 0, [0., 0.], false, 1000.));
-        assert_eq!(input.move_at(2, [20., 0.], 1200.), None);
-        assert_eq!(input.move_at(1, [20., 0.], 900.), None);
-        assert_eq!(input.move_at(1, [20., 0.], f64::NAN), None);
+        assert_eq!(input.move_at(2, [20., 0.], 1200.), );
+        assert_eq!(input.move_at(1, [20., 0.], 900.), );
+        assert_eq!(input.move_at(1, [20., 0.], f64::NAN), );
         assert_eq!(
             input.release_at(1, [3., 0.], 1900.),
             Some(Motion::Pick([3., 0.]))
@@ -2551,7 +2551,7 @@ mod tests {
         assert!(
             brep.vertex_points()
                 .iter()
-                .any(|q| q.distance(&p(0.0, -500.0, 0.0), None) < 1e-9)
+                .any(|q| q.distance(&p(0.0, -500.0, 0.0), ) < 1e-9)
         );
     }
 }
@@ -2633,18 +2633,18 @@ mod tests {
         assert!(
             points
                 .iter()
-                .any(|q| q.distance(&p(1.0, -8.0, 3.0), None) < 1e-9)
+                .any(|q| q.distance(&p(1.0, -8.0, 3.0), ) < 1e-9)
         );
         assert!(
             points
                 .iter()
-                .any(|q| q.distance(&p(1.0, 12.0, 3.0), None) < 1e-9)
+                .any(|q| q.distance(&p(1.0, 12.0, 3.0), ) < 1e-9)
         );
         let mesh = build(&SHAPE, &front, &answers, "Mesh").unwrap();
         assert!(matches!(mesh, Geometry::Mesh(_)));
 
         for q in corners(&mesh) {
-            assert!((q.distance(&p(1.0, 2.0, 3.0), None) - 10.0).abs() < 0.1);
+            assert!((q.distance(&p(1.0, 2.0, 3.0), ) - 10.0).abs() < 0.1);
         }
 
         let zero = [

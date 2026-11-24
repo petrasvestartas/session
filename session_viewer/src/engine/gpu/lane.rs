@@ -3,21 +3,8 @@ use super::frame::Binds;
 use super::upload::Upload;
 use super::view::View;
 use crate::engine::pipelines::{Layouts, Target};
-use std::any::Any;
-
-/// What a pick may answer with.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
-pub enum PickMode {
-    #[default]
-    Object, // whole objects
-    Edge,      // edges
-    Component, // edges first, else the visible face
-    Controls {
-        // control dots of one object
-        parent: u32, // the object row
-        cloud: bool, // true = pick cloud points instead
-    },
-}
+#[allow(unused_imports)]
+pub use crate::rows::{LaneRows, PickMode};
 
 // --8<-- [start:render-lane]
 /// The lifecycle every drawing lane shares; a new lane impls this and is named once in `lane_list!` or `REGISTRY`.
@@ -74,6 +61,7 @@ pub trait RowLane: Lane {
 }
 
 /// One registered lane: how it is made, counted and merged.
+#[allow(dead_code)]
 pub struct Registered {
     pub make: fn(&GpuCtx, &Layouts, Target) -> Box<dyn RowLane>, // the lane
     pub rows_in: fn(&Upload) -> u32,                             // its rows in one upload
@@ -83,70 +71,10 @@ pub struct Registered {
 
 /// Lanes that live only behind the `Lane` hooks. Adding one means one file and one line here.
 pub const REGISTRY: &[Registered] = &[
-    super::vectors::REGISTERED,  // register:vectors
-    super::planes::REGISTERED,   // register:planes
+    super::vectors::REGISTERED, // register:vectors
+    super::planes::REGISTERED,  // register:planes
 ];
 
 /// How many lanes are registered.
 pub const REGISTERED: usize = REGISTRY.len();
-
-/// Rows for registered lanes, one table per row type, so `Upload` needs no field per lane.
-#[derive(Default)]
-pub struct LaneRows {
-    tables: Vec<Box<dyn Any>>, // one table per type
-}
-
-impl LaneRows {
-    /// The table of type `T`, created empty on first use.
-    pub fn get_mut<T: Default + 'static>(&mut self) -> &mut T {
-        let at = match self.tables.iter().position(|t| t.is::<T>()) {
-            Some(at) => at,
-            None => {
-                self.tables.push(Box::new(T::default()));
-                self.tables.len() - 1
-            }
-        };
-        self.tables[at]
-            .downcast_mut::<T>()
-            .expect("table has type T")
-    }
-
-    /// The table of type `T`; None when nothing was written.
-    pub fn get<T: 'static>(&self) -> Option<&T> {
-        self.tables.iter().find_map(|t| t.downcast_ref::<T>())
-    }
-
-    /// Take the table of type `T` out; None when nothing was written.
-    pub fn take<T: 'static>(&mut self) -> Option<T> {
-        let at = self.tables.iter().position(|t| t.is::<T>())?;
-        self.tables
-            .remove(at)
-            .downcast::<T>()
-            .ok()
-            .map(|table| *table)
-    }
-
-    /// Drop every table and free its memory.
-    pub fn clear(&mut self) {
-        self.tables = Vec::new();
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    /// One table per type, created once, gone after clear.
-    #[test]
-    fn lane_rows_by_type() {
-        let mut rows = LaneRows::default();
-        assert!(rows.get::<Vec<u32>>().is_none());
-        rows.get_mut::<Vec<u32>>().push(7);
-        rows.get_mut::<Vec<u32>>().push(8);
-        rows.get_mut::<Vec<f32>>().push(1.0);
-        assert_eq!(rows.get::<Vec<u32>>(), Some(&vec![7, 8]));
-        assert_eq!(rows.get::<Vec<f32>>().map(Vec::len), Some(1));
-        rows.clear();
-        assert!(rows.get::<Vec<u32>>().is_none());
-    }
-}
+const _: () = assert!(REGISTERED == crate::rows::REGISTERED);

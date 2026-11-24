@@ -759,7 +759,7 @@ fn actual_unlit_and_sky_preserve_original_records() {
         if uniform {
             r.use_uniform_surface_records();
         } else {
-            r.set_scene(&scene, None);
+            r.set_scene(&scene, );
         }
         assert_eq!(pixels_at(&r, matrix), flat);
         r.ambient_enabled.set(true);
@@ -798,8 +798,8 @@ fn wide_ambient_and_depth_pyramid_keep_real_passes_without_geometry_uploads() {
     r.set_depth_pyramid(true);
     let uploads = r.stats()[0];
     let first = pixels_at(&r, c.uniform());
-    assert_eq!(r.ambient_error(), None);
-    assert_eq!(r.depth_pyramid_error(), None);
+    assert_eq!(r.ambient_error(), );
+    assert_eq!(r.depth_pyramid_error(), );
     assert!(r.ambient_usage()[4] > 0);
     assert_eq!(r.depth_pyramid_usage()[3], 6);
     let ambient = r.ambient_usage();
@@ -809,8 +809,8 @@ fn wide_ambient_and_depth_pyramid_keep_real_passes_without_geometry_uploads() {
     assert_eq!(r.depth_pyramid_usage(), pyramid);
     c.zoom(2.);
     let _ = pixels_at(&r, c.uniform());
-    assert_eq!(r.ambient_error(), None);
-    assert_eq!(r.depth_pyramid_error(), None);
+    assert_eq!(r.ambient_error(), );
+    assert_eq!(r.depth_pyramid_error(), );
     assert_eq!(r.stats()[0], uploads);
     assert_eq!(
         scene.objects()[0]
@@ -1152,7 +1152,7 @@ Replace it with:
 **Locate this block:**
 
 ```rust
-    ("Arctic", || Action::Arctic(None)),
+    ("Arctic", || Action::Arctic()),
     ("Select By Name", || {
         Action::Query(crate::selection_query::Query::Name(
             String::new(),
@@ -1161,9 +1161,9 @@ Replace it with:
 Replace it with:
 
 ```rust
-    ("Arctic", || Action::Arctic(None)),
-    ("View Lighting", || Action::Lighting(None)),
-    ("View Backfaces", || Action::Backfaces(None)),
+    ("Arctic", || Action::Arctic()),
+    ("View Lighting", || Action::Lighting()),
+    ("View Backfaces", || Action::Backfaces()),
     ("Select By Name", || {
         Action::Query(crate::selection_query::Query::Name(
             String::new(),
@@ -1438,7 +1438,7 @@ fn actual_headlight_backfaces_and_original_record_restoration() {
                 },
             )
             .unwrap();
-        r.set_scene(&scene, None);
+        r.set_scene(&scene, );
         let uploads = r.stats()[0];
         for projection in [
             Projection::Orthographic,
@@ -1468,7 +1468,7 @@ fn actual_headlight_backfaces_and_original_record_restoration() {
                 if uniform {
                     r.use_uniform_surface_records();
                 } else {
-                    r.set_scene(&scene, None);
+                    r.set_scene(&scene, );
                 }
                 r.set_lighting(true, false);
                 assert_eq!(pixels_at(&r, matrix), head);
@@ -1495,7 +1495,7 @@ fn actual_headlight_backfaces_and_original_record_restoration() {
     scene
         .insert(crate::prepared::PreparedMesh::new(front).unwrap())
         .unwrap();
-    r.set_scene(&scene, None);
+    r.set_scene(&scene, );
     r.set_lighting(false, true);
     assert_eq!(
         at(&pixels_at(&r, c.uniform()), 160, 120),

@@ -63,7 +63,7 @@ impl State {
 
         // the name of the selected object, at its center
         if self.show_selected_names
-            && !matches!(self.selection, SelectionMode::Controls { .. })
+            && !matches!(self.selection.mode, SelectionMode::Controls { .. })
             && let Some(row) = self.scene.selected
             && let Some(bounds) = self.gpu.objects.row_bounds(row)
         {

@@ -1,6 +1,6 @@
 # 8.1 · Nested original sources and exact parent edits
 
-**Steps:** 7 · **Source:** [app/hierarchy.rs](../../../../src/app/hierarchy.rs) · [app/layers.rs](../../../../src/app/layers.rs) · [app/ui/layers.rs](../../../../src/app/ui/layers.rs) · [app/gesture/mod.rs](../../../../src/app/gesture/mod.rs)
+**Steps:** 7 · **Source:** [app/hierarchy.rs](../../../../viewer-core/src/hierarchy.rs) · [app/layers.rs](../../../../viewer-core/src/layers.rs) · [app/ui/layers.rs](../../../../src/app/ui/layers.rs) · [app/gesture/mod.rs](../../../../src/app/gesture/mod.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -1107,7 +1107,7 @@ fn save_node(
     let mut matrix = parent.clone();
     if let Some(id) = original.object {
         let Some(row) = scene.objects().iter().find(|r| r.id == id) else {
-            return Ok(None);
+            return Ok();
         };
         node.name = row.guid.clone();
         matrix = row.model.clone();

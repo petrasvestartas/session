@@ -1,3 +1,4 @@
+pub use crate::rows::{TextLabel, TextObject, TextPlacement};
 use glyphon::{Attrs, Buffer, Family, FontSystem, Metrics, Shaping, Wrap, fontdb};
 use serde::Serialize;
 
@@ -26,82 +27,6 @@ pub const FULL_FONTS: [&str; 3] = [
 
 /// Most text bytes in one label set.
 const MAX_TEXT_BYTES: usize = 256 * 1024;
-
-// --8<-- [start:scene-text-placement]
-/// Where a label sits and how it is sized.
-#[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
-pub enum TextPlacement {
-    Screen {
-        // fixed on screen, CSS px
-        left: f32, // left edge
-        top: f32,  // top edge
-    },
-    Anchor {
-        // at a world point, screen-sized, hidden behind geometry
-        world: [f64; 3],  // world point
-        offset: [f32; 2], // shift from it, CSS px
-    },
-    Nameplate {
-        // centered on a world point with a plate, always on top
-        // world point
-        world: [f64; 3],
-        padding: [f32; 2], // space around the text, CSS px
-        rounded: bool,     // rounded plate corners
-    },
-    WorldPlane {
-        // lying on a plane in the world
-        // top-left corner
-        world: [f64; 3],
-        right: [f64; 3],   // unit axis along the text
-        up: [f64; 3],      // unit axis up the text
-        world_height: f64, // em height, world units
-        #[serde(default = "plated")]
-        plate: bool, // a black plate behind the glyphs
-    },
-    WorldBillboard {
-        // facing the camera, world-sized
-        // world point
-        world: [f64; 3],
-        world_height: f64, // em height, world units
-    },
-}
-
-// --8<-- [end:scene-text-placement]
-/// World-plane texts have a plate unless they say otherwise.
-fn plated() -> bool {
-    true
-}
-
-/// The object a label belongs to, for picks and selection.
-#[derive(Clone, Copy, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
-pub struct TextObject {
-    pub row: u32,       // object row
-    pub selected: bool, // drawn as selected
-}
-
-/// One text label; sizes in CSS pixels.
-#[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
-pub struct TextLabel {
-    pub id: u32,                    // unique per label
-    pub object: Option<TextObject>, // owning object, if any
-    pub text: String,               // the text
-    pub font_size: f32,             // em size
-    pub line_height: f32,           // distance between lines
-    pub color: [u8; 4],             // rgba
-    pub placement: TextPlacement,   // where it sits
-    pub clip: Option<[f32; 4]>,     // screen box to cut it to: left, top, right, bottom
-}
-
-impl TextLabel {
-    /// Ink color: black when selected, else the label's own.
-    pub fn ink_color(&self) -> [u8; 4] {
-        if self.object.is_some_and(|object| object.selected) {
-            [0, 0, 0, 255]
-        } else {
-            self.color
-        }
-    }
-}
 
 /// A label with its shaped glyphs.
 pub struct TextRun {
@@ -132,7 +57,7 @@ impl TextDocument {
         }
     }
 
-// --8<-- [start:scene-text-shaping]
+    // --8<-- [start:scene-text-shaping]
     /// Replace every label; unchanged text keeps its shaping.
     pub fn set_labels(&mut self, labels: Vec<TextLabel>) -> anyhow::Result<()> {
         let mut bytes = 0usize;
@@ -186,7 +111,7 @@ impl TextDocument {
         Ok(())
     }
 
-// --8<-- [end:scene-text-shaping]
+    // --8<-- [end:scene-text-shaping]
     /// Replace the fonts and reshape everything; bad data changes nothing.
     pub fn replace_fonts(&mut self, sources: Vec<Vec<u8>>) -> anyhow::Result<()> {
         let sources = sources

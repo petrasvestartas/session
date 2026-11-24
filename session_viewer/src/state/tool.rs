@@ -23,7 +23,7 @@ impl State {
         let mut draft = Draft::new(tool.name(), tool.name(), self.facing());
 
         // whole objects follow the cursor; a face, edge or control point commits without a preview
-        if crate::app::deform::Target::selected(&self.selection).is_none() {
+        if crate::app::deform::Target::selected(&self.selection.mode).is_none() {
             draft.group = self
                 .scene
                 .with_descendants(&rows)

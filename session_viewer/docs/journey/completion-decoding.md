@@ -13,8 +13,8 @@ Requires [7. Render kernel geometry](completion-geometry.md). Checkpoint `decodi
 
 | Added file | Role |
 | --- | --- |
-| [src/app/decode.rs](../../src/app/decode.rs) | `512 MiB` body cap, `1 MiB` JS window reader, `2,000,000`-object counter, `64`-deep iterative tree stack, graph/instance reconstruction and `Rc` GUID sharing. |
-| [src/app/validate.rs](../../src/app/validate.rs) | Wire-level varint/field bounds plus post-`prost` mesh-index, point-column and NURBS knot/weight invariants. |
+| [src/app/decode.rs](../../viewer-core/src/decode.rs) | `512 MiB` body cap, `1 MiB` JS window reader, `2,000,000`-object counter, `64`-deep iterative tree stack, graph/instance reconstruction and `Rc` GUID sharing. |
+| [src/app/validate.rs](../../viewer-core/src/validate.rs) | Wire-level varint/field bounds plus post-`prost` mesh-index, point-column and NURBS knot/weight invariants. |
 | [src/app/yielding.rs](../../src/app/yielding.rs) | Zero-delay `setTimeout` `Future` yielding to the browser on wasm so large decodes never freeze UI frames. |
 | [examples/course/decoding.rs](../../examples/course/decoding.rs) | Decodes `course-comparison.pb`, injects a malformed `0x80` varint on `E`, and recovers cleanly on `R`. |
 
@@ -31,7 +31,7 @@ npm --prefix ../session_tests run course -- checkpoint decoding ../session_viewe
 `src/app/decode.rs` reads `Body::Bytes` or windowed `1 MiB` `Body::Js` slices with checked offsets, enforces a `512 MiB` whole-file cap, counts at most `2,000,000` geometry records (`Rc`-shared between typed tables and GUID maps), and rebuilds the hierarchy on an explicit `Vec` stack capped at depth `64` plus bidirectional graph edges and local instance transforms.
 
 ```rust
---8<-- "session_viewer/src/app/decode.rs:21:45"
+--8<-- "session_viewer/viewer-core/src/decode.rs:21:45"
 ```
 
 ### Step 2: Validate wire varints and post-`prost` geometry invariants
@@ -39,7 +39,7 @@ npm --prefix ../session_tests run course -- checkpoint decoding ../session_viewe
 `src/app/validate.rs` checks complete varints (`validate::varint`) and enclosing message bounds (`Reader::field`) so unknown valid fields skip cleanly while truncated tags fail, then validates decoded `prost` mesh vertex indices, cloud column lengths and NURBS control/knot invariants before constructing `session_rust` objects.
 
 ```rust
---8<-- "session_viewer/src/app/validate.rs:4:15"
+--8<-- "session_viewer/viewer-core/src/validate.rs:4:15"
 ```
 
 ### Step 3: Yield to the browser event loop every 25,000 objects

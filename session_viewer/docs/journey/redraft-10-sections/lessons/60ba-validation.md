@@ -181,8 +181,8 @@ fn shape(fonts: &mut FontSystem, label: &TextLabel) -> Buffer {
         fonts,
         Metrics::new(label.font_size, label.line_height),
     );
-    buffer.set_size(fonts, None, None);
-    buffer.set_wrap(fonts, Wrap::None);
+    buffer.set_size(fonts, None, );
+    buffer.set_wrap(fonts, Wrap::);
     buffer.set_text(
         fonts,
         &label.text,

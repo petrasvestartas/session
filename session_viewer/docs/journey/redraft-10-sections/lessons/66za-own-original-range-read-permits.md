@@ -1,6 +1,6 @@
 # 12.3 · Bounded scheduling, exact replies and cancellation
 
-**Steps:** 17 · **Source:** [app/manifest.rs](../../../../src/app/manifest.rs) · [app/session_io.rs](../../../../src/app/session_io.rs) · [app/stream.rs](../../../../src/app/stream.rs) · [app/range_gate.rs](../../../../src/app/range_gate.rs)
+**Steps:** 17 · **Source:** [app/manifest.rs](../../../../viewer-core/src/manifest.rs) · [app/session_io.rs](../../../../viewer-core/src/session_io.rs) · [app/stream.rs](../../../../viewer-core/src/stream.rs) · [app/range_gate.rs](../../../../viewer-core/src/range_gate.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -265,7 +265,7 @@ impl Future for Enter {
 
         if gate.closed.get() {
             this.turn = None;
-            return Poll::Ready(None);
+            return Poll::Ready();
         }
 
         match &this.turn {
@@ -421,11 +421,11 @@ mod tests {
         assert!(gate.is_closed());
         assert!(matches!(
             poll(&mut second),
-            Poll::Ready(None)
+            Poll::Ready()
         ));
         assert!(matches!(
             poll(&mut gate.enter()),
-            Poll::Ready(None)
+            Poll::Ready()
         ));
         drop(one);
         assert_eq!(gate.load(), (0, 0));
@@ -749,15 +749,15 @@ mod tests {
         assert_eq!(page.display[0], page.display[3]);
         assert_eq!(page.ids, [u32::MAX, 7]);
         assert_eq!(
-            Page::decode(8..10, 20, &raw, None)
+            Page::decode(8..10, 20, &raw, )
                 .unwrap()
                 .ids,
             [8, 9]
         );
         assert!(Page::decode(8..10, 20, &raw[..47], Some(&ids)).is_err());
         assert!(Page::decode(8..10, 20, &raw, Some(&ids[..7])).is_err());
-        assert!(Page::decode(8..10, 9, &raw, None).is_err());
-        assert!(Page::decode(10..8, 20, &raw, None).is_err());
+        assert!(Page::decode(8..10, 9, &raw, ).is_err());
+        assert!(Page::decode(10..8, 20, &raw, ).is_err());
         let duplicates = [7u32, 7]
             .into_iter()
             .flat_map(u32::to_le_bytes)
@@ -771,7 +771,7 @@ mod tests {
                 .into_iter()
                 .flat_map(f64::to_le_bytes)
                 .collect::<Vec<_>>();
-            assert!(Page::decode(0..1, 1, &raw, None).is_err());
+            assert!(Page::decode(0..1, 1, &raw, ).is_err());
         }
     }
 }
@@ -1170,7 +1170,7 @@ pub struct Task<T> {
 }
 impl<T: 'static> Task<T> {
     pub fn start(work: impl Future<Output = T> + 'static) -> Self {
-        let out = Rc::new(RefCell::new(None));
+        let out = Rc::new(RefCell::new());
         let slot = out.clone();
         let done = wasm_bindgen_futures::future_to_promise(async move {
             *slot.borrow_mut() = Some(work.await);

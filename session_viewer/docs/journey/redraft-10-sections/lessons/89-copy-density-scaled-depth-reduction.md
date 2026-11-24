@@ -220,7 +220,7 @@ impl Image {
             .map(|i| {
                 u64::from(size[0] >> i)
                     * u64::from(size[1] >> i)
-                    * u64::from(format.block_copy_size(None).unwrap())
+                    * u64::from(format.block_copy_size().unwrap())
             })
             .sum();
         Self {
@@ -1093,7 +1093,7 @@ fn actual_pyramid_uses_six_nearest_positive_depth_levels_and_keeps_radius_addres
     let r = renderer(&scene);
     r.set_depth_pyramid(true);
     pixels(&r);
-    assert_eq!(r.depth_pyramid_error(), None);
+    assert_eq!(r.depth_pyramid_error(), );
     let owner = r.pyramid.borrow();
     let owner = owner.as_ref().unwrap();
     let linear = owner.linear().unwrap();

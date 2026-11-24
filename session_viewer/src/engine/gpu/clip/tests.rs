@@ -1,7 +1,7 @@
 use super::*;
 use crate::app::clipping::{Mode, clip_plane, plane_from};
 use crate::engine::gpu::Instance;
-use session_rust::{Point, Vector};
+use session_rust::{AABB, Point, Vector};
 
 /// A camera at `eye` looking at `target`, relative to `anchor`, in scene units; reverse depth.
 pub(super) fn view(eye: [f64; 3], target: [f64; 3], anchor: [f64; 3], perspective: bool) -> Xform {

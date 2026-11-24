@@ -1,6 +1,6 @@
 # 14.2 · Precise coordinates and original drawing drafts
 
-**Steps:** 20 · **Source:** [app/walk/sheet.rs](../../../../src/app/walk/sheet.rs) · [app/sheet_query.rs](../../../../src/app/sheet_query.rs) · [app/stream.rs](../../../../src/app/stream.rs) · [app/cplane.rs](../../../../src/app/cplane.rs)
+**Steps:** 20 · **Source:** [app/walk/sheet.rs](../../../../viewer-core/src/walk/sheet.rs) · [app/sheet_query.rs](../../../../viewer-core/src/sheet_query.rs) · [app/stream.rs](../../../../viewer-core/src/stream.rs) · [app/cplane.rs](../../../../viewer-core/src/cplane.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -402,12 +402,12 @@ mod tests {
     /// Words, extra parts and NaN are not coordinates.
     #[test]
     fn what_is_not_a_coordinate() {
-        assert_eq!(parse("line"), None);
-        assert_eq!(parse(""), None);
-        assert_eq!(parse("1,2,3,4"), None);
+        assert_eq!(parse("line"), );
+        assert_eq!(parse(""), );
+        assert_eq!(parse("1,2,3,4"), );
         assert_eq!(parse("@5"), None, "no direction");
-        assert_eq!(parse("nan"), None);
-        assert_eq!(parse("inf,0"), None);
+        assert_eq!(parse("nan"), );
+        assert_eq!(parse("inf,0"), );
     }
 
     /// Two numbers land on the plane, three in the world.
@@ -492,7 +492,7 @@ mod tests {
             )
             .is_none()
         );
-        assert!(resolve(parse("5").unwrap(), &o, &x, &y, None, None).is_none());
+        assert!(resolve(parse("5").unwrap(), &o, &x, &y, None, ).is_none());
         let prev = Point::new(1.0, 0.0, 0.0);
         assert!(
             resolve(
@@ -538,18 +538,18 @@ mod tests {
         let (_, x, y) = plane();
         let at = |text: &str, previous: Option<&Point>| {
             let (typed, world) = parse_world(text).unwrap();
-            let p = place(typed, world, &x, &y, previous, None).unwrap();
+            let p = place(typed, world, &x, &y, previous, ).unwrap();
             [p[0], p[1], p[2]]
         };
 
         // View mode: world, as before
-        set_plane(None);
+        set_plane();
         assert_eq!(
             absolute("1000,0,0"),
             Some([1000.0, 0.0, 0.0])
         );
         assert!(near(
-            at("1000,0,0", None),
+            at("1000,0,0", ),
             [1000.0, 0.0, 0.0]
         ));
 
@@ -568,9 +568,9 @@ mod tests {
             Some([1000.0, 0.0, 0.0]),
             "w is world"
         );
-        assert!(near(at("1000,0,0", None), [h, 0.0, h]));
+        assert!(near(at("1000,0,0", ), [h, 0.0, h]));
         assert!(near(
-            at("w1000,0,0", None),
+            at("w1000,0,0", ),
             [1000.0, 0.0, 0.0]
         ));
         let start = Point::new(h, 0.0, h);
@@ -595,7 +595,7 @@ mod tests {
                 [h, 0.0, h]
             ) && offset([1.0, 2.0, 3.0], true) == [1.0, 2.0, 3.0]
         );
-        set_plane(None);
+        set_plane();
     }
 }
 ```
@@ -707,7 +707,7 @@ pub fn on_plane(
     screen: [f32; 2],
     frame: CPlane,
 ) -> Option<[f64; 3]> {
-    on_at(camera, screen, frame, None)
+    on_at(camera, screen, frame, )
 }
 
 pub fn on_at(
@@ -1062,7 +1062,7 @@ impl Draft {
         self.points = points;
         self.cursor = None;
         self.snapped = None;
-        Ok(None)
+        Ok()
     }
 ```
 
@@ -1539,7 +1539,7 @@ pub fn choice(text: &str) -> Option<crate::editor::Action> {
             "xy" => Action::ConstructionPlane(Some(CPlane::Xy)),
             "xz" => Action::ConstructionPlane(Some(CPlane::Xz)),
             "yz" => Action::ConstructionPlane(Some(CPlane::Yz)),
-            "view" => Action::ConstructionPlane(None),
+            "view" => Action::ConstructionPlane(),
             "3point" => Action::Plane3,
             "cancel" | "escape" => Action::CancelTool,
             _ => return None,

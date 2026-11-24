@@ -1,6 +1,6 @@
 # 5.7 · Normals, placement and a depth-correct construction grid
 
-**Steps:** 8 · **Source:** [app/walk/curves.rs](../../../../src/app/walk/curves.rs) · [engine/gpu/segments.rs](../../../../src/engine/gpu/segments.rs) · [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl) · [shaders/vector.wgsl](../../../../src/shaders/vector.wgsl)
+**Steps:** 8 · **Source:** [app/walk/curves.rs](../../../../viewer-core/src/walk/curves.rs) · [engine/gpu/segments.rs](../../../../src/engine/gpu/segments.rs) · [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl) · [shaders/vector.wgsl](../../../../src/shaders/vector.wgsl)
 
 ## <a id="checkpoint-41-normals"></a>1. Retain checked source normals beside display positions
 
@@ -2882,7 +2882,7 @@ Replace it with:
                         "view grid on" => {
                             Action::Grid(Some(crate::grid::Settings::default()))
                         }
-                        "view grid off" => Action::Grid(None),
+                        "view grid off" => Action::Grid(),
                         "example sharp" => {
                             Action::AddNormals(crate::normal_example::Mode::Sharp)
                         }
@@ -2974,7 +2974,7 @@ fn grid_commands_preserve_source_history_camera_settings_and_viewport_lifetime()
     editor.apply(Action::Close).unwrap();
     assert!(weak.upgrade().is_none());
     assert_eq!(editor.camera.grid, before);
-    editor.apply(Action::Grid(None)).unwrap();
+    editor.apply(Action::Grid()).unwrap();
     assert!(editor.camera.grid.is_none());
 }
 ```

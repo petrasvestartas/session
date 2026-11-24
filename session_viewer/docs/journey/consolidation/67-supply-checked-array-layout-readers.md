@@ -1,6 +1,6 @@
 # 12.2 · Locate original arrays without downloading their bodies
 
-**Steps:** 10 · **Source:** [app/manifest.rs](../../../src/app/manifest.rs) · [app/session_io.rs](../../../src/app/session_io.rs) · [app/stream.rs](../../../src/app/stream.rs) · [app/range_gate.rs](../../../src/app/range_gate.rs)
+**Steps:** 10 · **Source:** [app/manifest.rs](../../../viewer-core/src/manifest.rs) · [app/session_io.rs](../../../viewer-core/src/session_io.rs) · [app/stream.rs](../../../viewer-core/src/stream.rs) · [app/range_gate.rs](../../../viewer-core/src/range_gate.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">

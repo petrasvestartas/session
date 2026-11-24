@@ -1,6 +1,6 @@
 # 21.4 · Reversed depth and homogeneous near clipping
 
-**Steps:** 3 · **Source:** [camera.rs](../../../../src/camera.rs) · [state.rs](../../../../src/state.rs) · [engine/gpu/objects.rs](../../../../src/engine/gpu/objects.rs) · [engine/gpu/frame.rs](../../../../src/engine/gpu/frame.rs)
+**Steps:** 3 · **Source:** [camera.rs](../../../../viewer-core/src/camera.rs) · [state.rs](../../../../src/state.rs) · [engine/gpu/objects.rs](../../../../src/engine/gpu/objects.rs) · [engine/gpu/frame.rs](../../../../src/engine/gpu/frame.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -1991,7 +1991,7 @@ Edit the existing block to match this code; keep unchanged lines:
                 );
             }
             let (cropped, _, _) = make(true);
-            gpu.set_scene(&cropped, None);
+            gpu.set_scene(&cropped, );
             assert_eq!(
                 red_pixels(&gpu, size),
                 pixels,

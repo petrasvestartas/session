@@ -1,6 +1,6 @@
 # 21.2 · Precise CPU queries and origin-stamped picks
 
-**Steps:** 7 · **Source:** [camera.rs](../../../../src/camera.rs) · [state.rs](../../../../src/state.rs) · [engine/gpu/objects.rs](../../../../src/engine/gpu/objects.rs) · [engine/gpu/frame.rs](../../../../src/engine/gpu/frame.rs)
+**Steps:** 7 · **Source:** [camera.rs](../../../../viewer-core/src/camera.rs) · [state.rs](../../../../src/state.rs) · [engine/gpu/objects.rs](../../../../src/engine/gpu/objects.rs) · [engine/gpu/frame.rs](../../../../src/engine/gpu/frame.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -308,16 +308,16 @@ fn cpu_screen_queries_keep_distant_pixels_and_original_clip_guards() {
         [anchor[0], anchor[1], anchor[2] + 1.5],
         [f64::NAN, 0., 0.],
     ] {
-        assert_eq!(view.point(point), None);
+        assert_eq!(view.point(point), );
     }
     view.size[0] = 0.;
-    assert_eq!(view.point(anchor), None);
+    assert_eq!(view.point(anchor), );
     view.size[0] = 200.;
     view.origin[0] = f64::NAN;
-    assert_eq!(view.point(anchor), None);
+    assert_eq!(view.point(anchor), );
     view.origin = anchor;
     view.matrix[15] = 0.;
-    assert_eq!(view.point(anchor), None);
+    assert_eq!(view.point(anchor), );
 }
 ```
 
@@ -620,14 +620,14 @@ Supply exact local/distant plane/billboard/anchor/nameplate polygons and unchang
 **Locate this existing block:**
 
 ```rust
-    assert_eq!(view.point(anchor), None);
+    assert_eq!(view.point(anchor), );
 }
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-    assert_eq!(view.point(anchor), None);
+    assert_eq!(view.point(anchor), );
 }
 
 #[test]
@@ -1695,7 +1695,7 @@ Supply actual local/distant widget pixels and camera scale at two densities/proj
 
 ```rust
     );
-    gpu.set_scene(&Scene::empty(), None);
+    gpu.set_scene(&Scene::empty(), );
     assert_eq!(gpu.usage(), [0; 4]);
 }
 ```
@@ -1704,7 +1704,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
     );
-    gpu.set_scene(&Scene::empty(), None);
+    gpu.set_scene(&Scene::empty(), );
     assert_eq!(gpu.usage(), [0; 4]);
 }
 
@@ -2136,7 +2136,7 @@ fn actual_origin_only_pick_views_discard_old_hits_and_restore_owners() {
             .to_proto(),
         source
     );
-    gpu.set_scene(&Scene::empty(), None);
+    gpu.set_scene(&Scene::empty(), );
     assert_eq!(gpu.usage(), [0; 4]);
 }
 ```
@@ -2344,8 +2344,8 @@ impl Renderer {
             full_text_fonts: Default::default(),
             presentation_text: Default::default(),
             scene_text: Default::default(),
-            text: std::cell::RefCell::new(None),
-            text_error: std::cell::RefCell::new(None),
+            text: std::cell::RefCell::new(),
+            text_error: std::cell::RefCell::new(),
             format,
             device,
             queue,
@@ -2390,7 +2390,7 @@ impl Renderer {
         renderer
             .highlight
             .enable_finite(&renderer.device, format);
-        renderer.set_scene(scene, None);
+        renderer.set_scene(scene, );
         renderer
     }
 
@@ -2491,7 +2491,7 @@ impl Renderer {
         self.picker.cancel();
         self.faces.clear();
         self.preview
-            .set(&self.device, None)
+            .set(&self.device, )
             .expect("Empty tool preview");
         self.highlight
             .set(
@@ -3521,8 +3521,8 @@ impl Renderer {
             full_text_fonts: Default::default(),
             presentation_text: Default::default(),
             scene_text: Default::default(),
-            text: std::cell::RefCell::new(None),
-            text_error: std::cell::RefCell::new(None),
+            text: std::cell::RefCell::new(),
+            text_error: std::cell::RefCell::new(),
             format,
             device,
             queue,
@@ -3568,7 +3568,7 @@ impl Renderer {
         renderer
             .highlight
             .enable_finite(&renderer.device, format);
-        renderer.set_scene(scene, None);
+        renderer.set_scene(scene, );
         renderer
     }
 
@@ -3669,7 +3669,7 @@ impl Renderer {
         self.cancel_pick();
         self.faces.clear();
         self.preview
-            .set(&self.device, None)
+            .set(&self.device, )
             .expect("Empty tool preview");
         self.highlight
             .set(
@@ -4619,7 +4619,7 @@ Retain old-origin rejection, fresh empty picks and restored-owner assertions whi
             .to_proto(),
         source
     );
-    gpu.set_scene(&Scene::empty(), None);
+    gpu.set_scene(&Scene::empty(), );
     assert_eq!(gpu.usage(), [0; 4]);
 ```
 
@@ -4681,7 +4681,7 @@ Edit the existing block to match this code; keep unchanged lines:
             .to_proto(),
         source
     );
-    gpu.set_scene(&Scene::empty(), None);
+    gpu.set_scene(&Scene::empty(), );
     assert_eq!(gpu.usage(), [0; 4]);
 }
 
@@ -4890,7 +4890,7 @@ fn actual_rebased_pending_cursor_stays_newest_and_cancellation_never_revives_it(
     assert!(gpu.take_pick(old).is_none());
     assert_eq!(&gpu.pick_usage()[..2], &[0, 0]);
     gpu.request_pick([-0.5, 0.], old).unwrap();
-    gpu.set_scene(&Scene::empty(), None);
+    gpu.set_scene(&Scene::empty(), );
     gpu.space
         .update([2000., 0., 0.], 3., 600.)
         .unwrap();
@@ -6106,13 +6106,13 @@ fn actual_origin_refresh_reuses_selected_face_geometry_and_original_ink() {
         original
     );
     drop(geometry);
-    gpu.set_highlight(&scene, None).unwrap();
+    gpu.set_highlight(&scene, ).unwrap();
     assert!(gpu.highlight.geometry_for_test().is_none());
     assert!(
         !gpu.highlight
             .rebase_face(&gpu.queue, gpu.anchor(), target)
     );
-    gpu.set_scene(&Scene::empty(), None);
+    gpu.set_scene(&Scene::empty(), );
     assert_eq!(gpu.usage(), [0; 4]);
 ```
 

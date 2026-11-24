@@ -1,6 +1,6 @@
 # 8.3 · Layers, visibility and source-preserving properties
 
-**Steps:** 23 · **Source:** [app/hierarchy.rs](../../../../src/app/hierarchy.rs) · [app/layers.rs](../../../../src/app/layers.rs) · [app/ui/layers.rs](../../../../src/app/ui/layers.rs) · [app/gesture/mod.rs](../../../../src/app/gesture/mod.rs)
+**Steps:** 23 · **Source:** [app/hierarchy.rs](../../../../viewer-core/src/hierarchy.rs) · [app/layers.rs](../../../../viewer-core/src/layers.rs) · [app/ui/layers.rs](../../../../src/app/ui/layers.rs) · [app/gesture/mod.rs](../../../../src/app/gesture/mod.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -894,7 +894,7 @@ Edit the existing block to match this code; keep unchanged lines:
             sources: Default::default(),
             pick_mode: Default::default(),
         };
-        renderer.set_scene(scene, None);
+        renderer.set_scene(scene, );
         renderer
     }
 
@@ -965,7 +965,7 @@ Edit the existing block to match this code; keep unchanged lines:
         self.picker.cancel();
         self.faces.clear();
         self.preview
-            .set(&self.device, None)
+            .set(&self.device, )
             .expect("Empty tool preview");
         self.highlight
             .set(
@@ -1559,7 +1559,7 @@ Edit the existing block to match this code; keep unchanged lines:
             sources: Default::default(),
             pick_mode: Default::default(),
         };
-        renderer.set_scene(scene, None);
+        renderer.set_scene(scene, );
         renderer
     }
 
@@ -1630,7 +1630,7 @@ Edit the existing block to match this code; keep unchanged lines:
         self.picker.cancel();
         self.faces.clear();
         self.preview
-            .set(&self.device, None)
+            .set(&self.device, )
             .expect("Empty tool preview");
         self.highlight
             .set(
@@ -2425,7 +2425,7 @@ Edit the existing block to match this code; keep unchanged lines:
     let mut locked = scene.objects[1].metadata.as_ref().clone();
     locked.is_locked = true;
     scene.objects[1].metadata = Rc::new(locked);
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
@@ -2433,7 +2433,7 @@ Edit the existing block to match this code; keep unchanged lines:
 ```rust
     );
     Rc::make_mut(&mut scene.view).lock(&[front], true);
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
 ```
 
 ## <a id="checkpoint-53c-presentation"></a>5. Use current visibility and colours in every derived pass
@@ -2931,19 +2931,19 @@ Edit the existing block to match this code; keep unchanged lines:
 **Locate this existing block:**
 
 ```rust
-    assert_eq!(scene.pick_id(front.value()), None);
+    assert_eq!(scene.pick_id(front.value()), );
     let mut hidden = scene.objects[1].metadata.as_ref().clone();
     hidden.is_visible = false;
     scene.objects[1].metadata = Rc::new(hidden);
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-    assert_eq!(scene.pick_id(front.value()), None);
+    assert_eq!(scene.pick_id(front.value()), );
     Rc::make_mut(&mut scene.view).hide(&[front], true);
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
 ```
 
 ## <a id="checkpoint-53d-hide-show"></a>6. Connect Hide Show and canvas Delete shortcuts
@@ -5644,7 +5644,7 @@ fn presentation_flags_clone_without_pinning_sources_or_mutating_other_snapshots(
     assert!(Rc::ptr_eq(&saved.view, &e.scene.view));
     Rc::make_mut(&mut e.scene.view).lock(&[id], true);
     assert!(!saved.view.locked.contains(&id));
-    assert_eq!(e.scene.pick_id(id.value()), None);
+    assert_eq!(e.scene.pick_id(id.value()), );
     let flags = Rc::clone(&e.scene.view);
     e.apply(Action::Close).unwrap();
     drop(saved);
@@ -6017,7 +6017,7 @@ fn deleting_a_populated_group_restores_descendants_and_readonly_ownership_on_und
     assert_eq!(key(&e, "Posts"), group);
     assert!(ids.iter().all(|id| e.scene.contains(*id)));
     assert!(e.scene.forest.readonly(child));
-    assert_eq!(e.scene.pick_id(child.value()), None);
+    assert_eq!(e.scene.pick_id(child.value()), );
     assert!(Rc::ptr_eq(
         e.scene.objects()[0].geometry().unwrap(),
         &source
@@ -6811,7 +6811,7 @@ fn actual_layer_colours_change_display_settings_without_editing_or_reuploading_o
     Rc::make_mut(&mut scene.view)
         .faces
         .insert(id, [0, 0, 255]);
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     let blue = colour_pixels(&mut renderer);
     assert_ne!(blue, before);
     let centre = (120 * 320 + 160) * 4;
@@ -6834,7 +6834,7 @@ fn actual_layer_colours_change_display_settings_without_editing_or_reuploading_o
     Rc::make_mut(&mut scene.view)
         .edges
         .insert(id, [0, 255, 0]);
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     let green_edges = colour_pixels(&mut renderer);
     let count = green_edges
         .chunks_exact(4)
@@ -6847,7 +6847,7 @@ fn actual_layer_colours_change_display_settings_without_editing_or_reuploading_o
     Rc::make_mut(&mut scene.view)
         .faces
         .remove(&id);
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     let restored_faces = colour_pixels(&mut renderer);
     assert_eq!(
         &restored_faces[centre..centre + 4],
@@ -6860,7 +6860,7 @@ fn actual_layer_colours_change_display_settings_without_editing_or_reuploading_o
     Rc::make_mut(&mut scene.view)
         .edges
         .remove(&id);
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     assert_eq!(colour_pixels(&mut renderer), before);
     assert!(Rc::ptr_eq(
         &source,

@@ -8,7 +8,7 @@
 Keep one source mesh while changing an object's placement, visibility and appearance through its row. This section owns the row contract needed by the later [stage scene adapter](../stage-scene.md). Prerequisites are buffer alignment, stable object identity, local bounds and camera-relative translation. The historical checkpoint below still needs reconciliation with this current layout; this explanation alone does not establish cumulative parity.
 
 ```rust
---8<-- "session_viewer/src/engine/gpu/instance/layout.rs:object-instance-layout"
+--8<-- "session_viewer/viewer-core/src/rows/instance.rs:object-instance-layout"
 ```
 
 The Rust storage row and the shared `Instance` in [scene.wgsl](../../../src/shaders/scene.wgsl) have the same 112-byte stride. Their fields are read by every scene lane, so adding an effect only in one shader would move the next object's address incorrectly.

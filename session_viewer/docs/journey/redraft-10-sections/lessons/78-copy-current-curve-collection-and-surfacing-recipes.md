@@ -1,6 +1,6 @@
 # 15.2 · Profile collection and one surfacing transaction
 
-**Steps:** 14 · **Source:** [app/deform.rs](../../../../src/app/deform.rs) · [state/edit.rs](../../../../src/state/edit.rs) · [app/command/tool/gather.rs](../../../../src/app/command/tool/gather.rs) · [app/command/tool/surfacing.rs](../../../../src/app/command/tool/surfacing.rs)
+**Steps:** 14 · **Source:** [app/deform.rs](../../../../viewer-core/src/deform.rs) · [state/edit.rs](../../../../src/state/edit.rs) · [app/command/tool/gather.rs](../../../../viewer-core/src/command/tool/gather.rs) · [app/command/tool/surfacing.rs](../../../../viewer-core/src/command/tool/surfacing.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -301,7 +301,7 @@ Edit the existing block to match this code; keep unchanged lines:
         if self.progress.done(self.recipe.steps) {
             (self.recipe.build)(&self.input()?).map(Some)
         } else {
-            Ok(None)
+            Ok()
         }
     }
     pub fn prompt(&self) -> String {
@@ -1870,7 +1870,7 @@ fn curve_picks_toggle_in_order_skip_locked_and_cancel_restores_initial_selection
     e.select_objects([], false);
     command(&mut e, "Extrude 1").unwrap();
     assert!(e.gathering_curves());
-    assert!(e.apply(Action::GatherPick(None)).is_err());
+    assert!(e.apply(Action::GatherPick()).is_err());
     e.apply(Action::GatherPick(Some(b))).unwrap();
     e.apply(Action::GatherPick(Some(a))).unwrap();
     assert_eq!(

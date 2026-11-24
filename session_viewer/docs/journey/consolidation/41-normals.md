@@ -1,6 +1,6 @@
 # 5.7 · Normals, placement and a depth-correct construction grid
 
-**Steps:** 8 · **Source:** [app/walk/curves.rs](../../../src/app/walk/curves.rs) · [engine/gpu/segments.rs](../../../src/engine/gpu/segments.rs) · [shaders/ribbon.wgsl](../../../src/shaders/ribbon.wgsl) · [shaders/vector.wgsl](../../../src/shaders/vector.wgsl)
+**Steps:** 8 · **Source:** [app/walk/curves.rs](../../../viewer-core/src/walk/curves.rs) · [engine/gpu/segments.rs](../../../src/engine/gpu/segments.rs) · [shaders/ribbon.wgsl](../../../src/shaders/ribbon.wgsl) · [shaders/vector.wgsl](../../../src/shaders/vector.wgsl)
 
 ## <a id="checkpoint-41-normals"></a>1. Retain checked source normals beside display positions
 

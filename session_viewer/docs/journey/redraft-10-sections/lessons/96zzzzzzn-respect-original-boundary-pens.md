@@ -746,7 +746,7 @@ fn authored_mesh_pens_retain_sparse_keys_colors_and_flat_face_queries() {
     Rc::make_mut(&mut scene.view)
         .edges
         .insert(owner, [255, 0, 255]);
-    gpu.set_scene(&scene, None);
+    gpu.set_scene(&scene, );
     let override_pixels = pixels_at(&gpu, c.uniform());
     assert!(
         span(
@@ -833,7 +833,7 @@ fn actual_surface_and_brep_boundary_widths_use_css_pens() {
             let mut widths = Vec::new();
             for (index, scene) in scenes.iter().enumerate() {
                 let original = archive(scene);
-                gpu.set_scene(scene, None);
+                gpu.set_scene(scene, );
                 let pixels = pixels_at(&gpu, matrix);
                 widths.push(span(&pixels, matrix, sample, true, |p| {
                     p[..3].iter().all(|v| *v < 64)
@@ -872,7 +872,7 @@ fn actual_surface_and_brep_boundary_widths_use_css_pens() {
 #[test]
 fn prepared_pens_survive_unload_and_shared_placement() {
     let mut document = Session::new("Original unload pens");
-    document.add_mesh(panel(7.), None);
+    document.add_mesh(panel(7.), );
     let bytes = document.to_proto().encode_to_vec();
     let mut editor = Editor::default();
     editor
@@ -917,7 +917,7 @@ fn prepared_pens_survive_unload_and_shared_placement() {
         &display,
         &editor.scene.objects()[0].mesh
     ));
-    gpu.set_scene(&editor.scene, None);
+    gpu.set_scene(&editor.scene, );
     assert_eq!(
         pixels_at(&gpu, matrix),
         before,
@@ -935,7 +935,7 @@ fn prepared_pens_survive_unload_and_shared_placement() {
             .unwrap()
     );
     assert_eq!(archive(&editor.scene), source);
-    gpu.set_scene(&editor.scene, None);
+    gpu.set_scene(&editor.scene, );
     assert_eq!(pixels_at(&gpu, matrix), before);
     assert_eq!(gpu.stats()[0], uploads);
     let mesh = panel(7.);
@@ -995,10 +995,10 @@ fn prepared_pens_survive_unload_and_shared_placement() {
             &Xform::translation(100., 150., 0.) * &placement,
         )
         .unwrap();
-    gpu.set_scene(&scene, None);
+    gpu.set_scene(&scene, );
     assert_ne!(pixels_at(&gpu, matrix), before);
     scene.place(ids[0], placement).unwrap();
-    gpu.set_scene(&scene, None);
+    gpu.set_scene(&scene, );
     assert_eq!(pixels_at(&gpu, matrix), before);
     assert_eq!(gpu.stats()[0], uploads);
     assert_eq!(archive(&scene), initial);
@@ -1084,7 +1084,7 @@ fn printed_and_dense_originals_keep_faces_without_decoration() {
             .is_empty()
     );
     assert!(scene.objects()[0].mesh.parts.pens.is_empty());
-    gpu.set_scene(&scene, None);
+    gpu.set_scene(&scene, );
     let pixels = pixels_at(&gpu, matrix);
     assert_eq!(
         at(&pixels, matrix, [0., 0., 0.]),
@@ -1931,7 +1931,7 @@ fn original_end_on_and_near_cut_lines_share_color_and_pick_coverage() {
 #[test]
 fn round_caps_keep_legacy_fallback_source_release_and_shared_geometry() {
     let mut document = Session::new("Original round caps");
-    document.add_mesh(panel(), None);
+    document.add_mesh(panel(), );
     let mut editor = crate::editor::Editor::default();
     editor
         .apply(crate::editor::Action::ReplaceAt(
@@ -1960,10 +1960,10 @@ fn round_caps_keep_legacy_fallback_source_release_and_shared_geometry() {
             &Xform::translation(100., 0., 0.) * &placement,
         )
         .unwrap();
-    gpu.set_scene(&editor.scene, None);
+    gpu.set_scene(&editor.scene, );
     assert_ne!(pixels_at(&gpu, m), before);
     editor.scene.place(owner, placement).unwrap();
-    gpu.set_scene(&editor.scene, None);
+    gpu.set_scene(&editor.scene, );
     assert!(pixels_at(&gpu, m) == before);
     assert_eq!(gpu.stats()[0], uploads);
     assert_eq!(source(&editor.scene), original);
@@ -1981,7 +1981,7 @@ fn round_caps_keep_legacy_fallback_source_release_and_shared_geometry() {
         &display,
         &editor.scene.objects()[0].mesh
     ));
-    gpu.set_scene(&editor.scene, None);
+    gpu.set_scene(&editor.scene, );
     assert!(pixels_at(&gpu, m) == before);
     assert_eq!(gpu.stats()[0], uploads);
     let mesh = panel();
@@ -2133,7 +2133,7 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 ```rust
             }
             let (cropped, _, _) = make(true);
-            gpu.set_scene(&cropped, None);
+            gpu.set_scene(&cropped, );
             assert_eq!(
                 red_pixels(&gpu, size),
                 pixels,
@@ -2147,7 +2147,7 @@ Replace it with:
 ```rust
             }
             let (cropped, _, _) = make(true);
-            gpu.set_scene(&cropped, None);
+            gpu.set_scene(&cropped, );
             if kind == 1 {
                 assert_eq!(
                     red_pixels(&gpu, size),
@@ -3004,7 +3004,7 @@ fn source_widths_coplanar_vertices_and_other_families_control_default_dots() {
                 .dot_colours
                 .is_empty()
         );
-        g.set_scene(&s, None);
+        g.set_scene(&s, );
         assert_eq!(g.point_usage()[0], 0);
         let before = source(&s);
         let image = pixels_at(&g, m);
@@ -3038,7 +3038,7 @@ fn source_widths_coplanar_vertices_and_other_families_control_default_dots() {
         5,
         "A source vertex on nonzero coplanar edges remains a maintained dot even when its seam ink is omitted"
     );
-    g.set_scene(&s, None);
+    g.set_scene(&s, );
     let image = pixels_at(&g, m);
     assert_eq!(at(&image, 160, 120), [26, 26, 26, 255]);
     assert_eq!(source(&s), original);
@@ -3064,7 +3064,7 @@ fn source_widths_coplanar_vertices_and_other_families_control_default_dots() {
                 .unwrap();
             }
         }
-        g.set_scene(&s, None);
+        g.set_scene(&s, );
         pixels_at(&g, m);
         assert_eq!(
             g.point_usage()[0],
@@ -3077,7 +3077,7 @@ fn source_widths_coplanar_vertices_and_other_families_control_default_dots() {
 #[test]
 fn prepared_marker_addresses_survive_source_unload_and_shared_placement() {
     let mut doc = Session::new("Original marker source");
-    doc.add_mesh(panel(), None);
+    doc.add_mesh(panel(), );
     let bytes = doc.to_proto().encode_to_vec();
     let mut e = crate::editor::Editor::default();
     e.apply(crate::editor::Action::ReplaceAt(
@@ -3103,10 +3103,10 @@ fn prepared_marker_addresses_survive_source_unload_and_shared_placement() {
             &Xform::translation(100., 0., 0.) * &old,
         )
         .unwrap();
-    g.set_scene(&e.scene, None);
+    g.set_scene(&e.scene, );
     assert!(pixels_at(&g, m) != before);
     e.scene.place(owner, old).unwrap();
-    g.set_scene(&e.scene, None);
+    g.set_scene(&e.scene, );
     assert!(pixels_at(&g, m) == before);
     assert_eq!(g.stats()[0], uploads);
     assert_eq!(source(&e.scene), original);
@@ -3117,7 +3117,7 @@ fn prepared_marker_addresses_survive_source_unload_and_shared_placement() {
         &display,
         &e.scene.objects()[0].mesh
     ));
-    g.set_scene(&e.scene, None);
+    g.set_scene(&e.scene, );
     assert!(pixels_at(&g, m) == before);
     assert_eq!(g.point_usage()[0], 4);
     assert_eq!(g.stats()[0], uploads);
@@ -3144,7 +3144,7 @@ fn prepared_marker_addresses_survive_source_unload_and_shared_placement() {
             y: [0., 1., 0.],
         });
         let now = 1000. + index as f64 * 1000.;
-        g.set_scene(&e.scene, None);
+        g.set_scene(&e.scene, );
         g.prepare_origin(&c, &e.scene, None, &[], now)
             .unwrap();
         let near = g.camera_matrix(&c);
@@ -3158,7 +3158,7 @@ fn prepared_marker_addresses_survive_source_unload_and_shared_placement() {
             1_000_000_000.,
         ];
         far.translate(owner, anchor).unwrap();
-        g.set_scene(&far, None);
+        g.set_scene(&far, );
         c.target = anchor;
         c.grid_plane = Some(crate::cplane::CPlane::Frame {
             origin: anchor,
@@ -3235,7 +3235,7 @@ fn prepared_marker_addresses_survive_source_unload_and_shared_placement() {
         &s.objects()[1].mesh
     ));
     let original = source(&s);
-    g.set_scene(&s, None);
+    g.set_scene(&s, );
     assert_eq!(g.point_usage()[0], 8);
     let mut c = camera();
     c.distance = 6000.;
@@ -3317,7 +3317,7 @@ Extend the existing real 200000-triangle budget case without duplicating its den
 
 ```rust
     assert!(scene.objects()[0].mesh.parts.pens.is_empty());
-    gpu.set_scene(&scene, None);
+    gpu.set_scene(&scene, );
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
@@ -3332,7 +3332,7 @@ Edit the existing block to match this code; keep unchanged lines:
             .dot_colours
             .is_empty()
     );
-    gpu.set_scene(&scene, None);
+    gpu.set_scene(&scene, );
 ```
 
 ### 10. `src/global_outline_tests.rs`
@@ -3346,7 +3346,7 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 ```rust
     let mut far = scene.clone();
     far.translate(owner, anchor).unwrap();
-    gpu.set_scene(&far, None);
+    gpu.set_scene(&far, );
     gpu.mesh_ink
         .set(&gpu.device, std::iter::empty())
         .unwrap();
@@ -3357,7 +3357,7 @@ Replace it with:
 ```rust
     let mut far = scene.clone();
     far.translate(owner, anchor).unwrap();
-    gpu.set_scene(&far, None);
+    gpu.set_scene(&far, );
     gpu.mesh_ink
         .set(&gpu.device, std::iter::empty())
         .unwrap();
@@ -4152,7 +4152,7 @@ fn original_points_and_active_controls_keep_their_positive_css_sizes() {
     box_mesh.set_objectcolor(Color::new(0.2, 0.4, 0.6, 1.));
     box_mesh.set_linecolors(vec![], [vec![41.; 4], vec![1.; 8]].concat());
     let s = scene(box_mesh);
-    g.set_scene(&s, None);
+    g.set_scene(&s, );
     c.projection = crate::camera::Projection::Perspective;
     let m = c.uniform();
     let edge = projected(m, [-900., 0., 100.]);
@@ -4172,7 +4172,7 @@ fn original_points_and_active_controls_keep_their_positive_css_sizes() {
 fn spacing_survives_source_release_shared_placement_and_camera_updates() {
     let mesh = grid(16);
     let mut document = Session::new("Shared density source");
-    document.add_mesh(mesh, None);
+    document.add_mesh(mesh, );
     let bytes = document.to_proto().encode_to_vec();
     let mut e = crate::editor::Editor::default();
     e.apply(crate::editor::Action::ReplaceAt(
@@ -4210,7 +4210,7 @@ fn spacing_survives_source_release_shared_placement_and_camera_updates() {
         &display,
         &e.scene.objects()[0].mesh
     ));
-    g.set_scene(&e.scene, None);
+    g.set_scene(&e.scene, );
     assert!(pixels_at(&g, m) == before);
     assert_eq!(g.stats()[0], uploads);
     let keys = e.reload_keys();
@@ -4262,7 +4262,7 @@ fn spacing_survives_source_release_shared_placement_and_camera_updates() {
         s.objects()[1].mesh.spacing
     );
     let original = source(&s);
-    g.set_scene(&s, None);
+    g.set_scene(&s, );
     c.distance = 6000.;
     c.radius = 3000.;
     let m = matrix(&c);
@@ -4274,10 +4274,10 @@ fn spacing_survives_source_release_shared_placement_and_camera_updates() {
         &Xform::translation(100., 0., 0.) * &place,
     )
     .unwrap();
-    g.set_scene(&s, None);
+    g.set_scene(&s, );
     assert!(pixels_at(&g, m) != before);
     s.place(s.objects()[0].id, place).unwrap();
-    g.set_scene(&s, None);
+    g.set_scene(&s, );
     assert!(pixels_at(&g, m) == before);
     assert_eq!(g.stats()[0], uploads);
     assert_eq!(source(&s), original);

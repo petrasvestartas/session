@@ -19,7 +19,7 @@ Chapter `9.7` of [9. Run the application](completion-application.md) (`applicati
 - `src/app/walk/cloud/stream.rs` appends streamed position, colour (black-padded when absent) and complete normal slices into GPU chunks, installing the octree table once on the first slice while preserving `(source_offset, gpu_offset)`.
 
 ```rust
---8<-- "session_viewer/src/app/stream.rs:1:33"
+--8<-- "session_viewer/viewer-core/src/stream.rs:1:33"
 ```
 
 ```rust
@@ -32,7 +32,7 @@ Chapter `9.7` of [9. Run the application](completion-application.md) (`applicati
 - `src/app/sheet_query.rs` validates the `SHM1` side-table header, fixed-width `(offset, len)` directory and bounded UTF-8 JSON payloads pinned to the table's `ETag` revision.
 
 ```rust
---8<-- "session_viewer/src/app/sheet_query.rs:5:34"
+--8<-- "session_viewer/viewer-core/src/sheet_query.rs:5:34"
 ```
 
 ### Step 3: Live `EventSource` notifications and atomic `ETag` swaps

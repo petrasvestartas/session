@@ -74,7 +74,7 @@ pub fn publish(state: &State) {
         "selected_group_count": state.selected_group_count(), // register:panel
         "hidden_count": state.scene.hidden.len(),
         "identity": identity,
-        "selection": state.selection,
+        "selection": state.selection.mode,
         "controls": state.inspected_controls(),
         "sheet_entity": sheet_entity(state), // register:sheets
         "markers": state.gpu.controls.dot_count(),
@@ -209,7 +209,7 @@ fn selected_identity(state: &State) -> Option<(usize, String)> {
 /// Every drawn text label, as JSON.
 #[cfg(target_arch = "wasm32")]
 fn text_labels(state: &State) -> Vec<serde_json::Value> {
-    use crate::engine::text::TextPlacement;
+    use crate::rows::TextPlacement;
     let mut labels = Vec::new();
 
     for run in &state.gpu.text.document.runs {

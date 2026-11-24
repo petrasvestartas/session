@@ -20,37 +20,37 @@ npm --prefix ../session_tests run course -- checkpoint geometry ../session_viewe
 
 | File | Specification |
 | --- | --- |
-| [src/app/walk/mod.rs](../../src/app/walk/mod.rs) | Splits mutable `Upload` borrows via `Walk::solid` and threads `WalkCx` (`row`, `cloud_px`, `arrowhead_pens` override) so converters append faces, edges and dots without cloning tables. |
-| [src/app/walk/encode.rs](../../src/app/walk/encode.rs) | Packs RGBA bytes, maps explicit pixel widths to negative half-widths, and quantizes octahedral normals while reserving `0xffffffff` for unknown facing. |
-| [src/app/walk/points.rs](../../src/app/walk/points.rs) | Appends one signed-distance dot per `Point` (`-3 px` default radius) while keeping scene bounds restricted to the world point centre. |
-| [src/app/walk/bounds.rs](../../src/app/walk/bounds.rs) | Records pre-append `Baselines`, unions live placed bounds in `file_extent`, and flags `z < 0.001` planar batches as `0.5`-unit drawing sheets. |
-| [src/app/interactions.rs](../../src/app/interactions.rs) | Separates contact, joint, cut and drill edge interactions from owned element features in deterministic graph-edge creation order. |
-| [src/app/walk/mesh_topology.rs](../../src/app/walk/mesh_topology.rs) | Maps vertex keys to dense or hash slots, computes Newell polygon normals, and pairs shared edges with hole rings oriented against outer borders. |
-| [src/app/walk/mesh.rs](../../src/app/walk/mesh.rs) | Applies `MeshOpts` (ordinary, smooth sampled, or closed element), estimates spacing from `diag / sqrt(V)`, and drops raw wireframe above `200,000` triangles. |
-| [src/app/walk/mesh_ink.rs](../../src/app/walk/mesh_ink.rs) | Suppresses coplanar diagonals, retains borders and creases above `25°`, marks smooth silhouette seams, and switches wireframes above `10,000` edges to black. |
-| [src/app/knobs.rs](../../src/app/knobs.rs) | Latches diagnostic `VIEWER_*` environment switches once via `OnceLock` for profiling, edge/dot suppression, coplanar edges and BRep refinement. |
-| [src/app/walk/brep.rs](../../src/app/walk/brep.rs) | Reuses congruent shapes or requests per-face display meshes, retains `(u, v)` samples and face IDs, and sets smooth/open/closed row flags without mutating the BRep. |
-| [src/app/walk/brep_orient.rs](../../src/app/walk/brep_orient.rs) | Traverses shared-edge BFS components on closed shells and flips connected components by signed volume so solid normals point outward reproducibly. |
-| [src/app/walk/brep_edges.rs](../../src/app/walk/brep_edges.rs) | Evaluates exact `3D` trim/seam curves, unwraps closed seams, and stores each chord's geometric sag above its facet so curved ink stays visible without global depth bias. |
-| [src/app/walk/brep_shapes.rs](../../src/app/walk/brep_shapes.rs) | Scopes thread-local `SharedWalks` to one document walk so congruent shapes replay recorded vertex/edge ranges under distinct placed object rows. |
-| [src/app/walk/display.rs](../../src/app/walk/display.rs) | Quantizes `Quality::for_error` in half-octave steps and subdivides knot spans up to depth `16` and `4,096` segments with a drop-guarded candidate state. |
-| [src/app/walk/display_features.rs](../../src/app/walk/display_features.rs) | Caps element annotations at `256` features and `4,096` finite points, copying lean display polylines so hidden kernel caches are not retained. |
+| [src/app/walk/mod.rs](../../viewer-core/src/walk/mod.rs) | Splits mutable `Upload` borrows via `Walk::solid` and threads `WalkCx` (`row`, `cloud_px`, `arrowhead_pens` override) so converters append faces, edges and dots without cloning tables. |
+| [src/app/walk/encode.rs](../../viewer-core/src/walk/encode.rs) | Packs RGBA bytes, maps explicit pixel widths to negative half-widths, and quantizes octahedral normals while reserving `0xffffffff` for unknown facing. |
+| [src/app/walk/points.rs](../../viewer-core/src/walk/points.rs) | Appends one signed-distance dot per `Point` (`-3 px` default radius) while keeping scene bounds restricted to the world point centre. |
+| [src/app/walk/bounds.rs](../../viewer-core/src/walk/bounds.rs) | Records pre-append `Baselines`, unions live placed bounds in `file_extent`, and flags `z < 0.001` planar batches as `0.5`-unit drawing sheets. |
+| [src/app/interactions.rs](../../viewer-core/src/interactions.rs) | Separates contact, joint, cut and drill edge interactions from owned element features in deterministic graph-edge creation order. |
+| [src/app/walk/mesh_topology.rs](../../viewer-core/src/walk/mesh_topology.rs) | Maps vertex keys to dense or hash slots, computes Newell polygon normals, and pairs shared edges with hole rings oriented against outer borders. |
+| [src/app/walk/mesh.rs](../../viewer-core/src/walk/mesh.rs) | Applies `MeshOpts` (ordinary, smooth sampled, or closed element), estimates spacing from `diag / sqrt(V)`, and drops raw wireframe above `200,000` triangles. |
+| [src/app/walk/mesh_ink.rs](../../viewer-core/src/walk/mesh_ink.rs) | Suppresses coplanar diagonals, retains borders and creases above `25°`, marks smooth silhouette seams, and switches wireframes above `10,000` edges to black. |
+| [src/app/knobs.rs](../../viewer-core/src/knobs.rs) | Latches diagnostic `VIEWER_*` environment switches once via `OnceLock` for profiling, edge/dot suppression, coplanar edges and BRep refinement. |
+| [src/app/walk/brep.rs](../../viewer-core/src/walk/brep.rs) | Reuses congruent shapes or requests per-face display meshes, retains `(u, v)` samples and face IDs, and sets smooth/open/closed row flags without mutating the BRep. |
+| [src/app/walk/brep_orient.rs](../../viewer-core/src/walk/brep_orient.rs) | Traverses shared-edge BFS components on closed shells and flips connected components by signed volume so solid normals point outward reproducibly. |
+| [src/app/walk/brep_edges.rs](../../viewer-core/src/walk/brep_edges.rs) | Evaluates exact `3D` trim/seam curves, unwraps closed seams, and stores each chord's geometric sag above its facet so curved ink stays visible without global depth bias. |
+| [src/app/walk/brep_shapes.rs](../../viewer-core/src/walk/brep_shapes.rs) | Scopes thread-local `SharedWalks` to one document walk so congruent shapes replay recorded vertex/edge ranges under distinct placed object rows. |
+| [src/app/walk/display.rs](../../viewer-core/src/walk/display.rs) | Quantizes `Quality::for_error` in half-octave steps and subdivides knot spans up to depth `16` and `4,096` segments with a drop-guarded candidate state. |
+| [src/app/walk/display_features.rs](../../viewer-core/src/walk/display_features.rs) | Caps element annotations at `256` features and `4,096` finite points, copying lean display polylines so hidden kernel caches are not retained. |
 
-`src/engine/pipelines/geometry.rs` binds `GpuVertex` (`20 B` stride: `pos: [f32; 3]`, `oct32` normal `u32`, `rgba8` `u32`) to arena pipelines and includes the adapter-gated lazy-compilation test verifying `1×`/`4×` MSAA target reuse without redundant shader builds.
+`src/engine/pipelines/geometry.rs` binds `GpuVertex` (`20 B` stride: `pos: [f32; 3]`, `oct32` normal `u32`, `rgba8` `u32`) to arena pipelines and includes the adapter-gated lazy-compilation test verifying `1×`/`4×` MSAA target reuse without redundant shader builds, while `src/engine/gpu/sink.rs` implements `viewer_core::GpuSink` on `Gpu` so `Scene` flushes staged uploads, patches and compactions without depending on `wgpu`.
 
 | File | Specification |
 | --- | --- |
 | [src/engine/gpu/context.rs](../../src/engine/gpu/context.rs) | Owns `Gpu` (`device`, `queue`, `Targets`, `ObjectRows`, fixed/registered `Lane`s via `lane_list!`, `Pass`es, `Picker` and `PassTimer`). |
 | [src/engine/gpu/upload.rs](../../src/engine/gpu/upload.rs) | Stages CPU lane vectors, rebases vertex indices and valid face IDs on merge, and frees host vectors via `drop_uploaded` after GPU transfer. |
-| [src/engine/gpu/upload_padding.rs](../../src/engine/gpu/upload_padding.rs) | Pads editable preview uploads by ~`50%` whole-triangle spare capacity routed to the hidden sink row so in-place drag edits avoid reallocating later objects. |
+| [src/engine/gpu/upload_padding.rs](../../viewer-core/src/rows/upload.rs) | Pads editable preview uploads by ~`50%` whole-triangle spare capacity routed to the hidden sink row so in-place drag edits avoid reallocating later objects. |
 | [src/engine/gpu/arena.rs](../../src/engine/gpu/arena.rs) | Packs vertices into `20 B` (`xyz` `f32`, octahedral normal `u32`, RGBA `u32`) with separate ordinary, printed-fill and text-outline index streams. |
 | [src/engine/gpu/faces.rs](../../src/engine/gpu/faces.rs) | Maps drawn triangles to source faces and binds physical, opaque, clipped, object-ID, face-pick, highlight and mask pipelines. |
 | [src/engine/gpu/slots.rs](../../src/engine/gpu/slots.rs) | Maps shared definition meshes to placed instances via `8 B` `(object_row, tri_id_base)` entries (`slot 0 = OWN_ROW`) and a `1024`-wide lookup texture. |
 | [src/shaders/slot_table.wgsl](../../src/shaders/slot_table.wgsl) | Binary-searches `placed_triangle` across the `1024`-texel slot texture so shared definition triangles resolve to each instance's own row and unique triangle ID. |
 | [src/engine/gpu/instanced.rs](../../src/engine/gpu/instanced.rs) | Synchronizes face/stroke instance draw ranges and slot buffers after arena growth, invalidating projected triangle tile lists on change. |
-| [src/engine/gpu/patch.rs](../../src/engine/gpu/patch.rs) | Tracks per-lane `Counts` and `Span` offsets (including CPU source-ID mirrors) so edits test in-place fit across all lanes simultaneously. |
+| [src/engine/gpu/patch.rs](../../viewer-core/src/rows/patch.rs) | Tracks per-lane `Counts` and `Span` offsets (including CPU source-ID mirrors) so edits test in-place fit across all lanes simultaneously. |
 | [src/engine/gpu/objects/lane.rs](../../src/engine/gpu/objects/lane.rs) | Adapts `ObjectRows` to the `Lane` reset, release and byte-accounting contract alongside geometry lanes. |
-| [src/engine/gpu/hull/upload.rs](../../src/engine/gpu/hull/upload.rs) | Extracts reduced `hull_of` extreme points across arena vertices, strokes and markers, rejecting incomplete hulls that fail to span the declared box. |
+| [src/engine/gpu/hull/upload.rs](../../viewer-core/src/rows/hull.rs) | Extracts reduced `hull_of` extreme points across arena vertices, strokes and markers, rejecting incomplete hulls that fail to span the declared box. |
 | [src/engine/gpu/frame.rs](../../src/engine/gpu/frame.rs) | Packs `FrameInput`, `FrameCx` and the checked `80 B` `LineUniform`, installing `@group(0..2)` bindings via `Binds::set`. |
 | [src/engine/gpu/view.rs](../../src/engine/gpu/view.rs) | Stores view flags (`0.95` desktop face opacity, `1.0` coarse-pointer default, Arctic auto-outlines, and DPR cap `<= 2`). |
 | [src/engine/gpu/targets.rs](../../src/engine/gpu/targets.rs) | Allocates reverse-Z depth, optional `4×` MSAA colour, `2×u16` triangle-ID attachments and `1×1` sample-type-matched placeholders. |
@@ -72,15 +72,15 @@ npm --prefix ../session_tests run course -- checkpoint geometry ../session_viewe
 | --- | --- |
 | [src/engine/gpu/segments.rs](../../src/engine/gpu/segments.rs) | Expands `40 B` CPU segments into `72 B` `StrokeSegment` records across pipe, ribbon and sheet tables while keeping source entity intervals separate from GPU offsets. |
 | [src/shaders/ribbon.wgsl](../../src/shaders/ribbon.wgsl) | Extrudes `6`-vertex screen-space quads with neighbour miter planes (`join_plane`), `HEAD_ASPECT = 0.30` arrowhead trims, cumulative dash phase, per-segment `reveal` and sag-bit silhouette tests. |
-| [src/app/walk/sheet.rs](../../src/app/walk/sheet.rs) | Walks flat `6`-float segment slices into the dedicated sheet lane with scene-unit half-widths and preserved `(source_offset, gpu_row)` spans. |
-| [src/app/walk/curves.rs](../../src/app/walk/curves.rs) | Emits chained polyline/NURBS segments with cumulative arc-length dash offsets, `arrowhead_pens`-scaled terminal `VectorRow`s landing on exact endpoints, and marker-aware trims. |
+| [src/app/walk/sheet.rs](../../viewer-core/src/walk/sheet.rs) | Walks flat `6`-float segment slices into the dedicated sheet lane with scene-unit half-widths and preserved `(source_offset, gpu_row)` spans. |
+| [src/app/walk/curves.rs](../../viewer-core/src/walk/curves.rs) | Emits chained polyline/NURBS segments with cumulative arc-length dash offsets, `arrowhead_pens`-scaled terminal `VectorRow`s landing on exact endpoints, and marker-aware trims. |
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/segments.rs:stroke-row-layout"
 ```
 
 ```rust
---8<-- "session_viewer/src/app/walk/curves.rs:curve-heads"
+--8<-- "session_viewer/viewer-core/src/walk/curves.rs:curve-heads"
 ```
 
 1. **`src/shaders/ribbon.wgsl`** reads each `72 B` `StrokeSegment`, tests adjacent face normals (`edge_faces_camera`), and bisects consecutive screen directions in `join_plane` so chained curve segments meet at clean mitered corners without overlapping alpha:
@@ -109,8 +109,8 @@ npm --prefix ../session_tests run course -- checkpoint geometry ../session_viewe
 
 | File | Specification |
 | --- | --- |
-| [src/app/walk/plane.rs](../../src/app/walk/plane.rs) | Emits `48 B` `Plane` frame rows (`12`-edge ribbons for `OBB`s) and separates clipping-plane rectangles + cut arrows from orientation grids, triggering solid-mesh verification on first cut. |
-| [src/app/walk/frames.rs](../../src/app/walk/frames.rs) | Converts coordinate frames and vectors into compact `48 B` plane and `64 B` `VectorRow` GPU records instead of tessellated arrow meshes. |
+| [src/app/walk/plane.rs](../../viewer-core/src/walk/plane.rs) | Emits `48 B` `Plane` frame rows (`12`-edge ribbons for `OBB`s) and separates clipping-plane rectangles + cut arrows from orientation grids, triggering solid-mesh verification on first cut. |
+| [src/app/walk/frames.rs](../../viewer-core/src/walk/frames.rs) | Converts coordinate frames and vectors into compact `48 B` plane and `64 B` `VectorRow` GPU records instead of tessellated arrow meshes. |
 | [src/engine/gpu/planes.rs](../../src/engine/gpu/planes.rs) | Registers `PlaneLane` (`48 B` stride, `1` instanced draw -> `22` grid lines + `3` axis arrows) with atomic `f64` global plane-size scaling. |
 | [src/shaders/plane.wgsl](../../src/shaders/plane.wgsl) | Synthesizes the `10×10` grid with depth-tested shafts and overlay RGB `XYZ` end-headed arrows directly from vertex indices. |
 | [src/engine/gpu/vectors.rs](../../src/engine/gpu/vectors.rs) | Registers `VectorLane` (`64 B` `VectorRow` stride, `18` generated vertices per arrow) with matching colour and object-ID pipelines. |
@@ -164,8 +164,8 @@ npm --prefix ../session_tests run course -- checkpoint geometry ../session_viewe
 
 | File | Specification |
 | --- | --- |
-| [src/app/walk/cloud.rs](../../src/app/walk/cloud.rs) | Declares the additive module boundary re-exporting `walk_cloud` now and registering `stream.rs` in checkpoint `application`. |
-| [src/app/walk/cloud/resident.rs](../../src/app/walk/cloud/resident.rs) | Packs kernel `PointCloud` positions, colours and complete normal arrays (`NO_NORMALS` when absent) with file-level `point_size` override. |
+| [src/app/walk/cloud.rs](../../viewer-core/src/walk/cloud.rs) | Declares the additive module boundary re-exporting `walk_cloud` now and registering `stream.rs` in checkpoint `application`. |
+| [src/app/walk/cloud/resident.rs](../../viewer-core/src/walk/cloud/resident.rs) | Packs kernel `PointCloud` positions, colours and complete normal arrays (`NO_NORMALS` when absent) with file-level `point_size` override. |
 | [src/engine/gpu/cloud.rs](../../src/engine/gpu/cloud.rs) | Maps source point intervals to GPU `Chunk` offsets (`row_of` -> `None` when non-resident) with independent octree and normal bases. |
 | [src/engine/gpu/lod.rs](../../src/engine/gpu/lod.rs) | Traverses resident octree nodes against projected pixel spacing, camera distance and scale, clamping selected spans to uploaded residency. |
 | [src/engine/gpu/splat.rs](../../src/engine/gpu/splat.rs) | Emits `160 B` (`40`-word) splat draw records cached by camera/LOD/revision key into dedicated `1×` colour and reverse-Z depth targets. |
@@ -205,7 +205,7 @@ npm --prefix ../session_tests run course -- checkpoint geometry ../session_viewe
 
 | File | Specification |
 | --- | --- |
-| [src/app/gizmo.rs](../../src/app/gizmo.rs) | Computes `3`-axis arrow, quarter-ring arc and scale-ball `Xform` deltas from ray-axis closest points, plane angles (`90°` snap) and pivot reach. |
+| [src/app/gizmo.rs](../../viewer-core/src/gizmo.rs) | Computes `3`-axis arrow, quarter-ring arc and scale-ball `Xform` deltas from ray-axis closest points, plane angles (`90°` snap) and pivot reach. |
 | [src/engine/gpu/widget_mesh.rs](../../src/engine/gpu/widget_mesh.rs) | Builds the static CSS-sized gumball mesh once with `10` handle IDs matching `gizmo.rs` hit-test geometry. |
 | [src/engine/gpu/widget.rs](../../src/engine/gpu/widget.rs) | Renders the gumball into a private depth-tested tile (`96 B` uniform) and composites it over the scene so solids never bury active handles. |
 | [src/shaders/widget.wgsl](../../src/shaders/widget.wgsl) | Highlights the hovered/active handle in orange inside the private tile and unpremultiplies RGB safely during canvas alpha composite. |

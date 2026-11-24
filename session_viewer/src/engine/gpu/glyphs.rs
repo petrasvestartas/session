@@ -1,10 +1,10 @@
 use super::buffers::{GpuCtx, GrowBuf, ROWS, Template, bind_group};
 use super::frame::Binds;
-use super::upload::drop_rows;
 use crate::engine::pipelines::{
     ColorWrite, DepthMode, Layouts, Pipeline, PipelineDesc, Shader, Target, build, ink_module,
     template_layout,
 };
+pub use crate::rows::{GlyphPoint, GlyphRows};
 use wgpu::PrimitiveTopology::TriangleList;
 
 /// Shader sources the tests compare against the files.
@@ -16,35 +16,6 @@ pub const SHADERS: &[(&str, &str)] = &[
 
 /// Vertices per dot: one triangle around the disc.
 const DOT_VERTS: u32 = 3;
-
-/// One marker or dot, 48 bytes, as the shaders read it.
-#[repr(C)]
-#[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
-pub struct GlyphPoint {
-    pub center: [f32; 3],     // world position
-    pub radius: f32,          // 0 = pen width; > 0 world mm; < 0 screen px
-    pub color: [f32; 4],      // rgba
-    pub instance_id: u32,     // object row
-    pub facing: u32,          // packed normals of the faces around it
-    pub facing_ext: [u32; 2], // more packed normals
-}
-
-const _: () = assert!(std::mem::size_of::<GlyphPoint>() == 48);
-
-/// Marker and dot rows of one upload.
-#[derive(Default)]
-pub struct GlyphRows {
-    pub spheres: Vec<GlyphPoint>, // vertex markers, shaded
-    pub dots: Vec<GlyphPoint>,    // flat dots
-}
-
-impl GlyphRows {
-    /// Empty both tables and free their memory.
-    pub fn drop_rows(&mut self) {
-        drop_rows(&mut self.spheres);
-        drop_rows(&mut self.dots);
-    }
-}
 
 /// One glyph buffer and its bind group.
 struct GlyphTable {

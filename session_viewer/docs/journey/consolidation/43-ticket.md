@@ -1,6 +1,6 @@
 # 6.2 · Accept a hit only for its current view
 
-**Steps:** 3 · **Source:** [engine/gpu/pick.rs](../../../src/engine/gpu/pick.rs) · [app/selection.rs](../../../src/app/selection.rs) · [engine/gpu/faces.rs](../../../src/engine/gpu/faces.rs) · [app/walk/mesh_topology.rs](../../../src/app/walk/mesh_topology.rs)
+**Steps:** 3 · **Source:** [engine/gpu/pick.rs](../../../src/engine/gpu/pick.rs) · [app/selection.rs](../../../viewer-core/src/selection.rs) · [engine/gpu/faces.rs](../../../src/engine/gpu/faces.rs) · [app/walk/mesh_topology.rs](../../../viewer-core/src/walk/mesh_topology.rs)
 
 ## <a id="checkpoint-43-ticket"></a>1. Name the request and view that produced a hit
 

@@ -10,7 +10,7 @@ impl State {
         };
 
         // already selected: clear
-        if self.selection
+        if self.selection.mode
             == (SelectionMode::Edge {
                 parent: row,
                 edge: entity,
@@ -23,7 +23,7 @@ impl State {
 
         self.select(Some(row));
         self.gpu.set_selected(row, false);
-        self.selection.select_edge(row, entity);
+        self.selection.mode.select_edge(row, entity);
         self.gpu
             .segments
             .set_edge(&self.gpu.ctx, Some((row, entity)));

@@ -1533,7 +1533,7 @@ Edit the existing block to match this code; keep unchanged lines:
                 root,
                 |ui| {
                     view::prepare(ui);
-                    command_dock::history(ui, &self.model, &mut None);
+                    command_dock::history(ui, &self.model, &mut );
                     ui.horizontal(|ui| {
                         ui.set_max_width((ui.available_width() - 26.0).max(80.0));
                         ui.label("Command:");
@@ -1934,7 +1934,7 @@ impl CommandLine {
                 root,
                 |ui| {
                     view::prepare(ui);
-                    command_dock::history(ui, &self.model, &mut None);
+                    command_dock::history(ui, &self.model, &mut );
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
@@ -2009,7 +2009,7 @@ Edit the existing block to match this code; keep unchanged lines:
                                 .remember(format!("> {line}\n{}", self.model.status));
                         }
                     }
-                    command_dock::history(ui, &self.model, &mut None);
+                    command_dock::history(ui, &self.model, &mut );
 ```
 
 ## <a id="checkpoint-03cc-edit"></a>10. Edit the command text
@@ -2887,7 +2887,7 @@ pub(crate) fn finish(
                             memory.surrender_focus(egui::Id::new("command-input"))
                         });
                     }
-                    command_dock::history(ui, &self.model, &mut None);
+                    command_dock::history(ui, &self.model, &mut );
                     ui.horizontal(|ui| {
                         ui.set_max_width((ui.available_width() - 26.0).max(80.0));
                         ui.label("Command:");
@@ -2934,7 +2934,7 @@ Edit the existing block to match this code; keep unchanged lines:
                         }),
                         ..Default::default()
                     };
-                    command_dock::history(ui, &self.model, &mut None);
+                    command_dock::history(ui, &self.model, &mut );
                     ui.horizontal(|ui| {
                         ui.set_max_width((ui.available_width() - 26.0).max(80.0));
                         ui.label("Command:");
@@ -3123,7 +3123,7 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
                         }),
                         ..Default::default()
                     };
-                    command_dock::history(ui, &self.model, &mut None);
+                    command_dock::history(ui, &self.model, &mut );
                     ui.horizontal(|ui| {
                         ui.set_max_width((ui.available_width() - 26.0).max(80.0));
                         ui.label("Command:");
@@ -3137,7 +3137,7 @@ Replace it with:
                 root,
                 |ui| {
                     view::prepare(ui);
-                    command_dock::history(ui, &self.model, &mut None);
+                    command_dock::history(ui, &self.model, &mut );
                     ui.horizontal(|ui| {
                         ui.set_max_width((ui.available_width() - 26.0).max(80.0));
                         ui.label("Command:");
@@ -3246,7 +3246,7 @@ pub(crate) fn popup(
                                     &item,
                                 );
                                 if index == model.completion && browse != 0 {
-                                    item.scroll_to_me(None);
+                                    item.scroll_to_me();
                                 }
                                 if item.clicked() {
                                     complete = Some(*name);
@@ -3274,7 +3274,7 @@ pub(crate) fn finish(
                 root,
                 |ui| {
                     view::prepare(ui);
-                    command_dock::history(ui, &self.model, &mut None);
+                    command_dock::history(ui, &self.model, &mut );
                     ui.horizontal(|ui| {
                         ui.set_max_width((ui.available_width() - 26.0).max(80.0));
                         ui.label("Command:");
@@ -3323,7 +3323,7 @@ Edit the existing block to match this code; keep unchanged lines:
                 root,
                 |ui| {
                     view::prepare(ui);
-                    command_dock::history(ui, &self.model, &mut None);
+                    command_dock::history(ui, &self.model, &mut );
                     ui.horizontal(|ui| {
                         ui.set_max_width((ui.available_width() - 26.0).max(80.0));
                         ui.label("Command:");
@@ -4022,7 +4022,7 @@ Replace it with:
                 root,
                 |ui| {
                     view::prepare(ui);
-                    command_dock::history(ui, &self.model, &mut None);
+                    command_dock::history(ui, &self.model, &mut );
                     ui.horizontal(|ui| {
                         ui.set_max_width((ui.available_width() - 26.0).max(80.0));
                         ui.label("Command:");
@@ -5775,14 +5775,14 @@ Replace it with:
         let line = self.prepare();
         canvas.set_attribute("data-command-ui", &self.inspect())?;
         let Some(line) = line else {
-            return Ok(None);
+            return Ok();
         };
         if line == "Escape" {
-            return Ok(None);
+            return Ok();
         }
         if line.eq_ignore_ascii_case("Help") {
             self.answer(&line, &self.commands.0.join(" · "));
-            return Ok(None);
+            return Ok();
         }
         if !self
             .commands
@@ -5791,7 +5791,7 @@ Replace it with:
             .any(|name| name.eq_ignore_ascii_case(&line))
         {
             self.answer(&line, "Unknown command. Type Help.");
-            return Ok(None);
+            return Ok();
         }
         self.answer(&line, "Command submitted.");
         Ok(Some(line.to_ascii_lowercase()))

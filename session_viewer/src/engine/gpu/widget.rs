@@ -361,7 +361,7 @@ fn composite_pipeline(
 
 /// Screen box of the gumball: x, y, width, height; None when behind the camera.
 fn bounds(m: &[f64; 16], size: (u32, u32)) -> Option<[f64; 4]> {
-    let radius = crate::app::gizmo::ARM + 2.0;
+    let radius = crate::rows::gizmo::ARM + 2.0;
     let mut min = [f64::INFINITY; 2];
     let mut max = [f64::NEG_INFINITY; 2];
 

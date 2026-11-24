@@ -1,6 +1,6 @@
 # 15.4 · Two-direction networks and corner patches
 
-**Steps:** 6 · **Source:** [app/deform.rs](../../../../src/app/deform.rs) · [state/edit.rs](../../../../src/state/edit.rs) · [app/command/tool/gather.rs](../../../../src/app/command/tool/gather.rs) · [app/command/tool/surfacing.rs](../../../../src/app/command/tool/surfacing.rs)
+**Steps:** 6 · **Source:** [app/deform.rs](../../../../viewer-core/src/deform.rs) · [state/edit.rs](../../../../src/state/edit.rs) · [app/command/tool/gather.rs](../../../../viewer-core/src/command/tool/gather.rs) · [app/command/tool/surfacing.rs](../../../../viewer-core/src/command/tool/surfacing.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -152,11 +152,11 @@ mod tests {
         let lines = rulings();
         let surface = network(&lines).unwrap();
         assert!(surface.is_valid());
-        assert!(middle(&surface).distance(&p(50., 50., 25.), None) < 1e-6);
+        assert!(middle(&surface).distance(&p(50., 50., 25.), ) < 1e-6);
 
         for line in &lines {
             for q in line.divide_by_count(20, true).0 {
-                assert!(surface.closest_point(&q).distance(&q, None) < 1e-3);
+                assert!(surface.closest_point(&q).distance(&q, ) < 1e-3);
             }
         }
     }
@@ -173,7 +173,7 @@ mod tests {
         ];
         let coons = network(&boundary).unwrap();
         assert!(coons.is_valid());
-        assert!(middle(&coons).distance(&p(50., 50., 25.), None) < 1e-6);
+        assert!(middle(&coons).distance(&p(50., 50., 25.), ) < 1e-6);
         assert_eq!((coons.degree(0), coons.degree(1)), (1, 1));
     }
 
@@ -231,7 +231,7 @@ pub fn patch(corners: &[Point; 4]) -> Result<NurbsSurface, String> {
     let area = (c - a).cross(&(d - b)).magnitude();
     let size = [b, c, d]
         .iter()
-        .map(|p| p.distance(a, None))
+        .map(|p| p.distance(a, ))
         .fold(1.0, f64::max);
 
     if area <= 1e-12 * size * size {
@@ -280,11 +280,11 @@ mod tests {
                 .point_at(u.0 + s * (u.1 - u.0), v.0 + t * (v.1 - v.0))
                 .unwrap()
         };
-        assert!(at(0., 0.).distance(&corners[0], None) < 1e-9);
-        assert!(at(1., 0.).distance(&corners[1], None) < 1e-9);
-        assert!(at(1., 1.).distance(&corners[2], None) < 1e-9);
-        assert!(at(0., 1.).distance(&corners[3], None) < 1e-9);
-        assert!(at(0.5, 0.5).distance(&p(50., 50., 12.5), None) < 1e-9);
+        assert!(at(0., 0.).distance(&corners[0], ) < 1e-9);
+        assert!(at(1., 0.).distance(&corners[1], ) < 1e-9);
+        assert!(at(1., 1.).distance(&corners[2], ) < 1e-9);
+        assert!(at(0., 1.).distance(&corners[3], ) < 1e-9);
+        assert!(at(0.5, 0.5).distance(&p(50., 50., 12.5), ) < 1e-9);
         let flat = [
             p(0., 0., 0.),
             p(1., 0., 0.),
@@ -738,7 +738,7 @@ fn shuffled_placed_network_retains_original_lines_surface_archive_and_history() 
     let middle = s
         .point_at((u.0 + u.1) / 2., (v.0 + v.1) / 2.)
         .unwrap();
-    assert!(middle.distance(&session_rust::Point::new(11., 1., 0.5), None) < 1e-6);
+    assert!(middle.distance(&session_rust::Point::new(11., 1., 0.5), ) < 1e-6);
     for (row, source) in e.scene.lines().iter().zip(sources) {
         assert!(std::rc::Rc::ptr_eq(
             &row.prepared.source,

@@ -4,7 +4,7 @@
 
 Display the trimmed faces while retaining enough source information to update their samples after an edit. Complete the surface and shared-edge subjects first. This subject owns the connection from each displayed face vertex back to a surface parameter; shared edge chains and face orientation keep their existing owners.
 
-Read `walk_brep_fresh`, `push_face` and `cache_samples` in [brep.rs](../../../src/app/walk/brep.rs). The walker obtains one mesh per face, derives shared boundary chains and determines each face's orientation. An inward face reverses both its vertex normals and triangle winding. Reversing only one would make lighting and front-face tests disagree. Faces remain independently uploaded, so a crease does not acquire a smoothed normal from its neighbour.
+Read `walk_brep_fresh`, `push_face` and `cache_samples` in [brep.rs](../../../viewer-core/src/walk/brep.rs). The walker obtains one mesh per face, derives shared boundary chains and determines each face's orientation. An inward face reverses both its vertex normals and triangle winding. Reversing only one would make lighting and front-face tests disagree. Faces remain independently uploaded, so a crease does not acquire a smoothed normal from its neighbour.
 
 `push_face` appends a face-source address containing the parent object row and original face index. Every triangle of that face receives this address; GPU vertex offsets are a separate indexing concern. Selecting a displayed triangle can therefore resolve its authored face even when several faces share a surface.
 
@@ -18,7 +18,7 @@ The production tests in the same file check that refined surface borders use fac
 
 The checkpoint below teaches trimmed-face parameter retention. Full cumulative parity with the production walker and fresh production rendering acceptance remain pending.
 
-**Steps:** 2 · **Source:** [app/walk/brep.rs](../../../src/app/walk/brep.rs) · [app/walk/brep_edges.rs](../../../src/app/walk/brep_edges.rs) · [app/walk/brep_orient.rs](../../../src/app/walk/brep_orient.rs) · [app/walk/brep_shapes.rs](../../../src/app/walk/brep_shapes.rs)
+**Steps:** 2 · **Source:** [app/walk/brep.rs](../../../viewer-core/src/walk/brep.rs) · [app/walk/brep_edges.rs](../../../viewer-core/src/walk/brep_edges.rs) · [app/walk/brep_orient.rs](../../../viewer-core/src/walk/brep_orient.rs) · [app/walk/brep_shapes.rs](../../../viewer-core/src/walk/brep_shapes.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">

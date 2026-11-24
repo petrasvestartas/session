@@ -1,5 +1,5 @@
 use crate::app::cplane::CPlane;
-use crate::app::gizmo::{Axis, Drag, Gizmo, Handle};
+use crate::app::gizmo::{Drag, Gizmo, Handle};
 use crate::app::layers::{self, Layer};
 use crate::app::selection::ControlId;
 use crate::app::snap::{self, Snap, SnapKind};
@@ -31,7 +31,7 @@ impl State {
         // the box around every selected row
         let mut bounds = box_;
         if row.is_some() {
-            for selected in &self.highlighted {
+            for selected in &self.selection.highlighted {
                 if let Some(b) = self.gpu.objects.row_bounds(*selected) {
                     bounds.union_with(&b);
                 }
@@ -41,7 +41,7 @@ impl State {
 
         // a selected face, edge or control point: center on it instead
         if let Some(row) = row
-            && let Some(target) = crate::app::deform::Target::selected(&self.selection)
+            && let Some(target) = crate::app::deform::Target::selected(&self.selection.mode)
             && let Some(geometry) = self.scene.geometry(row)
             && let Ok(points) = crate::app::deform::points(geometry, target)
             && !points.is_empty()
@@ -92,7 +92,7 @@ impl State {
         let Some(base_place) = self.scene.placement_of(row) else {
             return false;
         };
-        let target = crate::app::deform::Target::selected(&self.selection);
+        let target = crate::app::deform::Target::selected(&self.selection.mode);
 
         // a part of the object moves: its previews come from a walk of this row alone
         if target.is_some() {
@@ -111,7 +111,7 @@ impl State {
             row,
             base_place,
             drag,
-            target: crate::app::deform::Target::selected(&self.selection),
+            target: crate::app::deform::Target::selected(&self.selection.mode),
             source: self.scene.geometry(row).cloned(),
             origin: gizmo.origin.clone(),
             mesh_preview,
@@ -329,7 +329,7 @@ impl State {
             }
             self.scene.drop_preview();
             if let Some(geometry) = self.scene.geometry(active.parent) {
-                self.controls = crate::app::selection::Controls::from_geometry(geometry);
+                self.selection.controls = crate::app::selection::Controls::from_geometry(geometry);
             }
 
             self.upload_controls();
@@ -404,7 +404,7 @@ impl State {
         self.cancel_running_tool(); // a tool's preview and bases belong to the documents as they were; register:tools
 
         self.features.hierarchy.page = 0; // register:panel
-        self.selection = SelectionMode::Object;
+        self.selection.mode = SelectionMode::Object;
         self.select(None);
         self.scene.flag_texts(&mut self.gpu);
         self.commit_rows();
@@ -435,7 +435,7 @@ impl State {
         let scene = &self.scene;
         let gone = |row: &u32| scene.identity_of(*row).is_none();
         let lost = self.selected_rows().iter().any(gone)
-            || self.selection.parent().is_some_and(|row| gone(&row));
+            || self.selection.mode.parent().is_some_and(|row| gone(&row));
         let rows: Vec<u32> = self
             .selected_rows()
             .into_iter()
@@ -455,7 +455,7 @@ impl State {
 
     /// Select the chosen source face again after its rows moved.
     pub(super) fn reselect_face(&mut self) {
-        if let SelectionMode::Face { parent, face } = self.selection {
+        if let SelectionMode::Face { parent, face } = self.selection.mode {
             let address = self.gpu.arena.source_faces.address(parent, face);
             self.gpu.arena.source_faces.select(&self.gpu.ctx, address);
         }
@@ -508,36 +508,67 @@ fn world_per_css_px(world_distance: f64, physical_height: f64, physical_per_css:
     per_physical * physical_per_css
 }
 
-impl State {}
+impl State {
+    /// Copy the selected objects by `delta` in one undo step; the originals stay selected.
+    pub(crate) fn copy_selection(&mut self, delta: &Xform) -> Result<String, String> {
+        let rows = self.selected_rows();
 
-impl State {}
+        if let Some(reason) = self.locked_reason(&rows) {
+            return Err(reason);
+        }
 
-/// A rotation about a point.
-pub(crate) fn rotation_about(axis: Axis, degrees: f64, about: Option<&Point>) -> Xform {
-    let turn = match axis {
-        Axis::X => Xform::rotation_x(degrees, true),
-        Axis::Y => Xform::rotation_y(degrees, true),
-        Axis::Z => Xform::rotation_z(degrees, true),
-    };
-    centred(turn, about)
-}
+        if crate::app::deform::Target::selected(&self.selection.mode).is_some() {
+            return Err(
+                "Copy works on whole objects; press Esc to leave the face, edge or control point"
+                    .into(),
+            );
+        }
 
-/// A uniform scale about a point.
-pub(crate) fn scaling_about(factor: f64, about: Option<&Point>) -> Xform {
-    match about {
-        Some(p) => Xform::scale_uniform(p, factor),
-        None => Xform::scale_xyz(factor, factor, factor),
+        let copies = self.scene.copy_rows(&rows, delta)?;
+        self.commit_rows();
+        Ok(format!("{} copied", copies.len()))
     }
-}
 
-/// Move `about` to the origin, apply `inner`, move back.
-fn centred(inner: Xform, about: Option<&Point>) -> Xform {
-    let Some(p) = about else {
-        return inner;
-    };
-    let to = Xform::translation(p[0], p[1], p[2]);
-    let back = Xform::translation(-p[0], -p[1], -p[2]);
-    &(&to * &inner) * &back
+    /// Show `label` in a chip below the centre of the selected objects until the next command or Esc.
+    pub(crate) fn mark_selection(&mut self, label: String) {
+        let mut bounds = session_rust::AABB::empty();
+
+        for row in self.selected_rows() {
+            if let Some(object) = self.gpu.objects.row_bounds(row) {
+                bounds.union_with(&object);
+            }
+        }
+
+        if bounds.is_valid() {
+            self.features.mark = Some(crate::app::command::verbs::measure::Mark {
+                points: vec![Point::new(bounds.cx, bounds.cy, bounds.cz)],
+                label,
+                revision: self.scene.row_revision,
+            });
+            self.touch();
+        }
+    }
+
+    /// The mark as a black line with end squares and a chip between the points, or a chip below one point.
+    pub fn mark_overlay(&self) -> Option<crate::app::command::tool::Overlay> {
+        crate::app::command::verbs::measure::mark_overlay(
+            self.features.mark.as_ref(),
+            self.scene.row_revision,
+            &self.view_screen(),
+            self.pixel_scale(),
+        )
+    }
+
+    /// The mark as JSON, for the inspection tests.
+    pub fn mark_status(&self) -> serde_json::Value {
+        match &self.features.mark {
+            Some(mark) if mark.revision == self.scene.row_revision => serde_json::json!({
+                "points": mark.points.iter().map(|p| [p[0], p[1], p[2]]).collect::<Vec<_>>(),
+                "label": mark.label,
+            }),
+            _ => serde_json::Value::Null,
+        }
+    }
 }
 
 impl State {}
@@ -563,14 +594,20 @@ impl State {
             parent,
             selected: Some(id),
             ..
-        } = self.selection
+        } = self.selection.mode
         else {
             return false;
         };
-        let Some(index) = self.controls.points.iter().position(|c| c.id == id) else {
+        let Some(index) = self
+            .selection
+            .controls
+            .points
+            .iter()
+            .position(|c| c.id == id)
+        else {
             return false;
         };
-        let at = self.controls.points[index].position;
+        let at = self.selection.controls.points[index].position;
         let Some(place) = self.scene.placement_of(parent) else {
             return false;
         };
@@ -634,7 +671,7 @@ impl State {
                 let _ = self.scene.preview_geometry(parent, edited, &mut self.gpu);
             }
         }
-        self.controls.points[index].position = [point[0], point[1], point[2]];
+        self.selection.controls.points[index].position = [point[0], point[1], point[2]];
         self.upload_controls();
         self.touch();
         true
@@ -668,7 +705,7 @@ impl State {
         self.scene.drop_preview();
 
         if let Some(geometry) = self.scene.geometry(active.parent) {
-            self.controls = crate::app::selection::Controls::from_geometry(geometry);
+            self.selection.controls = crate::app::selection::Controls::from_geometry(geometry);
         }
 
         self.upload_controls();
@@ -682,7 +719,7 @@ impl State {
             return false;
         }
 
-        self.selection = SelectionMode::Object;
+        self.selection.mode = SelectionMode::Object;
         self.select(Some(active.parent));
         self.enable_controls();
         self.touch();
@@ -700,7 +737,7 @@ impl State {
         let mut candidates = Vec::new();
 
         // the other control points are snap targets
-        for (i, control) in self.controls.points.iter().enumerate() {
+        for (i, control) in self.selection.controls.points.iter().enumerate() {
             if i == active.index {
                 continue;
             }
@@ -792,16 +829,17 @@ mod tests {
 impl State {
     /// Reselect `row` after its rows were redrawn, keeping the face, edge or control mode.
     fn restore_edit_selection(&mut self, row: u32) {
-        let selection = self.selection.clone();
+        let selection = self.selection.mode.clone();
         self.select(Some(row)); // resets the mode
-        self.selection = selection; // put it back
+        self.selection.mode = selection; // put it back
 
-        match self.selection {
+        match self.selection.mode {
             SelectionMode::Controls { .. } => {
                 self.gpu.set_selected(row, false);
 
                 if let Some(geometry) = self.scene.geometry(row) {
-                    self.controls = crate::app::selection::Controls::from_geometry(geometry);
+                    self.selection.controls =
+                        crate::app::selection::Controls::from_geometry(geometry);
                 }
 
                 self.upload_controls();
@@ -861,7 +899,7 @@ impl State {
         }
 
         // a face, edge or control point moves inside the object
-        if let Some(target) = crate::app::deform::Target::selected(&self.selection) {
+        if let Some(target) = crate::app::deform::Target::selected(&self.selection.mode) {
             self.scene.edit_subobject(row, target, &delta, label)?;
             self.commit_rows();
             self.restore_edit_selection(row);

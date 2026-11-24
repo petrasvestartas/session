@@ -117,7 +117,7 @@ mod tests {
         assert_eq!(pick(&scene, [0.4, 0.0]), Some(far));
         scene.remove(near);
         assert_eq!(pick(&scene, [0.0, 0.0]), Some(far));
-        assert_eq!(pick(&scene, [-0.9, -0.9]), None);
+        assert_eq!(pick(&scene, [-0.9, -0.9]), );
     }
 
     #[test]
@@ -148,7 +148,7 @@ mod tests {
             triangle_depth([0.0, 0.0], [0.0; 6], [0.0; 6], [0.0; 6]),
             None
         );
-        assert_eq!(pick(&Scene::demo(), [f32::NAN, 0.0]), None);
+        assert_eq!(pick(&Scene::demo(), [f32::NAN, 0.0]), );
     }
 ```
 
@@ -227,7 +227,7 @@ mod tests {
             max_distance: 0.1,
             ..ray
         };
-        assert_eq!(pick(&scene, &short), None);
+        assert_eq!(pick(&scene, &short), );
     }
 
     #[test]
@@ -252,7 +252,7 @@ mod tests {
             direction: Vector::z_axis(),
             max_distance: 10.0,
         };
-        assert_eq!(pick(&scene, &away), None);
+        assert_eq!(pick(&scene, &away), );
     }
 ```
 

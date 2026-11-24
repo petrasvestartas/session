@@ -1,6 +1,6 @@
 # 16.1 · Projection, extension and stable edit targets
 
-**Steps:** 31 · **Source:** [app/command/verbs/project_to_plane.rs](../../../src/app/command/verbs/project_to_plane.rs) · [app/command/verbs/extend.rs](../../../src/app/command/verbs/extend.rs) · [app/splitting.rs](../../../src/app/splitting.rs) · [app/command/verbs/measure.rs](../../../src/app/command/verbs/measure.rs)
+**Steps:** 31 · **Source:** [app/command/verbs/project_to_plane.rs](../../../viewer-core/src/command/verbs/project_to_plane.rs) · [app/command/verbs/extend.rs](../../../viewer-core/src/command/verbs/extend.rs) · [app/splitting.rs](../../../viewer-core/src/splitting.rs) · [app/command/verbs/measure.rs](../../../viewer-core/src/command/verbs/measure.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">

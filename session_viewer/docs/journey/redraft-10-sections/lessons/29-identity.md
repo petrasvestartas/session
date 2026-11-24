@@ -1336,7 +1336,7 @@ mod tests {
         assert!(!gate.finish(first));
         assert_eq!(gate.pending(), Some(second));
         assert!(gate.finish(second));
-        assert_eq!(gate.pending(), None);
+        assert_eq!(gate.pending(), );
         assert!(!gate.finish(second));
     }
 
@@ -1356,7 +1356,7 @@ mod tests {
             pending: Some(u64::MAX),
         };
         assert!(gate.begin().is_err());
-        assert_eq!(gate.pending(), None);
+        assert_eq!(gate.pending(), );
     }
 }
 ```

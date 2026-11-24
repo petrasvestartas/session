@@ -1,6 +1,6 @@
 # 21.3 · Browser ownership of frame matrices and wakeups
 
-**Steps:** 3 · **Source:** [camera.rs](../../../../src/camera.rs) · [state.rs](../../../../src/state.rs) · [engine/gpu/objects.rs](../../../../src/engine/gpu/objects.rs) · [engine/gpu/frame.rs](../../../../src/engine/gpu/frame.rs)
+**Steps:** 3 · **Source:** [camera.rs](../../../../viewer-core/src/camera.rs) · [state.rs](../../../../src/state.rs) · [engine/gpu/objects.rs](../../../../src/engine/gpu/objects.rs) · [engine/gpu/frame.rs](../../../../src/engine/gpu/frame.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -169,8 +169,8 @@ mod delay_tests {
         assert_eq!(origin.retry_after_ms(100.), Some(101));
         assert_eq!(origin.retry_after_ms(200.), Some(1));
         assert_eq!(origin.retry_after_ms(-100.), Some(201));
-        assert_eq!(origin.retry_after_ms(f64::NAN), None);
-        assert_eq!(origin.retry_after_ms(f64::INFINITY), None);
+        assert_eq!(origin.retry_after_ms(f64::NAN), );
+        assert_eq!(origin.retry_after_ms(f64::INFINITY), );
         assert!(
             origin
                 .update([2000., 0., 0.], 3., 201.)
@@ -190,7 +190,7 @@ Supply aggregate original mesh/ink/point/cloud/sheet/text/grid pixels, precise g
 ```rust
             .rebase_face(&gpu.queue, gpu.anchor(), target)
     );
-    gpu.set_scene(&Scene::empty(), None);
+    gpu.set_scene(&Scene::empty(), );
     assert_eq!(gpu.usage(), [0; 4]);
 }
 ```
@@ -200,7 +200,7 @@ Edit the existing block to match this code; keep unchanged lines:
 ```rust
             .rebase_face(&gpu.queue, gpu.anchor(), target)
     );
-    gpu.set_scene(&Scene::empty(), None);
+    gpu.set_scene(&Scene::empty(), );
     assert_eq!(gpu.usage(), [0; 4]);
 }
 
@@ -325,7 +325,7 @@ fn actual_shared_origin_keeps_all_original_lanes_and_pending_picks_coherent() {
     for id in [mesh, line, path, point, cloud, drawing, text] {
         far.translate(id, anchor).unwrap();
     }
-    gpu.set_scene(&far, None);
+    gpu.set_scene(&far, );
     camera.target = anchor;
     gpu.set_grid_on(
         settings,
@@ -402,7 +402,7 @@ fn actual_shared_origin_keeps_all_original_lanes_and_pending_picks_coherent() {
         &far.sheets()[0].prepared.original,
         &sheet
     ));
-    gpu.set_scene(&Scene::empty(), None);
+    gpu.set_scene(&Scene::empty(), );
     assert_eq!(gpu.usage(), [0; 4]);
 }
 ```

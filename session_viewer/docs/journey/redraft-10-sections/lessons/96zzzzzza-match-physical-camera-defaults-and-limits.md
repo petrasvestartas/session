@@ -1,6 +1,6 @@
 # 21.5 · Physical camera, world grid and framed navigation
 
-**Steps:** 6 · **Source:** [camera.rs](../../../../src/camera.rs) · [state.rs](../../../../src/state.rs) · [engine/gpu/objects.rs](../../../../src/engine/gpu/objects.rs) · [engine/gpu/frame.rs](../../../../src/engine/gpu/frame.rs)
+**Steps:** 6 · **Source:** [camera.rs](../../../../viewer-core/src/camera.rs) · [state.rs](../../../../src/state.rs) · [engine/gpu/objects.rs](../../../../src/engine/gpu/objects.rs) · [engine/gpu/frame.rs](../../../../src/engine/gpu/frame.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -1730,7 +1730,7 @@ fn actual_control_hits_resolve_the_original_curve_control_instead_of_a_sample() 
         })
     );
     editor.scene.show_controls(false);
-    renderer.set_scene(&editor.scene, None);
+    renderer.set_scene(&editor.scene, );
     renderer.set_pick_mode(crate::pick_sources::Mode::Control);
     renderer
         .request_pick([0., 0.6], identity())
@@ -1915,11 +1915,11 @@ fn actual_part_highlights_are_local_leave_black_edges_and_release_derived_data()
         stats,
         "Highlights reuse primary geometry"
     );
-    renderer.set_highlight(&scene, None).unwrap();
+    renderer.set_highlight(&scene, ).unwrap();
     assert_eq!(renderer.highlight_bytes(), 0);
     assert_eq!(colour_pixels(&mut renderer), before);
     scene.clear();
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     assert!(weak.upgrade().is_none());
     assert_eq!(renderer.highlight_bytes(), 0);
 }
@@ -1972,7 +1972,7 @@ fn actual_control_highlight_surrounds_only_the_original_marker_and_keeps_source_
     editor
         .apply(crate::editor::Action::Close)
         .unwrap();
-    renderer.set_scene(&editor.scene, None);
+    renderer.set_scene(&editor.scene, );
     assert_eq!(renderer.highlight_bytes(), 0);
 }
 
@@ -2063,12 +2063,12 @@ fn actual_tool_preview_is_temporary_bounded_and_absent_from_object_picking() {
     );
     assert_eq!(renderer.stats(), stats);
     assert!(scene.lines().is_empty());
-    renderer.set_preview(None).unwrap();
+    renderer.set_preview().unwrap();
     assert_eq!(renderer.preview_bytes(), 0);
     assert_eq!(colour_pixels(&mut renderer), before);
     renderer.set_preview(Some(&draft)).unwrap();
     scene.clear();
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     assert_eq!(renderer.preview_bytes(), 0);
 }
 
@@ -2086,7 +2086,7 @@ fn actual_layer_colours_change_display_settings_without_editing_or_reuploading_o
     Rc::make_mut(&mut scene.view)
         .faces
         .insert(id, [0, 0, 255]);
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     let blue = colour_pixels(&mut renderer);
     assert_ne!(blue, before);
     let centre = (120 * 320 + 160) * 4;
@@ -2109,7 +2109,7 @@ fn actual_layer_colours_change_display_settings_without_editing_or_reuploading_o
     Rc::make_mut(&mut scene.view)
         .edges
         .insert(id, [0, 255, 0]);
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     let green_edges = colour_pixels(&mut renderer);
     let count = green_edges
         .chunks_exact(4)
@@ -2122,7 +2122,7 @@ fn actual_layer_colours_change_display_settings_without_editing_or_reuploading_o
     Rc::make_mut(&mut scene.view)
         .faces
         .remove(&id);
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     let restored_faces = colour_pixels(&mut renderer);
     assert_eq!(
         &restored_faces[centre..centre + 4],
@@ -2135,7 +2135,7 @@ fn actual_layer_colours_change_display_settings_without_editing_or_reuploading_o
     Rc::make_mut(&mut scene.view)
         .edges
         .remove(&id);
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     assert_eq!(colour_pixels(&mut renderer), before);
     assert!(Rc::ptr_eq(
         &source,
@@ -2377,7 +2377,7 @@ fn actual_screen_text_overlay_does_not_create_scene_pick_owners_or_reupload_geom
     renderer.text_demo().unwrap();
     let with_text = colour_pixels(&mut renderer);
     assert_ne!(with_text, before);
-    assert_eq!(renderer.text_error(), None);
+    assert_eq!(renderer.text_error(), );
     assert_eq!(renderer.stats(), gpu);
     assert_eq!(scene.objects().len(), 1);
     assert_eq!(
@@ -2427,7 +2427,7 @@ fn actual_owned_text_plane_respects_depth_integer_picks_selection_cache_and_clos
         .insert_text(Prepared::new(source.clone()).unwrap())
         .unwrap();
     drop(source);
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     assert_eq!(
         colour_pixels(&mut renderer),
         before,
@@ -2446,10 +2446,10 @@ fn actual_owned_text_plane_respects_depth_integer_picks_selection_cache_and_clos
             session_rust::Xform::translation(0., 0., -0.45),
         )
         .unwrap();
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     let front = colour_pixels(&mut renderer);
     assert_ne!(front, before);
-    assert_eq!(renderer.text_error(), None);
+    assert_eq!(renderer.text_error(), );
     assert!(
         front
             .chunks_exact(4)
@@ -2489,7 +2489,7 @@ fn actual_owned_text_plane_respects_depth_integer_picks_selection_cache_and_clos
         original
     );
     Rc::make_mut(&mut scene.view).lock(&[id], true);
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     renderer
         .request_pick([-0.06, -0.008], identity())
         .unwrap();
@@ -2498,7 +2498,7 @@ fn actual_owned_text_plane_respects_depth_integer_picks_selection_cache_and_clos
         "The locked plate remains an occluder without a selectable id"
     );
     Rc::make_mut(&mut scene.view).hide(&[id], true);
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     renderer
         .request_pick([-0.06, 0.02], identity())
         .unwrap();
@@ -2507,7 +2507,7 @@ fn actual_owned_text_plane_respects_depth_integer_picks_selection_cache_and_clos
         mesh.value()
     );
     scene.clear();
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     assert!(weak.upgrade().is_none());
     assert_eq!(renderer.text_scene_usage(), [0; 4]);
     assert_eq!(renderer.text_usage(), [0; 6]);
@@ -2553,7 +2553,7 @@ fn actual_anchor_nameplate_and_billboard_follow_the_current_depth_and_plate_rule
         let id = scene
             .insert_text(Prepared::new(Rc::new(source)).unwrap())
             .unwrap();
-        renderer.set_scene(&scene, None);
+        renderer.set_scene(&scene, );
         let after = colour_pixels(&mut renderer);
         assert_eq!(
             after != before,
@@ -2571,7 +2571,7 @@ fn actual_anchor_nameplate_and_billboard_follow_the_current_depth_and_plate_rule
                 mesh.value()
             }
         );
-        assert_eq!(renderer.text_error(), None);
+        assert_eq!(renderer.text_error(), );
         let fonts = vec![
             crate::text::FONT_BYTES.to_vec(),
             crate::text::FALLBACK_BYTES.to_vec(),
@@ -2610,7 +2610,7 @@ fn actual_world_text_clip_uses_canvas_coordinates_in_the_small_integer_pick_wind
         .unwrap();
     let mut renderer = renderer(&scene);
     let before = colour_pixels(&mut renderer);
-    assert_eq!(renderer.text_error(), None);
+    assert_eq!(renderer.text_error(), );
     let mut clean = Scene::demo();
     clean.clear();
     let mut no_text = super::pick_gpu_tests::renderer(&clean);
@@ -2772,7 +2772,7 @@ fn actual_surface_outline_culls_occluded_selection_and_selected_edge_ink_cannot_
     }
     assert!(opaque > 100);
     scene.clear();
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     colour_pixels(&mut renderer);
     assert_eq!(renderer.outline_usage()[0], 0);
 }
@@ -2937,7 +2937,7 @@ fn actual_cloud_pixels_and_whole_ids_keep_cached_source_uploads_density_and_lock
     }
     renderer.set_density(1.);
     Rc::make_mut(&mut scene.view).lock(&[cloud], true);
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     renderer
         .request_pick([0., 0.], identity())
         .unwrap();
@@ -2947,7 +2947,7 @@ fn actual_cloud_pixels_and_whole_ids_keep_cached_source_uploads_density_and_lock
         "The locked cloud writes zero while occluding the mesh"
     );
     Rc::make_mut(&mut scene.view).hide(&[cloud], true);
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     renderer
         .request_pick([0., 0.], identity())
         .unwrap();
@@ -2957,7 +2957,7 @@ fn actual_cloud_pixels_and_whole_ids_keep_cached_source_uploads_density_and_lock
     );
     assert_eq!(source.to_proto(), before);
     scene.clear();
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     assert_eq!(renderer.cloud_usage(), [0; 5]);
 }
 #[test]
@@ -2984,7 +2984,7 @@ fn actual_cloud_copy_and_normal_shading_preserve_one_source_and_release_all_deri
     assert_eq!(renderer.cloud_usage()[2], 1);
     let copy = scene.copy_row(cloud, false).unwrap();
     scene.translate(copy, [0., 0.3, 0.]).unwrap();
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     colour_pixels(&mut renderer);
     assert_eq!(
         renderer.cloud_usage()[2],
@@ -3001,7 +3001,7 @@ fn actual_cloud_copy_and_normal_shading_preserve_one_source_and_release_all_deri
     );
     drop(source);
     scene.clear();
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     assert_eq!(renderer.cloud_usage(), [0; 5]);
     assert!(weak.upgrade().is_none());
 }
@@ -3109,7 +3109,7 @@ fn actual_large_cloud_changes_detail_with_the_view_and_reuses_its_original_uploa
     assert_eq!(renderer.cloud_usage()[0], 64);
     assert_eq!(renderer.cloud_usage()[2], uploads);
     scene.clear();
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     assert_eq!(renderer.cloud_usage(), [0; 5]);
 }
 
@@ -3166,14 +3166,14 @@ fn actual_cloud_control_pick_preserves_full_u32_source_ids_and_local_highlight()
         width: 320,
         height: 240,
     });
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     renderer
         .request_pick([-0.4, 0.], identity())
         .unwrap();
     assert!(finish(&mut renderer).is_none());
     scene.clear();
-    renderer.set_scene(&scene, None);
-    renderer.set_highlight(&scene, None).unwrap();
+    renderer.set_scene(&scene, );
+    renderer.set_highlight(&scene, ).unwrap();
     assert_eq!(renderer.cloud_usage(), [0; 5]);
     assert_eq!(renderer.highlight_bytes(), 0);
 }
@@ -3201,7 +3201,7 @@ fn actual_resident_cloud_controls_query_original_points_outside_the_coarse_displ
     assert_eq!(renderer.cloud_usage()[0], 64);
     let uploads = renderer.cloud_usage()[2];
     scene.cloud_controls(Some(owner));
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     renderer.set_pick_mode(Mode::Control);
     camera_pixels(&mut renderer, &camera);
     assert_eq!(renderer.cloud_usage()[0], 2_000_064);
@@ -3236,14 +3236,14 @@ fn actual_resident_cloud_controls_query_original_points_outside_the_coarse_displ
         .unwrap();
     renderer.cancel_pick();
     assert!(renderer.take_pick(transform).is_none());
-    scene.cloud_controls(None);
-    renderer.set_scene(&scene, None);
+    scene.cloud_controls();
+    renderer.set_scene(&scene, );
     renderer.set_pick_mode(Mode::Object);
     camera_pixels(&mut renderer, &camera);
     assert_eq!(renderer.cloud_usage()[0], 64);
     assert_eq!(renderer.cloud_usage()[2], uploads);
     scene.clear();
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     assert_eq!(renderer.cloud_usage(), [0; 5]);
 }
 
@@ -3290,7 +3290,7 @@ fn actual_streamed_pages_pick_original_ids_share_uploads_and_release_after_evict
     let uploads = renderer.cloud_usage()[2];
     let copy = scene.copy_row(owner, false).unwrap();
     scene.translate(copy, [0.2, 0., 0.]).unwrap();
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     colour_pixels(&mut renderer);
     assert_eq!(
         renderer.cloud_usage()[2],
@@ -3298,7 +3298,7 @@ fn actual_streamed_pages_pick_original_ids_share_uploads_and_release_after_evict
         "Placed owners share original page uploads"
     );
     Rc::make_mut(&mut scene.view).lock(&[owner, copy], true);
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     renderer
         .request_pick([-0.5, 0.5], identity())
         .unwrap();
@@ -3310,7 +3310,7 @@ fn actual_streamed_pages_pick_original_ids_share_uploads_and_release_after_evict
         held.upgrade().is_some(),
         "GPU page owner retains precise pick identities"
     );
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     assert!(held.upgrade().is_none());
     renderer
         .request_pick([-0.5, 0.5], identity())
@@ -3331,7 +3331,7 @@ fn actual_streamed_pages_pick_original_ids_share_uploads_and_release_after_evict
         Part::CloudPoint(10)
     );
     scene.clear();
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     drop(prepared);
     assert_eq!(renderer.cloud_usage(), [0; 5]);
     assert!(weak.upgrade().is_none());
@@ -3413,7 +3413,7 @@ fn actual_definition_instances_batch_one_geometry_keep_integer_picks_and_release
     colour_pixels(&mut renderer);
     assert_eq!(renderer.instance_usage()[3], writes);
     scene.translate(a, [0., 0.2, 0.]).unwrap();
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     assert_eq!(renderer.stats()[0], source_uploads);
     assert!(renderer.instance_usage()[3] > writes);
     renderer
@@ -3426,10 +3426,10 @@ fn actual_definition_instances_batch_one_geometry_keep_integer_picks_and_release
             .any(|p| p[0] > 140 && p[1] > 90 && p[2] < 40)
     );
     Rc::make_mut(&mut scene.view).hide(&[b], true);
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     assert_eq!(renderer.instance_usage()[1], 1);
     scene.clear();
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     assert_eq!(&renderer.instance_usage()[..3], &[0, 0, 0]);
     assert!(weak.upgrade().is_none());
 }
@@ -3501,8 +3501,8 @@ fn actual_congruent_cad_replay_matches_independent_faces_ink_and_owner_picks() {
     drop(copy);
     shared.clear();
     alone.clear();
-    shared_renderer.set_scene(&shared, None);
-    independent_renderer.set_scene(&alone, None);
+    shared_renderer.set_scene(&shared, );
+    independent_renderer.set_scene(&alone, );
     drop(cache);
     assert!(weak.upgrade().is_none());
 }
@@ -3591,7 +3591,7 @@ fn actual_sheet_batches_share_source_uploads_keep_world_pens_full_entity_ids_and
     let mut renderer = renderer(&scene);
     assert_eq!(renderer.sheet_usage()[..2], [2, 1]);
     let uploads = renderer.sheet_usage()[3];
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     assert_eq!(renderer.sheet_usage()[3], uploads);
     renderer.set_pick_mode(Mode::Edge);
     renderer
@@ -3634,10 +3634,10 @@ fn actual_sheet_batches_share_source_uploads_keep_world_pens_full_entity_ids_and
             session_rust::Xform::translation(0., 0.2, 0.),
         )
         .unwrap();
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     assert_eq!(renderer.sheet_usage()[3], uploads);
     let front = scene.insert(triangle(0.1)).unwrap();
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     renderer.set_pick_mode(Mode::Object);
     renderer
         .request_pick([0., -0.5], identity())
@@ -3647,20 +3647,20 @@ fn actual_sheet_batches_share_source_uploads_keep_world_pens_full_entity_ids_and
         front.value()
     );
     Rc::make_mut(&mut scene.view).lock(&[front], true);
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     renderer
         .request_pick([0., -0.5], identity())
         .unwrap();
     assert!(finish(&mut renderer).is_none());
     Rc::make_mut(&mut scene.view).hide(&[front], true);
     Rc::make_mut(&mut scene.view).lock(&[id], true);
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     renderer
         .request_pick([0., -0.5], identity())
         .unwrap();
     assert!(finish(&mut renderer).is_none());
     scene.clear();
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     assert_eq!(renderer.sheet_usage()[..2], [0, 0]);
     assert!(weak.upgrade().is_none());
 }
@@ -3720,7 +3720,7 @@ fn actual_evicted_sheet_pages_remain_charged_until_renderer_refresh_cancels_old_
     renderer
         .request_pick([0., 0.], identity())
         .unwrap();
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     assert!(renderer.take_pick(identity()).is_none());
     assert_eq!(budget.used(), 0);
     assert!(weak.upgrade().is_none());
@@ -3816,7 +3816,7 @@ fn actual_mesh_control_pixel_keeps_sparse_vertex_key_at_both_densities() {
             })
         );
         scene.show_controls(false);
-        renderer.set_scene(&scene, None);
+        renderer.set_scene(&scene, );
         renderer
             .request_pick([-0.375, -0.25], identity())
             .unwrap();
@@ -3956,7 +3956,7 @@ fn actual_control_hits_resolve_the_original_curve_control_instead_of_a_sample() 
         })
     );
     editor.scene.show_controls(false);
-    renderer.set_scene(&editor.scene, None);
+    renderer.set_scene(&editor.scene, );
     renderer.set_pick_mode(crate::pick_sources::Mode::Control);
     renderer
         .request_pick([0., 0.6], identity())
@@ -4141,11 +4141,11 @@ fn actual_part_highlights_are_local_leave_black_edges_and_release_derived_data()
         stats,
         "Highlights reuse primary geometry"
     );
-    renderer.set_highlight(&scene, None).unwrap();
+    renderer.set_highlight(&scene, ).unwrap();
     assert_eq!(renderer.highlight_bytes(), 0);
     assert_eq!(colour_pixels(&mut renderer), before);
     scene.clear();
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     assert!(weak.upgrade().is_none());
     assert_eq!(renderer.highlight_bytes(), 0);
 }
@@ -4198,7 +4198,7 @@ fn actual_control_highlight_surrounds_only_the_original_marker_and_keeps_source_
     editor
         .apply(crate::editor::Action::Close)
         .unwrap();
-    renderer.set_scene(&editor.scene, None);
+    renderer.set_scene(&editor.scene, );
     assert_eq!(renderer.highlight_bytes(), 0);
 }
 
@@ -4289,12 +4289,12 @@ fn actual_tool_preview_is_temporary_bounded_and_absent_from_object_picking() {
     );
     assert_eq!(renderer.stats(), stats);
     assert!(scene.lines().is_empty());
-    renderer.set_preview(None).unwrap();
+    renderer.set_preview().unwrap();
     assert_eq!(renderer.preview_bytes(), 0);
     assert_eq!(colour_pixels(&mut renderer), before);
     renderer.set_preview(Some(&draft)).unwrap();
     scene.clear();
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     assert_eq!(renderer.preview_bytes(), 0);
 }
 
@@ -4312,7 +4312,7 @@ fn actual_layer_colours_change_display_settings_without_editing_or_reuploading_o
     Rc::make_mut(&mut scene.view)
         .faces
         .insert(id, [0, 0, 255]);
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     let blue = colour_pixels(&mut renderer);
     assert_ne!(blue, before);
     let centre = (120 * 320 + 160) * 4;
@@ -4335,7 +4335,7 @@ fn actual_layer_colours_change_display_settings_without_editing_or_reuploading_o
     Rc::make_mut(&mut scene.view)
         .edges
         .insert(id, [0, 255, 0]);
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     let green_edges = colour_pixels(&mut renderer);
     let count = green_edges
         .chunks_exact(4)
@@ -4348,7 +4348,7 @@ fn actual_layer_colours_change_display_settings_without_editing_or_reuploading_o
     Rc::make_mut(&mut scene.view)
         .faces
         .remove(&id);
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     let restored_faces = colour_pixels(&mut renderer);
     assert_eq!(
         &restored_faces[centre..centre + 4],
@@ -4361,7 +4361,7 @@ fn actual_layer_colours_change_display_settings_without_editing_or_reuploading_o
     Rc::make_mut(&mut scene.view)
         .edges
         .remove(&id);
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     assert_eq!(colour_pixels(&mut renderer), before);
     assert!(Rc::ptr_eq(
         &source,
@@ -4603,7 +4603,7 @@ fn actual_screen_text_overlay_does_not_create_scene_pick_owners_or_reupload_geom
     renderer.text_demo().unwrap();
     let with_text = colour_pixels(&mut renderer);
     assert_ne!(with_text, before);
-    assert_eq!(renderer.text_error(), None);
+    assert_eq!(renderer.text_error(), );
     assert_eq!(renderer.stats(), gpu);
     assert_eq!(scene.objects().len(), 1);
     assert_eq!(
@@ -4653,7 +4653,7 @@ fn actual_owned_text_plane_respects_depth_integer_picks_selection_cache_and_clos
         .insert_text(Prepared::new(source.clone()).unwrap())
         .unwrap();
     drop(source);
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     assert_eq!(
         colour_pixels(&mut renderer),
         before,
@@ -4672,10 +4672,10 @@ fn actual_owned_text_plane_respects_depth_integer_picks_selection_cache_and_clos
             session_rust::Xform::translation(0., 0., -0.45),
         )
         .unwrap();
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     let front = colour_pixels(&mut renderer);
     assert_ne!(front, before);
-    assert_eq!(renderer.text_error(), None);
+    assert_eq!(renderer.text_error(), );
     assert!(
         front
             .chunks_exact(4)
@@ -4715,7 +4715,7 @@ fn actual_owned_text_plane_respects_depth_integer_picks_selection_cache_and_clos
         original
     );
     Rc::make_mut(&mut scene.view).lock(&[id], true);
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     renderer
         .request_pick([-0.06, -0.008], identity())
         .unwrap();
@@ -4724,7 +4724,7 @@ fn actual_owned_text_plane_respects_depth_integer_picks_selection_cache_and_clos
         "The locked plate remains an occluder without a selectable id"
     );
     Rc::make_mut(&mut scene.view).hide(&[id], true);
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     renderer
         .request_pick([-0.06, 0.02], identity())
         .unwrap();
@@ -4733,7 +4733,7 @@ fn actual_owned_text_plane_respects_depth_integer_picks_selection_cache_and_clos
         mesh.value()
     );
     scene.clear();
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     assert!(weak.upgrade().is_none());
     assert_eq!(renderer.text_scene_usage(), [0; 4]);
     assert_eq!(renderer.text_usage(), [0; 6]);
@@ -4779,7 +4779,7 @@ fn actual_anchor_nameplate_and_billboard_follow_the_current_depth_and_plate_rule
         let id = scene
             .insert_text(Prepared::new(Rc::new(source)).unwrap())
             .unwrap();
-        renderer.set_scene(&scene, None);
+        renderer.set_scene(&scene, );
         let after = colour_pixels(&mut renderer);
         assert_eq!(
             after != before,
@@ -4797,7 +4797,7 @@ fn actual_anchor_nameplate_and_billboard_follow_the_current_depth_and_plate_rule
                 mesh.value()
             }
         );
-        assert_eq!(renderer.text_error(), None);
+        assert_eq!(renderer.text_error(), );
         let fonts = vec![
             crate::text::FONT_BYTES.to_vec(),
             crate::text::FALLBACK_BYTES.to_vec(),
@@ -4836,7 +4836,7 @@ fn actual_world_text_clip_uses_canvas_coordinates_in_the_small_integer_pick_wind
         .unwrap();
     let mut renderer = renderer(&scene);
     let before = colour_pixels(&mut renderer);
-    assert_eq!(renderer.text_error(), None);
+    assert_eq!(renderer.text_error(), );
     let mut clean = Scene::demo();
     clean.clear();
     let mut no_text = super::pick_gpu_tests::renderer(&clean);
@@ -4998,7 +4998,7 @@ fn actual_surface_outline_culls_occluded_selection_and_selected_edge_ink_cannot_
     }
     assert!(opaque > 100);
     scene.clear();
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     colour_pixels(&mut renderer);
     assert_eq!(renderer.outline_usage()[0], 0);
 }
@@ -5163,7 +5163,7 @@ fn actual_cloud_pixels_and_whole_ids_keep_cached_source_uploads_density_and_lock
     }
     renderer.set_density(1.);
     Rc::make_mut(&mut scene.view).lock(&[cloud], true);
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     renderer
         .request_pick([0., 0.], identity())
         .unwrap();
@@ -5173,7 +5173,7 @@ fn actual_cloud_pixels_and_whole_ids_keep_cached_source_uploads_density_and_lock
         "The locked cloud writes zero while occluding the mesh"
     );
     Rc::make_mut(&mut scene.view).hide(&[cloud], true);
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     renderer
         .request_pick([0., 0.], identity())
         .unwrap();
@@ -5183,7 +5183,7 @@ fn actual_cloud_pixels_and_whole_ids_keep_cached_source_uploads_density_and_lock
     );
     assert_eq!(source.to_proto(), before);
     scene.clear();
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     assert_eq!(renderer.cloud_usage(), [0; 5]);
 }
 #[test]
@@ -5210,7 +5210,7 @@ fn actual_cloud_copy_and_normal_shading_preserve_one_source_and_release_all_deri
     assert_eq!(renderer.cloud_usage()[2], 1);
     let copy = scene.copy_row(cloud, false).unwrap();
     scene.translate(copy, [0., 0.3, 0.]).unwrap();
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     colour_pixels(&mut renderer);
     assert_eq!(
         renderer.cloud_usage()[2],
@@ -5227,7 +5227,7 @@ fn actual_cloud_copy_and_normal_shading_preserve_one_source_and_release_all_deri
     );
     drop(source);
     scene.clear();
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     assert_eq!(renderer.cloud_usage(), [0; 5]);
     assert!(weak.upgrade().is_none());
 }
@@ -5335,7 +5335,7 @@ fn actual_large_cloud_changes_detail_with_the_view_and_reuses_its_original_uploa
     assert_eq!(renderer.cloud_usage()[0], 64);
     assert_eq!(renderer.cloud_usage()[2], uploads);
     scene.clear();
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     assert_eq!(renderer.cloud_usage(), [0; 5]);
 }
 
@@ -5392,14 +5392,14 @@ fn actual_cloud_control_pick_preserves_full_u32_source_ids_and_local_highlight()
         width: 320,
         height: 240,
     });
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     renderer
         .request_pick([-0.4, 0.], identity())
         .unwrap();
     assert!(finish(&mut renderer).is_none());
     scene.clear();
-    renderer.set_scene(&scene, None);
-    renderer.set_highlight(&scene, None).unwrap();
+    renderer.set_scene(&scene, );
+    renderer.set_highlight(&scene, ).unwrap();
     assert_eq!(renderer.cloud_usage(), [0; 5]);
     assert_eq!(renderer.highlight_bytes(), 0);
 }
@@ -5427,7 +5427,7 @@ fn actual_resident_cloud_controls_query_original_points_outside_the_coarse_displ
     assert_eq!(renderer.cloud_usage()[0], 64);
     let uploads = renderer.cloud_usage()[2];
     scene.cloud_controls(Some(owner));
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     renderer.set_pick_mode(Mode::Control);
     camera_pixels(&mut renderer, &camera);
     assert_eq!(renderer.cloud_usage()[0], 2_000_064);
@@ -5462,14 +5462,14 @@ fn actual_resident_cloud_controls_query_original_points_outside_the_coarse_displ
         .unwrap();
     renderer.cancel_pick();
     assert!(renderer.take_pick(transform).is_none());
-    scene.cloud_controls(None);
-    renderer.set_scene(&scene, None);
+    scene.cloud_controls();
+    renderer.set_scene(&scene, );
     renderer.set_pick_mode(Mode::Object);
     camera_pixels(&mut renderer, &camera);
     assert_eq!(renderer.cloud_usage()[0], 64);
     assert_eq!(renderer.cloud_usage()[2], uploads);
     scene.clear();
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     assert_eq!(renderer.cloud_usage(), [0; 5]);
 }
 
@@ -5516,7 +5516,7 @@ fn actual_streamed_pages_pick_original_ids_share_uploads_and_release_after_evict
     let uploads = renderer.cloud_usage()[2];
     let copy = scene.copy_row(owner, false).unwrap();
     scene.translate(copy, [0.2, 0., 0.]).unwrap();
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     colour_pixels(&mut renderer);
     assert_eq!(
         renderer.cloud_usage()[2],
@@ -5524,7 +5524,7 @@ fn actual_streamed_pages_pick_original_ids_share_uploads_and_release_after_evict
         "Placed owners share original page uploads"
     );
     Rc::make_mut(&mut scene.view).lock(&[owner, copy], true);
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     renderer
         .request_pick([-0.5, 0.5], identity())
         .unwrap();
@@ -5536,7 +5536,7 @@ fn actual_streamed_pages_pick_original_ids_share_uploads_and_release_after_evict
         held.upgrade().is_some(),
         "GPU page owner retains precise pick identities"
     );
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     assert!(held.upgrade().is_none());
     renderer
         .request_pick([-0.5, 0.5], identity())
@@ -5557,7 +5557,7 @@ fn actual_streamed_pages_pick_original_ids_share_uploads_and_release_after_evict
         Part::CloudPoint(10)
     );
     scene.clear();
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     drop(prepared);
     assert_eq!(renderer.cloud_usage(), [0; 5]);
     assert!(weak.upgrade().is_none());
@@ -5639,7 +5639,7 @@ fn actual_definition_instances_batch_one_geometry_keep_integer_picks_and_release
     colour_pixels(&mut renderer);
     assert_eq!(renderer.instance_usage()[3], writes);
     scene.translate(a, [0., 0.2, 0.]).unwrap();
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     assert_eq!(renderer.stats()[0], source_uploads);
     assert!(renderer.instance_usage()[3] > writes);
     renderer
@@ -5652,10 +5652,10 @@ fn actual_definition_instances_batch_one_geometry_keep_integer_picks_and_release
             .any(|p| p[0] > 140 && p[1] > 90 && p[2] < 40)
     );
     Rc::make_mut(&mut scene.view).hide(&[b], true);
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     assert_eq!(renderer.instance_usage()[1], 1);
     scene.clear();
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     assert_eq!(&renderer.instance_usage()[..3], &[0, 0, 0]);
     assert!(weak.upgrade().is_none());
 }
@@ -5727,8 +5727,8 @@ fn actual_congruent_cad_replay_matches_independent_faces_ink_and_owner_picks() {
     drop(copy);
     shared.clear();
     alone.clear();
-    shared_renderer.set_scene(&shared, None);
-    independent_renderer.set_scene(&alone, None);
+    shared_renderer.set_scene(&shared, );
+    independent_renderer.set_scene(&alone, );
     drop(cache);
     assert!(weak.upgrade().is_none());
 }
@@ -5817,7 +5817,7 @@ fn actual_sheet_batches_share_source_uploads_keep_world_pens_full_entity_ids_and
     let mut renderer = renderer(&scene);
     assert_eq!(renderer.sheet_usage()[..2], [2, 1]);
     let uploads = renderer.sheet_usage()[3];
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     assert_eq!(renderer.sheet_usage()[3], uploads);
     renderer.set_pick_mode(Mode::Edge);
     renderer
@@ -5860,10 +5860,10 @@ fn actual_sheet_batches_share_source_uploads_keep_world_pens_full_entity_ids_and
             session_rust::Xform::translation(0., 0.2, 0.),
         )
         .unwrap();
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     assert_eq!(renderer.sheet_usage()[3], uploads);
     let front = scene.insert(triangle(0.1)).unwrap();
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     renderer.set_pick_mode(Mode::Object);
     renderer
         .request_pick([0., -0.5], identity())
@@ -5873,20 +5873,20 @@ fn actual_sheet_batches_share_source_uploads_keep_world_pens_full_entity_ids_and
         front.value()
     );
     Rc::make_mut(&mut scene.view).lock(&[front], true);
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     renderer
         .request_pick([0., -0.5], identity())
         .unwrap();
     assert!(finish(&mut renderer).is_none());
     Rc::make_mut(&mut scene.view).hide(&[front], true);
     Rc::make_mut(&mut scene.view).lock(&[id], true);
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     renderer
         .request_pick([0., -0.5], identity())
         .unwrap();
     assert!(finish(&mut renderer).is_none());
     scene.clear();
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     assert_eq!(renderer.sheet_usage()[..2], [0, 0]);
     assert!(weak.upgrade().is_none());
 }
@@ -5946,7 +5946,7 @@ fn actual_evicted_sheet_pages_remain_charged_until_renderer_refresh_cancels_old_
     renderer
         .request_pick([0., 0.], identity())
         .unwrap();
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     assert!(renderer.take_pick(identity()).is_none());
     assert_eq!(budget.used(), 0);
     assert!(weak.upgrade().is_none());
@@ -6042,7 +6042,7 @@ fn actual_mesh_control_pixel_keeps_sparse_vertex_key_at_both_densities() {
             })
         );
         scene.show_controls(false);
-        renderer.set_scene(&scene, None);
+        renderer.set_scene(&scene, );
         renderer
             .request_pick([-0.375, -0.25], identity())
             .unwrap();
@@ -6546,7 +6546,7 @@ fn grid_omits_its_base_integer_pipeline_without_stealing_original_picks() {
         .geometry()
         .unwrap()
         .clone();
-    gpu.set_scene(&scene, None);
+    gpu.set_scene(&scene, );
     let uploads = gpu.stats()[0];
     gpu.request_pick([0., 0.], matrix).unwrap();
     crate::cap_gpu_tests::wait(&gpu);
@@ -6561,7 +6561,7 @@ fn grid_omits_its_base_integer_pipeline_without_stealing_original_picks() {
         &source,
         scene.objects()[0].geometry().unwrap()
     ));
-    gpu.set_scene(&crate::scene::Scene::empty(), None);
+    gpu.set_scene(&crate::scene::Scene::empty(), );
     gpu.set_grid_on(None, crate::cplane::CPlane::Xy)
         .unwrap();
     assert_eq!(gpu.usage(), [0; 4]);
@@ -7371,7 +7371,7 @@ fn grid_stays_behind_original_solid_color_and_never_owns_a_pick() {
         &source,
         scene.objects()[0].geometry().unwrap()
     ));
-    gpu.set_scene(&Scene::empty(), None);
+    gpu.set_scene(&Scene::empty(), );
     gpu.request_pick([0., 0.], matrix).unwrap();
     crate::cap_gpu_tests::wait(&gpu);
     assert!(
@@ -8359,7 +8359,7 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 ```rust
     ));
-    gpu.set_scene(&Scene::empty(), None);
+    gpu.set_scene(&Scene::empty(), );
     assert_eq!(gpu.usage(), [0; 4]);
 }
 ```
@@ -8368,7 +8368,7 @@ Replace it with:
 
 ```rust
     ));
-    gpu.set_scene(&Scene::empty(), None);
+    gpu.set_scene(&Scene::empty(), );
     assert_eq!(gpu.usage(), [0; 4]);
 }
 
@@ -8409,7 +8409,7 @@ Replace it with:
 
 ```rust
     }
-    gpu.set_scene(&far, None);
+    gpu.set_scene(&far, );
     camera.target = anchor;
     gpu.set_grid_on(
         settings,
@@ -8420,7 +8420,7 @@ Replace it with:
 
 ```rust
     }
-    gpu.set_scene(&far, None);
+    gpu.set_scene(&far, );
     camera.target = anchor;
     controlled_translation_plane(&mut camera, anchor);
     gpu.set_grid_on(
@@ -9481,7 +9481,7 @@ fn numeric_bounds_outlive_originals_without_retaining_source_owners() {
     assert_eq!(camera.radius, current.radius);
     assert_eq!(pose(&camera), before);
     assert_eq!(renderer.stats()[0], uploads);
-    renderer.set_scene(&Scene::empty(), None);
+    renderer.set_scene(&Scene::empty(), );
     let mut fresh = Camera::default();
     fresh.radius = 0.;
     renderer.grow_camera(&mut fresh);
@@ -9521,7 +9521,7 @@ fn late_originals_expand_depth_before_real_pixels_and_original_gpu_picks() {
         .geometry()
         .unwrap()
         .to_proto();
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     let uploads = renderer.stats()[0];
     let before = pose(&camera);
     renderer.grow_camera(&mut camera);
@@ -9551,7 +9551,7 @@ fn late_originals_expand_depth_before_real_pixels_and_original_gpu_picks() {
     assert_eq!(renderer.stats()[0], uploads);
     let extent = camera.radius;
     Rc::make_mut(&mut scene.view).hide(&[owner], true);
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     assert!(renderer.world_bounds.borrow().is_none());
     renderer.grow_camera(&mut camera);
     assert_eq!(camera.radius, extent);
@@ -9559,7 +9559,7 @@ fn late_originals_expand_depth_before_real_pixels_and_original_gpu_picks() {
     scene
         .translate(owner, [1000., 0., 0.])
         .unwrap();
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     assert_eq!(
         renderer
             .world_bounds
@@ -9650,7 +9650,7 @@ fn active_preview_font_metrics_refresh_numeric_bounds_only_when_changed() {
     assert!(camera.radius > 19000.);
     assert_eq!(pose(&camera), before);
     editor.edit_preview = None;
-    renderer.set_scene(&editor.scene, None);
+    renderer.set_scene(&editor.scene, );
     assert!(renderer.refresh_text_bounds(editor.display_scene_mut()));
     assert!(!renderer.refresh_text_bounds(editor.display_scene_mut()));
     assert!(editor.scene.texts()[0].prepared.extent[0] > 0.);

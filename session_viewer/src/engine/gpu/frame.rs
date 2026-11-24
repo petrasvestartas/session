@@ -441,8 +441,7 @@ impl super::lane::Lane for FrameUniforms {
     }
 }
 
-/// Most clipping planes cutting at once.
-pub const MAX_PLANES: usize = 6;
+pub use crate::rows::MAX_PLANES;
 
 /// The clipping planes as the shaders read them, 448 bytes.
 #[repr(C)]

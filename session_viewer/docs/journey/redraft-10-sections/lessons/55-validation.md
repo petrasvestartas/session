@@ -1,6 +1,6 @@
 # 9.1 · Original surfaces, analytic normals and trim boundaries
 
-**Steps:** 11 · **Source:** [app/walk/brep.rs](../../../../src/app/walk/brep.rs) · [app/walk/brep_edges.rs](../../../../src/app/walk/brep_edges.rs) · [app/walk/brep_orient.rs](../../../../src/app/walk/brep_orient.rs) · [app/walk/brep_shapes.rs](../../../../src/app/walk/brep_shapes.rs)
+**Steps:** 11 · **Source:** [app/walk/brep.rs](../../../../viewer-core/src/walk/brep.rs) · [app/walk/brep_edges.rs](../../../../viewer-core/src/walk/brep_edges.rs) · [app/walk/brep_orient.rs](../../../../viewer-core/src/walk/brep_orient.rs) · [app/walk/brep_shapes.rs](../../../../viewer-core/src/walk/brep_shapes.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">

@@ -1,6 +1,6 @@
 # 12.2 · Locate original arrays without downloading their bodies
 
-**Steps:** 10 · **Source:** [app/manifest.rs](../../../../src/app/manifest.rs) · [app/session_io.rs](../../../../src/app/session_io.rs) · [app/stream.rs](../../../../src/app/stream.rs) · [app/range_gate.rs](../../../../src/app/range_gate.rs)
+**Steps:** 10 · **Source:** [app/manifest.rs](../../../../viewer-core/src/manifest.rs) · [app/session_io.rs](../../../../viewer-core/src/session_io.rs) · [app/stream.rs](../../../../viewer-core/src/stream.rs) · [app/range_gate.rs](../../../../viewer-core/src/range_gate.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -983,8 +983,8 @@ mod tests {
         assert!(bounded_range(0, 64 * 1024 * 1024));
         assert!(!bounded_range(0, 64 * 1024 * 1024 + 1));
         assert!(!bounded_range(u64::MAX - 1, 3));
-        assert_eq!(body_end(u64::MAX - 1, 3, u64::MAX), None);
-        assert_eq!(body_end(50, 51, 100), None);
+        assert_eq!(body_end(u64::MAX - 1, 3, u64::MAX), );
+        assert_eq!(body_end(50, 51, 100), );
         assert_eq!(body_end(50, 50, 100), Some(100));
         // a coords field longer than its message
         assert_eq!(
@@ -998,7 +998,7 @@ mod tests {
     fn varint_reads_one_and_two_byte_values() {
         assert_eq!(varint(&[0x05], 0), Some((5, 1)));
         assert_eq!(varint(&[0xac, 0x02], 0), Some((300, 2)));
-        assert_eq!(varint(&[0x80], 0), None);
+        assert_eq!(varint(&[0x80], 0), );
         assert_eq!(
             varint(
                 &[

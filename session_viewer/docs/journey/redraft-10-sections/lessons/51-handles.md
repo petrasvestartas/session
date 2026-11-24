@@ -1,6 +1,6 @@
 # 7.6 · Handles, numeric edits and source-part deformation
 
-**Steps:** 34 · **Source:** [app/command/mod.rs](../../../../src/app/command/mod.rs) · [app/command/tool.rs](../../../../src/app/command/tool.rs) · [app/cplane.rs](../../../../src/app/cplane.rs) · [app/snap.rs](../../../../src/app/snap.rs)
+**Steps:** 34 · **Source:** [app/command/mod.rs](../../../../viewer-core/src/command/mod.rs) · [app/command/tool.rs](../../../../viewer-core/src/command/tool.rs) · [app/cplane.rs](../../../../viewer-core/src/cplane.rs) · [app/snap.rs](../../../../viewer-core/src/snap.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -134,7 +134,7 @@ pub fn typed_value(handle: Handle, text: &str) -> Result<Option<f64>, String> {
     let text = text.trim();
 
     if text.is_empty() {
-        return Ok(None);
+        return Ok();
     }
 
     let value = text
@@ -738,7 +738,7 @@ fn the_handles_do_not_shadow_each_other() {
         "the arm tip is not an arc"
     );
     let (f, d) = down(ARM * 3.0, ARM * 3.0);
-    assert_eq!(g.hit(&f, &d, SCALE), None);
+    assert_eq!(g.hit(&f, &d, SCALE), );
 }
 
 /// An axis pointing at the eye cannot be grabbed.
@@ -747,7 +747,7 @@ fn an_axis_seen_end_on_is_not_grabbable() {
     let g = at_origin();
     // just past the hub, where only the Z ball could answer
     let (f, d) = down(-7.0, 0.0);
-    assert_eq!(g.hit(&f, &d, SCALE), None);
+    assert_eq!(g.hit(&f, &d, SCALE), );
     let (f, d) = down(BALL_AT, 0.0);
     assert_eq!(
         g.hit(&f, &d, SCALE),
@@ -946,9 +946,9 @@ fn typed_values_parse_per_handle() {
         typed_value(Handle::Rotate(Axis::Z), "-90"),
         Ok(Some(-90.0))
     );
-    assert_eq!(typed_value(arm, ""), Ok(None));
-    assert_eq!(typed_value(arm, "0"), Ok(None), "no move");
-    assert_eq!(typed_value(ball, "1"), Ok(None), "no scale");
+    assert_eq!(typed_value(arm, ""), Ok());
+    assert_eq!(typed_value(arm, "0"), Ok(), "no move");
+    assert_eq!(typed_value(ball, "1"), Ok(), "no scale");
 
     for text in ["abc", "1e999", "NaN"] {
         assert_eq!(
@@ -969,10 +969,10 @@ fn typed_values_parse_per_handle() {
 #[test]
 fn a_moved_gizmo_closes_its_number_box() {
     let mut g = at_origin();
-    assert_eq!(g.typing, None);
+    assert_eq!(g.typing, );
     g.typing = Some(Handle::Rotate(Axis::Z));
     g.set_origin(Point::new(1.0, 2.0, 3.0));
-    assert_eq!(g.typing, None);
+    assert_eq!(g.typing, );
     assert_eq!(Handle::ScaleUniform.title(), "Scale");
     assert_eq!(Handle::Translate(Axis::X).title(), "Move X");
 }
@@ -2485,7 +2485,7 @@ fn actual_widget_gpu_draws_over_geometry_reuses_tile_and_never_creates_pick_owne
         scene
             .insert(crate::prepared::PreparedMesh::triangle(points, [0.5; 3]).unwrap())
             .unwrap();
-        renderer.set_scene(&scene, None);
+        renderer.set_scene(&scene, );
         let stats = renderer.stats();
         let pick = renderer.pick_usage();
         for density in [1u32, 2] {
@@ -4417,18 +4417,18 @@ impl Panel {
         let line = self.prepare();
         canvas.set_attribute("data-command-ui", &self.inspect())?;
         let Some(line) = line else {
-            return Ok(None);
+            return Ok();
         };
         if !self.model.options.is_empty() {
             self.answer(&line, "Tool input submitted.");
             return Ok(Some(line));
         }
         if line == "Escape" {
-            return Ok(None);
+            return Ok();
         }
         if line.eq_ignore_ascii_case("Help") {
             self.answer(&line, &self.commands.0.join(" · "));
-            return Ok(None);
+            return Ok();
         }
         self.answer(&line, "Command submitted.");
         Ok(Some(line))
@@ -4820,7 +4820,7 @@ impl Panel {
         let line = self.prepare();
         canvas.set_attribute("data-command-ui", &self.inspect())?;
         let Some(line) = line else {
-            return Ok(None);
+            return Ok();
         };
         if number_open {
             return Ok(Some(line));
@@ -4830,11 +4830,11 @@ impl Panel {
             return Ok(Some(line));
         }
         if line == "Escape" {
-            return Ok(None);
+            return Ok();
         }
         if line.eq_ignore_ascii_case("Help") {
             self.answer(&line, &self.commands.0.join(" · "));
-            return Ok(None);
+            return Ok();
         }
         self.answer(&line, "Command submitted.");
         Ok(Some(line))
@@ -6106,7 +6106,7 @@ fn idle_handle_hover_changes_only_highlight_and_releases_on_commands_and_drafts(
     assert_eq!(e.gizmo_active(), 0.);
     assert!(e.gizmo_edit.is_none());
     assert_eq!(models(&e), before);
-    e.hover_gizmo(None);
+    e.hover_gizmo();
     assert_eq!(e.gizmo_active(), -1.);
     e.hover_gizmo(Some((p, SIZE)));
     e.apply(Action::Zoom(1.)).unwrap();
@@ -6301,7 +6301,7 @@ fn switching_handle_clears_old_text_and_error_and_closed_box_releases_its_rectan
         vec![key(egui::Key::Enter)],
     );
     assert_eq!(answer.as_deref(), Some(""));
-    number.set(None);
+    number.set();
     frame(&context, &mut number, &mut model, vec![]);
     assert!(number.number_rect.is_none());
 }

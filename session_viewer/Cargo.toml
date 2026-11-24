@@ -1,3 +1,8 @@
+[workspace]
+resolver = "3"
+members = ["viewer-core"]
+default-members = ["."]
+
 [package]
 name = "session_viewer"
 version = "0.1.0"
@@ -7,6 +12,7 @@ edition = "2024"
 crate-type = ["cdylib", "rlib"]  # rlib so examples/selftest.rs can link the crate
 
 [dependencies]
+viewer-core = { path = "viewer-core" }
 session_rust = { path = "../session_rust", default-features = false, features = ["viewer-display"] } # no mini-tests in the wasm
 anyhow = "1.0"
 serde = { version = "1.0", features = ["derive"] }
@@ -69,8 +75,8 @@ bytemuck = { version = "1", features = ["derive"] }
 # Off in the page build: each costs over 30 KB gz of wasm (JSON sessions 105 KB, TOML manifests 60 KB).
 [features]
 tutorial = []
-json-sessions = []
-toml-manifests = ["dep:toml"]
+json-sessions = ["viewer-core/json-sessions"]
+toml-manifests = ["dep:toml", "viewer-core/toml-manifests"]
 
 # Optimized dependencies keep debug builds fast enough to parse real scenes.
 [profile.dev.package."*"]

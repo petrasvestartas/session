@@ -1255,8 +1255,8 @@ Replace it with:
 
 ```rust
     }),
-    ("View Outline", || Action::ViewOutline(None)),
-    ("Arctic", || Action::Arctic(None)),
+    ("View Outline", || Action::ViewOutline()),
+    ("Arctic", || Action::Arctic()),
     ("Select By Name", || {
 ```
 
@@ -1265,8 +1265,8 @@ Replace it with:
 ```rust
     }),
     ("Opacity", || Action::Opacity(1.)),
-    ("View Outline", || Action::ViewOutline(None)),
-    ("Arctic", || Action::Arctic(None)),
+    ("View Outline", || Action::ViewOutline()),
+    ("Arctic", || Action::Arctic()),
     ("Select By Name", || {
 ```
 
@@ -1438,7 +1438,7 @@ fn actual_open_surfaces_remain_opaque_and_mirrored_closed_faces_keep_glass() {
             session_rust::Xform::scale_xyz(-1., 1., 1.),
         )
         .unwrap();
-    r.set_scene(&scene, None);
+    r.set_scene(&scene, );
     let mirror = pixels(&r);
     assert_eq!(
         at(&mirror, 160, 90),
@@ -1458,7 +1458,7 @@ fn actual_xray_survives_scene_refresh_without_hiding_open_originals() {
     let mut r = renderer(&scene);
     r.set_opacity(0.);
     pixels(&r);
-    r.set_scene(&scene, None);
+    r.set_scene(&scene, );
     let xray = pixels(&r);
     assert_eq!(&at(&xray, 160, 90)[..3], &[255, 255, 255]);
     scene.clear();
@@ -1468,7 +1468,7 @@ fn actual_xray_survives_scene_refresh_without_hiding_open_originals() {
                 .unwrap(),
         )
         .unwrap();
-    r.set_scene(&scene, None);
+    r.set_scene(&scene, );
     let open = pixels(&r);
     assert!(
         at(&open, 160, 90)[0] > 100 && at(&open, 160, 90)[1] < 20,

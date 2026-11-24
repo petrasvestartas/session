@@ -812,7 +812,7 @@ impl Renderer {
             view_group,
             depth,
         };
-        renderer.set_scene(scene, None);
+        renderer.set_scene(scene, );
         renderer
     }
 
@@ -1260,7 +1260,7 @@ impl Renderer {
             view_group,
             depth,
         };
-        renderer.set_scene(scene, None);
+        renderer.set_scene(scene, );
         renderer
     }
 
@@ -1394,7 +1394,7 @@ impl Renderer {
             view_group,
             depth,
         };
-        renderer.set_scene(scene, None);
+        renderer.set_scene(scene, );
         renderer
     }
 
@@ -3821,7 +3821,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 pub fn load(bytes: &[u8]) -> Result<Loaded, &'static str> {
-    load_at(bytes, None)
+    load_at(bytes, )
 }
 
 pub fn load_at(
@@ -4193,28 +4193,28 @@ pub fn action(
     delivery: &Delivery,
 ) -> Result<Option<crate::editor::Action>, JsValue> {
     let Some(event) = event.dyn_ref::<web_sys::CustomEvent>() else {
-        return Ok(None);
+        return Ok();
     };
     let Ok(payload) = event.detail().dyn_into::<js_sys::Array>() else {
-        return Ok(None);
+        return Ok();
     };
     if payload.length() != 2 {
-        return Ok(None);
+        return Ok();
     }
     let Some(replace) = payload.get(0).as_bool() else {
-        return Ok(None);
+        return Ok();
     };
     let Ok(array) = payload
         .get(1)
         .dyn_into::<js_sys::Uint8Array>()
     else {
-        return Ok(None);
+        return Ok();
     };
     if array.length() as usize > crate::document::MAX_BYTES {
-        return Ok(None);
+        return Ok();
     }
     let Some(file) = delivery.borrow_mut().take() else {
-        return Ok(None);
+        return Ok();
     };
     let location = Rc::new(crate::reload_url::ReloadUrl::from_file(
         &file,
@@ -4350,7 +4350,7 @@ Replace it with:
 ```rust
     let read_mode = std::cell::Cell::new(crate::file_input::Mode::Append);
     let delivery: crate::file_input::Delivery =
-        std::rc::Rc::new(std::cell::RefCell::new(None));
+        std::rc::Rc::new(std::cell::RefCell::new());
     let update = Closure::<dyn FnMut(web_sys::Event)>::new(
         move |event: web_sys::Event| {
             let shortcut = event

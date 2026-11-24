@@ -20,7 +20,7 @@ Chapter `9.6` of [9. Run the application](completion-application.md) (`applicati
 `src/engine/text.rs` defines `5` `TextPlacement` modes (screen, depth-tested anchored, overlay nameplate, world-plane and billboard) and validates `TextDocument::set_labels` atomically so moving or recolouring labels reuses shaped `glyphon` buffers while font upgrades advance `font_revision`.
 
 ```rust
---8<-- "session_viewer/src/engine/text.rs:scene-text-placement"
+--8<-- "session_viewer/viewer-core/src/rows/lanes.rs:scene-text-placement"
 ```
 
 ```rust
@@ -36,7 +36,7 @@ Chapter `9.6` of [9. Run the application](completion-application.md) (`applicati
 | [src/engine/gpu/text_outline.rs](../../src/engine/gpu/text_outline.rs) | Draws pre-triangulated arena sheet lettering with flat colour and object-ID picking without reshaping strings through `glyphon`. |
 | [src/app/fonts.rs](../../src/app/fonts.rs) | Checks bundled `Subset` glyph coverage (`need` / `need_names`) and triggers one async HTTP fetch posting `Msg::Fonts` when a codepoint (e.g. `Ω`) is missing. |
 | [src/app/ui/theme.rs](../../src/app/ui/theme.rs) | Re-exports `command_dock` `Visuals` and orders static `Noto Sans` + `Symbols` subsets so UI and scene labels share one initial font allocation. |
-| [src/app/command/verbs/text.rs](../../src/app/command/verbs/text.rs) | Validates `1..80`-char strings, orients `CPlane` axes toward the eye, and commits an undoable world-plane white-on-black label. |
+| [src/app/command/verbs/text.rs](../../viewer-core/src/command/verbs/text.rs) | Validates `1..80`-char strings, orients `CPlane` axes toward the eye, and commits an undoable world-plane white-on-black label. |
 
 ```rust
 --8<-- "session_viewer/src/app/fonts.rs:9:22"
@@ -46,7 +46,7 @@ Chapter `9.6` of [9. Run the application](completion-application.md) (`applicati
 
 | File | Specification |
 | --- | --- |
-| [src/app/scene_text.rs](../../src/app/scene_text.rs) | Registers document nameplates as independent selectable text rows joined to document `Delete`/`Undo` transactions. |
+| [src/app/scene_text.rs](../../viewer-core/src/scene_text.rs) | Registers document nameplates as independent selectable text rows joined to document `Delete`/`Undo` transactions. |
 | [src/state/text.rs](../../src/state/text.rs) | Computes newly added BRep/surface bounds in `annotate_document` and anchors a rounded nameplate above the document. |
 | [src/text_quality.rs](../../src/text_quality.rs) | Exports the `wasm_bindgen` `TextQuality` harness driving the production `TextLane` across DPRs, sizes, accents and selection states. |
 | [assets/text-quality.html](../../assets/text-quality.html) | Loads the current built `.wasm` bundle and aligns same-font DOM reference specimens over GPU labels to measure sub-pixel width agreement. |

@@ -1,6 +1,6 @@
 # 21.1 · Units and one precise render origin
 
-**Steps:** 11 · **Source:** [camera.rs](../../../../src/camera.rs) · [state.rs](../../../../src/state.rs) · [engine/gpu/objects.rs](../../../../src/engine/gpu/objects.rs) · [engine/gpu/frame.rs](../../../../src/engine/gpu/frame.rs)
+**Steps:** 11 · **Source:** [camera.rs](../../../../viewer-core/src/camera.rs) · [state.rs](../../../../src/state.rs) · [engine/gpu/objects.rs](../../../../src/engine/gpu/objects.rs) · [engine/gpu/frame.rs](../../../../src/engine/gpu/frame.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -996,7 +996,7 @@ fn actual_precise_object_rebase_matches_local_pixels_records_selection_and_owner
     let anchor = [1e12, -1e12, 1e12];
     let mut far = local.clone();
     far.translate(owner, anchor).unwrap();
-    gpu.set_scene(&far, None);
+    gpu.set_scene(&far, );
     gpu.mesh_ink
         .set(&gpu.device, std::iter::empty())
         .unwrap();
@@ -1069,7 +1069,7 @@ fn actual_precise_object_rebase_matches_local_pixels_records_selection_and_owner
     );
     far.translate(owner, [0.001, 0., 0.])
         .unwrap();
-    gpu.set_scene(&far, None);
+    gpu.set_scene(&far, );
     let expected = crate::render_space::relative(
         far.objects()[0].model.m[12..15]
             .try_into()
@@ -1746,7 +1746,7 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-        renderer.set_scene(scene, None);
+        renderer.set_scene(scene, );
         renderer
     }
 ```
@@ -1754,7 +1754,7 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 Replace it with:
 
 ```rust
-        renderer.set_scene(scene, None);
+        renderer.set_scene(scene, );
         renderer
     }
 
@@ -2117,7 +2117,7 @@ fn actual_derived_frame_origin_keeps_cap_pixels_world_text_clips_and_precise_gro
     for id in [owner, plane_id] {
         far.translate(id, anchor).unwrap();
     }
-    gpu.set_scene(&far, None);
+    gpu.set_scene(&far, );
     gpu.mesh_ink
         .set(&gpu.device, std::iter::empty())
         .unwrap();
@@ -2522,7 +2522,7 @@ Capture the renderer origin before mutable lane updates. Keep sheet source adopt
         self.picker.cancel();
         self.faces.clear();
         self.preview
-            .set(&self.device, None)
+            .set(&self.device, )
             .expect("Empty tool preview");
         self.highlight
             .set(
@@ -3332,7 +3332,7 @@ Edit the existing block to match this code; keep unchanged lines:
         self.picker.cancel();
         self.faces.clear();
         self.preview
-            .set(&self.device, None)
+            .set(&self.device, )
             .expect("Empty tool preview");
         self.highlight
             .set(
@@ -4260,7 +4260,7 @@ fn actual_cloud_and_sheet_origins_reuse_uploads_and_invalidate_equal_matrix_view
     for id in [cloud, drawing] {
         far.translate(id, anchor).unwrap();
     }
-    gpu.set_scene(&far, None);
+    gpu.set_scene(&far, );
     assert!(
         gpu.space
             .update(anchor, 2., 0.)
@@ -4390,7 +4390,7 @@ fn actual_cloud_and_sheet_origins_reuse_uploads_and_invalidate_equal_matrix_view
         (gpu.cloud_usage()[2], gpu.sheet_usage()[3]),
         uploads
     );
-    gpu.set_scene(&Scene::empty(), None);
+    gpu.set_scene(&Scene::empty(), );
     assert_eq!(gpu.cloud_usage(), [0; 5]);
     assert_eq!(&gpu.sheet_usage()[..2], &[0, 0]);
 }
@@ -5034,7 +5034,7 @@ fn actual_temporary_ink_origins_restore_pixels_invalidate_caches_and_release() {
         gpu.measurement.bytes(),
     );
     assert!(bytes.0 > 0 && bytes.1 > 0 && bytes.2 > 0);
-    assert_eq!(gpu.text_error(), None);
+    assert_eq!(gpu.text_error(), );
     let anchor = [1e9, -1e9, 1e9];
     assert!(
         gpu.space
@@ -5095,9 +5095,9 @@ fn actual_temporary_ink_origins_restore_pixels_invalidate_caches_and_release() {
     assert!(scene.all_ids().is_empty());
     gpu.request_pick([0., 0.], local).unwrap();
     wait(&gpu);
-    assert_eq!(gpu.take_pick(local).unwrap().unwrap(), None);
-    gpu.set_preview(None).unwrap();
-    gpu.set_measurement(None).unwrap();
+    assert_eq!(gpu.take_pick(local).unwrap().unwrap(), );
+    gpu.set_preview().unwrap();
+    gpu.set_measurement().unwrap();
     gpu.set_guides(&crate::guide_gpu::Overlay::at(anchor))
         .unwrap();
     crate::cap_gpu_tests::pixels_at(&gpu, local);
@@ -6009,7 +6009,7 @@ fn actual_source_grid_origin_cache_keeps_surface_pixels_owners_and_release() {
     let anchor = [1e9, -1e9, 1e9];
     let mut far = scene.clone();
     far.translate(owner, anchor).unwrap();
-    gpu.set_scene(&far, None);
+    gpu.set_scene(&far, );
     gpu.mesh_ink
         .set(&gpu.device, std::iter::empty())
         .unwrap();
@@ -6118,8 +6118,8 @@ fn actual_source_grid_origin_cache_keeps_surface_pixels_owners_and_release() {
             .to_proto(),
         source
     );
-    gpu.set_grid(None).unwrap();
-    gpu.set_scene(&Scene::empty(), None);
+    gpu.set_grid().unwrap();
+    gpu.set_scene(&Scene::empty(), );
     assert_eq!(&gpu.grid_usage()[..2], &[0, 0]);
     assert_eq!(gpu.usage(), [0; 4]);
 }
@@ -6463,7 +6463,7 @@ fn actual_initial_object_records_keep_precise_local_pixels_updates_and_sources()
         source
     );
     assert_eq!(gpu.stats()[0], uploads);
-    gpu.set_scene(&Scene::empty(), None);
+    gpu.set_scene(&Scene::empty(), );
     assert_eq!(gpu.usage(), [0; 4]);
 }
 ```
@@ -6909,7 +6909,7 @@ Supply actual local/distant face/edge/curve/control/high-bit cloud and object-hi
 **Locate this existing block:**
 
 ```rust
-    gpu.set_scene(&Scene::empty(), None);
+    gpu.set_scene(&Scene::empty(), );
     assert_eq!(gpu.usage(), [0; 4]);
 }
 ```
@@ -6917,7 +6917,7 @@ Supply actual local/distant face/edge/curve/control/high-bit cloud and object-hi
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-    gpu.set_scene(&Scene::empty(), None);
+    gpu.set_scene(&Scene::empty(), );
     assert_eq!(gpu.usage(), [0; 4]);
 }
 
@@ -7066,13 +7066,13 @@ fn actual_original_highlights_keep_local_pixels_addresses_and_sources_after_reba
         );
         pixels.push(selected);
     }
-    gpu.set_highlight(&scene, None).unwrap();
+    gpu.set_highlight(&scene, ).unwrap();
     gpu.select_objects(&scene, &[line, path, point])
         .unwrap();
     let objects = crate::cap_gpu_tests::pixels_at(&gpu, transform);
     assert_ne!(objects, baseline);
     gpu.select_objects(&scene, &[]).unwrap();
-    gpu.set_highlight(&scene, None).unwrap();
+    gpu.set_highlight(&scene, ).unwrap();
     assert_eq!(
         crate::cap_gpu_tests::pixels_at(&gpu, transform),
         baseline
@@ -7082,7 +7082,7 @@ fn actual_original_highlights_keep_local_pixels_addresses_and_sources_after_reba
     for id in [mesh, line, path, point, cloud, curve] {
         far.translate(id, anchor).unwrap();
     }
-    gpu.set_scene(&far, None);
+    gpu.set_scene(&far, );
     gpu.space.update(anchor, 3., 0.).unwrap();
     for row in &mut gpu.meshes {
         row.rebase(&gpu.queue, anchor);
@@ -7190,7 +7190,7 @@ fn actual_original_highlights_keep_local_pixels_addresses_and_sources_after_reba
             addresses
         );
     }
-    gpu.set_highlight(&far, None).unwrap();
+    gpu.set_highlight(&far, ).unwrap();
     gpu.select_objects(&far, &[line, path, point])
         .unwrap();
     assert_eq!(
@@ -7198,7 +7198,7 @@ fn actual_original_highlights_keep_local_pixels_addresses_and_sources_after_reba
         objects
     );
     gpu.select_objects(&far, &[]).unwrap();
-    gpu.set_highlight(&far, None).unwrap();
+    gpu.set_highlight(&far, ).unwrap();
     assert_eq!(
         crate::cap_gpu_tests::pixels_at(&gpu, local),
         baseline
@@ -7211,7 +7211,7 @@ fn actual_original_highlights_keep_local_pixels_addresses_and_sources_after_reba
             .to_proto(),
         source
     );
-    gpu.set_scene(&Scene::empty(), None);
+    gpu.set_scene(&Scene::empty(), );
     assert_eq!(gpu.usage(), [0; 4]);
 }
 ```

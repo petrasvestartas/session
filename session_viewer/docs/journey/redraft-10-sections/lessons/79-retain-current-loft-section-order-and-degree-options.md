@@ -1,6 +1,6 @@
 # 15.3 · Lofts, rail sweeps and network foundations
 
-**Steps:** 12 · **Source:** [app/deform.rs](../../../../src/app/deform.rs) · [state/edit.rs](../../../../src/state/edit.rs) · [app/command/tool/gather.rs](../../../../src/app/command/tool/gather.rs) · [app/command/tool/surfacing.rs](../../../../src/app/command/tool/surfacing.rs)
+**Steps:** 12 · **Source:** [app/deform.rs](../../../../viewer-core/src/deform.rs) · [state/edit.rs](../../../../src/state/edit.rs) · [app/command/tool/gather.rs](../../../../viewer-core/src/command/tool/gather.rs) · [app/command/tool/surfacing.rs](../../../../viewer-core/src/command/tool/surfacing.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -148,7 +148,7 @@ mod tests {
         assert!(
             surface
                 .closest_point(&middle)
-                .distance(&middle, None)
+                .distance(&middle, )
                 < 1e-6
         );
     }
@@ -760,7 +760,7 @@ mod tests {
     fn runs_through(surface: &NurbsSurface, profile: &NurbsCurve) -> bool {
         (0..profile.cv_count())
             .filter_map(|i| profile.get_cv(i))
-            .all(|q| surface.closest_point(&q).distance(&q, None) < 1e-6)
+            .all(|q| surface.closest_point(&q).distance(&q, ) < 1e-6)
     }
 
     /// A profile stays where it is drawn and is carried rigidly along the rail.
@@ -775,7 +775,7 @@ mod tests {
         let surface = sweep1(&rail, std::slice::from_ref(&profile)).unwrap();
         assert!(surface.is_closed(0));
         assert!(runs_through(&surface, &profile));
-        let off = middle(&surface).distance(&rail.point_at(0.5), None);
+        let off = middle(&surface).distance(&rail.point_at(0.5), );
         assert!(
             (off - 50f64.sqrt()).abs() < 0.2,
             "middle {off} from the rail"
@@ -794,7 +794,7 @@ mod tests {
         let one = sweep1(&rail, &[big.clone(), small.clone()]).unwrap();
         let two = sweep1(&rail, &[small.clone(), big.clone()]).unwrap();
         assert!(runs_through(&one, &big) && runs_through(&one, &small));
-        assert!(middle(&one).distance(&middle(&two), None) < 1e-9);
+        assert!(middle(&one).distance(&middle(&two), ) < 1e-9);
         assert!(sweep1(&rail, &[]).is_err());
     }
 }
@@ -846,10 +846,10 @@ pub fn sweep2(
 
     if second
         .point_at_start()
-        .distance(&first.point_at_end(), None)
+        .distance(&first.point_at_end(), )
         < second
             .point_at_start()
-            .distance(&start, None)
+            .distance(&start, )
     {
         second.reverse();
     }
@@ -919,7 +919,7 @@ mod tests {
             for rail in [&first, &second] {
                 let q = rail.point_at(t);
                 assert!(
-                    surface.closest_point(&q).distance(&q, None) < 1e-3,
+                    surface.closest_point(&q).distance(&q, ) < 1e-3,
                     "{t}"
                 );
             }
@@ -942,7 +942,7 @@ mod tests {
         let two = again
             .point_at((a.0 + a.1) / 2.0, (b.0 + b.1) / 2.0)
             .unwrap();
-        assert!(one.distance(&two, None) < 1e-6);
+        assert!(one.distance(&two, ) < 1e-6);
     }
 }
 ```
@@ -1469,7 +1469,7 @@ fn crossing(
     }
 
     let (s, t) = a.closest_parameters_curve(b);
-    (a.point_at(s).distance(&b.point_at(t), None) <= tolerance).then_some((s, t))
+    (a.point_at(s).distance(&b.point_at(t), ) <= tolerance).then_some((s, t))
 }
 
 /// The low and high corners of a curve's control points.

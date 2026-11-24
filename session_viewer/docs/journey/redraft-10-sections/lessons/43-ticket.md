@@ -1,6 +1,6 @@
 # 6.2 · Accept a hit only for its current view
 
-**Steps:** 3 · **Source:** [engine/gpu/pick.rs](../../../../src/engine/gpu/pick.rs) · [app/selection.rs](../../../../src/app/selection.rs) · [engine/gpu/faces.rs](../../../../src/engine/gpu/faces.rs) · [app/walk/mesh_topology.rs](../../../../src/app/walk/mesh_topology.rs)
+**Steps:** 3 · **Source:** [engine/gpu/pick.rs](../../../../src/engine/gpu/pick.rs) · [app/selection.rs](../../../../viewer-core/src/selection.rs) · [engine/gpu/faces.rs](../../../../src/engine/gpu/faces.rs) · [app/walk/mesh_topology.rs](../../../../viewer-core/src/walk/mesh_topology.rs)
 
 ## <a id="checkpoint-43-ticket"></a>1. Name the request and view that produced a hit
 
@@ -717,14 +717,14 @@ impl Picker {
             return Some(if current {
                 Err("Cannot read GPU pick image")
             } else {
-                Ok(None)
+                Ok()
             });
         }
         let bytes = image.readback.slice(..).get_mapped_range();
         let result = if current {
             image.window.closest(&bytes)
         } else {
-            Ok(None)
+            Ok()
         };
         drop(bytes);
 ```
@@ -811,14 +811,14 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             return Some(if current {
                 Err("Cannot read GPU pick image")
             } else {
-                Ok(None)
+                Ok()
             });
         }
         let bytes = image.readback.slice(..).get_mapped_range();
         let result = if current {
             image.window.closest(&bytes)
         } else {
-            Ok(None)
+            Ok()
         };
 ```
 
@@ -1257,7 +1257,7 @@ Replace it with:
         renderer.take_pick().is_none(),
         "A newer cursor supersedes the first result"
     );
-    assert_eq!(finish(&mut renderer), None);
+    assert_eq!(finish(&mut renderer), );
 ```
 
 Replace it with:
@@ -1269,7 +1269,7 @@ Replace it with:
         renderer.take_pick(identity()).is_none(),
         "A newer cursor supersedes the first result"
     );
-    assert_eq!(finish(&mut renderer), None);
+    assert_eq!(finish(&mut renderer), );
 ```
 
 **Locate this block:**

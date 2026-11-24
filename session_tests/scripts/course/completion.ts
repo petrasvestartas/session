@@ -7,12 +7,15 @@ const mathematics = ['actions', 'check', 'deck', 'draw', 'eval', 'flat', 'font',
     'matrix', 'math_mode', 'morph', 'net', 'object', 'paint', 'presentation',
     'presentation_tests', 'run', 'tests', 'tex', 'tween', 'view'];
 
-// Only module declarations and this explicit example entry list vary between assemblies.
+// Only module declarations, core re-exports and this explicit example entry list vary between assemblies.
 function declarations(source: string, names: string[]) {
     const lines = source.split('\n');
     return lines.flatMap((line, index) => {
-        const match = /^(?:pub(?:\(crate\))? )?mod (\w+);(?:\s*\/\/.*)?\s*$/.exec(line);
-        if (!match || !names.includes(match[1])) return [];
+        const modMatch = /^(?:pub(?:\(crate\))? )?mod (\w+);(?:\s*\/\/.*)?\s*$/.exec(line);
+        const asMatch = /^pub(?:\(crate\))? use [\w:]+ as (\w+);(?:\s*\/\/.*)?\s*$/.exec(line);
+        const useMatch = /^pub(?:\(crate\))? use [\w]+::(\w+);(?:\s*\/\/.*)?\s*$/.exec(line);
+        const ident = modMatch?.[1] ?? asMatch?.[1] ?? useMatch?.[1];
+        if (!ident || !names.includes(ident)) return [];
         const attributes: string[] = [];
         for (let i = index - 1; i >= 0 && lines[i].startsWith('#['); i--) attributes.unshift(lines[i]);
         return [...attributes, line];
@@ -27,10 +30,19 @@ export function completionFiles(subject: string, read = (name: string) =>
     const retain = (name: string) => { files[name] = read(name); };
     for (const name of ['src/engine/gpu/device.rs', 'src/app/launch.rs',
         'examples/course/canvas.rs', 'examples/course/frame.rs', 'examples/course/entry.rs']) retain(name);
+    files['viewer-core/Cargo.toml'] = read('viewer-core/Cargo.toml').replace('path = "../../session_rust"', 'path = "../../../../session_rust"');
+    files['viewer-core/src/lib.rs'] = declarations(read('viewer-core/src/lib.rs'), [
+        ...(stage >= 4 ? ['camera'] : []),
+        ...(stage >= 5 ? ['rows', 'sink', 'GpuSink', 'core', 'app'] : []),
+        ...(stage >= 6 ? ['gizmo', 'interactions', 'knobs', 'walk'] : []),
+        ...(stage >= 7 ? ['decode', 'validate'] : []),
+    ]);
     const root = read('src/lib.rs');
     files['src/lib.rs'] = root.slice(0, root.indexOf('mod engine;'))
         + declarations(root, ['engine', 'app', 'course',
-            ...(stage >= 3 ? ['command_dock'] : []), ...(stage >= 4 ? ['camera'] : [])]);
+            ...(stage >= 3 ? ['command_dock'] : []),
+            ...(stage >= 4 ? ['camera'] : []),
+            ...(stage >= 5 ? ['core', 'rows'] : [])]);
     files['src/engine/mod.rs'] = declarations(read('src/engine/mod.rs'), ['gpu', ...(stage >= 5 ? ['pipelines', 'performance', 'diagnostics'] : [])]);
     files['src/app/mod.rs'] = declarations(read('src/app/mod.rs'), ['launch', ...(stage >= 2 ? ['mode', 'stage'] : []), ...(stage >= 6 ? ['walk', 'gizmo', 'knobs', 'interactions'] : []), ...(stage >= 7 ? ['decode', 'validate', 'yielding'] : [])]);
     files['src/engine/gpu/mod.rs'] = declarations(read('src/engine/gpu/mod.rs'), ['device', ...(stage >= 1 ? ['ui'] : []), ...(stage >= 5 ? ['buffers', 'hull', 'instance', 'objects'] : [])]);
@@ -59,14 +71,16 @@ export function completionFiles(subject: string, read = (name: string) =>
         retain('examples/course/dock.rs');
     }
     if (stage >= 4) {
-        retain('src/camera.rs');
+        retain('viewer-core/src/camera.rs');
         retain('examples/course/camera.rs');
     }
     if (stage >= 5) {
-        for (const name of ['gpu/buffers.rs', 'gpu/hull/geometry.rs', 'gpu/instance/layout.rs',
+        retain('viewer-core/src/sink.rs');
+        for (const name of ['encode', 'gizmo', 'hull', 'instance', 'lanes', 'mod', 'objects', 'patch', 'upload'])
+            retain(`viewer-core/src/rows/${name}.rs`);
+        for (const name of ['gpu/buffers.rs', 'gpu/hull.rs', 'gpu/instance/layout.rs',
             'gpu/objects/table.rs', 'pipelines/core.rs', 'pipelines/bindings.rs',
             'pipelines/layouts.rs', 'performance.rs', 'diagnostics.rs']) retain(`src/engine/${name}`);
-        files['src/engine/gpu/hull.rs'] = 'mod geometry;\npub use geometry::{Hull, Points, extreme_points, placed_box};\n';
         files['src/engine/gpu/instance.rs'] = 'mod layout;\npub use layout::Instance;\n';
         files['src/engine/gpu/objects.rs'] = 'mod table;\npub use table::{InstanceTable, ObjectRow, ObjectRows, Rebase, world_box};\n';
         files['src/engine/pipelines/mod.rs'] = 'pub(crate) mod bindings;\npub mod layouts;\nmod core;\npub use layouts::Layouts;\npub use core::*;\n';
@@ -75,26 +89,29 @@ export function completionFiles(subject: string, read = (name: string) =>
         retain('build.rs');
     }
     if (stage >= 6) {
-        const laterAdapters = /(?:app\/walk\/cloud\/stream\.rs|application_tests\.rs|gpu\/(?:clip\/(?:tests|editing_tests)\.rs|ssao\/tests\.rs|surface_outline\/tests\.rs|splat\/cloud_witness(?:\.rs|\/)))/;
-        for (const folder of ['src/engine', 'src/shaders', 'src/app/walk']) {
+        const laterAdapters = /(?:walk\/cloud\/stream\.rs|application_tests\.rs|gpu\/(?:scene_gpu_tests\/|clip\/(?:tests|editing_tests)\.rs|ssao\/tests\.rs|surface_outline\/tests\.rs|splat\/cloud_witness(?:\.rs|\/)))/;
+        for (const folder of ['src/engine', 'src/shaders', 'viewer-core/src/walk']) {
             for (const relative of fs.readdirSync(path.join(viewer, folder), {recursive: true})) {
                 const name = `${folder}/${String(relative).replaceAll('\\', '/')}`;
                 if (!fs.statSync(path.join(viewer, name)).isFile() || laterAdapters.test(name)) continue;
                 files[name] = read(name).split('\n').filter(line => !line.includes('// register:application-tests') && !line.includes('// register:loading')).join('\n');
             }
         }
-        for (const name of ['gizmo', 'knobs', 'interactions']) retain(`src/app/${name}.rs`);
+        for (const name of ['gizmo', 'knobs', 'interactions']) retain(`viewer-core/src/${name}.rs`);
         retain('examples/course/geometry.rs');
     }
     if (stage >= 7) {
-        for (const name of ['decode', 'validate', 'yielding']) retain(`src/app/${name}.rs`);
+        for (const name of ['decode', 'validate']) retain(`viewer-core/src/${name}.rs`);
+        for (const name of ['decode', 'yielding']) retain(`src/app/${name}.rs`);
         retain('examples/course/decoding.rs');
     }
     if (stage >= 8) {
         // The complete source lives in this checkpoint; no dependency on a viewer binary or crate.
-        for (const relative of fs.readdirSync(path.join(viewer, 'src'), {recursive: true})) {
-            const name = `src/${String(relative).replaceAll('\\', '/')}`;
-            if (fs.statSync(path.join(viewer, name)).isFile()) retain(name);
+        for (const folder of ['src', 'viewer-core/src']) {
+            for (const relative of fs.readdirSync(path.join(viewer, folder), {recursive: true})) {
+                const name = `${folder}/${String(relative).replaceAll('\\', '/')}`;
+                if (fs.statSync(path.join(viewer, name)).isFile()) retain(name);
+            }
         }
         // Keep the teaching entry page; production startup is a new, independently built entry.
         files['production.html'] = read('index.html');

@@ -1387,7 +1387,7 @@ impl Ink {
             color,
             pick,
             layout,
-            bindings: RefCell::new(None),
+            bindings: RefCell::new(),
         }
     }
     fn group(
@@ -2191,7 +2191,7 @@ Replace it with:
             sources: Default::default(),
             pick_mode: Default::default(),
         };
-        renderer.set_scene(scene, None);
+        renderer.set_scene(scene, );
         renderer
     }
 ```
@@ -2214,7 +2214,7 @@ Replace it with:
         renderer
             .highlight
             .enable_finite(&renderer.device, format);
-        renderer.set_scene(scene, None);
+        renderer.set_scene(scene, );
         renderer
     }
 ```
@@ -2763,7 +2763,7 @@ fn actual_finite_gpu_lists_cache_projection_and_drop_deleted_geometry() {
         .unwrap();
     assert_eq!(renderer.tile_usage()[5..], [2, 2]);
     drop(buffers);
-    renderer.set_scene(&Scene::empty(), None);
+    renderer.set_scene(&Scene::empty(), );
     renderer.draw(&view, &Default::default(), &camera.uniform());
     renderer
         .device
@@ -2873,7 +2873,7 @@ fn scene(depth: f64, kind: u8, sloped: bool) -> (Scene, ObjectId, ObjectId) {
     (scene, solid, ink)
 }
 fn renderer(scene: &Scene, size: [u32; 2], density: f32) -> Renderer {
-    renderer_limit(scene, size, density, None)
+    renderer_limit(scene, size, density, )
 }
 fn renderer_limit(
     scene: &Scene,
@@ -3033,7 +3033,7 @@ fn original_lines_headed_chains_and_points_share_actual_color_and_integer_occlus
                 "hidden family{kind}, density{density}"
             );
             let (front, _, ink) = scene(0.3, kind, false);
-            renderer.set_scene(&front, None);
+            renderer.set_scene(&front, );
             assert!(
                 red_pixels(&renderer, size) > 30,
                 "actual visible family{kind}, density{density}"
@@ -3053,7 +3053,7 @@ fn a_line_on_a_sloping_original_face_keeps_its_full_css_width() {
         let mut renderer = renderer(&front, size, density as f32);
         let flat = red_pixels(&renderer, size);
         let (sloped, _, ink) = scene(0.5, 0, true);
-        renderer.set_scene(&sloped, None);
+        renderer.set_scene(&sloped, );
         let grazing = red_pixels(&renderer, size);
         assert_eq!(
             grazing, flat,
@@ -3083,7 +3083,7 @@ fn shifted_view_frames_keep_original_color_and_crop_ownership() {
             solid.value()
         );
         let (front, _, ink) = scene(0.3, kind, false);
-        renderer.set_scene(&front, None);
+        renderer.set_scene(&front, );
         assert!(red_frame(&renderer, size, matrix) > 30);
         assert_eq!(
             pick_frame(&mut renderer, [0.35, -0.25], matrix).unwrap()[0],
@@ -3103,7 +3103,7 @@ fn a_device_limit_retains_physical_color_and_pick_occlusion() {
         solid.value()
     );
     let (front, _, ink) = scene(0.3, 0, false);
-    renderer.set_scene(&front, None);
+    renderer.set_scene(&front, );
     assert!(red_pixels(&renderer, size) > 30);
     assert_eq!(
         picked(&mut renderer, [0., 0.]).unwrap()[0],

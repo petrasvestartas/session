@@ -1,11 +1,12 @@
 use super::buffers::{GpuCtx, GrowBuf, ROWS, bind_group, uniform_buffer};
 use super::frame::Binds;
 use super::slots::{Slots, clamp, row_slot_layout};
-use super::upload::drop_rows;
 use super::vectors::VectorRow;
 use crate::engine::pipelines::{
     ColorWrite, DepthMode, Layouts, Pipeline, PipelineDesc, Shader, Target, build, ink_module,
 };
+#[allow(unused_imports)]
+pub use crate::rows::{CylinderSegment, SILHOUETTE_SAG, SegDraw, SegRows, is_silhouette};
 use std::collections::HashSet;
 use wgpu::PrimitiveTopology::TriangleList;
 
@@ -15,75 +16,6 @@ pub const SHADERS: &[(&str, &str)] = &[("ribbon.wgsl", shader!("ribbon.wgsl"))];
 
 /// Vertices per segment: two triangles, placed by the shader.
 const RIBBON_VERTS: u32 = 6;
-
-/// One line segment, 40 bytes, as the shaders read it.
-#[repr(C)]
-#[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
-pub struct CylinderSegment {
-    pub p0: [f32; 3],     // start point
-    pub radius: f32,      // 0 = pen width; > 0 = world mm
-    pub p1: [f32; 3],     // end point
-    pub instance_id: u32, // object row
-    pub color: u32,       // packed rgba, red in the low byte
-    pub facing: u32,      // packed normals of the two faces beside it
-}
-
-const _: () = assert!(std::mem::size_of::<CylinderSegment>() == 40);
-
-/// The sag of a pipe drawn only where it is a silhouette, where the two faces beside it face
-/// opposite ways to the camera: the sign bit set on a zero slack; ribbon.wgsl reads the bit.
-pub const SILHOUETTE_SAG: f32 = -0.0;
-
-/// True for the sag of a pipe drawn only where it is a silhouette.
-#[cfg(test)]
-pub fn is_silhouette(sag: f32) -> bool {
-    sag.is_sign_negative()
-}
-
-/// One batch of segments added to a sheet.
-pub struct SegDraw {
-    pub instance: u32, // object row of the sheet
-    pub from: u32,     // first segment index within the sheet
-    pub count: u32,    // segments in this batch
-    pub first: u32,    // row of the first segment in the upload's sheet rows
-}
-
-/// Segment rows of one upload.
-#[derive(Default)]
-pub struct SegRows {
-    pub pipes: Vec<CylinderSegment>,              // mesh and solid edges
-    pub pipe_ids: Vec<u32>,                       // source edge per pipe, or u32::MAX
-    pub pipe_sags: Vec<f32>, // per pipe: how far it rises off the faces beside it, mm; 0 = on them
-    pub pipe_chains: Vec<std::ops::Range<u32>>, // runs of pipes that form one curve
-    pub ribbon_chains: Vec<std::ops::Range<u32>>, // runs of ribbons that form one curve
-    pub ribbons: Vec<CylinderSegment>, // standalone lines and curves
-    pub ribbon_ids: Vec<u32>, // source entity per ribbon, or u32::MAX
-    pub ribbon_dashes: Vec<[f32; 3]>, // on length, off length, cumulative length before the segment
-    pub ribbon_trims: Vec<[f32; 2]>, // visible point radii at the outer ends
-    pub ribbon_heads: Vec<(u32, u32)>, // (ribbon, HEAD_END or HEAD_START): that end stops under an arrowhead
-    pub sheet_rows: Vec<CylinderSegment>, // streamed sheet segments, kept apart from editable lines
-    pub sheet_ids: Vec<u32>,           // source entity per sheet segment, or u32::MAX
-    pub sheets: Vec<SegDraw>,          // sheet batches among the sheet rows
-}
-
-impl SegRows {
-    /// Empty every table and free its memory.
-    pub fn drop_rows(&mut self) {
-        drop_rows(&mut self.pipes);
-        drop_rows(&mut self.pipe_ids);
-        drop_rows(&mut self.pipe_sags);
-        drop_rows(&mut self.pipe_chains);
-        drop_rows(&mut self.ribbon_chains);
-        drop_rows(&mut self.ribbons);
-        drop_rows(&mut self.ribbon_ids);
-        drop_rows(&mut self.ribbon_dashes);
-        drop_rows(&mut self.ribbon_trims);
-        drop_rows(&mut self.ribbon_heads);
-        drop_rows(&mut self.sheet_rows);
-        drop_rows(&mut self.sheet_ids);
-        drop_rows(&mut self.sheets);
-    }
-}
 
 /// A run of sheet segments stored on the GPU.
 #[derive(Clone, Copy)]
@@ -923,61 +855,5 @@ impl super::lane::Lane for SegmentLane {
 
     fn bytes(&self) -> (u64, u64) {
         (self.allocated_bytes(), 0)
-    }
-}
-
-impl SegRows {
-    /// Move `other`'s rows after these, its chains and ids shifted to match.
-    pub fn merge(&mut self, other: &mut SegRows) {
-        let seg = self;
-        let pipes = seg.pipes.len() as u32;
-        let ribbons = seg.ribbons.len() as u32;
-        let sheet_rows = seg.sheet_rows.len() as u32;
-        seg.pipe_ids.resize(seg.pipes.len(), u32::MAX);
-        seg.pipe_sags.resize(seg.pipes.len(), 0.0);
-        seg.ribbon_ids.resize(seg.ribbons.len(), u32::MAX);
-        seg.ribbon_dashes.resize(seg.ribbons.len(), [0.0; 3]);
-        seg.ribbon_trims.resize(seg.ribbons.len(), [0.0; 2]);
-        seg.sheet_ids.resize(seg.sheet_rows.len(), u32::MAX);
-        other.pipe_ids.resize(other.pipes.len(), u32::MAX);
-        other.pipe_sags.resize(other.pipes.len(), 0.0);
-        other.ribbon_ids.resize(other.ribbons.len(), u32::MAX);
-        other.ribbon_dashes.resize(other.ribbons.len(), [0.0; 3]);
-        other.ribbon_trims.resize(other.ribbons.len(), [0.0; 2]);
-        other.sheet_ids.resize(other.sheet_rows.len(), u32::MAX);
-        seg.pipe_chains.extend(
-            other
-                .pipe_chains
-                .iter()
-                .map(|chain| chain.start + pipes..chain.end + pipes),
-        );
-        seg.ribbon_chains.extend(
-            other
-                .ribbon_chains
-                .iter()
-                .map(|chain| chain.start + ribbons..chain.end + ribbons),
-        );
-
-        seg.ribbon_heads.extend(
-            other
-                .ribbon_heads
-                .iter()
-                .map(|&(row, end)| (row + ribbons, end)),
-        );
-
-        for mut draw in other.sheets.drain(..) {
-            draw.first += sheet_rows;
-            seg.sheets.push(draw);
-        }
-
-        seg.pipes.append(&mut other.pipes);
-        seg.pipe_ids.append(&mut other.pipe_ids);
-        seg.pipe_sags.append(&mut other.pipe_sags);
-        seg.ribbons.append(&mut other.ribbons);
-        seg.ribbon_ids.append(&mut other.ribbon_ids);
-        seg.ribbon_dashes.append(&mut other.ribbon_dashes);
-        seg.ribbon_trims.append(&mut other.ribbon_trims);
-        seg.sheet_rows.append(&mut other.sheet_rows);
-        seg.sheet_ids.append(&mut other.sheet_ids);
     }
 }

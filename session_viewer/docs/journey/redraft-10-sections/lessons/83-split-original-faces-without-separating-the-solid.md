@@ -1,6 +1,6 @@
 # 16.3 · Joined-face topology and exact surface measures
 
-**Steps:** 4 · **Source:** [app/command/verbs/project_to_plane.rs](../../../../src/app/command/verbs/project_to_plane.rs) · [app/command/verbs/extend.rs](../../../../src/app/command/verbs/extend.rs) · [app/splitting.rs](../../../../src/app/splitting.rs) · [app/command/verbs/measure.rs](../../../../src/app/command/verbs/measure.rs)
+**Steps:** 4 · **Source:** [app/command/verbs/project_to_plane.rs](../../../../viewer-core/src/command/verbs/project_to_plane.rs) · [app/command/verbs/extend.rs](../../../../viewer-core/src/command/verbs/extend.rs) · [app/splitting.rs](../../../../viewer-core/src/splitting.rs) · [app/command/verbs/measure.rs](../../../../viewer-core/src/command/verbs/measure.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -656,14 +656,14 @@ mod tests {
             fan.area() > 3.5,
             "the kernel's unsigned fan over-counts"
         );
-        let cached = Mesh::from_polylines(vec![points], None);
+        let cached = Mesh::from_polylines(vec![points], );
         assert!(
-            (compute_mesh_area(&cached, &Xform::identity(), None) - 3.0).abs() < 1e-12
+            (compute_mesh_area(&cached, &Xform::identity(), ) - 3.0).abs() < 1e-12
         );
         let moved = Xform::translation(-9.0, 3.0, 7.0);
-        assert!((compute_mesh_area(&cached, &moved, None) - 3.0).abs() < 1e-12);
+        assert!((compute_mesh_area(&cached, &moved, ) - 3.0).abs() < 1e-12);
         let scaled = Xform::scale_xyz(2.0, 2.0, 2.0);
-        assert!((compute_mesh_area(&cached, &scaled, None) - 12.0).abs() < 1e-12);
+        assert!((compute_mesh_area(&cached, &scaled, ) - 12.0).abs() < 1e-12);
     }
 
     /// A warped quad measures its two drawn triangles, not their flat shadow.
@@ -676,7 +676,7 @@ mod tests {
             Point::new(0.0, 1.0, 0.0),
         ];
         let quad = Mesh::from_vertices_and_faces(points, vec![vec![0, 1, 2, 3]]);
-        let area = compute_mesh_area(&quad, &Xform::identity(), None);
+        let area = compute_mesh_area(&quad, &Xform::identity(), );
         assert!((area - 2.0_f64.sqrt()).abs() < 1e-12);
     }
 
@@ -700,7 +700,7 @@ pub fn compute_length(geometry: &Geometry, place: &Xform) -> Option<f64> {
     match geometry {
         Geometry::Line(line) => Some(line.transformed(place).length()),
         Geometry::Polyline(polyline) => Some(polyline.transformed(place).length()),
-        Geometry::NurbsCurve(curve) => Some(curve.transformed(place).length(None)),
+        Geometry::NurbsCurve(curve) => Some(curve.transformed(place).length()),
         _ => None,
     }
 }
@@ -772,7 +772,7 @@ mod tests {
         let exact = (2.0 * 2.0_f64.sqrt() + 2.0 * 1.0_f64.asinh()) / 2.0;
         assert!((compute_length(&curve, &identity).unwrap() - exact).abs() < 1e-9);
         let mesh = Geometry::Mesh(Rc::new(Mesh::create_box(1.0, 1.0, 1.0)));
-        assert_eq!(compute_length(&mesh, &identity), None);
+        assert_eq!(compute_length(&mesh, &identity), );
     }
 }
 ```
@@ -940,7 +940,7 @@ fn compute_brep_area(brep: &BRep, place: &Xform, face: Option<usize>) -> f64 {
         .iter()
         .enumerate()
         .filter(|(index, _)| face.is_none_or(|face| face == *index))
-        .map(|(_, mesh)| compute_mesh_area(mesh, place, None))
+        .map(|(_, mesh)| compute_mesh_area(mesh, place, ))
         .sum()
 }
 
@@ -1033,19 +1033,19 @@ mod tests {
         let mesh = Mesh::create_box(2.0, 2.0, 0.4);
         let boxed = Geometry::Mesh(Rc::new(mesh.clone()));
         assert!(near(
-            compute_area(&boxed, &identity, None).unwrap(),
+            compute_area(&boxed, &identity, ).unwrap(),
             11.2,
             1e-9
         ));
         let moved = Xform::translation(-9.0, 3.0, 0.0);
         assert!(near(
-            compute_area(&boxed, &moved, None).unwrap(),
+            compute_area(&boxed, &moved, ).unwrap(),
             11.2,
             1e-9
         ));
         let scaled = Xform::scale_xyz(2.0, 2.0, 2.0);
         assert!(near(
-            compute_area(&boxed, &scaled, None).unwrap(),
+            compute_area(&boxed, &scaled, ).unwrap(),
             44.8,
             1e-9
         ));
@@ -1068,7 +1068,7 @@ mod tests {
         let brep = BRep::create_box(2.0, 2.0, 0.4);
         let solid = Geometry::BRep(Rc::new(brep.clone()));
         assert!(near(
-            compute_area(&solid, &identity, None).unwrap(),
+            compute_area(&solid, &identity, ).unwrap(),
             11.2,
             1e-9
         ));
@@ -1084,21 +1084,21 @@ mod tests {
         let cylinder = Geometry::BRep(Rc::new(BRep::create_cylinder(150.0, 400.0)));
         let exact = 2.0 * PI * 150.0 * 400.0 + 2.0 * PI * 150.0 * 150.0;
         assert!(near(
-            compute_area(&cylinder, &identity, None).unwrap(),
+            compute_area(&cylinder, &identity, ).unwrap(),
             exact,
             5e-3
         ));
 
         let element = Geometry::Element(Rc::new(Element::from_mesh(mesh, "beam")));
         assert!(near(
-            compute_area(&element, &identity, None).unwrap(),
+            compute_area(&element, &identity, ).unwrap(),
             11.2,
             1e-9
         ));
         let line = Geometry::Line(Rc::new(Line::new(
             0.0, 0.0, 0.0, 1.0, 0.0, 0.0,
         )));
-        assert_eq!(compute_area(&line, &identity, None), None);
+        assert_eq!(compute_area(&line, &identity, ), );
     }
 
     #[test]
@@ -1107,13 +1107,13 @@ mod tests {
         let cylinder = Primitives::cylinder_surface(0.0, 0.0, 0.0, 2.0, 5.0);
         let side = Geometry::NurbsSurface(Rc::new(cylinder));
         assert!(near(
-            compute_area(&side, &identity, None).unwrap(),
+            compute_area(&side, &identity, ).unwrap(),
             20.0 * PI,
             1e-7
         ));
         let scaled = Xform::scale_xyz(2.0, 2.0, 2.0);
         assert!(near(
-            compute_area(&side, &scaled, None).unwrap(),
+            compute_area(&side, &scaled, ).unwrap(),
             80.0 * PI,
             1e-7
         ));
@@ -1121,7 +1121,7 @@ mod tests {
             0.0, 0.0, 0.0, 3.0,
         )));
         assert!(near(
-            compute_area(&sphere, &identity, None).unwrap(),
+            compute_area(&sphere, &identity, ).unwrap(),
             36.0 * PI,
             1e-7
         ));
@@ -1134,7 +1134,7 @@ mod tests {
         let flat = NurbsSurface::create(false, false, 1, 1, 2, 2, &corners).unwrap();
         let flat = Geometry::NurbsSurface(Rc::new(flat));
         assert!(near(
-            compute_area(&flat, &identity, None).unwrap(),
+            compute_area(&flat, &identity, ).unwrap(),
             4.0,
             1e-12
         ));

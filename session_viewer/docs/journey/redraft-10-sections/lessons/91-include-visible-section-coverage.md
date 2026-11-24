@@ -4059,7 +4059,7 @@ impl Editor {
             } else if self.draft.is_some() || self.plane_menu {
                 self.apply(Action::CancelTool)
             } else {
-                self.apply(Action::Picked(None))
+                self.apply(Action::Picked())
             };
         }
         if !matches!(
@@ -7250,7 +7250,7 @@ impl Editor {
             } else if self.draft.is_some() || self.plane_menu {
                 self.apply(Action::CancelTool)
             } else {
-                self.apply(Action::Picked(None))
+                self.apply(Action::Picked())
             };
         }
         if !matches!(
@@ -7724,7 +7724,7 @@ Replace it with:
 
 ```rust
 pub const ACTIONS: &[(&str, Factory)] = &[
-    ("Arctic", || Action::Arctic(None)),
+    ("Arctic", || Action::Arctic()),
     ("Select By Name", || {
         Action::Query(crate::selection_query::Query::Name(
 ```
@@ -7733,8 +7733,8 @@ Replace it with:
 
 ```rust
 pub const ACTIONS: &[(&str, Factory)] = &[
-    ("View Outline", || Action::ViewOutline(None)),
-    ("Arctic", || Action::Arctic(None)),
+    ("View Outline", || Action::ViewOutline()),
+    ("Arctic", || Action::Arctic()),
     ("Select By Name", || {
         Action::Query(crate::selection_query::Query::Name(
 ```
@@ -7951,7 +7951,7 @@ fn actual_global_and_selected_outlines_share_alpha_and_one_black_blend() {
     assert_eq!(r.global_outline_usage(), [0; 4]);
     assert_eq!(pixels(&r), plain);
     scene.clear();
-    r.set_scene(&scene, None);
+    r.set_scene(&scene, );
     r.set_outlines(true);
     pixels(&r);
     assert_eq!(r.global_outline_usage(), [0; 4]);
@@ -8025,11 +8025,11 @@ fn actual_global_outline_includes_locked_and_releases_hidden_originals() {
             .iter()
             .any(|v| *v == 255)
     );
-    assert_eq!(scene.pick_id(owner.value()), None);
+    assert_eq!(scene.pick_id(owner.value()), );
     Rc::make_mut(&mut scene.view)
         .hidden
         .insert(owner);
-    r.set_scene(&scene, None);
+    r.set_scene(&scene, );
     pixels(&r);
     assert!(r.global_outline_alpha().is_empty());
     assert_eq!(r.global_outline_usage(), [0; 4]);

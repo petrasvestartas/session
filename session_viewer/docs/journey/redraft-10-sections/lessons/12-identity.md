@@ -537,7 +537,7 @@ mod tests {
         assert_eq!(pick(&scene, [0.4, 0.0]), Some(far));
         scene.remove(near);
         assert_eq!(pick(&scene, [0.0, 0.0]), Some(far));
-        assert_eq!(pick(&scene, [-0.9, -0.9]), None);
+        assert_eq!(pick(&scene, [-0.9, -0.9]), );
     }
 
     #[test]
@@ -568,7 +568,7 @@ mod tests {
             triangle_depth([0.0, 0.0], [0.0; 6], [0.0; 6], [0.0; 6]),
             None
         );
-        assert_eq!(pick(&Scene::demo(), [f32::NAN, 0.0]), None);
+        assert_eq!(pick(&Scene::demo(), [f32::NAN, 0.0]), );
     }
 }
 ```

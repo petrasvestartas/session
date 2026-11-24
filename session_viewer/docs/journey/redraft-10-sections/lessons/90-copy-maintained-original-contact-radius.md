@@ -1444,7 +1444,7 @@ impl Image {
         let view = texture.create_view(&Default::default());
         let bytes = u64::from(size[0])
             * u64::from(size[1])
-            * u64::from(format.block_copy_size(None).unwrap());
+            * u64::from(format.block_copy_size().unwrap());
         Self {
             texture,
             view,
@@ -2926,7 +2926,7 @@ Replace it with:
 
 ```rust
 pub const ACTIONS: &[(&str, Factory)] = &[
-    ("Arctic", || Action::Arctic(None)),
+    ("Arctic", || Action::Arctic()),
     ("Select By Name", || {
         Action::Query(crate::selection_query::Query::Name(
             String::new(),
@@ -3109,7 +3109,7 @@ fn actual_ambient_darkens_original_contacts_in_one_frame_caches_and_releases_lar
     let uploads = r.stats()[0];
     r.set_ambient(true);
     let shaded = pixels(&r, &matrix);
-    assert_eq!(r.ambient_error(), None);
+    assert_eq!(r.ambient_error(), );
     let usage = r.ambient_usage();
     assert!(usage[0] > 100_000);
     assert_eq!(usage[1], 1);

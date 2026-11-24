@@ -979,14 +979,14 @@ Edit the existing block to match this code; keep unchanged lines:
         let line = self.prepare();
         canvas.set_attribute("data-command-ui", &self.inspect())?;
         let Some(line) = line else {
-            return Ok(None);
+            return Ok();
         };
         if line == "Escape" {
-            return Ok(None);
+            return Ok();
         }
         if line.eq_ignore_ascii_case("Help") {
             self.answer(&line, &self.commands.0.join(" · "));
-            return Ok(None);
+            return Ok();
         }
         if !self
             .commands
@@ -1042,14 +1042,14 @@ Edit the existing block to match this code; keep unchanged lines:
         let line = self.prepare();
         canvas.set_attribute("data-command-ui", &self.inspect())?;
         let Some(line) = line else {
-            return Ok(None);
+            return Ok();
         };
         if line == "Escape" {
-            return Ok(None);
+            return Ok();
         }
         if line.eq_ignore_ascii_case("Help") {
             self.answer(&line, &self.commands.0.join(" · "));
-            return Ok(None);
+            return Ok();
         }
         if !self.commands.0.iter().any(|name| {
             name.eq_ignore_ascii_case(&line)

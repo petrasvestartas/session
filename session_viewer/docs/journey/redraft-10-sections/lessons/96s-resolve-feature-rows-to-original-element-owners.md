@@ -1,6 +1,6 @@
 # 19.3 · Original owners across selection, copying and display
 
-**Steps:** 8 · **Source:** [app/session_io.rs](../../../../src/app/session_io.rs) · [app/command/mod.rs](../../../../src/app/command/mod.rs) · [app/hierarchy.rs](../../../../src/app/hierarchy.rs) · [app/scene.rs](../../../../src/app/scene.rs)
+**Steps:** 8 · **Source:** [app/session_io.rs](../../../../viewer-core/src/session_io.rs) · [app/command/mod.rs](../../../../viewer-core/src/command/mod.rs) · [app/hierarchy.rs](../../../../viewer-core/src/hierarchy.rs) · [app/scene.rs](../../../../viewer-core/src/scene.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -2113,11 +2113,11 @@ fn actual_projected_feature_pixel_selects_original_element_not_display_path() {
         })
     );
     Rc::make_mut(&mut scene.view).lock(&[owner], true);
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     renderer
         .request_pick([0., 0.4], identity())
         .unwrap();
-    assert_eq!(finish(&mut renderer), None);
+    assert_eq!(finish(&mut renderer), );
 }
 
 #[test]
@@ -2484,7 +2484,7 @@ fn original_feature_visibility_colour_and_point_styles_survive_projection() {
         "visible cut",
     ));
     let mut session = Session::new("styles");
-    let node = session.add_element(element, None);
+    let node = session.add_element(element, );
     let guid = node.borrow().name.clone();
     session.xforms.insert(
         guid.clone(),
@@ -2662,7 +2662,7 @@ fn actual_feature_point_disc_uses_original_owner_and_css_diameter() {
         for (offset, expected) in [
             (0., Some([owner.value(), 0])),
             (5., Some([owner.value(), 0])),
-            (13., None),
+            (13., ),
         ] {
             renderer
                 .request_pick(

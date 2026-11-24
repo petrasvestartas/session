@@ -1,6 +1,6 @@
 # 14.1 · Original drawings, entity queries and construction frames
 
-**Steps:** 42 · **Source:** [app/walk/sheet.rs](../../../src/app/walk/sheet.rs) · [app/sheet_query.rs](../../../src/app/sheet_query.rs) · [app/stream.rs](../../../src/app/stream.rs) · [app/cplane.rs](../../../src/app/cplane.rs)
+**Steps:** 42 · **Source:** [app/walk/sheet.rs](../../../viewer-core/src/walk/sheet.rs) · [app/sheet_query.rs](../../../viewer-core/src/sheet_query.rs) · [app/stream.rs](../../../viewer-core/src/stream.rs) · [app/cplane.rs](../../../viewer-core/src/cplane.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">

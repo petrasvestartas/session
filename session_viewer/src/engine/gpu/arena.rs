@@ -2,11 +2,12 @@ use super::buffers::{GpuCtx, GrowBuf, INDICES, VERTS};
 use super::frame::Binds;
 use super::slots::{SlotSpace, SlotTable, arena_slot_layout, clamp};
 use super::text_outline::{OutlineBuffers, OutlineTextLane};
-use super::upload::drop_rows;
 use crate::engine::pipelines::{
     Layouts, Pipeline, PipelineDesc, Shader, Target, build, instance_id_layout, scene_module,
     vertex_layout,
 };
+#[allow(unused_imports)]
+pub use crate::rows::{ArenaRows, FACE_TAG, FaceSource, Sample};
 use session_rust::RenderVertex;
 use wgpu::PrimitiveTopology::TriangleList;
 
@@ -81,35 +82,6 @@ fn octahedral(normal: [f32; 3]) -> u32 {
 /// The GPU form of `vertices`.
 fn gpu_vertices(vertices: &[RenderVertex]) -> Vec<GpuVertex> {
     vertices.iter().map(GpuVertex::from).collect()
-}
-
-/// Mesh rows of one upload, ready for the GPU.
-#[derive(Default)]
-pub struct ArenaRows {
-    pub verts: Vec<RenderVertex>,                 // one vertex per row
-    pub vids: Vec<u32>,                           // object row of each vertex
-    pub idx: Vec<u32>,                            // triangle indices of solid faces
-    pub idx_print: Vec<u32>,                      // triangle indices of sheet fills
-    pub idx_text: Vec<u32>,                       // triangle indices of sheet lettering
-    pub face_ids: Vec<u32>,                       // source face of each solid triangle
-    pub face_sources: Vec<FaceSource>,            // where each face came from
-    pub surface_boundaries: Vec<(u32, [u32; 2])>, // pipe and sample range per surface edge
-    pub surface_samples: Vec<Sample>,             // surface points for previews
-}
-
-impl ArenaRows {
-    /// Empty every table and free its memory.
-    pub fn drop_rows(&mut self) {
-        drop_rows(&mut self.verts);
-        drop_rows(&mut self.vids);
-        drop_rows(&mut self.idx);
-        drop_rows(&mut self.idx_print);
-        drop_rows(&mut self.idx_text);
-        drop_rows(&mut self.face_ids);
-        drop_rows(&mut self.face_sources);
-        drop_rows(&mut self.surface_samples);
-        drop_rows(&mut self.surface_boundaries);
-    }
 }
 
 /// Pipelines that draw solid faces as masks.
@@ -622,25 +594,6 @@ mod tests {
         assert_eq!(packed.color.to_le_bytes(), [255, 128, 0, 255]);
         assert_eq!(packed.normal, NO_NORMAL);
     }
-}
-
-/// Bit that marks a pick id as a face.
-pub const FACE_TAG: u32 = 0x2000_0000;
-
-/// Which object and face a triangle came from.
-#[derive(Clone, Copy)]
-pub struct FaceSource {
-    pub parent: u32, // object row
-    pub face: usize, // face index in that object
-}
-
-/// Where one GPU vertex came from on its surface.
-#[derive(Clone, Copy)]
-pub struct Sample {
-    pub index: u32,   // GPU vertex index
-    pub surface: u32, // surface index in the BRep
-    pub uv: [f64; 2], // parameter on that surface
-    pub sign: f32,    // +1 or -1 on the normal
 }
 
 impl ArenaLane {

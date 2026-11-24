@@ -1,6 +1,6 @@
 # 13.2 · Independent presentation and reusable CAD preparation
 
-**Steps:** 15 · **Source:** [app/scene_instances.rs](../../../../src/app/scene_instances.rs) · [engine/gpu/instanced.rs](../../../../src/engine/gpu/instanced.rs) · [engine/gpu/slots.rs](../../../../src/engine/gpu/slots.rs) · [app/walk/brep_shapes.rs](../../../../src/app/walk/brep_shapes.rs)
+**Steps:** 15 · **Source:** [app/scene_instances.rs](../../../../viewer-core/src/scene_instances.rs) · [engine/gpu/instanced.rs](../../../../src/engine/gpu/instanced.rs) · [engine/gpu/slots.rs](../../../../src/engine/gpu/slots.rs) · [app/walk/brep_shapes.rs](../../../../viewer-core/src/walk/brep_shapes.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -972,7 +972,7 @@ fn actual_definition_instances_batch_one_geometry_keep_integer_picks_and_release
     colour_pixels(&mut renderer);
     assert_eq!(renderer.instance_usage()[3], writes);
     scene.translate(a, [0., 0.2, 0.]).unwrap();
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     assert_eq!(renderer.stats()[0], source_uploads);
     assert!(renderer.instance_usage()[3] > writes);
     renderer
@@ -985,10 +985,10 @@ fn actual_definition_instances_batch_one_geometry_keep_integer_picks_and_release
             .any(|p| p[0] > 140 && p[1] > 90 && p[2] < 40)
     );
     Rc::make_mut(&mut scene.view).hide(&[b], true);
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     assert_eq!(renderer.instance_usage()[1], 1);
     scene.clear();
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     assert_eq!(&renderer.instance_usage()[..3], &[0, 0, 0]);
     assert!(weak.upgrade().is_none());
 }
@@ -5097,8 +5097,8 @@ fn actual_congruent_cad_replay_matches_independent_faces_ink_and_owner_picks() {
     drop(copy);
     shared.clear();
     alone.clear();
-    shared_renderer.set_scene(&shared, None);
-    independent_renderer.set_scene(&alone, None);
+    shared_renderer.set_scene(&shared, );
+    independent_renderer.set_scene(&alone, );
     drop(cache);
     assert!(weak.upgrade().is_none());
 }

@@ -1,6 +1,6 @@
 # 19.4 · Family-aware original controls and source previews
 
-**Steps:** 7 · **Source:** [app/session_io.rs](../../../../src/app/session_io.rs) · [app/command/mod.rs](../../../../src/app/command/mod.rs) · [app/hierarchy.rs](../../../../src/app/hierarchy.rs) · [app/scene.rs](../../../../src/app/scene.rs)
+**Steps:** 7 · **Source:** [app/session_io.rs](../../../../viewer-core/src/session_io.rs) · [app/command/mod.rs](../../../../viewer-core/src/command/mod.rs) · [app/hierarchy.rs](../../../../viewer-core/src/hierarchy.rs) · [app/scene.rs](../../../../viewer-core/src/scene.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -3875,7 +3875,7 @@ fn actual_mesh_control_pixel_keeps_sparse_vertex_key_at_both_densities() {
             })
         );
         scene.show_controls(false);
-        renderer.set_scene(&scene, None);
+        renderer.set_scene(&scene, );
         renderer
             .request_pick([-0.375, -0.25], identity())
             .unwrap();
@@ -4695,7 +4695,7 @@ Replace it with:
             } else if self.draft.is_some() || self.plane_menu {
                 self.apply(Action::CancelTool)
             } else {
-                self.apply(Action::Picked(None))
+                self.apply(Action::Picked())
             };
 ```
 
@@ -4708,7 +4708,7 @@ Replace it with:
             } else if self.pick_mode == crate::pick_sources::Mode::Control {
                 self.apply(Action::Controls(false))
             } else {
-                self.apply(Action::Picked(None))
+                self.apply(Action::Picked())
             };
 ```
 
@@ -5000,7 +5000,7 @@ fn same_source(a: &Scene, b: &Scene, id: ObjectId) -> bool {
                 ) {
                     (Some(a), Some(b), _, _) => Rc::ptr_eq(&a.source, &b.source),
                     (_, _, Some(a), Some(b)) => Rc::ptr_eq(&a.source, &b.source),
-                    (None, None, None, None) => other
+                    (None, None, None, ) => other
                         .geometry()
                         .zip(row.geometry())
                         .is_some_and(|(a, b)| Rc::ptr_eq(a, b)),
@@ -5397,7 +5397,7 @@ fn actual_edited_element_controls_move_their_integer_pixels_and_undo() {
                 0.25, 0., 0.,
             ))
             .unwrap();
-        renderer.set_scene(&preview.scene, None);
+        renderer.set_scene(&preview.scene, );
         renderer
             .request_pick([-0.25, -0.5], identity())
             .unwrap();
@@ -5416,7 +5416,7 @@ fn actual_edited_element_controls_move_their_integer_pixels_and_undo() {
                 .commit(&mut scene, &mut history)
                 .unwrap()
         );
-        renderer.set_scene(&scene, None);
+        renderer.set_scene(&scene, );
         renderer
             .request_pick([-0.25, -0.5], identity())
             .unwrap();
@@ -5426,7 +5426,7 @@ fn actual_edited_element_controls_move_their_integer_pixels_and_undo() {
             Some(target)
         );
         assert!(history.undo(&mut scene));
-        renderer.set_scene(&scene, None);
+        renderer.set_scene(&scene, );
         renderer
             .request_pick([-0.5, -0.5], identity())
             .unwrap();

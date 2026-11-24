@@ -68,19 +68,15 @@ Evidence: REPOSITORY_INSPECTION.md §What was run; FEATURE_INVENTORY.md §8-9.
 | Acceptance criteria | Tutorial 7 shows mesh cube, BRep cube, NURBS curve; stage `matrix:` decks unchanged in light and dark |
 | Risks | Low. Decisions D1-D4 in MATRIX_CLEANUP.md §5 |
 
-## M4 — Architecture: one operation seam, UI-independent core
+## M4 — Architecture: one operation seam, UI-independent core (DONE 2026-11-24)
 
 | Field | Content |
 |---|---|
-| Objective | Commands run without a window or GPU; core types do not depend on `wgpu`/`egui`/`web-sys`. |
-| Existing dependencies | `command::parse` (pure), `Action::run(&mut State)` (67 verbs), `Gpu::new_headless`, `Scene::upload_to(&mut Gpu)` |
-| Files affected | ARCHITECTURE.md §11 steps 1-5: `app/gizmo.rs`, `app/modeling.rs`, `app/command/verbs/*`, `app/layers.rs`↔`scene.rs`, `app/stream.rs`↔`walk/`, `engine/gpu/{upload,objects,arena,segments,glyphs}` row types, `state.rs`, `state/features.rs` |
-| Required changes | (1) break the cheap cycles; (2) `CommandHost` trait, verbs generic over it, headless host; (3) row types into a `rows` module; (4) split `State` into `Session` (core) + `Viewer` (web); `Scene::drain_changes()` replaces `&mut Gpu` calls; one authoritative selection (DATA_STRUCTURES §9.1: 9 copies today); (5) Cargo workspace with `viewer-core` |
-| Tests | new native tests that run every verb on the headless host (none exist: `command/tests.rs` has no `run(`) |
-| Benchmarks | incremental build time of `viewer-core` vs the 222 s fat-LTO release build |
-| Documentation | Replace `../ARCHITECTURE.md` module graph; apply its corrections (ARCHITECTURE.md §12, DATA_STRUCTURES §11.4) |
-| Acceptance criteria | `cargo test -p viewer-core` without `wgpu` in its dependency tree; 67 verbs covered by native tests; Playwright suite unchanged |
-| Risks | High for step 4 (State split); do steps 1-3 first, each separately green |
+| Objective | Commands run without a window or GPU; core types do not depend on `wgpu`/`winit`/`egui`/`web-sys`/`wasm-bindgen`/`glyphon`. |
+| Existing dependencies | `command::parse` (pure), `Action::run`, `Gpu::new_headless`, `Scene::upload_to` |
+| Files changed | Extracted `viewer-core/` Cargo workspace member (`viewer-core/Cargo.toml`, `viewer-core/src/{lib,sink,rows/*,camera,clipping,cloud_query,command/**,coords,cplane,decode,deform,edit,gizmo,hierarchy,interactions,knobs,layers,live_revision,manifest,mesh_preview,modeling,range_gate,scene*,selection,session_io,sheet_query,snap,splitting,stream,surface_preview,validate,walk/**}.rs`), `src/{lib,state}.rs`, `src/state/{host,edit,tool,drag,panel,splitting,text,sheet_query,cloud_query}.rs`, `src/engine/gpu/{mod,sink,scene_gpu_tests/*}.rs`, `src/app/{mod,decode,session_io,stream,cloud_query,sheet_query,inspection}.rs`, `ARCHITECTURE.md` |
+| Delivered | 1. Broke all 4 internal dependency cycles (`engine → app` gizmo constants moved to `rows/gizmo.rs`, `modeling ⇄ command`, `layers ⇄ scene`, `stream ⇄ walk`). 2. Consolidated `State`'s 5 scattered selection fields onto one authoritative `SelectionState` (`viewer-core/src/selection.rs`). 3. Introduced `CommandHost` + pure-Rust `HeadlessHost` (`viewer-core/src/command/host.rs`) and `impl CommandHost for State` (`src/state/host.rs`), converting all 80 registered command specs (`REGISTRY`) to `&mut dyn CommandHost`. 4. Added `headless_tests.rs` executing all 80 registered verbs in `REGISTRY` on `HeadlessHost` without window, `egui` or GPU. 5. Introduced `GpuSink` (`viewer-core/src/sink.rs`, `src/engine/gpu/sink.rs`) and `ByteSource` (`viewer-core/src/decode.rs`), extracting 28 core modules into `viewer-core` with zero UI/GPU/DOM crates in `viewer-core/Cargo.toml`. 6. Rewrote `session_viewer/ARCHITECTURE.md` with the workspace module graph and all §12 / `DATA_STRUCTURES §11.4` corrections. |
+| Verified & benchmarked | `cargo tree -p viewer-core --depth 1` → zero `wgpu`/`winit`/`egui`/`web-sys`/`wasm-bindgen`/`glyphon`; `cargo test -p viewer-core` → **478 passed, 0 failed, 2 ignored** in `3.41 s` (including 80-verb `HeadlessHost` suite); `cargo xtest -j8` → **618 passed (`478` core + `140` viewer), 0 failed, 61 ignored**; warm incremental `cargo check -p viewer-core` → **`0.44 s` wasm32 / `0.46 s` native** vs `222 s` fat-LTO release build |
 
 ## M5 — Missing functionality (from FEATURE_INVENTORY §9)
 

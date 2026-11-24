@@ -1,3 +1,4 @@
+use crate::app::command::SelectionState;
 use crate::app::scene::{FileDoc, Scene};
 use crate::app::selection::{ControlId, Controls, SelectionMode};
 use crate::app::walk::encode::FACING_UNKNOWN;
@@ -15,6 +16,7 @@ mod drag; // register:drag
 mod drawing; // register:drawing
 pub mod edit; // register:edit
 mod features; // register:features
+mod host;
 mod hydrate; // register:hydrate
 pub(crate) mod number_box; // register:number_box
 mod panel; // register:panel
@@ -53,19 +55,15 @@ pub struct State {
     last_frame_ms: f64,                     // when the last frame was drawn
     last_resize_ms: f64,                    // when the last resize was applied
     pub(crate) last_encode_ms: Option<f64>, // command encoding time of the frame just presented
-    pub selection: SelectionMode,           // object, edge, face or control points
-    pub selection_tool: crate::app::selection::SelectionTool, // what a click selects
-    controls: Controls,                     // control points of the selected object
-    requested: PickMode,                    // what the pending pick looks for
-    pub(crate) additive_selection: bool,    // Shift held: add to the selection
-    pub(crate) snap_rotation: bool,         // Shift held: the gumball turns by 90 degree steps
-    pub(crate) shift_held: bool,            // Shift held: a selection rectangle adds
-    pub(crate) ctrl_held: bool,             // Ctrl held: a selection rectangle takes out
-    selection_order: Vec<u32>,              // selected rows in pick order
-    highlighted: Vec<u32>,                  // rows highlighted, when several are selected
-    pub selection_radius_css: f64,          // click tolerance in CSS pixels
-    show_selected_names: bool,              // name label on the selection, `View Names` toggles
-    pub(crate) features: Features,          // what each feature keeps, features.rs
+    pub selection: SelectionState, // authoritative selection mode, tool, order, highlights and controls
+    requested: PickMode,           // what the pending pick looks for
+    pub(crate) additive_selection: bool, // Shift held: add to the selection
+    pub(crate) snap_rotation: bool, // Shift held: the gumball turns by 90 degree steps
+    pub(crate) shift_held: bool,   // Shift held: a selection rectangle adds
+    pub(crate) ctrl_held: bool,    // Ctrl held: a selection rectangle takes out
+    pub selection_radius_css: f64, // click tolerance in CSS pixels
+    show_selected_names: bool,     // name label on the selection, `View Names` toggles
+    pub(crate) features: Features, // what each feature keeps, features.rs
 }
 
 impl State {
@@ -93,16 +91,12 @@ impl State {
             last_frame_ms: 0.0,
             last_resize_ms: f64::NEG_INFINITY,
             last_encode_ms: None,
-            selection: SelectionMode::Object,
-            selection_tool: crate::app::selection::SelectionTool::default(),
-            controls: Controls::default(),
+            selection: SelectionState::default(),
             requested: PickMode::Object,
             additive_selection: false,
             snap_rotation: false,
             shift_held: false,
             ctrl_held: false,
-            selection_order: Vec::new(),
-            highlighted: Vec::new(),
             selection_radius_css: 6.0,
             show_selected_names: true,
             features: Features::default(),
@@ -166,10 +160,13 @@ impl State {
         self.cancel_gesture(); // register:editing
         self.features.draft = None; // its rows are gone; register:commands
         self.features.hierarchy = Default::default(); // register:panel
-        self.selection = SelectionMode::Object;
+        self.selection.mode = SelectionMode::Object;
+        self.selection.primary = None;
+        self.selection.order.clear();
+        self.selection.highlighted.clear();
         self.features.sheet_query = None; // register:sheets
         self.gpu.arena.source_faces.select(&self.gpu.ctx, None);
-        self.controls = Controls::default();
+        self.selection.controls = Controls::default();
         self.features.resume.clear(); // a waiting Save or Controls belonged to the old scene; register:editing
         self.scene.clear(&mut self.gpu);
         self.place_gizmo(None); // register:editing
@@ -316,15 +313,15 @@ impl State {
         // unhighlight the old selection and the clicked layers
         self.features.hierarchy.active.clear(); // register:panel
 
-        for old in self.highlighted.drain(..) {
+        for old in self.selection.highlighted.drain(..) {
             self.gpu.set_selected(old, false);
         }
 
         // back to plain object mode, no edge, face or controls
-        self.selection = SelectionMode::Object;
+        self.selection.mode = SelectionMode::Object;
         self.features.sheet_query = None; // register:sheets
         self.gpu.arena.source_faces.select(&self.gpu.ctx, None);
-        self.controls = Controls::default();
+        self.selection.controls = Controls::default();
         self.gpu.controls.reset();
         self.gpu.control_net.reset();
         self.gpu.segments.set_edge(&self.gpu.ctx, None);
@@ -339,7 +336,8 @@ impl State {
         }
 
         self.scene.selected = row;
-        self.selection_order = row.into_iter().collect();
+        self.selection.primary = row;
+        self.selection.order = row.into_iter().collect();
         self.refresh_layers(); // register:panel
         self.place_gizmo(row); // register:editing
         self.update_label(); // register:scene_text
@@ -348,16 +346,12 @@ impl State {
 
     /// Every selected row.
     pub(crate) fn selected_rows(&self) -> Vec<u32> {
-        if self.highlighted.is_empty() {
-            self.scene.selected.into_iter().collect()
-        } else {
-            self.highlighted.clone()
-        }
+        self.selection.selected_rows()
     }
 
     /// The selected rows in the order they were picked.
     pub(crate) fn ordered_rows(&self) -> Vec<u32> {
-        ordered(&self.selection_order, &self.selected_rows())
+        self.selection.ordered_rows()
     }
 
     /// Select several rows, added to the selection or replacing it.
@@ -379,13 +373,15 @@ impl State {
         selected.sort_unstable();
         selected.dedup();
         self.select(None);
-        self.selection_order = ordered(&order, &selected);
-        self.scene.selected = selected.first().copied(); // the first is the main one
+        self.selection.order = ordered(&order, &selected);
+        let primary = selected.first().copied();
+        self.scene.selected = primary; // the first is the main one
+        self.selection.primary = primary;
         for &row in &selected {
             self.gpu.set_selected(row, true);
         }
         if selected.len() > 1 {
-            self.highlighted = selected;
+            self.selection.highlighted = selected;
         }
         self.place_gizmo(self.scene.selected); // register:editing
         self.refresh_layers(); // register:panel
@@ -412,8 +408,8 @@ impl State {
     /// H: hide the selection.
     pub fn hide_selected(&mut self) {
         // several rows selected
-        if !self.highlighted.is_empty() {
-            let rows = std::mem::take(&mut self.highlighted);
+        if !self.selection.highlighted.is_empty() {
+            let rows = std::mem::take(&mut self.selection.highlighted);
 
             for row in &rows {
                 self.gpu.set_selected(*row, false);
@@ -469,7 +465,7 @@ impl State {
                 {
                     self.select(Some(pick.row));
                     self.gpu.set_selected(pick.row, false);
-                    self.selection.select_edge(pick.row, edge);
+                    self.selection.mode.select_edge(pick.row, edge);
                     self.gpu
                         .segments
                         .set_edge(&self.gpu.ctx, Some((pick.row, edge)));
@@ -744,9 +740,9 @@ impl State {
         splitting |= self.features.pending_split.is_some(); // register:split
         splitting |= self.tool_picks(); // register:tools
         let face = !splitting
-            && (face || self.selection_tool == crate::app::selection::SelectionTool::Face);
+            && (face || self.selection.tool == crate::app::selection::SelectionTool::Face);
         let edge = !splitting
-            && (edge || self.selection_tool == crate::app::selection::SelectionTool::Edge);
+            && (edge || self.selection.tool == crate::app::selection::SelectionTool::Edge);
         self.cancel_cloud_query(); // register:cloud_query
         self.gpu.pick.cancel();
 
@@ -766,7 +762,7 @@ impl State {
         } else if edge {
             PickMode::Edge
         } else {
-            match self.selection {
+            match self.selection.mode {
                 SelectionMode::Controls { parent, cloud, .. } => {
                     PickMode::Controls { parent, cloud }
                 }
@@ -798,7 +794,7 @@ impl State {
 
     /// Esc: leave control points, keep the object selected.
     pub fn escape_selection(&mut self) {
-        let parent = self.selection.escape();
+        let parent = self.selection.mode.escape();
         self.select(parent);
         self.features.mark = None; // register:annotate
         self.status("");
@@ -833,9 +829,9 @@ impl State {
 impl State {
     /// The control points as JSON, for the inspection tests.
     pub fn inspected_controls(&self) -> Vec<serde_json::Value> {
-        let mut points = Vec::with_capacity(self.controls.points.len());
+        let mut points = Vec::with_capacity(self.selection.controls.points.len());
 
-        for point in &self.controls.points {
+        for point in &self.selection.controls.points {
             points.push(serde_json::json!({"id": point.id, "position": point.position}));
         }
 
@@ -885,7 +881,7 @@ impl State {
         };
 
         // already on
-        if matches!(self.selection, SelectionMode::Controls { parent: active, .. } if active == parent)
+        if matches!(self.selection.mode, SelectionMode::Controls { parent: active, .. } if active == parent)
         {
             return;
         }
@@ -914,14 +910,16 @@ impl State {
 
         // the gizmo would take the same clicks
         self.place_gizmo(None); // register:editing
-        self.selection.enable_controls(Some(parent), controls.cloud);
+        self.selection
+            .mode
+            .enable_controls(Some(parent), controls.cloud);
         self.gpu.arena.source_faces.select(&self.gpu.ctx, None);
         self.gpu.segments.set_edge(&self.gpu.ctx, None);
         self.gpu.set_selected(parent, false);
         self.gpu
             .splat
             .set_controls(controls.cloud.then_some(parent));
-        self.controls = controls;
+        self.selection.controls = controls;
         self.upload_controls(); // register:controls
         self.update_label(); // register:scene_text
         self.status("Control points: click to select; Esc to leave");
@@ -935,7 +933,7 @@ impl State {
         self.gpu.control_net.reset();
         let SelectionMode::Controls {
             parent, selected, ..
-        } = self.selection
+        } = self.selection.mode
         else {
             return;
         };
@@ -943,7 +941,7 @@ impl State {
         let mut glyphs = GlyphRows::default();
 
         // one dot per control point
-        for control in &self.controls.points {
+        for control in &self.selection.controls.points {
             let color = if Some(control.id) == selected {
                 [1.0, 1.0, 0.0, 1.0] // yellow: selected
             } else {
@@ -962,10 +960,10 @@ impl State {
         let mut segments = SegRows::default();
 
         // one thin line per link between control points
-        for &[start, end] in &self.controls.links {
+        for &[start, end] in &self.selection.controls.links {
             segments.ribbons.push(CylinderSegment {
-                p0: render_position(self.controls.points[start].position),
-                p1: render_position(self.controls.points[end].position),
+                p0: render_position(self.selection.controls.points[start].position),
+                p1: render_position(self.selection.controls.points[end].position),
                 radius: 0.0,
                 color: 0xffcc8866,
                 instance_id: parent,
@@ -983,7 +981,7 @@ impl State {
 
     /// A control point was clicked: select it.
     fn apply_control(&mut self, pick: Pick, cloud: bool) {
-        let SelectionMode::Controls { parent, .. } = self.selection else {
+        let SelectionMode::Controls { parent, .. } = self.selection.mode else {
             return;
         };
 
@@ -1013,12 +1011,17 @@ impl State {
                 return;
             }
 
-            let Some(control) = self.controls.points.get((pick.sub & 0x3fff_ffff) as usize) else {
+            let Some(control) = self
+                .selection
+                .controls
+                .points
+                .get((pick.sub & 0x3fff_ffff) as usize)
+            else {
                 return;
             };
             control.id
         };
-        self.selection = SelectionMode::Controls {
+        self.selection.mode = SelectionMode::Controls {
             parent,
             selected: Some(id),
             cloud,
@@ -1082,7 +1085,7 @@ impl State {
                 .pass_mut::<crate::engine::gpu::surface_outline::Outline>()
                 .selection
                 .set_selected(source.parent, true);
-            self.selection = SelectionMode::Face {
+            self.selection.mode = SelectionMode::Face {
                 parent: source.parent,
                 face: source.face,
             };

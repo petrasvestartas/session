@@ -1,6 +1,6 @@
 # 5.6 · Original mesh colours and large index buffers
 
-**Steps:** 3 · **Source:** [app/walk/curves.rs](../../../../src/app/walk/curves.rs) · [engine/gpu/segments.rs](../../../../src/engine/gpu/segments.rs) · [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl) · [shaders/vector.wgsl](../../../../src/shaders/vector.wgsl)
+**Steps:** 3 · **Source:** [app/walk/curves.rs](../../../../viewer-core/src/walk/curves.rs) · [engine/gpu/segments.rs](../../../../src/engine/gpu/segments.rs) · [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl) · [shaders/vector.wgsl](../../../../src/shaders/vector.wgsl)
 
 ## <a id="checkpoint-40-colour"></a>1. Carry the mesh colour mode into display data
 

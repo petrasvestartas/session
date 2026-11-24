@@ -1,6 +1,6 @@
 # 14.3 · Planar boundaries and checked solid foundations
 
-**Steps:** 21 · **Source:** [app/walk/sheet.rs](../../../../src/app/walk/sheet.rs) · [app/sheet_query.rs](../../../../src/app/sheet_query.rs) · [app/stream.rs](../../../../src/app/stream.rs) · [app/cplane.rs](../../../../src/app/cplane.rs)
+**Steps:** 21 · **Source:** [app/walk/sheet.rs](../../../../viewer-core/src/walk/sheet.rs) · [app/sheet_query.rs](../../../../viewer-core/src/sheet_query.rs) · [app/stream.rs](../../../../viewer-core/src/stream.rs) · [app/cplane.rs](../../../../viewer-core/src/cplane.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -1318,7 +1318,7 @@ Edit the existing block to match this code; keep unchanged lines:
     pub fn distance(&self, answer: &Answer) -> f64 {
         match answer {
             Answer::Number(value) => *value,
-            Answer::Point(p) => p.distance(&self.origin, None),
+            Answer::Point(p) => p.distance(&self.origin, ),
         }
     }
 
@@ -1552,7 +1552,7 @@ pub fn to_mesh(parts: &[Mesh]) -> Mesh {
                 .collect()
         })
         .collect();
-    Mesh::from_polylines(welded, None)
+    Mesh::from_polylines(welded, )
 }
 
 /// The point already stored within `step` of `p` in this or a neighbouring cell, else `p`.
@@ -1563,7 +1563,7 @@ fn weld(cells: &mut HashMap<[i64; 3], Point>, p: Point, step: f64) -> Point {
         for dy in -1..=1 {
             for dz in -1..=1 {
                 if let Some(q) = cells.get(&[key[0] + dx, key[1] + dy, key[2] + dz])
-                    && q.distance(&p, None) <= step
+                    && q.distance(&p, ) <= step
                 {
                     return q.clone();
                 }
@@ -1628,7 +1628,7 @@ pub fn circumradius(mesh: &Mesh) -> f64 {
         .map(|vertex| {
             vertex
                 .position()
-                .distance(&Point::new(0.0, 0.0, 0.0), None)
+                .distance(&Point::new(0.0, 0.0, 0.0), )
         })
         .fold(0.0, f64::max)
 }
@@ -1801,20 +1801,20 @@ pub mod tests {
             let moved = frame
                 .to_xform()
                 .transform_point(&p(1.0, 0.0, 0.0));
-            assert!(moved.distance(&frame.at(1.0, 0.0, 0.0), None) < 1e-12);
+            assert!(moved.distance(&frame.at(1.0, 0.0, 0.0), ) < 1e-12);
         }
 
         let turned = Frame::new(&plane(XY.0, XY.1), p(0.0, 0.0, 0.0)).turned(0.0, 2.0);
         assert!(
             turned
                 .at(1.0, 0.0, 0.0)
-                .distance(&p(0.0, 1.0, 0.0), None)
+                .distance(&p(0.0, 1.0, 0.0), )
                 < 1e-12
         );
         assert!(
             turned
                 .at(0.0, 1.0, 0.0)
-                .distance(&p(-1.0, 0.0, 0.0), None)
+                .distance(&p(-1.0, 0.0, 0.0), )
                 < 1e-12
         );
     }
@@ -2337,12 +2337,12 @@ mod tests {
         assert!(
             points
                 .iter()
-                .any(|q| q.distance(&p(13.0, 4.0, 0.0), None) < 1e-9)
+                .any(|q| q.distance(&p(13.0, 4.0, 0.0), ) < 1e-9)
         );
         assert!(
             points
                 .iter()
-                .any(|q| q.distance(&p(10.0, 0.0, 15.0), None) < 1e-9)
+                .any(|q| q.distance(&p(10.0, 0.0, 15.0), ) < 1e-9)
         );
         let typed = [
             Answer::Point(p(0.0, 0.0, 0.0)),
@@ -2357,7 +2357,7 @@ mod tests {
             square
                 .vertex_points()
                 .iter()
-                .any(|q| q.distance(&p(5.0, 5.0, 0.0), None) < 1e-9)
+                .any(|q| q.distance(&p(5.0, 5.0, 0.0), ) < 1e-9)
         );
     }
 }
@@ -2614,7 +2614,7 @@ mod tests {
         assert!(matches!(mesh, Geometry::Mesh(_)));
 
         for q in corners(&mesh) {
-            assert!((q.distance(&center, None) - 300.0).abs() < 1e-9 * 300.0);
+            assert!((q.distance(&center, ) - 300.0).abs() < 1e-9 * 300.0);
         }
 
         let Geometry::BRep(brep) =
@@ -2719,7 +2719,7 @@ mod tests {
         assert!(matches!(mesh, Geometry::Mesh(_)));
 
         for q in corners(&mesh) {
-            assert!((q.distance(&center, None) - 300.0).abs() < 1e-9 * 300.0);
+            assert!((q.distance(&center, ) - 300.0).abs() < 1e-9 * 300.0);
         }
 
         let Geometry::BRep(brep) =

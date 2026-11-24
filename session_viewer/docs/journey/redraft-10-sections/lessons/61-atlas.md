@@ -101,7 +101,7 @@ impl Lane {
         );
         let viewport = Viewport::new(device, &cache);
         let mut atlas = atlas;
-        let renderer = TextRenderer::new(&mut atlas, device, Default::default(), None);
+        let renderer = TextRenderer::new(&mut atlas, device, Default::default(), );
         Self {
             document: TextDocument::new(),
             cache,
@@ -485,8 +485,8 @@ Replace it with:
         let faces = crate::face_pick::Faces::new(&device);
         let mesh_ink = crate::stroke_gpu::Lane::new(&device, format);
         let mut renderer = Self {
-            text: std::cell::RefCell::new(None),
-            text_error: std::cell::RefCell::new(None),
+            text: std::cell::RefCell::new(),
+            text_error: std::cell::RefCell::new(),
             format,
             device,
             queue,
@@ -970,7 +970,7 @@ fn actual_screen_text_overlay_does_not_create_scene_pick_owners_or_reupload_geom
     renderer.text_demo().unwrap();
     let with_text = colour_pixels(&mut renderer);
     assert_ne!(with_text, before);
-    assert_eq!(renderer.text_error(), None);
+    assert_eq!(renderer.text_error(), );
     assert_eq!(renderer.stats(), gpu);
     assert_eq!(scene.objects().len(), 1);
     assert_eq!(

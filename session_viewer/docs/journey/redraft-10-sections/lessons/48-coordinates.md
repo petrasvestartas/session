@@ -1,6 +1,6 @@
 # 7.3 · Construction-plane drafts and one final commit
 
-**Steps:** 5 · **Source:** [app/command/mod.rs](../../../../src/app/command/mod.rs) · [app/command/tool.rs](../../../../src/app/command/tool.rs) · [app/cplane.rs](../../../../src/app/cplane.rs) · [app/snap.rs](../../../../src/app/snap.rs)
+**Steps:** 5 · **Source:** [app/command/mod.rs](../../../../viewer-core/src/command/mod.rs) · [app/command/tool.rs](../../../../viewer-core/src/command/tool.rs) · [app/cplane.rs](../../../../viewer-core/src/cplane.rs) · [app/snap.rs](../../../../viewer-core/src/snap.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -267,7 +267,7 @@ impl Draft {
         }
         self.points = points;
         self.cursor = None;
-        Ok(None)
+        Ok()
     }
     pub fn hover(&mut self, point: Option<[f64; 3]>) -> Result<(), &'static str> {
         self.cursor = point
@@ -491,7 +491,7 @@ Replace it with:
         self.picker.cancel();
         self.faces.clear();
         self.preview
-            .set(&self.device, None)
+            .set(&self.device, )
             .expect("Empty tool preview");
         self.highlight
             .set(
@@ -614,12 +614,12 @@ fn actual_tool_preview_is_temporary_bounded_and_absent_from_object_picking() {
     );
     assert_eq!(renderer.stats(), stats);
     assert!(scene.lines().is_empty());
-    renderer.set_preview(None).unwrap();
+    renderer.set_preview().unwrap();
     assert_eq!(renderer.preview_bytes(), 0);
     assert_eq!(colour_pixels(&mut renderer), before);
     renderer.set_preview(Some(&draft)).unwrap();
     scene.clear();
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     assert_eq!(renderer.preview_bytes(), 0);
 }
 ```
@@ -951,7 +951,7 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-            return Ok(None);
+            return Ok();
         };
         if !self.model.options.is_empty() {
             return Ok(Some(line));
@@ -960,7 +960,7 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 Replace it with:
 
 ```rust
-            return Ok(None);
+            return Ok();
         };
         if !self.model.options.is_empty() {
             self.answer(&line, "Tool input submitted.");
@@ -1156,7 +1156,7 @@ Replace it with:
                             "blur" | "resize" | "pointercancel" | "lostpointercapture"
                         ) =>
                     {
-                        Some(Action::ToolHover(None))
+                        Some(Action::ToolHover())
                     }
                     None if editor.draft.is_some()
                         && !panel.consumed

@@ -7,6 +7,7 @@ use super::view::View;
 use crate::engine::pipelines::{
     ColorWrite, DepthMode, Layouts, Pipeline, PipelineDesc, Shader, Target, build, ink_module,
 };
+pub use crate::rows::{VectorRow, VectorRows};
 use wgpu::PrimitiveTopology::TriangleList;
 
 /// Shader sources the tests compare against the files.
@@ -15,38 +16,6 @@ pub const SHADERS: &[(&str, &str)] = &[("vector.wgsl", shader!("vector.wgsl"))];
 
 /// Vertices per vector: a shaft quad and a quad per head.
 const VECTOR_VERTS: u32 = 18;
-
-/// One vector as the shader reads it: a head's tip lands on its point, a bare end is cut flat there.
-#[repr(C)]
-#[derive(Clone, Copy, Debug, PartialEq, bytemuck::Pod, bytemuck::Zeroable)]
-pub struct VectorRow {
-    // offset size
-    pub start: [f32; 3],    //   0   12  start point, object space
-    pub radius: f32,        //  12    4  0 = pen; > 0 world mm; < 0 pen multiplier
-    pub end: [f32; 3],      //  16   12  end point, object space
-    pub instance_id: u32,   //  28    4  object row
-    pub color: u32,         //  32    4  packed rgba, red in the low byte
-    pub head: f32,          //  36    4  arrowhead length in pens; 0 = default
-    pub heads: u32,         //  40    4  HEAD_END | HEAD_START | HEAD_ONLY
-    pub pad: u32,           //  44    4
-    pub start_trim: f32,    //  48    4  visible point radius at the start
-    pub end_trim: f32,      //  52    4  visible point radius at the end
-    pub reserved: [u32; 2], // 56   8  -> 64, a multiple of 16
-}
-
-impl VectorRow {
-    pub const HEAD_END: u32 = 1; // a head whose tip is `end`
-    pub const HEAD_START: u32 = 2; // a head whose tip is `start`
-    pub const HEAD_ONLY: u32 = 4; // no shaft: `start` only aims the heads, e.g. a curve's end tangent
-}
-
-const _: () = assert!(std::mem::size_of::<VectorRow>() == 64);
-
-/// Vector rows of one upload; producers write them with `up.lanes.get_mut::<VectorRows>()`.
-#[derive(Default)]
-pub struct VectorRows {
-    pub rows: Vec<VectorRow>, // one per vector
-}
 
 /// Vectors on the GPU: one instanced draw for all of them.
 pub struct VectorLane {

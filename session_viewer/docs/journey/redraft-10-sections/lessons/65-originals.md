@@ -585,7 +585,7 @@ Replace it with:
             }
             Action::PickMode(mode) => {
                 if mode != crate::pick_sources::Mode::Control {
-                    self.scene.cloud_controls(None);
+                    self.scene.cloud_controls();
                 }
                 self.pick_mode = mode;
                 self.selected = None;
@@ -864,7 +864,7 @@ fn cloud_point_identity_uses_original_u32_ids_and_f64_instance_positions() {
     Rc::make_mut(&mut scene.view).hide(&[owner], true);
     assert!(!target.valid(&scene));
     Rc::make_mut(&mut scene.view).hide(&[owner], false);
-    scene.cloud_controls(None);
+    scene.cloud_controls();
     assert!(!target.valid(&scene));
 }
 
@@ -955,7 +955,7 @@ mod cloud_pick_tests;
 ```rust
     assert_eq!(renderer.cloud_usage()[2], uploads);
     scene.clear();
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     assert_eq!(renderer.cloud_usage(), [0; 5]);
 }
 ```
@@ -965,7 +965,7 @@ Edit the existing block to match this code; keep unchanged lines:
 ```rust
     assert_eq!(renderer.cloud_usage()[2], uploads);
     scene.clear();
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     assert_eq!(renderer.cloud_usage(), [0; 5]);
 }
 
@@ -1022,14 +1022,14 @@ fn actual_cloud_control_pick_preserves_full_u32_source_ids_and_local_highlight()
         width: 320,
         height: 240,
     });
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     renderer
         .request_pick([-0.4, 0.], identity())
         .unwrap();
     assert!(finish(&mut renderer).is_none());
     scene.clear();
-    renderer.set_scene(&scene, None);
-    renderer.set_highlight(&scene, None).unwrap();
+    renderer.set_scene(&scene, );
+    renderer.set_highlight(&scene, ).unwrap();
     assert_eq!(renderer.cloud_usage(), [0; 5]);
     assert_eq!(renderer.highlight_bytes(), 0);
 }
@@ -1057,7 +1057,7 @@ fn actual_resident_cloud_controls_query_original_points_outside_the_coarse_displ
     assert_eq!(renderer.cloud_usage()[0], 64);
     let uploads = renderer.cloud_usage()[2];
     scene.cloud_controls(Some(owner));
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     renderer.set_pick_mode(Mode::Control);
     camera_pixels(&mut renderer, &camera);
     assert_eq!(renderer.cloud_usage()[0], 2_000_064);
@@ -1092,14 +1092,14 @@ fn actual_resident_cloud_controls_query_original_points_outside_the_coarse_displ
         .unwrap();
     renderer.cancel_pick();
     assert!(renderer.take_pick(transform).is_none());
-    scene.cloud_controls(None);
-    renderer.set_scene(&scene, None);
+    scene.cloud_controls();
+    renderer.set_scene(&scene, );
     renderer.set_pick_mode(Mode::Object);
     camera_pixels(&mut renderer, &camera);
     assert_eq!(renderer.cloud_usage()[0], 64);
     assert_eq!(renderer.cloud_usage()[2], uploads);
     scene.clear();
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     assert_eq!(renderer.cloud_usage(), [0; 5]);
 }
 ```

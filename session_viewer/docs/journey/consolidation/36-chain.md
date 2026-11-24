@@ -1,6 +1,6 @@
 # 5.2 · Joined paths and headed ends
 
-**Steps:** 10 · **Source:** [app/walk/curves.rs](../../../src/app/walk/curves.rs) · [engine/gpu/segments.rs](../../../src/engine/gpu/segments.rs) · [shaders/ribbon.wgsl](../../../src/shaders/ribbon.wgsl) · [shaders/vector.wgsl](../../../src/shaders/vector.wgsl)
+**Steps:** 10 · **Source:** [app/walk/curves.rs](../../../viewer-core/src/walk/curves.rs) · [engine/gpu/segments.rs](../../../src/engine/gpu/segments.rs) · [shaders/ribbon.wgsl](../../../src/shaders/ribbon.wgsl) · [shaders/vector.wgsl](../../../src/shaders/vector.wgsl)
 
 ## Production arrow arguments and endpoint clearance
 
@@ -36,7 +36,7 @@ The cumulative checkpoint here still uses `chain.wgsl` and its 72-byte connected
 The maintained walker emits one ribbon per nonzero adjacent pair and records the cumulative length before that segment. Read the complete chain construction:
 
 ```rust
---8<-- "session_viewer/src/app/walk/curves.rs:curve-dash-chain"
+--8<-- "session_viewer/viewer-core/src/walk/curves.rs:curve-dash-chain"
 ```
 
 Each dash record contains the on length, off length and accumulated offset. Repeated points add neither a segment nor distance. The parser ignores nonfinite and nonpositive pattern entries, uses the first two positive lengths, repeats a single length for the off interval, and warns when additional positive lengths are supplied. No usable length produces a solid stroke.
@@ -54,7 +54,7 @@ Why store the offset instead of counting pixels in the shader? Each instance dra
 Draw joined paths whose shafts stop beneath their arrowheads and outside visible endpoint markers. Complete the [stroke-row contract](35-stroke.md#current-stroke-widths-dashes-and-reveal) first. This subject owns connected-segment neighbours, head-only vector rows and endpoint clearance. The historical implementation below still needs reconciliation with these current production sections.
 
 ```rust
---8<-- "session_viewer/src/app/walk/curves.rs:curve-heads"
+--8<-- "session_viewer/viewer-core/src/walk/curves.rs:curve-heads"
 ```
 
 A curved path keeps its ribbon shaft. Each headed end adds a 64-byte `VectorRow` with `HEAD_ONLY`, so the vector lane paints a head without duplicating the shaft. A start head reverses the first segment to aim outward. The ribbon end receives `HEAD_MARK`; linking opens a closed chain at that end instead of joining through its head. The row also receives `FLAG_HEADS`, enabling the ribbon shader's head-clearance calculation.
@@ -62,7 +62,7 @@ A curved path keeps its ribbon shaft. Each headed end adds a 64-byte `VectorRow`
 The ribbon shader follows at most eight neighbouring chords when finding the cut beneath a curve head. This bounded search avoids an unbounded loop in every vertex. Very finely sampled curves extending beyond that search are not evidence that arbitrary distant chords are clipped. Both the ribbon and arrow shader use the same head proportions and underlap rule so the join has neither a gap nor a protruding shaft.
 
 ```rust
---8<-- "session_viewer/src/app/walk/curves.rs:endpoint-clearance"
+--8<-- "session_viewer/viewer-core/src/walk/curves.rs:endpoint-clearance"
 ```
 
 Clearance is derived from visible kernel points whose positions match an endpoint within `1e-5` in the converted coordinates. A point's width becomes a signed display radius; the default point uses a three-pen radius. Vector rows receive start and end trims. Ribbon rows receive matching trims, with the interior rows of each chain cleared. The shader projects those radii to pixels and adds the pixel-filter reach before moving visible endpoints inward. Short segments whose clearances consume their length disappear instead of reversing direction. The source line or curve is unchanged.

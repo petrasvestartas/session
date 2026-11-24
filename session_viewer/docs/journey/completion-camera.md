@@ -12,7 +12,7 @@ Requires [4. Enter commands](completion-dock.md). This fifth cumulative subject 
 
 | Added file | Role |
 | --- | --- |
-| [src/camera.rs](../../src/camera.rs) | Anchor-relative `f64` view/projection matrices, reversed-Z `[1..0]` depth, cursor-preserving `zoom_at`, world rays and panel-aware `fit_in`. |
+| [src/camera.rs](../../viewer-core/src/camera.rs) | Anchor-relative `f64` view/projection matrices, reversed-Z `[1..0]` depth, cursor-preserving `zoom_at`, world rays and panel-aware `fit_in`. |
 | [examples/course/camera.rs](../../examples/course/camera.rs) | Projects `8` `session_rust::Point` cube corners and `12` edges onto the canvas with orbit/zoom/fit controls. |
 
 ## Build
@@ -28,7 +28,7 @@ npm --prefix ../session_tests run course -- checkpoint camera ../session_viewer/
 Create `src/camera.rs` and declare `pub mod camera;` in `src/lib.rs`. Store `target`, `position`, `distance` and quaternion `orientation` in `f64` meters so large architectural coordinates never lose precision during orbit or pan:
 
 ```rust
---8<-- "session_viewer/src/camera.rs:camera-pose"
+--8<-- "session_viewer/viewer-core/src/camera.rs:camera-pose"
 ```
 
 ### Step 2. Compose anchor-relative view and reversed-Z projection
@@ -36,7 +36,7 @@ Create `src/camera.rs` and declare `pub mod camera;` in `src/lib.rs`. Store `tar
 Subtract `anchor` from `eye` and `target` in `f64` before building `view`, swap `far` and `near` in `Xform::perspective(fov, aspect, far, near)` so `near` maps to `z = 1.0` and `far` maps to `z = 0.0` (reversed-Z), and pre-multiply the unobstructed panel `lens` translation:
 
 ```rust
---8<-- "session_viewer/src/camera.rs:camera-projection"
+--8<-- "session_viewer/viewer-core/src/camera.rs:camera-projection"
 ```
 
 ### Step 3. Lock the cursor ray in `zoom_at` and frame bounds in `fit_in`
@@ -44,7 +44,7 @@ Subtract `anchor` from `eye` and `target` in `f64` before building `view`, swap 
 `src/camera.rs` implements quaternion `orbit` (world-up yaw + right-axis pitch), distance-scaled `pan`, world `ray` unprojection, `fit_in` across all `8` `AABB` corners inside `frame`, and cursor-locked `zoom_at`, which shifts `target` by `(1 - k)` times the cursor's offset on the target plane so the point under the cursor never drifts:
 
 ```rust
---8<-- "session_viewer/src/camera.rs:204:230"
+--8<-- "session_viewer/viewer-core/src/camera.rs:204:230"
 ```
 
 ### Step 4. Project the `8`-corner wireframe cube (`examples/course/camera.rs`)

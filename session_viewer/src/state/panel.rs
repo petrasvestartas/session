@@ -7,7 +7,7 @@ use std::rc::Rc;
 impl State {
     /// How many rows are selected together.
     pub fn selected_group_count(&self) -> usize {
-        self.highlighted.len()
+        self.selection.highlighted.len()
     }
 
     /// A click in the layers panel, by its key.
@@ -181,6 +181,7 @@ impl State {
                             .selected
                             .is_some_and(|row| rows.binary_search(&row).is_ok())
                             || self
+                                .selection
                                 .highlighted
                                 .iter()
                                 .any(|row| rows.binary_search(row).is_ok()))
@@ -491,6 +492,7 @@ impl State {
                 .selected
                 .is_some_and(|row| rows.binary_search(&row).is_ok())
                 || self
+                    .selection
                     .highlighted
                     .iter()
                     .any(|row| rows.binary_search(row).is_ok()))
@@ -531,7 +533,8 @@ impl State {
         let first = self.features.hierarchy.page * PAGE_SIZE;
         let current = self.scene.current_layer();
         let chosen = |row: &u32| {
-            self.scene.selected == Some(*row) || self.highlighted.binary_search(row).is_ok()
+            self.scene.selected == Some(*row)
+                || self.selection.highlighted.binary_search(row).is_ok()
         };
         let hidden = |row: &u32| {
             self.scene

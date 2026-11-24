@@ -1,7 +1,7 @@
 use super::super::buffers::{GpuCtx, GrowBuf, ROWS, bind_group};
-use super::super::hull::{Hull, placed_box};
 use super::super::instance::Instance;
 use crate::engine::pipelines::Layouts;
+pub use crate::rows::{Hull, ObjectRow, ObjectRows, placed_bounds, world_box};
 use session_rust::{AABB, Point, Xform};
 
 /// Smallest camera drift, world units, that moves the anchor.
@@ -12,41 +12,6 @@ const REANCHOR_MAX: f64 = 1.0e5;
 
 /// Least time between two anchor moves, ms.
 const REANCHOR_THROTTLE_MS: f64 = 200.0;
-
-/// One object row as the CPU builds it.
-#[derive(Clone)]
-pub struct ObjectRow {
-    pub place: Xform,       // world placement
-    pub color: [f32; 4],    // rgba tint
-    pub edge_color: u32,    // packed edge color
-    pub flags: u32,         // Instance::FLAG_* bits
-    pub bounds: AABB,       // box in the object's own space
-    pub spacing: f32,       // vertex spacing, or point size for clouds
-    pub faces: bool,        // true when the object drew faces
-    pub hull: Option<Hull>, // extreme points in the object's own space, for an exact turned box
-}
-
-impl ObjectRow {
-    /// A row with a placement and flags, everything else empty.
-    pub fn new(place: Xform, flags: u32) -> Self {
-        Self {
-            place,
-            color: [1.0; 4],
-            edge_color: 0,
-            flags,
-            bounds: AABB::empty(),
-            spacing: 0.0,
-            faces: false,
-            hull: None,
-        }
-    }
-}
-
-/// Object rows of one upload.
-#[derive(Default)]
-pub struct ObjectRows {
-    pub rows: Vec<ObjectRow>, // one per object
-}
 
 /// Result of a `rebase_anchor` call.
 pub struct Rebase {
@@ -60,19 +25,6 @@ struct BoundedRow {
     row: u32,     // object row
     lo: [f64; 3], // box minimum
     hi: [f64; 3], // box maximum
-}
-
-/// The row's box in world space: exact over its extreme points, else its own box turned.
-pub fn world_box(r: &ObjectRow) -> AABB {
-    placed_bounds(&r.bounds, r.hull.as_deref(), &r.place)
-}
-
-/// `local` placed by `place`, exact when the extreme points are known.
-fn placed_bounds(local: &AABB, hull: Option<&[[f32; 3]]>, place: &Xform) -> AABB {
-    match hull {
-        Some(points) if local.is_valid() => placed_box(points, place),
-        _ => local.transformed(place),
-    }
 }
 
 /// SSAO contact radius: 5% of the box diagonal.

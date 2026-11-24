@@ -19,39 +19,39 @@ All `25` modules compile inside checkpoint `application` (`trunk build productio
 `src/app/scene.rs` wraps `Rc<Session>` inside `FileDoc` (name, file `Xform`, `point_size`, shell flag) so two placements can share one kernel `Session` while `(doc_idx, GUID)` maps each placed object to its own GPU display row.
 
 ```rust
---8<-- "session_viewer/src/app/scene.rs:document-placement"
+--8<-- "session_viewer/viewer-core/src/scene.rs:document-placement"
 ```
 
 ```rust
---8<-- "session_viewer/src/app/scene_rows.rs:document-footprint"
+--8<-- "session_viewer/viewer-core/src/scene_rows.rs:document-footprint"
 ```
 
 ### Step 2: Translate history transactions into minimal tree invalidations
 
 | File | Specification |
 | --- | --- |
-| [src/app/scene_sync/notes.rs](../../src/app/scene_sync/notes.rs) | Translates forward and reverse kernel transaction ops into `GEOMETRY`, `PLACE`, `PRESENCE` and `SUBTREE` invalidation flags without rebuilding untouched objects. |
-| [src/app/scene_sync/nodes.rs](../../src/app/scene_sync/nodes.rs) | Resolves affected tree nodes via weak caches and batched per-document searches, multiplying file `Xform` by root-to-node transforms. |
+| [src/app/scene_sync/notes.rs](../../viewer-core/src/scene_sync/notes.rs) | Translates forward and reverse kernel transaction ops into `GEOMETRY`, `PLACE`, `PRESENCE` and `SUBTREE` invalidation flags without rebuilding untouched objects. |
+| [src/app/scene_sync/nodes.rs](../../viewer-core/src/scene_sync/nodes.rs) | Resolves affected tree nodes via weak caches and batched per-document searches, multiplying file `Xform` by root-to-node transforms. |
 
 ```rust
---8<-- "session_viewer/src/app/scene_sync/notes.rs:document-history-notes"
+--8<-- "session_viewer/viewer-core/src/scene_sync/notes.rs:document-history-notes"
 ```
 
 ### Step 3: Stage updates, retain `256 MiB` tombs and compact dead spans
 
 | File | Specification |
 | --- | --- |
-| [src/app/scene_rows.rs](../../src/app/scene_rows.rs) | Separates `(doc_idx, GUID)` row identity (plus text/free/sink/tomb sentinels) from `Footprint` (`One`, `Many`, `Cloud`, `None`) lane spans. |
-| [src/app/scene_sync.rs](../../src/app/scene_sync.rs) | Drains change notes, deduplicates identities, expands `SUBTREE` descendants and emits ordered `Staged` GPU updates (`retire`, `bury`, `patch`, `geometry`, `place`). |
-| [src/app/scene_sync/allocation.rs](../../src/app/scene_sync/allocation.rs) | Reuses an identity's grave when all lane counts match, pads drag previews by ~`50%`, and routes retired tails to the hidden sink row. |
-| [src/app/scene_sync/preview.rs](../../src/app/scene_sync/preview.rs) | Captures single-object vertex/pipe spans during interactive drags so surface/mesh edits patch GPU buffers in place without full rewalks. |
-| [src/app/scene_sync/tombs.rs](../../src/app/scene_sync/tombs.rs) | Retains up to `256 MiB` of deleted lane spans keyed by weak kernel tomb pointers so `Undo` unburies rows without re-tessellating geometry. |
+| [src/app/scene_rows.rs](../../viewer-core/src/scene_rows.rs) | Separates `(doc_idx, GUID)` row identity (plus text/free/sink/tomb sentinels) from `Footprint` (`One`, `Many`, `Cloud`, `None`) lane spans. |
+| [src/app/scene_sync.rs](../../viewer-core/src/scene_sync.rs) | Drains change notes, deduplicates identities, expands `SUBTREE` descendants and emits ordered `Staged` GPU updates (`retire`, `bury`, `patch`, `geometry`, `place`). |
+| [src/app/scene_sync/allocation.rs](../../viewer-core/src/scene_sync/allocation.rs) | Reuses an identity's grave when all lane counts match, pads drag previews by ~`50%`, and routes retired tails to the hidden sink row. |
+| [src/app/scene_sync/preview.rs](../../viewer-core/src/scene_sync/preview.rs) | Captures single-object vertex/pipe spans during interactive drags so surface/mesh edits patch GPU buffers in place without full rewalks. |
+| [src/app/scene_sync/tombs.rs](../../viewer-core/src/scene_sync/tombs.rs) | Retains up to `256 MiB` of deleted lane spans keyed by weak kernel tomb pointers so `Undo` unburies rows without re-tessellating geometry. |
 
 ```rust
---8<-- "session_viewer/src/app/scene_sync/tombs.rs:4:35"
+--8<-- "session_viewer/viewer-core/src/scene_sync/tombs.rs:4:35"
 ```
 
-`src/app/scene_sync/compaction.rs` triggers GPU lane compaction once dead bytes reach `16 MiB` and dead + tomb bytes exceed live bytes, rebuilding buffer bind groups and skipping shared `Rc<Session>` purges.
+`src/app/scene_sync/compaction.rs` triggers GPU lane compaction once dead bytes reach `16 MiB` and dead + tomb bytes exceed live bytes, rebuilding buffer bind groups and skipping shared `Rc<Session>` purges, while `src/engine/gpu/scene_gpu_tests/` (`mod.rs`, `contacts.rs`, `frames.rs`, `instances.rs`, `split.rs`) verifies offscreen pixel and object-ID parity across edits, undos, instancing and compactions on a native headless GPU adapter.
 
 ### Step 4: Flatten hierarchies, move layers and isolate panel actions
 
@@ -76,13 +76,13 @@ All `25` modules compile inside checkpoint `application` (`trunk build productio
 
 | File | Specification |
 | --- | --- |
-| [src/app/scene_instances.rs](../../src/app/scene_instances.rs) | Walks each shared definition once into a hidden row and assigns monotonic batch keys across clears for placed instances. |
-| [src/app/scene_display.rs](../../src/app/scene_display.rs) | Scans up to `128` visible rows per idle frame under bounded source/refinement caches, refining only live or revision-matched geometry. |
-| [src/app/session_io.rs](../../src/app/session_io.rs) | Reads and writes versioned `.session` archives (`<= 512 MiB`) combining stamped document `.pb` payloads with JSON placements, overrides, text and groups. |
-| [src/app/command/verbs/open.rs](../../src/app/command/verbs/open.rs) | Opens the browser file picker on `wasm32` and posts selected `.pb` or `.session` payloads through the async loader. |
-| [src/app/command/verbs/save.rs](../../src/app/command/verbs/save.rs) | Hydrates any released documents first, then serializes the `.session` archive and triggers browser download delivery. |
-| [src/app/command/verbs/add_group.rs](../../src/app/command/verbs/add_group.rs) | Reparents selected single-document objects under their deepest shared layer while rebasing local transforms so world positions stay fixed. |
-| [src/app/command/verbs/add_edge.rs](../../src/app/command/verbs/add_edge.rs) | Connects two editable objects in the relationship graph and pairs an `EdgeStep` with a marker transform so `Undo` removes added graph vertices. |
+| [src/app/scene_instances.rs](../../viewer-core/src/scene_instances.rs) | Walks each shared definition once into a hidden row and assigns monotonic batch keys across clears for placed instances. |
+| [src/app/scene_display.rs](../../viewer-core/src/scene_display.rs) | Scans up to `128` visible rows per idle frame under bounded source/refinement caches, refining only live or revision-matched geometry. |
+| [src/app/session_io.rs](../../viewer-core/src/session_io.rs) | Reads and writes versioned `.session` archives (`<= 512 MiB`) combining stamped document `.pb` payloads with JSON placements, overrides, text and groups. |
+| [src/app/command/verbs/open.rs](../../viewer-core/src/command/verbs/open.rs) | Opens the browser file picker on `wasm32` and posts selected `.pb` or `.session` payloads through the async loader. |
+| [src/app/command/verbs/save.rs](../../viewer-core/src/command/verbs/save.rs) | Hydrates any released documents first, then serializes the `.session` archive and triggers browser download delivery. |
+| [src/app/command/verbs/add_group.rs](../../viewer-core/src/command/verbs/add_group.rs) | Reparents selected single-document objects under their deepest shared layer while rebasing local transforms so world positions stay fixed. |
+| [src/app/command/verbs/add_edge.rs](../../viewer-core/src/command/verbs/add_edge.rs) | Connects two editable objects in the relationship graph and pairs an `EdgeStep` with a marker transform so `Undo` removes added graph vertices. |
 
 ## Run and observe
 

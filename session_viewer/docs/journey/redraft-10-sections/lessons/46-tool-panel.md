@@ -1,6 +1,6 @@
 # 7.1 · Active tools own their command input
 
-**Steps:** 5 · **Source:** [app/command/mod.rs](../../../../src/app/command/mod.rs) · [app/command/tool.rs](../../../../src/app/command/tool.rs) · [app/cplane.rs](../../../../src/app/cplane.rs) · [app/snap.rs](../../../../src/app/snap.rs)
+**Steps:** 5 · **Source:** [app/command/mod.rs](../../../../viewer-core/src/command/mod.rs) · [app/command/tool.rs](../../../../viewer-core/src/command/tool.rs) · [app/cplane.rs](../../../../viewer-core/src/cplane.rs) · [app/snap.rs](../../../../viewer-core/src/snap.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -56,7 +56,7 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 ```rust
         let Some(line) = line else {
-            return Ok(None);
+            return Ok();
         };
         if line == "Escape" {
 ```
@@ -65,7 +65,7 @@ Replace it with:
 
 ```rust
         let Some(line) = line else {
-            return Ok(None);
+            return Ok();
         };
         if !self.model.options.is_empty() {
             return Ok(Some(line));
@@ -309,7 +309,7 @@ pub const ACTIONS: &[(&str, Factory)] = &[
     ("View Grid On", || {
         Action::Grid(Some(crate::grid::Settings::default()))
     }),
-    ("View Grid Off", || Action::Grid(None)),
+    ("View Grid Off", || Action::Grid()),
     ("Example Sharp", || {
         Action::AddNormals(crate::normal_example::Mode::Sharp)
     }),
@@ -326,7 +326,7 @@ pub const ACTIONS: &[(&str, Factory)] = &[
     ("Example Triangle", || Action::ToggleExtra),
     ("Select Next", || Action::SelectNext),
     ("Select All", || Action::SelectAll),
-    ("Select None", || Action::Picked(None)),
+    ("Select None", || Action::Picked()),
     ("Select Object", || {
         Action::PickMode(crate::pick_sources::Mode::Object)
     }),
@@ -603,7 +603,7 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 ```rust
             self.answer(&line, &self.commands.0.join(" · "));
-            return Ok(None);
+            return Ok();
         }
         if !self.commands.0.iter().any(|name| {
             name.eq_ignore_ascii_case(&line)
@@ -613,7 +613,7 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
                         .starts_with("move "))
         }) {
             self.answer(&line, "Unknown command. Type Help.");
-            return Ok(None);
+            return Ok();
         }
         self.answer(&line, "Command submitted.");
         Ok(Some(line.to_ascii_lowercase()))
@@ -624,7 +624,7 @@ Replace it with:
 
 ```rust
             self.answer(&line, &self.commands.0.join(" · "));
-            return Ok(None);
+            return Ok();
         }
         self.answer(&line, "Command submitted.");
         Ok(Some(line))
@@ -812,11 +812,11 @@ impl command_dock::Commands for Commands {
     ));
     let read_mode = std::cell::Cell::new(crate::file_input::Mode::Append);
     let delivery: crate::file_input::Delivery =
-        std::rc::Rc::new(std::cell::RefCell::new(None));
+        std::rc::Rc::new(std::cell::RefCell::new());
     let reload: crate::browser_reload::Shared =
         std::rc::Rc::new(std::cell::RefCell::new(Default::default()));
     let reload_delivery: crate::browser_reload::Delivery =
-        std::rc::Rc::new(std::cell::RefCell::new(None));
+        std::rc::Rc::new(std::cell::RefCell::new());
     let owned_request = std::rc::Rc::clone(&request);
     let owned_reload = std::rc::Rc::clone(&reload);
     let active_fault = fault.clone();
@@ -926,7 +926,7 @@ impl command_dock::Commands for Commands {
                             report(&message);
                             panel.answer(command, &message);
                         }
-                        Ok(None) => {}
+                        Ok() => {}
                         Err(error) => {
                             report(&error);
                             panel.answer(command, &error);
@@ -1076,7 +1076,7 @@ impl command_dock::Commands for Commands {
                         "view grid on" => {
                             Action::Grid(Some(crate::grid::Settings::default()))
                         }
-                        "view grid off" => Action::Grid(None),
+                        "view grid off" => Action::Grid(),
                         "example sharp" => {
                             Action::AddNormals(crate::normal_example::Mode::Sharp)
                         }
@@ -1094,7 +1094,7 @@ impl command_dock::Commands for Commands {
                         "example triangle" => Action::ToggleExtra,
                         "select next" => Action::SelectNext,
                         "select all" => Action::SelectAll,
-                        "select none" => Action::Picked(None),
+                        "select none" => Action::Picked(),
                         "select object" => {
                             Action::PickMode(crate::pick_sources::Mode::Object)
                         }
@@ -1201,11 +1201,11 @@ Edit the existing block to match this code; keep unchanged lines:
     ));
     let read_mode = std::cell::Cell::new(crate::file_input::Mode::Append);
     let delivery: crate::file_input::Delivery =
-        std::rc::Rc::new(std::cell::RefCell::new(None));
+        std::rc::Rc::new(std::cell::RefCell::new());
     let reload: crate::browser_reload::Shared =
         std::rc::Rc::new(std::cell::RefCell::new(Default::default()));
     let reload_delivery: crate::browser_reload::Delivery =
-        std::rc::Rc::new(std::cell::RefCell::new(None));
+        std::rc::Rc::new(std::cell::RefCell::new());
     let owned_request = std::rc::Rc::clone(&request);
     let owned_reload = std::rc::Rc::clone(&reload);
     let active_fault = fault.clone();
@@ -1315,7 +1315,7 @@ Edit the existing block to match this code; keep unchanged lines:
                             report(&message);
                             panel.answer(command, &message);
                         }
-                        Ok(None) => {}
+                        Ok() => {}
                         Err(error) => {
                             report(&error);
                             panel.answer(command, &error);

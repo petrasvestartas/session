@@ -885,7 +885,7 @@ mod tests {
                 .is_err()
         );
         assert!(job.begin(Vec::new()).is_err());
-        assert_eq!(job.pending(), None);
+        assert_eq!(job.pending(), );
     }
 
     #[test]
@@ -916,7 +916,7 @@ mod tests {
         job.begin(keys.clone()).unwrap();
         job.issued = u64::MAX;
         assert!(job.begin(keys).is_err());
-        assert_eq!(job.pending(), None);
+        assert_eq!(job.pending(), );
         assert_eq!(job.issued, u64::MAX);
     }
 }
@@ -1290,7 +1290,7 @@ Replace it with:
 ```rust
     let read_mode = std::cell::Cell::new(crate::file_input::Mode::Append);
     let delivery: crate::file_input::Delivery =
-        std::rc::Rc::new(std::cell::RefCell::new(None));
+        std::rc::Rc::new(std::cell::RefCell::new());
     let update = Closure::<dyn FnMut(web_sys::Event)>::new(
         move |event: web_sys::Event| {
             let shortcut = event
@@ -1301,11 +1301,11 @@ Replace it with:
 ```rust
     let read_mode = std::cell::Cell::new(crate::file_input::Mode::Append);
     let delivery: crate::file_input::Delivery =
-        std::rc::Rc::new(std::cell::RefCell::new(None));
+        std::rc::Rc::new(std::cell::RefCell::new());
     let reload: crate::browser_reload::Shared =
         std::rc::Rc::new(std::cell::RefCell::new(Default::default()));
     let reload_delivery: crate::browser_reload::Delivery =
-        std::rc::Rc::new(std::cell::RefCell::new(None));
+        std::rc::Rc::new(std::cell::RefCell::new());
     let update = Closure::<dyn FnMut(web_sys::Event)>::new(
         move |event: web_sys::Event| {
             let shortcut = event
@@ -1626,10 +1626,10 @@ mod tests {
     #[test]
     fn empty_edits_do_not_request_io_and_invalid_moves_are_rejected() {
         assert_eq!(
-            Intent::capture(&Action::Delete, None).unwrap(),
+            Intent::capture(&Action::Delete, ).unwrap(),
             None
         );
-        assert!(Intent::capture(&Action::Translate([0.0; 3]), None).is_err());
+        assert!(Intent::capture(&Action::Translate([0.0; 3]), ).is_err());
         let editor = Editor::default();
         let id = editor.scene.objects()[0].id;
         assert_eq!(
@@ -2205,7 +2205,7 @@ fn refused_delete_keeps_redo_and_selection() {
     assert!(e.scene.contains(added));
     e.selected = Some(added);
     e.delete_object(added).unwrap();
-    assert_eq!(e.selected, None);
+    assert_eq!(e.selected, );
     e.apply(Action::Undo).unwrap();
     assert!(e.scene.contains(added));
 }
@@ -2949,7 +2949,7 @@ impl Reply {
             .hydrate(self.result?)
             .map_err(str::to_owned)?
         {
-            return Ok(None);
+            return Ok();
         }
         let reply = match self.intent {
             Some(intent) => intent
@@ -3155,7 +3155,7 @@ Replace it with:
                             report(&message);
                             panel.answer(command, &message);
                         }
-                        Ok(None) => {}
+                        Ok() => {}
                         Err(error) => {
                             report(&error);
                             panel.answer(command, &error);
@@ -3297,7 +3297,7 @@ Replace it with:
                             );
                         }
                     }
-                    Ok(Some(Change::View)) | Ok(None) => {}
+                    Ok(Some(Change::View)) | Ok() => {}
                     Err(error) => {
                         report(&error);
                         if event.type_() == "viewer-file" {
@@ -3343,7 +3343,7 @@ Replace it with:
                 let change = waiting.and_then(|waiting| {
                     if waiting {
                         panel.result("Reloading editable sources…");
-                        Ok(None)
+                        Ok()
                     } else {
                         editor
                             .apply(action)

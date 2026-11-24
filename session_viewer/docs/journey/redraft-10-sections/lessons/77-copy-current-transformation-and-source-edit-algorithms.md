@@ -1,6 +1,6 @@
 # 15.1 · Original transforms, part edits and solid recipes
 
-**Steps:** 49 · **Source:** [app/deform.rs](../../../../src/app/deform.rs) · [state/edit.rs](../../../../src/state/edit.rs) · [app/command/tool/gather.rs](../../../../src/app/command/tool/gather.rs) · [app/command/tool/surfacing.rs](../../../../src/app/command/tool/surfacing.rs)
+**Steps:** 49 · **Source:** [app/deform.rs](../../../../viewer-core/src/deform.rs) · [state/edit.rs](../../../../src/state/edit.rs) · [app/command/tool/gather.rs](../../../../viewer-core/src/command/tool/gather.rs) · [app/command/tool/surfacing.rs](../../../../viewer-core/src/command/tool/surfacing.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -2726,7 +2726,7 @@ Replace it with:
                 ) {
                     (Some(a), Some(b), _, _) => Rc::ptr_eq(&a.source, &b.source),
                     (_, _, Some(a), Some(b)) => Rc::ptr_eq(&a.source, &b.source),
-                    (None, None, None, None) => other
+                    (None, None, None, ) => other
                         .geometry()
                         .zip(row.geometry())
                         .is_some_and(|(a, b)| Rc::ptr_eq(a, b)),
@@ -5726,8 +5726,8 @@ pub fn align_sections(sections: &mut [NurbsCurve]) -> Result<(), String> {
                 section.point_at_start(),
                 section.point_at_end(),
             );
-            let same = a.distance(&start, None) + b.distance(&end, None);
-            let flipped = a.distance(&end, None) + b.distance(&start, None);
+            let same = a.distance(&start, ) + b.distance(&end, );
+            let flipped = a.distance(&end, ) + b.distance(&start, );
 
             if flipped < same {
                 section.reverse();
@@ -5852,7 +5852,7 @@ pub mod tests {
                 picked
                     .curve
                     .point_at_start()
-                    .distance(&p(10., 0., 5.), None)
+                    .distance(&p(10., 0., 5.), )
                     < 1e-12
             );
             assert_eq!(picked.curve.domain(), (0.0, 1.0));
@@ -5916,7 +5916,7 @@ pub mod tests {
         assert!(
             sections[1]
                 .point_at_start()
-                .distance(&p(0., 5., 0.), None)
+                .distance(&p(0., 5., 0.), )
                 < 1e-9
         );
         let mut mixed = vec![
@@ -5941,7 +5941,7 @@ pub mod tests {
         assert!(
             sections[1]
                 .point_at_start()
-                .distance(&p(0., 0., 5.), None)
+                .distance(&p(0., 0., 5.), )
                 < 1e-6
         );
     }
@@ -6374,7 +6374,7 @@ fn extrude(
     match &picked.corners {
         Some(corners) if corners.len() > 2 => {
             let closed = corners.len() >= 4
-                && corners[0].distance(&corners[corners.len() - 1], None) <= 1e-12;
+                && corners[0].distance(&corners[corners.len() - 1], ) <= 1e-12;
             let lift = |p: &Point| p + offset;
             let mut faces: Vec<Polyline> = corners
                 .windows(2)
@@ -6419,7 +6419,7 @@ fn extrude(
             }
 
             let surface = Primitives::create_extrusion(&picked.curve, offset);
-            let skip = normal.err().unwrap_or(Skip::None);
+            let skip = normal.err().unwrap_or(Skip::);
             Ok((checked(surface, "extrusion")?, skip))
         }
     }

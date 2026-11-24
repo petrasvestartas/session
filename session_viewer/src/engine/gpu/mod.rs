@@ -40,16 +40,22 @@ mod widget; // register:widget
 mod widget_mesh; // register:widget_mesh
 
 mod context;
+mod sink;
 pub use context::Gpu;
 #[cfg(test)]
 pub(crate) use context::lane_shaders;
 
+#[allow(unused_imports)]
 pub use cloud::{CloudDraw, LodNode, NO_NORMALS}; // register:clouds
 pub use frame::FrameInput;
 pub use glyphs::GlyphPoint; // register:markers
 pub use instance::Instance;
+#[allow(unused_imports)]
 pub use objects::{ObjectRow, Rebase};
 pub use pick::Pick; // register:shell
 pub use segments::CylinderSegment; // register:strokes
 pub use upload::Upload;
 pub use view::View;
+
+#[cfg(all(test, not(target_arch = "wasm32")))] // register:application-tests
+mod scene_gpu_tests; // register:application-tests

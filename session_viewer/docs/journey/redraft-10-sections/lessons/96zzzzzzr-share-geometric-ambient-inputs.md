@@ -598,7 +598,7 @@ fn original() -> Mesh {
 }
 fn document() -> Vec<u8> {
     let mut doc = Session::new("Original lighting normals and geometric contacts");
-    doc.add_mesh(original(), None);
+    doc.add_mesh(original(), );
     doc.to_proto().encode_to_vec()
 }
 fn scene(bytes: &[u8]) -> Scene {
@@ -821,7 +821,7 @@ fn actual_geometric_normals_preserve_authored_lighting_in_both_object_paths() {
                 "Real uniform and storage object paths retain identical whole-frame pixels"
             );
             assert_eq!(properties(&g, m, &[p])[0], sample);
-            g.set_scene(&s, None);
+            g.set_scene(&s, );
             assert!(pixels_at(&g, m) == image);
             assert_eq!(g.stats()[0], uploads);
             assert_eq!(snapshot(&s), original);
@@ -903,7 +903,7 @@ fn contact_radii_reuse_records_for_shared_placements_and_released_sources() {
     let owned = g.ambient_usage()[0];
     let uploads = g.stats()[0];
     Rc::make_mut(&mut e.scene.view).hide(&[second], false);
-    g.set_scene(&e.scene, None);
+    g.set_scene(&e.scene, );
     let image = pixels_at(&g, m);
     assert_eq!(
         g.ambient_usage()[0],
@@ -973,7 +973,7 @@ fn contact_radii_reuse_records_for_shared_placements_and_released_sources() {
     c.distance = 3.;
     c.radius = 1.;
     let m = c.uniform();
-    g.set_scene(&e.scene, None);
+    g.set_scene(&e.scene, );
     let image = pixels_at(&g, m);
     let uploads = g.stats()[0];
     let point = [0.11, 0.13, -0.2];
@@ -984,7 +984,7 @@ fn contact_radii_reuse_records_for_shared_placements_and_released_sources() {
         weak.upgrade().is_none(),
         "Ambient inputs retain no eligible original source mesh owner"
     );
-    g.set_scene(&e.scene, None);
+    g.set_scene(&e.scene, );
     assert!(pixels_at(&g, m) == image);
     assert_eq!(properties(&g, m, &[point]), values);
     assert_eq!(g.stats()[0], uploads);
@@ -996,7 +996,7 @@ fn contact_radii_reuse_records_for_shared_placements_and_released_sources() {
     )
     .unwrap();
     assert_eq!(snapshot(&e.scene), original);
-    g.set_scene(&e.scene, None);
+    g.set_scene(&e.scene, );
     assert!(pixels_at(&g, m) == image);
     assert_eq!(g.stats()[0], uploads);
     export("released-original-inputs", &e.scene, &image);
@@ -1213,7 +1213,7 @@ fn document() -> Session {
     let mut mesh = crate::cap_gpu_tests::source(false);
     mesh.set_objectcolor(Color::new(0.2, 0.4, 0.6, 1.));
     let mut d = Session::new("Original contacts and authored drawing colours");
-    d.add_mesh(mesh, None);
+    d.add_mesh(mesh, );
     d
 }
 fn scene(d: &Session) -> Scene {
@@ -1325,7 +1325,7 @@ fn actual_original_ink_keeps_authored_colour_over_ambient_contacts() {
                 height: size[1],
             });
             g.set_density(density as f32);
-            g.set_scene(&scene(&document()), None);
+            g.set_scene(&scene(&document()), );
             let (p, world) = shadow(&mut g, &c, size);
             for kind in ["point", "line", "path"] {
                 let mut d = document();
@@ -1345,7 +1345,7 @@ fn actual_original_ink_keeps_authored_colour_over_ambient_contacts() {
                         let mut q = Point::new(world[0], world[1], world[2]);
                         q.width = 11.;
                         q.pointcolor = colour;
-                        d.add_point(q, None);
+                        d.add_point(q, );
                     }
                     "line" => {
                         let mut q = session_rust::Line::new(
@@ -1354,13 +1354,13 @@ fn actual_original_ink_keeps_authored_colour_over_ambient_contacts() {
                         );
                         q.width = 7.;
                         q.linecolor = colour;
-                        d.add_line(q, None);
+                        d.add_line(q, );
                     }
                     _ => {
                         let mut q = session_rust::Polyline::new(ends.to_vec());
                         q.width = 7.;
                         q.linecolor = colour;
-                        d.add_polyline(q, None).unwrap();
+                        d.add_polyline(q, ).unwrap();
                     }
                 }
                 let bytes = d.to_proto().encode_to_vec();
@@ -1379,7 +1379,7 @@ fn actual_original_ink_keeps_authored_colour_over_ambient_contacts() {
                     "line" => e.scene.lines()[0].id,
                     _ => e.scene.paths()[0].id,
                 };
-                g.set_scene(&e.scene, None);
+                g.set_scene(&e.scene, );
                 let uploads = g.stats()[0];
                 g.set_ambient(false);
                 let plain = pixels(&mut g, &c, size);
@@ -1418,10 +1418,10 @@ fn actual_original_ink_keeps_authored_colour_over_ambient_contacts() {
                 e.scene
                     .translate(owner, [0.1, 0., 0.])
                     .unwrap();
-                g.set_scene(&e.scene, None);
+                g.set_scene(&e.scene, );
                 assert!(pixels(&mut g, &c, size) != image);
                 e.scene.place_owner(owner, old).unwrap();
-                g.set_scene(&e.scene, None);
+                g.set_scene(&e.scene, );
                 assert!(pixels(&mut g, &c, size) == image);
                 assert_eq!(g.stats()[0], uploads);
                 assert_eq!(snapshot(&e.scene), original);
@@ -1444,7 +1444,7 @@ fn actual_original_ink_keeps_authored_colour_over_ambient_contacts() {
                         &retained,
                         &e.scene.objects()[0].mesh
                     ));
-                    g.set_scene(&e.scene, None);
+                    g.set_scene(&e.scene, );
                     assert!(pixels(&mut g, &c, size) == image);
                     let keys = e.reload_keys();
                     e.hydrate(
@@ -1458,7 +1458,7 @@ fn actual_original_ink_keeps_authored_colour_over_ambient_contacts() {
                         e.camera.view_projection().m,
                         c.view_projection().m
                     );
-                    g.set_scene(&e.scene, None);
+                    g.set_scene(&e.scene, );
                     assert!(pixels(&mut g, &c, size) == image);
                     assert_eq!(g.stats()[0], uploads);
                 }
@@ -1875,7 +1875,7 @@ fn document() -> proto::Session {
         &(&Xform::translation(280., 200., 80.) * &Xform::scale_xyz(100., 100., 100.))
     ));
     cube.set_objectcolor(session_rust::Color::new(0.3, 0.3, 0.3, 1.));
-    d.add_mesh(cube, None);
+    d.add_mesh(cube, );
     d.to_proto()
 }
 fn editor(bytes: &[u8]) -> Editor {
@@ -2157,7 +2157,7 @@ fn contact_properties_match_original_radius_and_shared_geometry_in_both_paths() 
                     height: size[1],
                 });
                 g.set_density(density as f32);
-                g.set_scene(&e.scene, None);
+                g.set_scene(&e.scene, );
                 let image = pixels(&mut g, &c, size);
                 let expected = g
                     .ambient_rows
@@ -2224,7 +2224,7 @@ fn contact_properties_match_original_radius_and_shared_geometry_in_both_paths() 
                     crate::feature_owner::display_owner(&e.scene, child),
                     None
                 );
-                g.set_scene(&e.scene, None);
+                g.set_scene(&e.scene, );
                 assert!(
                     pixels(&mut g, &c, size) == image,
                     "Locking changes picking, not visible contact shading"
@@ -2233,9 +2233,9 @@ fn contact_properties_match_original_radius_and_shared_geometry_in_both_paths() 
                     radius(&properties(&g, size, false).0, index),
                     expected
                 );
-                assert_eq!(pick(&mut g, &e.scene, &c, point), None);
+                assert_eq!(pick(&mut g, &e.scene, &c, point), );
                 Rc::make_mut(&mut e.scene.view).lock(&[parent], false);
-                g.set_scene(&e.scene, None);
+                g.set_scene(&e.scene, );
                 assert!(pixels(&mut g, &c, size) == image);
                 assert!(snapshot(&e.scene) == original);
                 let ordinary = std::mem::take(&mut g.instances.ordinary);
@@ -2337,7 +2337,7 @@ fn placed_contacts_follow_original_instances_without_changing_pickability_or_geo
                 height: size[1],
             });
             g.set_density(density as f32);
-            g.set_scene(&e.scene, None);
+            g.set_scene(&e.scene, );
             let image = pixels(&mut g, &c, size);
             let properties = properties(&g, size, true);
             let mut expected = Vec::new();
@@ -2391,10 +2391,10 @@ fn placed_contacts_follow_original_instances_without_changing_pickability_or_geo
             e.scene
                 .translate(parents[0], [100., 0., 0.])
                 .unwrap();
-            g.set_scene(&e.scene, None);
+            g.set_scene(&e.scene, );
             assert!(pixels(&mut g, &c, size) != image);
             e.scene.place_owner(parents[0], old).unwrap();
-            g.set_scene(&e.scene, None);
+            g.set_scene(&e.scene, );
             assert!(pixels(&mut g, &c, size) == image);
             assert_eq!(g.stats()[0], uploads);
             assert!(snapshot(&e.scene) == original);
@@ -2421,7 +2421,7 @@ fn placed_contacts_follow_original_instances_without_changing_pickability_or_geo
         weak.upgrade().is_none(),
         "Numeric visual radii do not retain original definition sources"
     );
-    g.set_scene(&Scene::empty(), None);
+    g.set_scene(&Scene::empty(), );
     g.resize(crate::viewport::Viewport {
         width: 320,
         height: 240,

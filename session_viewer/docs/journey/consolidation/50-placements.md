@@ -1,6 +1,6 @@
 # 7.5 · Temporary transforms with a fixed baseline
 
-**Steps:** 5 · **Source:** [app/command/mod.rs](../../../src/app/command/mod.rs) · [app/command/tool.rs](../../../src/app/command/tool.rs) · [app/cplane.rs](../../../src/app/cplane.rs) · [app/snap.rs](../../../src/app/snap.rs)
+**Steps:** 5 · **Source:** [app/command/mod.rs](../../../viewer-core/src/command/mod.rs) · [app/command/tool.rs](../../../viewer-core/src/command/tool.rs) · [app/cplane.rs](../../../viewer-core/src/cplane.rs) · [app/snap.rs](../../../viewer-core/src/snap.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -113,7 +113,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/50a-preview-b54a77169648.png). Saved black source line and yellow endpoint-snapped preview; inherited49f fixture, object-placement preview untested.
 
-The maintained Viewer connects committed edits to rendering through [history notes](../../../src/app/scene_sync/notes.rs). Kernel operations identify changes to geometry, placement, presence or a subtree; Undo visits the transaction in reverse order. Scene synchronization merges these notes by document and object before updating display rows. This lesson keeps the same distinction between a temporary preview and one committed history edit, but its scene-based preview does not implement that per-operation invalidation stream.
+The maintained Viewer connects committed edits to rendering through [history notes](../../../viewer-core/src/scene_sync/notes.rs). Kernel operations identify changes to geometry, placement, presence or a subtree; Undo visits the transaction in reverse order. Scene synchronization merges these notes by document and object before updating display rows. This lesson keeps the same distinction between a temporary preview and one committed history edit, but its scene-based preview does not implement that per-operation invalidation stream.
 
 ### 1. `src/edit_preview.rs`
 

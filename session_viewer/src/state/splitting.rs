@@ -34,7 +34,7 @@ impl State {
         }
 
         // a selected face, else the whole curve
-        let selected = match self.selection {
+        let selected = match self.selection.mode {
             crate::app::selection::SelectionMode::Face { face, .. } => Some(face),
             _ => None,
         };

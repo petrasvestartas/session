@@ -1,6 +1,6 @@
 # 6.3 · Pick original faces, edges and controls
 
-**Steps:** 14 · **Source:** [engine/gpu/pick.rs](../../../../src/engine/gpu/pick.rs) · [app/selection.rs](../../../../src/app/selection.rs) · [engine/gpu/faces.rs](../../../../src/engine/gpu/faces.rs) · [app/walk/mesh_topology.rs](../../../../src/app/walk/mesh_topology.rs)
+**Steps:** 14 · **Source:** [engine/gpu/pick.rs](../../../../src/engine/gpu/pick.rs) · [app/selection.rs](../../../../viewer-core/src/selection.rs) · [engine/gpu/faces.rs](../../../../src/engine/gpu/faces.rs) · [app/walk/mesh_topology.rs](../../../../viewer-core/src/walk/mesh_topology.rs)
 
 ## <a id="checkpoint-44-topology"></a>1. Preserve source faces and edges
 
@@ -1326,7 +1326,7 @@ Edit the existing block to match this code; keep unchanged lines:
             assert_eq!(mesh.id, owner);
             let geometry = &mesh.geometry;
             if geometry.source.parts.triangles.is_empty() {
-                self.rows.push(None);
+                self.rows.push();
                 continue;
             }
             // Vertex pulling reads the existing index and position buffers; one small per-triangle stream adds original face identity.
@@ -1560,7 +1560,7 @@ impl Renderer {
             density: 1.0,
             picker,
         };
-        renderer.set_scene(scene, None);
+        renderer.set_scene(scene, );
         renderer
     }
 
@@ -2102,7 +2102,7 @@ impl Renderer {
             sources: Default::default(),
             pick_mode: Default::default(),
         };
-        renderer.set_scene(scene, None);
+        renderer.set_scene(scene, );
         renderer
     }
 
@@ -3377,7 +3377,7 @@ fn actual_control_hits_resolve_the_original_curve_control_instead_of_a_sample() 
         })
     );
     editor.scene.show_controls(false);
-    renderer.set_scene(&editor.scene, None);
+    renderer.set_scene(&editor.scene, );
     renderer.set_pick_mode(crate::pick_sources::Mode::Control);
     renderer
         .request_pick([0., 0.6], identity())
@@ -3390,24 +3390,24 @@ fn actual_control_hits_resolve_the_original_curve_control_instead_of_a_sample() 
 
 ```rust
     scene.clear();
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     assert!(weak.upgrade().is_none());
     assert_eq!(&renderer.pick_usage()[..3], &[0, 0, 144]);
     let new = scene.insert(triangle(0.3)).unwrap();
     assert_ne!(old, new);
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
 ```
 
 Replace it with:
 
 ```rust
     scene.clear();
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     assert!(weak.upgrade().is_none());
     assert_eq!(&renderer.pick_usage()[..3], &[0, 0, 160]);
     let new = scene.insert(triangle(0.3)).unwrap();
     assert_ne!(old, new);
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
 ```
 
 **Locate this block:**
@@ -4107,11 +4107,11 @@ fn actual_part_highlights_are_local_leave_black_edges_and_release_derived_data()
         stats,
         "Highlights reuse primary geometry"
     );
-    renderer.set_highlight(&scene, None).unwrap();
+    renderer.set_highlight(&scene, ).unwrap();
     assert_eq!(renderer.highlight_bytes(), 0);
     assert_eq!(colour_pixels(&mut renderer), before);
     scene.clear();
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     assert!(weak.upgrade().is_none());
     assert_eq!(renderer.highlight_bytes(), 0);
 }
@@ -4164,7 +4164,7 @@ fn actual_control_highlight_surrounds_only_the_original_marker_and_keeps_source_
     editor
         .apply(crate::editor::Action::Close)
         .unwrap();
-    renderer.set_scene(&editor.scene, None);
+    renderer.set_scene(&editor.scene, );
     assert_eq!(renderer.highlight_bytes(), 0);
 }
 ```
@@ -4477,7 +4477,7 @@ fn selecting_a_part_does_not_edit_history_or_implicitly_delete_its_parent() {
         .apply(Action::PickedTarget(Some(target)))
         .unwrap();
     assert_eq!(editor.selection(), Some(target));
-    assert_eq!(editor.whole_selection(), None);
+    assert_eq!(editor.whole_selection(), );
     assert!(
         editor
             .apply(Action::Translate([1., 0., 0.]))
@@ -4491,7 +4491,7 @@ fn selecting_a_part_does_not_edit_history_or_implicitly_delete_its_parent() {
     ));
     editor.apply(Action::Undo).unwrap();
     assert!(editor.scene.objects().is_empty());
-    assert_eq!(editor.selection(), None);
+    assert_eq!(editor.selection(), );
     editor.apply(Action::Redo).unwrap();
     assert_eq!(editor.scene.objects()[0].id, owner);
     editor
@@ -4500,7 +4500,7 @@ fn selecting_a_part_does_not_edit_history_or_implicitly_delete_its_parent() {
     editor
         .apply(Action::PickMode(Mode::Object))
         .unwrap();
-    assert_eq!(editor.selection(), None);
+    assert_eq!(editor.selection(), );
     editor
         .apply(Action::Picked(Some(owner)))
         .unwrap();
@@ -4528,11 +4528,11 @@ fn hidden_controls_closed_owners_and_invalid_source_addresses_are_rejected() {
     editor
         .apply(Action::Controls(false))
         .unwrap();
-    assert_eq!(editor.selection(), None);
+    assert_eq!(editor.selection(), );
     editor
         .apply(Action::PickedTarget(Some(control)))
         .unwrap();
-    assert_eq!(editor.selection(), None);
+    assert_eq!(editor.selection(), );
     editor.apply(Action::AddPolyline).unwrap();
     let owner = editor.scene.paths()[1].id;
     for part in [
@@ -4546,7 +4546,7 @@ fn hidden_controls_closed_owners_and_invalid_source_addresses_are_rejected() {
                 part,
             })))
             .unwrap();
-        assert_eq!(editor.selection(), None);
+        assert_eq!(editor.selection(), );
     }
     editor.apply(Action::Close).unwrap();
     assert!(!control.valid(&editor.scene));

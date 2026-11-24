@@ -1,6 +1,6 @@
 # 5.5 · One visibility policy and shared surface depth
 
-**Steps:** 2 · **Source:** [app/walk/curves.rs](../../../src/app/walk/curves.rs) · [engine/gpu/segments.rs](../../../src/engine/gpu/segments.rs) · [shaders/ribbon.wgsl](../../../src/shaders/ribbon.wgsl) · [shaders/vector.wgsl](../../../src/shaders/vector.wgsl)
+**Steps:** 2 · **Source:** [app/walk/curves.rs](../../../viewer-core/src/walk/curves.rs) · [engine/gpu/segments.rs](../../../src/engine/gpu/segments.rs) · [shaders/ribbon.wgsl](../../../src/shaders/ribbon.wgsl) · [shaders/vector.wgsl](../../../src/shaders/vector.wgsl)
 
 ## <a id="checkpoint-39-visible"></a>1. Resolve visibility for every drawing kind
 

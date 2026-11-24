@@ -1510,7 +1510,7 @@ fn original(reverse: bool) -> Session {
         "concave contact",
     ));
     let mut session = Session::new("Original contact feature");
-    session.add_element(element, None);
+    session.add_element(element, );
     session
 }
 fn imported(reverse: bool) -> (Editor, session_rust::proto::Session) {
@@ -1826,7 +1826,7 @@ fn actual_contact_fill_and_original_owner_survive_presentation() {
                 p[0] > 240 && p[1] > 240 && p[2] < 20,
                 "Actual original selection fills the contact yellow: {p:?}"
             );
-            editor.apply(Action::Picked(None)).unwrap();
+            editor.apply(Action::Picked()).unwrap();
             r.select_objects(&editor.scene, &editor.highlighted_objects())
                 .unwrap();
             assert_eq!(pixels_at(&r, matrix), before);
@@ -1843,14 +1843,14 @@ fn actual_contact_fill_and_original_owner_survive_presentation() {
             r.set_lighting(false, false);
             r.use_uniform_surface_records();
             assert_eq!(pixels_at(&r, matrix), before);
-            r.set_scene(&editor.scene, None);
+            r.set_scene(&editor.scene, );
             assert_eq!(pixels_at(&r, matrix), before);
             assert_eq!(r.stats()[0], uploads);
             same_element(&retained(&editor), &source);
         }
     }
     editor.scene.clear();
-    r.set_scene(&editor.scene, None);
+    r.set_scene(&editor.scene, );
     pixels_at(&r, editor.camera.uniform());
     assert_eq!(r.usage()[0], 0);
 }
@@ -1898,7 +1898,7 @@ fn actual_contact_depth_is_nearer_without_crossing_an_occluder() {
         let blocker = blocked
             .insert(crate::prepared::PreparedMesh::new(roof).unwrap())
             .unwrap();
-        r.set_scene(&blocked, None);
+        r.set_scene(&blocked, );
         let image = pixels_at(&r, matrix);
         let p = pixel(&image, matrix, [-350., -150., 20.]);
         assert!(
@@ -1915,7 +1915,7 @@ fn actual_contact_depth_is_nearer_without_crossing_an_occluder() {
                 .unwrap()[0],
             blocker.value()
         );
-        r.set_scene(&editor.scene, None);
+        r.set_scene(&editor.scene, );
         pixels_at(&r, matrix);
         same_element(&retained(&editor), &source);
     }
@@ -2310,14 +2310,14 @@ pub(crate) fn contact_fill(
             [p[0], p[1], p[2]]
         })
     else {
-        return Ok(None);
+        return Ok();
     };
     let points = outline
         .coords
         .chunks_exact(3)
         .map(|p| Point::new(p[0], p[1], p[2]))
         .collect();
-    let mut mesh = Mesh::from_polylines(vec![points], None);
+    let mut mesh = Mesh::from_polylines(vec![points], );
     mesh.set_objectcolor(Color::new(0.9, 0.1, 0.1, 1.));
     let mut fill = PreparedMesh::new(mesh)?;
     let count = fill.display.vertices().len();
@@ -2852,7 +2852,7 @@ fn actual_zero_stride_ink_draws_and_picks_every_original() {
         }
     }
     scene.clear();
-    r.set_scene(&scene, None);
+    r.set_scene(&scene, );
     crate::cap_gpu_tests::pixels_at(&r, matrix);
     assert_eq!(r.clipping_ink_bytes(), [0, 0]);
 }
@@ -4721,7 +4721,7 @@ Do not allocate generated display-face metadata; preserve one row per mesh.
 ```rust
             let geometry = &mesh.geometry;
             if geometry.source.parts.triangles.is_empty() {
-                self.rows.push(None);
+                self.rows.push();
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
@@ -4729,7 +4729,7 @@ Edit the existing block to match this code; keep unchanged lines:
 ```rust
             let geometry = &mesh.geometry;
             if !mesh.source_faces || geometry.source.parts.triangles.is_empty() {
-                self.rows.push(None);
+                self.rows.push();
 ```
 
 ### 5. `src/pick_encode.rs`
@@ -4884,7 +4884,7 @@ fn imported(geometry: ElementGeometry, z: f64) -> Editor {
         "readonly contact",
     ));
     let mut source = Session::new("Original face query");
-    source.add_element(element, None);
+    source.add_element(element, );
     let mut editor = Editor::default();
     editor.scene = Scene::empty();
     crate::scene_document::import(
@@ -5099,7 +5099,7 @@ fn source_faces_under_contacts_retain_sparse_keys_and_original_pixels() {
                     ),
                     "Readonly red contact remains above the original face highlight"
                 );
-                r.set_highlight(&editor.scene, None).unwrap();
+                r.set_highlight(&editor.scene, ).unwrap();
                 assert_eq!(
                     crate::cap_gpu_tests::pixels_at(&r, matrix),
                     before
@@ -5119,7 +5119,7 @@ fn source_faces_under_contacts_retain_sparse_keys_and_original_pixels() {
                     crate::cap_gpu_tests::pixels_at(&r, matrix),
                     before
                 );
-                r.set_scene(&editor.scene, None);
+                r.set_scene(&editor.scene, );
                 assert_eq!(r.stats()[0], uploads);
                 assert_eq!(archive(&editor.scene), original);
             }
@@ -5211,7 +5211,7 @@ fn readonly_contacts_cannot_fabricate_faces_or_remove_original_occlusion() {
         };
         let blocker = scene.insert(blocker).unwrap();
         std::rc::Rc::make_mut(&mut scene.view).lock(&[blocker], true);
-        r.set_scene(&scene, None);
+        r.set_scene(&scene, );
         crate::cap_gpu_tests::pixels_at(&r, matrix);
         assert_eq!(
             pick(

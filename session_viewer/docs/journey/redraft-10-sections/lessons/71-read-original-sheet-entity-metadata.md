@@ -1,6 +1,6 @@
 # 14.1 · Original drawings, entity queries and construction frames
 
-**Steps:** 42 · **Source:** [app/walk/sheet.rs](../../../../src/app/walk/sheet.rs) · [app/sheet_query.rs](../../../../src/app/sheet_query.rs) · [app/stream.rs](../../../../src/app/stream.rs) · [app/cplane.rs](../../../../src/app/cplane.rs)
+**Steps:** 42 · **Source:** [app/walk/sheet.rs](../../../../viewer-core/src/walk/sheet.rs) · [app/sheet_query.rs](../../../../viewer-core/src/sheet_query.rs) · [app/stream.rs](../../../../viewer-core/src/stream.rs) · [app/cplane.rs](../../../../viewer-core/src/cplane.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -373,7 +373,7 @@ Replace it with:
 }
 
 pub async fn get(url: &str, opts: &GetOpts) -> Result<Reply, String> {
-    get_with_signal(url, opts, None).await
+    get_with_signal(url, opts, ).await
 }
 pub async fn get_with_signal(
     url: &str,
@@ -944,9 +944,9 @@ mod tests {
             .into_iter()
             .flat_map(f64::to_le_bytes)
             .collect::<Vec<_>>();
-        assert!(Page::decode(0..1, 1, 2, &invalid, None, None, None).is_err());
+        assert!(Page::decode(0..1, 1, 2, &invalid, None, None, ).is_err());
         assert_eq!(
-            Page::decode(0..1, 1, 0, &coordinates, None, None, None)
+            Page::decode(0..1, 1, 0, &coordinates, None, None, )
                 .unwrap()
                 .entities,
             [u32::MAX]
@@ -3552,7 +3552,7 @@ mod tests {
             .into_iter()
             .flat_map(f64::to_le_bytes)
             .collect::<Vec<_>>();
-        let page = Page::decode(0..1, 2, 1, &raw, None, None, None).unwrap();
+        let page = Page::decode(0..1, 2, 1, &raw, None, None, ).unwrap();
         let held = stream
             .adopt(page, budget.reserve(192).unwrap())
             .unwrap();
@@ -4599,7 +4599,7 @@ mod tests {
         assert!(gate.finish(second, &scene, target));
         assert!(!gate.finish(second, &scene, target));
         let (third, _) = gate.begin(&scene.sheets()[0], 1).unwrap();
-        assert!(!gate.finish(third, &scene, None));
+        assert!(!gate.finish(third, &scene, ));
         let (fourth, _) = gate.begin(&scene.sheets()[0], 1).unwrap();
         scene.clear();
         assert!(!gate.finish(fourth, &scene, target));
@@ -6875,7 +6875,7 @@ fn rejected_sheet_coordinates_do_not_replace_the_scene_and_close_releases_histor
         ..Default::default()
     }
     .encode_to_vec();
-    assert!(crate::publication::prepare(&editor.scene, &bad, true, None).is_err());
+    assert!(crate::publication::prepare(&editor.scene, &bad, true, ).is_err());
     assert_eq!(editor.scene.all_ids(), ids);
     let prepared = crate::publication::prepare(
         &editor.scene,
@@ -7164,7 +7164,7 @@ fn actual_sheet_batches_share_source_uploads_keep_world_pens_full_entity_ids_and
     let mut renderer = renderer(&scene);
     assert_eq!(renderer.sheet_usage()[..2], [2, 1]);
     let uploads = renderer.sheet_usage()[3];
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     assert_eq!(renderer.sheet_usage()[3], uploads);
     renderer.set_pick_mode(Mode::Edge);
     renderer
@@ -7207,10 +7207,10 @@ fn actual_sheet_batches_share_source_uploads_keep_world_pens_full_entity_ids_and
             session_rust::Xform::translation(0., 0.2, 0.),
         )
         .unwrap();
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     assert_eq!(renderer.sheet_usage()[3], uploads);
     let front = scene.insert(triangle(0.1)).unwrap();
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     renderer.set_pick_mode(Mode::Object);
     renderer
         .request_pick([0., -0.5], identity())
@@ -7220,20 +7220,20 @@ fn actual_sheet_batches_share_source_uploads_keep_world_pens_full_entity_ids_and
         front.value()
     );
     Rc::make_mut(&mut scene.view).lock(&[front], true);
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     renderer
         .request_pick([0., -0.5], identity())
         .unwrap();
     assert!(finish(&mut renderer).is_none());
     Rc::make_mut(&mut scene.view).hide(&[front], true);
     Rc::make_mut(&mut scene.view).lock(&[id], true);
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     renderer
         .request_pick([0., -0.5], identity())
         .unwrap();
     assert!(finish(&mut renderer).is_none());
     scene.clear();
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     assert_eq!(renderer.sheet_usage()[..2], [0, 0]);
     assert!(weak.upgrade().is_none());
 }
@@ -7293,7 +7293,7 @@ fn actual_evicted_sheet_pages_remain_charged_until_renderer_refresh_cancels_old_
     renderer
         .request_pick([0., 0.], identity())
         .unwrap();
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     assert!(renderer.take_pick(identity()).is_none());
     assert_eq!(budget.used(), 0);
     assert!(weak.upgrade().is_none());
@@ -8004,7 +8004,7 @@ use std::cell::Cell;
 
 thread_local! {
     /// The fixed construction plane typed coordinates are measured in; None in View mode, where they are world coordinates.
-    static PLANE: Cell<Option<CPlane>> = const { Cell::new(None) };
+    static PLANE: Cell<Option<CPlane>> = const { Cell::new() };
 }
 
 /// Fix the plane typed coordinates are measured in, None for world coordinates.

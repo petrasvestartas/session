@@ -106,10 +106,10 @@ impl State {
         // Control-point mode keeps the left button; Shift or Ctrl draws a selection rectangle
         if self.shift_held
             || self.ctrl_held
-            || matches!(self.selection, SelectionMode::Controls { .. })
+            || matches!(self.selection.mode, SelectionMode::Controls { .. })
             || self.drafting() // register:commands
             || self.features.pending_split.is_some() // register:split
-            || self.selection_tool != SelectionTool::Object
+            || self.selection.tool != SelectionTool::Object
         {
             return false;
         }
@@ -253,7 +253,7 @@ impl State {
         }
 
         // a selected edge, face or entity stays put; another object is grabbed whole
-        match self.selection.parent() {
+        match self.selection.mode.parent() {
             Some(parent) if parent == row => return None,
             Some(_) => self.select_picked(row, false),
             None if !self.selected_rows().contains(&row) => self.select_picked(row, false),

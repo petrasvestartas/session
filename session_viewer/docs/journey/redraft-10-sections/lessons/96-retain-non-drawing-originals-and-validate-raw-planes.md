@@ -1,6 +1,6 @@
 # 19.1 · Complete source metadata and the actual command contract
 
-**Steps:** 9 · **Source:** [app/session_io.rs](../../../../src/app/session_io.rs) · [app/command/mod.rs](../../../../src/app/command/mod.rs) · [app/hierarchy.rs](../../../../src/app/hierarchy.rs) · [app/scene.rs](../../../../src/app/scene.rs)
+**Steps:** 9 · **Source:** [app/session_io.rs](../../../../viewer-core/src/session_io.rs) · [app/command/mod.rs](../../../../viewer-core/src/command/mod.rs) · [app/hierarchy.rs](../../../../viewer-core/src/hierarchy.rs) · [app/scene.rs](../../../../viewer-core/src/scene.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -7678,7 +7678,7 @@ fn current_command_differences_and_canvas_letters_are_explicit() {
         assert_eq!(keys::letter(letter), Some(line));
         assert!(command::parse(line).is_ok());
     }
-    assert_eq!(keys::letter("q"), None);
+    assert_eq!(keys::letter("q"), );
 }
 ```
 

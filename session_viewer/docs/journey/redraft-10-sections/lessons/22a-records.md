@@ -373,7 +373,7 @@ pub fn bytes() -> Vec<u8> {
             centre[0], centre[1], centre[2],
         ));
         mesh.set_objectcolor(Color::new(0.75, 0.35, 0.1, 1.0));
-        assert!(session.add_mesh(mesh, None).is_some());
+        assert!(session.add_mesh(mesh, ).is_some());
     }
     session.pb_dumps()
 }
@@ -1597,7 +1597,7 @@ fn bounds_measure_vertices_and_define_the_empty_case() {
     assert!((bounds.radius() - 6.0_f64.sqrt()).abs() < 1.0e-12);
     let mut scene = crate::scene::Scene::demo();
     assert!(scene.bounds().is_some());
-    while let Some(id) = scene.next(None) {
+    while let Some(id) = scene.next() {
         scene.remove(id);
     }
     assert!(scene.bounds().is_none());
@@ -2121,7 +2121,7 @@ fn fit_uses_imported_vertices_without_changing_selection_or_history() {
 #[test]
 fn empty_scene_and_single_point_have_defined_fit_behaviour() {
     let mut editor = Editor::default();
-    while let Some(id) = editor.scene.next(None) {
+    while let Some(id) = editor.scene.next() {
         assert!(editor.scene.remove(id));
     }
     assert!(editor.scene.bounds().is_none());

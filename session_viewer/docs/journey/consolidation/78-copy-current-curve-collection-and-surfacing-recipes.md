@@ -1,6 +1,6 @@
 # 15.2 · Profile collection and one surfacing transaction
 
-**Steps:** 14 · **Source:** [app/deform.rs](../../../src/app/deform.rs) · [state/edit.rs](../../../src/state/edit.rs) · [app/command/tool/gather.rs](../../../src/app/command/tool/gather.rs) · [app/command/tool/surfacing.rs](../../../src/app/command/tool/surfacing.rs)
+**Steps:** 14 · **Source:** [app/deform.rs](../../../viewer-core/src/deform.rs) · [state/edit.rs](../../../src/state/edit.rs) · [app/command/tool/gather.rs](../../../viewer-core/src/command/tool/gather.rs) · [app/command/tool/surfacing.rs](../../../viewer-core/src/command/tool/surfacing.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">

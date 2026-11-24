@@ -323,7 +323,7 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 ```rust
     );
     scene.clear();
-    gpu.set_scene(&scene, None);
+    gpu.set_scene(&scene, );
     assert_eq!(gpu.usage(), [0; 4]);
 }
 ```
@@ -333,7 +333,7 @@ Replace it with:
 ```rust
     );
     scene.clear();
-    gpu.set_scene(&scene, None);
+    gpu.set_scene(&scene, );
     assert_eq!(gpu.usage(), [0; 4]);
 }
 
@@ -826,7 +826,7 @@ fn actual_ordinary_surfaces_keep_one_own_row_slot_through_instances_highlights_a
             primitive_pixels(&gpu, &gpu.primitive.texture),
             addresses
         );
-        gpu.set_highlight(&scene, None).unwrap();
+        gpu.set_highlight(&scene, ).unwrap();
         assert_eq!(pixels(&gpu), plain);
     }
     assert_eq!(
@@ -837,7 +837,7 @@ fn actual_ordinary_surfaces_keep_one_own_row_slot_through_instances_highlights_a
             .collect::<Vec<_>>(),
         originals
     );
-    gpu.set_scene(&Scene::empty(), None);
+    gpu.set_scene(&Scene::empty(), );
     pixels(&gpu);
     assert_eq!(gpu.usage(), [0; 4]);
     assert_eq!(gpu.own_slot.allocated_bytes(), 8);
@@ -1006,7 +1006,7 @@ impl Publication {
             poll.as_deref(),
             notify.as_deref(),
         ) else {
-            return Ok(Self(None));
+            return Ok(Self());
         };
         let index = Index::new(route.base.clone());
         Ok(Self(Some(Rc::new(RefCell::new(State {
@@ -1076,7 +1076,7 @@ impl Publication {
             poll.as_deref(),
             notify.as_deref(),
         ) else {
-            return Ok(Self(Rc::new(RefCell::new(None))));
+            return Ok(Self(Rc::new(RefCell::new())));
         };
         Ok(Self::from_route(document, fault, route))
     }
@@ -1185,7 +1185,7 @@ pub fn reload_scene(url: Option<String>) -> Result<(), wasm_bindgen::JsValue> {
             )?,
         };
         if !publication.has_route() {
-            return Ok(None);
+            return Ok();
         }
         runtime.request.borrow_mut().cancel();
         runtime.reload.borrow_mut().cancel();
@@ -1323,8 +1323,8 @@ fn explicit_named_reload_uses_current_base_and_path_rules() {
         let route = named(path, Some("off"));
         assert_eq!(route.manifest, manifest);
         assert_eq!(route.base, "");
-        assert_eq!(route.poll_ms, None);
-        assert_eq!(route.notify, None);
+        assert_eq!(route.poll_ms, );
+        assert_eq!(route.notify, );
     }
     assert_eq!(
         named("floor", Some("http://127.0.0.1:8780/data")).manifest,
@@ -2164,7 +2164,7 @@ Retain the mapped sentinel and released-scene checks against the shared owner. S
             primitive_pixels(&gpu, &gpu.primitive.texture),
             addresses
         );
-        gpu.set_highlight(&scene, None).unwrap();
+        gpu.set_highlight(&scene, ).unwrap();
         assert_eq!(pixels(&gpu), plain);
     }
     assert_eq!(
@@ -2175,7 +2175,7 @@ Retain the mapped sentinel and released-scene checks against the shared owner. S
             .collect::<Vec<_>>(),
         originals
     );
-    gpu.set_scene(&Scene::empty(), None);
+    gpu.set_scene(&Scene::empty(), );
     pixels(&gpu);
     assert_eq!(gpu.usage(), [0; 4]);
     assert_eq!(gpu.own_slot.allocated_bytes(), 8);
@@ -2226,7 +2226,7 @@ Edit the existing block to match this code; keep unchanged lines:
             primitive_pixels(&gpu, &gpu.primitive.texture),
             addresses
         );
-        gpu.set_highlight(&scene, None).unwrap();
+        gpu.set_highlight(&scene, ).unwrap();
         assert_eq!(pixels(&gpu), plain);
     }
     assert_eq!(
@@ -2237,7 +2237,7 @@ Edit the existing block to match this code; keep unchanged lines:
             .collect::<Vec<_>>(),
         originals
     );
-    gpu.set_scene(&Scene::empty(), None);
+    gpu.set_scene(&Scene::empty(), );
     pixels(&gpu);
     assert_eq!(gpu.usage(), [0; 4]);
     assert_eq!(gpu.instances.slots.allocated_bytes(), 8);
@@ -2316,7 +2316,7 @@ fn actual_surface_batches_share_one_slot_owner_and_restore_ordinary_drawing() {
     crate::cap_gpu_tests::pixels(&gpu);
     gpu.set_opacity(1.);
     assert_eq!(crate::cap_gpu_tests::pixels(&gpu), baseline);
-    gpu.set_scene(&crate::scene::Scene::empty(), None);
+    gpu.set_scene(&crate::scene::Scene::empty(), );
     assert_eq!(&gpu.instance_usage()[..3], &[0, 0, 0]);
     assert_eq!(gpu.instances.slots.allocated_bytes(), 8);
 }
@@ -3296,7 +3296,7 @@ mod tests {
         assert_eq!(space.slot(3)[1] + 20, 104);
 
         assert!(space.reset(&[], 100).all);
-        assert_eq!(space.triangle_count(), None);
+        assert_eq!(space.triangle_count(), );
         assert_eq!(space.texel(0), [0, 100, 0, 0]);
     }
 
@@ -3510,7 +3510,7 @@ Replace it with:
             }
             return;
         }
-        encoder.clear_buffer(&self.projected, 0, None);
+        encoder.clear_buffer(&self.projected, 0, );
         for row in &mut self.rows {
 ```
 
@@ -3758,7 +3758,7 @@ fn actual_projected_records_follow_physical_gaps_clear_old_ranges_and_bound_fall
     pixels(&gpu);
     assert!(gpu.tiles.borrow().fallback);
     assert_eq!(&gpu.tile_usage()[..5], &[96, 16, 48, 0, 0]);
-    gpu.set_scene(&Scene::empty(), None);
+    gpu.set_scene(&Scene::empty(), );
     pixels(&gpu);
     assert_eq!(&gpu.tile_usage()[..5], &[96, 16, 48, 0, 0]);
 }
@@ -5215,8 +5215,8 @@ fn actual_copied_originals_share_instance_records_keep_original_picks_and_return
                 limit,
             )
         };
-        assert!(classify(1, None).is_empty());
-        assert_eq!(classify(2, None).len(), 2);
+        assert!(classify(1, ).is_empty());
+        assert_eq!(classify(2, ).len(), 2);
         assert_eq!(
             classify(1, Some(b)),
             [b].into_iter().collect()
@@ -5251,13 +5251,13 @@ fn actual_copied_originals_share_instance_records_keep_original_picks_and_return
     gpu.select_objects(&scene, &[]).unwrap();
     assert_eq!(colour_pixels(&mut gpu), plain);
     Rc::make_mut(&mut scene.view).hide(&[b], true);
-    gpu.set_scene(&scene, None);
+    gpu.set_scene(&scene, );
     assert_eq!(&gpu.instance_usage()[..3], &[0, 0, 0]);
     gpu.request_pick([-0.45, 0.], identity())
         .unwrap();
     assert_eq!(finish(&mut gpu).unwrap()[0], a.value());
     Rc::make_mut(&mut scene.view).hide(&[b], false);
-    gpu.set_scene(&scene, None);
+    gpu.set_scene(&scene, );
     assert_eq!(&gpu.instance_usage()[..3], &[1, 2, 376]);
     assert_eq!(colour_pixels(&mut gpu), plain);
     assert_eq!(gpu.stats()[0], uploads);
@@ -5266,7 +5266,7 @@ fn actual_copied_originals_share_instance_records_keep_original_picks_and_return
         assert_eq!(row.geometry().unwrap().to_proto(), original);
     }
     scene.clear();
-    gpu.set_scene(&scene, None);
+    gpu.set_scene(&scene, );
     assert_eq!(&gpu.instance_usage()[..3], &[0, 0, 0]);
     assert!(weak.upgrade().is_none());
 }
@@ -5882,7 +5882,7 @@ The surviving ordinary original now retains its shared record allocation; its or
 **Locate this existing block:**
 
 ```rust
-    gpu.set_scene(&scene, None);
+    gpu.set_scene(&scene, );
     assert_eq!(&gpu.instance_usage()[..3], &[0, 0, 0]);
     gpu.request_pick([-0.45, 0.], identity())
 ```
@@ -5890,7 +5890,7 @@ The surviving ordinary original now retains its shared record allocation; its or
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-    gpu.set_scene(&scene, None);
+    gpu.set_scene(&scene, );
     assert_eq!(&gpu.instance_usage()[..3], &[0, 0, 376]);
     gpu.request_pick([-0.45, 0.], identity())
 ```
@@ -5939,7 +5939,7 @@ fn actual_ordinary_storage_records_match_legacy_pixels_and_primitives_through_gr
         primitive_pixels(&gpu, &gpu.primitive.texture),
         addresses
     );
-    gpu.set_scene(&scene, None);
+    gpu.set_scene(&scene, );
     assert_eq!(gpu.instances.ordinary.len(), 1);
     let b = scene
         .insert(
@@ -5955,7 +5955,7 @@ fn actual_ordinary_storage_records_match_legacy_pixels_and_primitives_through_gr
         )
         .unwrap();
     scene.translate(b, [0.6, 0., 0.]).unwrap();
-    gpu.set_scene(&scene, None);
+    gpu.set_scene(&scene, );
     assert_eq!(gpu.instances.ordinary.len(), 2);
     let wanted = gpu
         .meshes
@@ -5978,7 +5978,7 @@ fn actual_ordinary_storage_records_match_legacy_pixels_and_primitives_through_gr
         primitive_pixels(&gpu, &gpu.primitive.texture),
         addresses
     );
-    gpu.set_scene(&scene, None);
+    gpu.set_scene(&scene, );
     gpu.select_objects(&scene, &[a]).unwrap();
     assert_ne!(pixels(&gpu), stored);
     gpu.select_objects(&scene, &[]).unwrap();
@@ -5988,7 +5988,7 @@ fn actual_ordinary_storage_records_match_legacy_pixels_and_primitives_through_gr
     gpu.set_opacity(1.);
     assert_eq!(pixels(&gpu), stored);
     scene.clear();
-    gpu.set_scene(&scene, None);
+    gpu.set_scene(&scene, );
     assert!(gpu.instances.ordinary.is_empty());
     assert_eq!(&gpu.instance_usage()[..3], &[0, 0, 0]);
     assert_eq!(gpu.instances.slots.allocated_bytes(), 8);
@@ -6121,7 +6121,7 @@ Replace it with:
                 cache: None,
             })
         };
-        let pipeline = create(None);
+        let pipeline = create();
         let ordinary_pipeline = create(Some(wgpu::BlendState::ALPHA_BLENDING));
         let records = crate::object_rows::Rows::new(
             &crate::text_gpu_support::GpuCtx::new(device, queue),
@@ -6193,7 +6193,7 @@ Edit the existing block to match this code; keep unchanged lines:
     assert_eq!(pixels(&gpu), stored);
     for opacity in [0., 0.5, 0.95, 1.] {
         gpu.set_opacity(opacity);
-        gpu.set_scene(&scene, None);
+        gpu.set_scene(&scene, );
         let stored = pixels(&gpu);
         let addresses = primitive_pixels(&gpu, &gpu.primitive.texture);
         gpu.instances.ordinary.clear();
@@ -6206,7 +6206,7 @@ Edit the existing block to match this code; keep unchanged lines:
             primitive_pixels(&gpu, &gpu.primitive.texture),
             addresses
         );
-        gpu.set_scene(&scene, None);
+        gpu.set_scene(&scene, );
     }
     scene.clear();
 ```
@@ -6383,12 +6383,12 @@ Edit the existing block to match this code; keep unchanged lines:
         .geometry()
         .unwrap()
         .to_proto();
-    gpu.set_scene(&scene, None);
+    gpu.set_scene(&scene, );
     assert_eq!(gpu.instances.ordinary.len(), 3);
     let uploads = gpu.stats()[0];
     for opacity in [0., 0.5, 0.95] {
         gpu.set_opacity(opacity);
-        gpu.set_scene(&scene, None);
+        gpu.set_scene(&scene, );
         let stored = pixels(&gpu);
         let addresses = primitive_pixels(&gpu, &gpu.primitive.texture);
         gpu.instances.ordinary.clear();
@@ -6401,7 +6401,7 @@ Edit the existing block to match this code; keep unchanged lines:
             primitive_pixels(&gpu, &gpu.primitive.texture),
             addresses
         );
-        gpu.set_scene(&scene, None);
+        gpu.set_scene(&scene, );
         gpu.select_objects(&scene, &[copy]).unwrap();
         if opacity > 0. {
             assert_ne!(pixels(&gpu), stored);
@@ -6422,7 +6422,7 @@ Edit the existing block to match this code; keep unchanged lines:
         source
     );
     gpu.set_opacity(1.);
-    gpu.set_scene(&scene, None);
+    gpu.set_scene(&scene, );
     pixels(&gpu);
     scene.clear();
 ```

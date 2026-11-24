@@ -15,7 +15,7 @@ Predict a drag while the GPU is deliberately busy: the next completed image shou
 The historical checkpoint below remains runnable. Current production pacing is explained here, but cumulative integration and a measured busy-GPU interaction check remain pending. Deterministic-clock stage comparisons validate pictures and state, not real-time latency or hardware pacing.
 
 
-**Steps:** 3 · **Source:** [camera.rs](../../../src/camera.rs) · [state.rs](../../../src/state.rs) · [engine/gpu/objects.rs](../../../src/engine/gpu/objects.rs) · [engine/gpu/frame.rs](../../../src/engine/gpu/frame.rs)
+**Steps:** 3 · **Source:** [camera.rs](../../../viewer-core/src/camera.rs) · [state.rs](../../../src/state.rs) · [engine/gpu/objects.rs](../../../src/engine/gpu/objects.rs) · [engine/gpu/frame.rs](../../../src/engine/gpu/frame.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">

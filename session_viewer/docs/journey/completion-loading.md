@@ -25,12 +25,12 @@ Chapter `9.5` of [9. Run the application](completion-application.md) (`applicati
 | File | Specification |
 | --- | --- |
 | [src/app/route.rs](../../src/app/route.rs) | Validates scene query names (rejecting `..`, leading `/` and URL schemes) and resolves relative paths against same-origin (`data=off`) or configured data bases. |
-| [src/app/manifest.rs](../../src/app/manifest.rs) | Parses YAML scene manifests (`files`, `xform` overriding `at`, `point_size`, authored `text`, `view` and `grid`) independently of kernel `.pb` bytes. |
+| [src/app/manifest.rs](../../viewer-core/src/manifest.rs) | Parses YAML scene manifests (`files`, `xform` overriding `at`, `point_size`, authored `text`, `view` and `grid`) independently of kernel `.pb` bytes. |
 | [src/app/loader.rs](../../src/app/loader.rs) | Overlaps `8 KiB` protobuf probes with GPU setup, tracks separate load and stream generations, and decrements active-load counts via an RAII `Loading` drop guard. |
-| [src/app/range_gate.rs](../../src/app/range_gate.rs) | Caps concurrent HTTP `Range` reads at `3` permits in FIFO `Future` order, handing slots forward on `Drop` and waking waiters when a scene closes. |
+| [src/app/range_gate.rs](../../viewer-core/src/range_gate.rs) | Caps concurrent HTTP `Range` reads at `3` permits in FIFO `Future` order, handing slots forward on `Drop` and waking waiters when a scene closes. |
 
 ```rust
---8<-- "session_viewer/src/app/range_gate.rs:8:33"
+--8<-- "session_viewer/viewer-core/src/range_gate.rs:8:33"
 ```
 
 ```rust

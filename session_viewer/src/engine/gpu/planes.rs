@@ -7,7 +7,7 @@ use super::view::View;
 use crate::engine::pipelines::{
     ColorWrite, DepthMode, Layouts, Pipeline, PipelineDesc, Shader, Target, build, ink_module,
 };
-use std::sync::atomic::{AtomicU64, Ordering};
+pub use crate::rows::{PlaneRow, PlaneRows, plane_size, set_plane_size};
 use wgpu::PrimitiveTopology::TriangleList;
 
 /// Shader sources the tests compare against the files.
@@ -16,40 +16,6 @@ pub const SHADERS: &[(&str, &str)] = &[("plane.wgsl", shader!("plane.wgsl"))];
 
 /// Vertices per plane: six per grid line, eighteen per axis arrow.
 const PLANE_VERTS: u32 = 22 * 6 + 3 * 18;
-
-/// Half side of every plane's grid and length of its arrows, scene units, as f64 bits; `View Plane Size` sets it.
-static PLANE_SIZE: AtomicU64 = AtomicU64::new(100.0_f64.to_bits());
-
-/// Half side of every plane's grid, scene units.
-pub fn plane_size() -> f64 {
-    f64::from_bits(PLANE_SIZE.load(Ordering::Relaxed))
-}
-
-/// Set the half side of every plane's grid; the next frame draws it, no walk needed.
-pub fn set_plane_size(size: f64) {
-    PLANE_SIZE.store(size.to_bits(), Ordering::Relaxed);
-}
-
-/// One plane as the shader reads it: its frame; the grid and the arrows come from the vertex index.
-#[repr(C)]
-#[derive(Clone, Copy, Debug, PartialEq, bytemuck::Pod, bytemuck::Zeroable)]
-pub struct PlaneRow {
-    // offset size
-    pub origin: [f32; 3], //   0   12  object space
-    pub instance_id: u32, //  12    4  object row
-    pub x: [f32; 3],      //  16   12  unit x axis
-    pub radius: f32,      //  28    4  pen: 0 = default; > 0 world mm; < 0 px
-    pub y: [f32; 3],      //  32   12  unit y axis
-    pub pad: u32,         //  44    4  -> 48, a multiple of 16
-}
-
-const _: () = assert!(std::mem::size_of::<PlaneRow>() == 48);
-
-/// Plane rows of one upload; the walk writes them with `up.lanes.get_mut::<PlaneRows>()`.
-#[derive(Default)]
-pub struct PlaneRows {
-    pub rows: Vec<PlaneRow>, // one per plane
-}
 
 /// Planes on the GPU: one instanced draw for all of them.
 pub struct PlaneLane {

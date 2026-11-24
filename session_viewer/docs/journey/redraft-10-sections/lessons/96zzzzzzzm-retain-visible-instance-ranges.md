@@ -517,8 +517,8 @@ fn actual_filtered_instances_keep_absolute_colour_and_original_query_addresses()
             );
             for (x, owner) in [
                 (0., Some(ids[1].value())),
-                (-0.5, None),
-                (0.5, None),
+                (-0.5, ),
+                (0.5, ),
             ] {
                 r.request_pick([x, 0.], matrix()).unwrap();
                 wait(&r);
@@ -2294,7 +2294,7 @@ fn actual_original_frames_keep_object_only_queries_and_reveal_the_real_edge_behi
                 ..Default::default()
             });
             pixels(&r);
-            assert_eq!(query(&mut r, &scene, Mode::Edge), None);
+            assert_eq!(query(&mut r, &scene, Mode::Edge), );
             assert_eq!(
                 query(&mut r, &scene, Mode::Object),
                 Some(Target {
@@ -2717,7 +2717,7 @@ fn actual_mixed_families_keep_shared_sources_highlights_queries_and_active_contr
                 );
             }
             for owner in [left, right] {
-                r.set_highlight(&scene, None).unwrap();
+                r.set_highlight(&scene, ).unwrap();
                 let base = crate::cap_gpu_tests::pixels_at(&r, m);
                 r.set_highlight(
                     &scene,
@@ -2737,7 +2737,7 @@ fn actual_mixed_families_keep_shared_sources_highlights_queries_and_active_contr
                     ..Default::default()
                 });
                 let hidden = crate::cap_gpu_tests::pixels_at(&r, m);
-                r.set_highlight(&scene, None).unwrap();
+                r.set_highlight(&scene, ).unwrap();
                 assert!(
                     crate::cap_gpu_tests::pixels_at(&r, m) == hidden,
                     "Hide Edges also hides the retained selected-edge highlight"
@@ -3178,9 +3178,9 @@ Replace it with:
 
 ```rust
     ("Opacity", || Action::Opacity(1.)),
-    ("View Outline", || Action::ViewOutline(None)),
-    ("Arctic", || Action::Arctic(None)),
-    ("View Lighting", || Action::Lighting(None)),
+    ("View Outline", || Action::ViewOutline()),
+    ("Arctic", || Action::Arctic()),
+    ("View Lighting", || Action::Lighting()),
 ```
 
 Replace it with:
@@ -3205,12 +3205,12 @@ Replace it with:
     ("View Hide Points", || {
         Action::ViewInk(crate::ink_ranges::Family::Points, false)
     }),
-    ("View Xray", || Action::ViewXray(None)),
+    ("View Xray", || Action::ViewXray()),
     ("View Hide Selected", || Action::Hide),
     ("View Show All", || Action::Show),
-    ("View Outline", || Action::ViewOutline(None)),
-    ("Arctic", || Action::Arctic(None)),
-    ("View Lighting", || Action::Lighting(None)),
+    ("View Outline", || Action::ViewOutline()),
+    ("Arctic", || Action::Arctic()),
+    ("View Lighting", || Action::Lighting()),
 ```
 
 ### 4. `src/browser_defaults.rs`
@@ -4444,7 +4444,7 @@ fn actual_original_wire_and_mixed_cad_keep_family_queries_shared_sources_selecti
                     ..Default::default()
                 });
                 let hidden_selected = pixels_at(&r, m);
-                r.set_highlight(&scene, None).unwrap();
+                r.set_highlight(&scene, ).unwrap();
                 r.select_objects(&scene, &[]).unwrap();
                 let hidden_unselected = pixels_at(&r, m);
                 if !mixed {
@@ -6292,9 +6292,9 @@ impl Lane {
         };
         Self {
             layouts,
-            shader: RefCell::new(None),
-            color: RefCell::new(None),
-            pick: RefCell::new(None),
+            shader: RefCell::new(),
+            color: RefCell::new(),
+            pick: RefCell::new(),
             samples: 1,
             format,
             matrix: ub(64),
@@ -6336,7 +6336,7 @@ impl Lane {
             uploads: 0,
             uploaded_bytes: 0,
             anchor: [0.0; 3],
-            frame: RefCell::new(None),
+            frame: RefCell::new(),
         }
     }
 
@@ -7483,7 +7483,7 @@ impl Ink {
             pick,
             query,
             spec: (format, stride, grid, varying),
-            bindings: RefCell::new(None),
+            bindings: RefCell::new(),
         }
     }
     pub fn set_samples(&mut self, device: &wgpu::Device, samples: u32) {
@@ -7797,7 +7797,7 @@ impl Ink {
             pick,
             query,
             spec: (format, stride, grid, varying),
-            bindings: RefCell::new(None),
+            bindings: RefCell::new(),
         }
     }
 
@@ -8708,7 +8708,7 @@ fn standalone_line_fresh_gpu_picks_follow_placement_and_rebase_without_rewriting
             [&original],
             "Placement stores a transform, preserving the original Line protobuf"
         );
-        gpu.set_scene(&scene, None);
+        gpu.set_scene(&scene, );
         camera.target = origin;
         let rebase = gpu
             .prepare_origin(
@@ -11060,7 +11060,7 @@ Replace it with:
             1,
         );
         let pick_pipeline =
-            pickable.then(|| Pipeline::new(device, source, stride, attributes, None));
+            pickable.then(|| Pipeline::new(device, source, stride, attributes, ));
         Self {
 ```
 
@@ -12580,8 +12580,8 @@ fn shape(fonts: &mut FontSystem, label: &TextLabel) -> Buffer {
         fonts,
         Metrics::new(label.font_size, label.line_height),
     );
-    buffer.set_size(fonts, None, None);
-    buffer.set_wrap(fonts, Wrap::None);
+    buffer.set_size(fonts, None, );
+    buffer.set_wrap(fonts, Wrap::);
     buffer.set_text(
         fonts,
         &label.text,
@@ -12937,8 +12937,8 @@ fn shape(fonts: &mut FontSystem, label: &TextLabel) -> Buffer {
         fonts,
         Metrics::new(label.font_size, label.line_height),
     );
-    buffer.set_size(fonts, None, None);
-    buffer.set_wrap(fonts, Wrap::None);
+    buffer.set_size(fonts, None, );
+    buffer.set_wrap(fonts, Wrap::);
     buffer.set_text(
         fonts,
         &label.text,
@@ -15021,9 +15021,9 @@ impl Lane {
         };
         Self {
             layouts,
-            shader: RefCell::new(None),
-            color: RefCell::new(None),
-            pick: RefCell::new(None),
+            shader: RefCell::new(),
+            color: RefCell::new(),
+            pick: RefCell::new(),
             samples: 1,
             format,
             matrix: ub(64),
@@ -15052,7 +15052,7 @@ impl Lane {
             uploads: 0,
             uploaded_bytes: 0,
             anchor: [0.0; 3],
-            frame: RefCell::new(None),
+            frame: RefCell::new(),
         }
     }
 
@@ -15393,7 +15393,7 @@ fn source() -> Matrix {
 }
 fn loaded(m: &Matrix) -> Scene {
     let mut session = Session::new("matrix-only");
-    session.add_matrix(m, None);
+    session.add_matrix(m, );
     session.set_xform(m.guid(), Xform::translation(-0.3, 0.2, -0.4));
     let mut scene = Scene::empty();
     crate::scene_document::import(
@@ -15916,8 +15916,8 @@ fn actual_placed_clouds_keep_original_colours_cached_ids_archives_and_far_rebase
                     scene
                         .place_cloud(owner, model.clone())
                         .unwrap();
-                    scene.cloud_controls(None);
-                    renderer.set_scene(&scene, None);
+                    scene.cloud_controls();
+                    renderer.set_scene(&scene, );
                     camera.target = anchor;
                     clock += 300.0;
                     renderer
@@ -15939,7 +15939,7 @@ fn actual_placed_clouds_keep_original_colours_cached_ids_archives_and_far_rebase
                         } else {
                             None
                         });
-                        renderer.set_scene(&scene, None);
+                        renderer.set_scene(&scene, );
                         renderer.set_pick_mode(mode);
                         for index in [0, 1] {
                             let p = source.get_point(index);
@@ -18544,9 +18544,9 @@ impl Lane {
         };
         Self {
             layouts,
-            shader: RefCell::new(None),
-            color: RefCell::new(None),
-            pick: RefCell::new(None),
+            shader: RefCell::new(),
+            color: RefCell::new(),
+            pick: RefCell::new(),
             samples: 1,
             format,
             matrix: ub(64),
@@ -18590,7 +18590,7 @@ impl Lane {
             uploads: 0,
             uploaded_bytes: 0,
             anchor: [0.0; 3],
-            frame: RefCell::new(None),
+            frame: RefCell::new(),
         }
     }
 
@@ -19229,9 +19229,9 @@ impl Lane {
             edge_highlight: None,
             picks: sb(8),
             layouts,
-            shader: RefCell::new(None),
-            color: RefCell::new(None),
-            pick: RefCell::new(None),
+            shader: RefCell::new(),
+            color: RefCell::new(),
+            pick: RefCell::new(),
             samples: 1,
             format,
             matrix: ub(64),
@@ -19270,7 +19270,7 @@ impl Lane {
             uploads: 0,
             uploaded_bytes: 0,
             anchor: [0.0; 3],
-            frame: RefCell::new(None),
+            frame: RefCell::new(),
         }
     }
 
@@ -23095,7 +23095,7 @@ fn actual_production_joined_heads_sheets_and_matrix_keep_mixed_source_picks_and_
             "Selected original sheet entity: {p:?}"
         );
         assert_eq!(at(&selected, 160, 156), at(&image, 160, 156));
-        gpu.set_highlight(&scene, None).unwrap();
+        gpu.set_highlight(&scene, ).unwrap();
         eprintln!(
             "vector fixture: {samples}x selection cleared; sample iteration complete"
         );
@@ -23113,7 +23113,7 @@ fn actual_production_joined_heads_sheets_and_matrix_keep_mixed_source_picks_and_
         &original
     ));
     scene.clear();
-    gpu.set_scene(&scene, None);
+    gpu.set_scene(&scene, );
     assert_eq!(&gpu.sheet_usage()[..2], &[0, 0]);
 }
 ```
@@ -23198,7 +23198,7 @@ Replace it with:
         )?;
         if !ids.is_empty() {
             self.strokes.clear_highlight();
-            self.sheets.set_highlight(&self.queue, None);
+            self.sheets.set_highlight(&self.queue, );
         }
         self.strokes.set_scene(
             &self.device,
@@ -23340,7 +23340,7 @@ Replace it with:
             )
             .expect("Empty selection");
         self.strokes.clear_highlight();
-        self.sheets.set_highlight(&self.queue, None);
+        self.sheets.set_highlight(&self.queue, );
         self.set_source_ink(scene);
         self.strokes
             .set_scene(
@@ -23632,17 +23632,17 @@ fn displayed_grid_changes_only_when_an_explicit_plane_command_resolves_a_new_fra
     assert_eq!(editor.drawing_plane(), CPlane::Xz);
     assert_eq!(editor.grid_plane(), CPlane::Xy);
     editor
-        .apply(Action::ConstructionPlane(None))
+        .apply(Action::ConstructionPlane())
         .unwrap();
     assert_eq!(editor.grid_plane(), CPlane::Xz);
-    assert_eq!(editor.construction_plane, None);
+    assert_eq!(editor.construction_plane, );
     editor
         .apply(Action::NamedView(View::Top))
         .unwrap();
     assert_eq!(editor.drawing_plane(), CPlane::Xy);
     assert_eq!(editor.grid_plane(), CPlane::Xz);
     editor
-        .apply(Action::ConstructionPlane(None))
+        .apply(Action::ConstructionPlane())
         .unwrap();
     assert_eq!(editor.grid_plane(), CPlane::Xy);
     let far = CPlane::Frame {
@@ -24156,50 +24156,50 @@ fn bursts_keep_ordered_state_and_only_present_the_latest_after_gpu_completion() 
     let mut camera = 0;
     for delta in [1, 2, -4, 8] {
         camera += delta;
-        assert_eq!(frames.request(), None);
+        assert_eq!(frames.request(), );
     }
     assert_eq!(camera, 7);
     let first = frames.complete(0).unwrap();
     for delta in [3, -1, 9] {
         camera += delta;
-        assert_eq!(frames.request(), None);
+        assert_eq!(frames.request(), );
     }
     assert!(frames.begin(first));
     assert_eq!(camera, 18);
     assert!(!frames.begin(first));
     for _ in 0..100 {
         camera += 1;
-        assert_eq!(frames.request(), None);
+        assert_eq!(frames.request(), );
     }
-    assert_eq!(frames.complete(first + 1), None);
+    assert_eq!(frames.complete(first + 1), );
     let second = frames.complete(first).unwrap();
-    assert_eq!(frames.complete(first), None);
+    assert_eq!(frames.complete(first), );
     assert!(frames.begin(second));
     assert_eq!(camera, 118);
-    assert_eq!(frames.complete(second), None);
-    assert_eq!(frames.complete(second), None);
+    assert_eq!(frames.complete(second), );
+    assert_eq!(frames.complete(second), );
 }
 
 #[test]
 fn suspension_revokes_queued_callbacks_and_preserves_one_dirty_frame() {
     let mut frames = Schedule::after_submit(true);
-    assert_eq!(frames.complete(0), None);
+    assert_eq!(frames.complete(0), );
     let old = frames.request().unwrap();
-    assert_eq!(frames.allow(false), None);
+    assert_eq!(frames.allow(false), );
     assert!(!frames.begin(old));
     for _ in 0..100 {
-        assert_eq!(frames.request(), None);
+        assert_eq!(frames.request(), );
     }
     let current = frames.allow(true).unwrap();
     assert_ne!(old, current);
     assert!(!frames.begin(old));
     assert!(frames.begin(current));
-    assert_eq!(frames.request(), None);
-    assert_eq!(frames.allow(false), None);
-    assert_eq!(frames.complete(current), None);
+    assert_eq!(frames.request(), );
+    assert_eq!(frames.allow(false), );
+    assert_eq!(frames.complete(current), );
     let resumed = frames.allow(true).unwrap();
     assert!(frames.begin(resumed));
-    assert_eq!(frames.complete(resumed), None);
+    assert_eq!(frames.complete(resumed), );
 }
 
 #[test]
@@ -24209,14 +24209,14 @@ fn disposal_and_ticket_exhaustion_never_revive_a_frame() {
     let ticket = frames.request().unwrap();
     frames.close();
     assert!(!frames.begin(ticket));
-    assert_eq!(frames.complete(ticket), None);
-    assert_eq!(frames.allow(true), None);
-    assert_eq!(frames.request(), None);
+    assert_eq!(frames.complete(ticket), );
+    assert_eq!(frames.allow(true), );
+    assert_eq!(frames.request(), );
     let mut exhausted = Schedule::after_submit(true);
     exhausted.complete(0);
     exhausted.next = u64::MAX;
-    assert_eq!(exhausted.request(), None);
-    assert_eq!(exhausted.allow(true), None);
+    assert_eq!(exhausted.request(), );
+    assert_eq!(exhausted.allow(true), );
     assert!(!exhausted.begin(0));
 }
 ```
@@ -24494,7 +24494,7 @@ impl Drop for Runtime {
     }
 }
 
-thread_local! { static ACTIVE: RefCell<Option<Runtime>> = const { RefCell::new(None) }; }
+thread_local! { static ACTIVE: RefCell<Option<Runtime>> = const { RefCell::new() }; }
 
 pub fn install(
     listeners: Listeners,
@@ -24580,7 +24580,7 @@ pub fn reload_scene(url: Option<String>) -> Result<(), wasm_bindgen::JsValue> {
             )?,
         };
         if !publication.has_route() {
-            return Ok(None);
+            return Ok();
         }
         runtime.request.borrow_mut().cancel();
         runtime.reload.borrow_mut().cancel();
@@ -24616,7 +24616,7 @@ impl Drop for Runtime {
     }
 }
 
-thread_local! { static ACTIVE: RefCell<Option<Runtime>> = const { RefCell::new(None) }; }
+thread_local! { static ACTIVE: RefCell<Option<Runtime>> = const { RefCell::new() }; }
 
 pub fn install(
     listeners: Listeners,
@@ -24716,7 +24716,7 @@ pub fn reload_scene(url: Option<String>) -> Result<(), wasm_bindgen::JsValue> {
             )?,
         };
         if !publication.has_route() {
-            return Ok(None);
+            return Ok();
         }
         runtime.request.borrow_mut().cancel();
         runtime.reload.borrow_mut().cancel();
@@ -25536,13 +25536,13 @@ fn sparse_matrix_color_selection_and_pick_match_the_dense_scene() {
     let original = high.matrices()[0].source.to_proto();
     for samples in [1, 4] {
         gpu.set_samples(samples);
-        gpu.set_scene(&low, None);
+        gpu.set_scene(&low, );
         let plain = pixels_at(&gpu, transform);
         gpu.select_objects(&low, &[low.matrices()[0].id])
             .unwrap();
         let selected = pixels_at(&gpu, transform);
         assert_ne!(plain, selected);
-        gpu.set_scene(&high, None);
+        gpu.set_scene(&high, );
         assert_eq!(pixels_at(&gpu, transform), plain);
         gpu.request_pick([-0.28, -0.08], transform)
             .unwrap();
@@ -26999,7 +26999,7 @@ fn actual_plane_grid_arrows_size_visibility_selection_and_owner_picking() {
         .unwrap();
     for samples in [1, 4] {
         gpu.set_samples(samples);
-        gpu.set_scene(&scene, None);
+        gpu.set_scene(&scene, );
         gpu.set_plane_size(100.0).unwrap();
         let open = pixels_at(&gpu, transform);
         dump(&format!("plane-{samples}x"), &open);
@@ -27061,7 +27061,7 @@ fn actual_plane_grid_arrows_size_visibility_selection_and_owner_picking() {
             lines: true,
             vertices: false,
         });
-        gpu.set_scene(&covered, None);
+        gpu.set_scene(&covered, );
         let under = pixels_at(&gpu, transform);
         dump(&format!("plane-covered-{samples}x"), &under);
         assert!(
@@ -27992,22 +27992,22 @@ Replace it with:
 **Locate this block:**
 
 ```rust
-    ("View Outline", || Action::ViewOutline(None)),
-    ("Arctic", || Action::Arctic(None)),
-    ("View Lighting", || Action::Lighting(None)),
-    ("View Backfaces", || Action::Backfaces(None)),
+    ("View Outline", || Action::ViewOutline()),
+    ("Arctic", || Action::Arctic()),
+    ("View Lighting", || Action::Lighting()),
+    ("View Backfaces", || Action::Backfaces()),
 ```
 
 Replace it with:
 
 ```rust
-    ("View Outline", || Action::ViewOutline(None)),
+    ("View Outline", || Action::ViewOutline()),
     ("View Plane Size", || {
         Action::PlaneSize(crate::production_plane::DEFAULT_SIZE)
     }),
-    ("Arctic", || Action::Arctic(None)),
-    ("View Lighting", || Action::Lighting(None)),
-    ("View Backfaces", || Action::Backfaces(None)),
+    ("Arctic", || Action::Arctic()),
+    ("View Lighting", || Action::Lighting()),
+    ("View Backfaces", || Action::Backfaces()),
 ```
 
 ### 138. `src/browser.rs`
@@ -28377,9 +28377,9 @@ Replace it with:
 
 ```rust
     }),
-    ("Arctic", || Action::Arctic(None)),
-    ("View Lighting", || Action::Lighting(None)),
-    ("View Backfaces", || Action::Backfaces(None)),
+    ("Arctic", || Action::Arctic()),
+    ("View Lighting", || Action::Lighting()),
+    ("View Backfaces", || Action::Backfaces()),
 ```
 
 Replace it with:
@@ -28387,9 +28387,9 @@ Replace it with:
 ```rust
     }),
     ("View Point Size", || Action::PointSize(1.0)),
-    ("Arctic", || Action::Arctic(None)),
-    ("View Lighting", || Action::Lighting(None)),
-    ("View Backfaces", || Action::Backfaces(None)),
+    ("Arctic", || Action::Arctic()),
+    ("View Lighting", || Action::Lighting()),
+    ("View Backfaces", || Action::Backfaces()),
 ```
 
 ### 147. `src/display_settings.rs`
@@ -30515,7 +30515,7 @@ fn production_point_pixels_keep_physical_diameter_and_selection_coverage_at_both
         gpu.set_samples(samples);
         for density in [1., 2.] {
             gpu.set_density(density);
-            gpu.set_scene(&scene, None);
+            gpu.set_scene(&scene, );
             let image = pixels_at(&gpu, matrix);
             let red: Vec<_> = image
                 .chunks_exact(4)
@@ -30714,8 +30714,8 @@ Replace it with:
         };
         Self {
             layouts,
-            shader: RefCell::new(None),
-            color: RefCell::new(None),
+            shader: RefCell::new(),
+            color: RefCell::new(),
 ```
 
 Replace it with:
@@ -30726,8 +30726,8 @@ Replace it with:
         Self {
             settings: Default::default(),
             layouts,
-            shader: RefCell::new(None),
-            color: RefCell::new(None),
+            shader: RefCell::new(),
+            color: RefCell::new(),
 ```
 
 **Locate this block:**
@@ -32294,7 +32294,7 @@ pub struct Lane {
 impl Default for Lane {
     fn default() -> Self {
         Self {
-            color: RefCell::new(None),
+            color: RefCell::new(),
         }
     }
 }
@@ -33072,7 +33072,7 @@ Printed fills have object identity without fabricated source-face IDs.
 ```rust
             let geometry = &mesh.geometry;
             if !mesh.source_faces || geometry.source.parts.triangles.is_empty() {
-                self.rows.push(None);
+                self.rows.push();
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
@@ -33083,7 +33083,7 @@ Edit the existing block to match this code; keep unchanged lines:
                 || !mesh.source_faces
                 || geometry.source.parts.triangles.is_empty()
             {
-                self.rows.push(None);
+                self.rows.push();
 ```
 
 ### 176. `src/outline_gpu.rs`
@@ -33557,7 +33557,7 @@ fn shared_print_instances_compose_vertex_and_instance_alpha_without_changing_cap
     );
     let empty = crate::scene::Scene::empty();
     let mut gpu = renderer(&empty);
-    gpu.set_grid(None).unwrap();
+    gpu.set_grid().unwrap();
     gpu.set_lighting(false, false);
     gpu.set_outlines(false);
     let object = &scene.objects()[0];
@@ -33611,9 +33611,9 @@ fn shared_print_instances_compose_vertex_and_instance_alpha_without_changing_cap
     );
     for samples in [1, 4] {
         gpu.set_samples(samples);
-        gpu.set_scene(&empty, None);
+        gpu.set_scene(&empty, );
         let background = pixels(&gpu);
-        gpu.set_scene(&scene, None);
+        gpu.set_scene(&scene, );
         for selected in [false, true] {
             gpu.select_objects(
                 &scene,
@@ -34512,21 +34512,21 @@ impl<'a> EdgePen<'a> {
     fn facing_pair(&self, chain: &EdgeChain, a: [f64; 3], b: [f64; 3]) -> FacingPair {
         let key = facet_edge(a, b);
         let Some(owner) = self.facets[chain.face].get(&key) else {
-            return (None, None);
+            return (None, );
         };
 
         if owner.count == 0 || owner.count > 2 {
-            return (None, None);
+            return (None, );
         }
 
         let first = scaled_normal(owner.normals[0], self.signs[chain.face]);
         let second = if let Some(other) = chain.other {
             let Some(pair) = self.facets[other].get(&key) else {
-                return (None, None);
+                return (None, );
             };
 
             if pair.count != 1 || owner.count != 1 {
-                return (None, None);
+                return (None, );
             }
 
             scaled_normal(pair.normals[0], self.signs[other])
@@ -34746,8 +34746,8 @@ impl Prepared {
 pub fn pack_facing(n0: Option<&[f64; 3]>, n1: Option<&[f64; 3]>) -> u32 {
     let pair = match (n0, n1) {
         (Some(a), Some(b)) => (oct16(a), oct16(b)),
-        (Some(a), None) | (None, Some(a)) => (oct16(a), oct16(a)),
-        _ => (None, None),
+        (Some(a), ) | (None, Some(a)) => (oct16(a), oct16(a)),
+        _ => (None, ),
     };
 
     match pair {
@@ -35489,7 +35489,7 @@ fn actual_mesh_edges_use_global_production_pen_aa_selection_and_family_switches(
         gpu.set_samples(samples);
         for density in [1., 2.] {
             gpu.set_density(density);
-            gpu.set_scene(&scene, None);
+            gpu.set_scene(&scene, );
             gpu.set_display_settings(crate::display_settings::Settings {
                 thickness: 1.,
                 ..Default::default()
@@ -35561,7 +35561,7 @@ fn actual_mesh_edges_use_global_production_pen_aa_selection_and_family_switches(
                 points: false,
                 vertices: false,
             });
-            gpu.set_highlight(&scene, None).unwrap();
+            gpu.set_highlight(&scene, ).unwrap();
             assert_eq!(display_archive(&scene), source);
         }
     }
@@ -39587,14 +39587,14 @@ Record the actual pulled and locally corrected production source inventory at th
 **Locate this existing block:**
 
 ```rust
-    assert_eq!(keys::letter("q"), None);
+    assert_eq!(keys::letter("q"), );
 }
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-    assert_eq!(keys::letter("q"), None);
+    assert_eq!(keys::letter("q"), );
 }
 ```
 
@@ -40039,10 +40039,10 @@ Edit the existing block to match this code; keep unchanged lines:
             &Xform::translation(100., 0., 0.) * &placement,
         )
         .unwrap();
-    gpu.set_scene(&editor.scene, None);
+    gpu.set_scene(&editor.scene, );
     assert_ne!(pixels_at(&gpu, m), before);
     editor.scene.place(owner, placement).unwrap();
-    gpu.set_scene(&editor.scene, None);
+    gpu.set_scene(&editor.scene, );
     assert!(pixels_at(&gpu, m) == before);
     assert_eq!(gpu.stats()[0], uploads);
     assert_eq!(source(&editor.scene), original);
@@ -40070,10 +40070,10 @@ Edit the existing block to match this code; keep unchanged lines:
             &Xform::translation(100., 0., 0.) * &placement,
         )
         .unwrap();
-    gpu.set_scene(&editor.scene, None);
+    gpu.set_scene(&editor.scene, );
     assert_ne!(pixels_at(&gpu, m), before);
     editor.scene.place(owner, placement).unwrap();
-    gpu.set_scene(&editor.scene, None);
+    gpu.set_scene(&editor.scene, );
     assert!(pixels_at(&gpu, m) == before);
     assert_eq!(gpu.stats()[0], uploads);
     assert_eq!(source(&editor.scene), original);
@@ -40714,7 +40714,7 @@ Apply the same complete-pixel and analytic-cap-support assertions to plain and h
 **Locate this existing block:**
 
 ```rust
-            gpu.set_scene(&cropped, None);
+            gpu.set_scene(&cropped, );
             if kind == 1 {
                 assert_eq!(
                     red_pixels(&gpu, size),
@@ -40728,7 +40728,7 @@ Apply the same complete-pixel and analytic-cap-support assertions to plain and h
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-            gpu.set_scene(&cropped, None);
+            gpu.set_scene(&cropped, );
             {
                 let explicit = frame_pixels(&gpu, size, transform);
 ```
@@ -41455,7 +41455,7 @@ Replace it with:
         for (offset, expected) in [
             (0., Some([owner.value(), 0])),
             (5., Some([owner.value(), 0])),
-            (13., None),
+            (13., ),
         ] {
             renderer
 ```
@@ -41472,7 +41472,7 @@ Replace it with:
                 5.,
                 Some([owner.value(), crate::sub_id::OBJECT_INK]),
             ),
-            (13., None),
+            (13., ),
         ] {
             renderer
 ```
@@ -41784,14 +41784,14 @@ Record the actual pulled and locally corrected production source inventory at th
 **Locate this existing block:**
 
 ```rust
-    assert_eq!(keys::letter("q"), None);
+    assert_eq!(keys::letter("q"), );
 }
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-    assert_eq!(keys::letter("q"), None);
+    assert_eq!(keys::letter("q"), );
 }
 ```
 
@@ -44540,14 +44540,14 @@ Record the actual pulled and locally corrected production source inventory at th
 **Locate this existing block:**
 
 ```rust
-    assert_eq!(keys::letter("q"), None);
+    assert_eq!(keys::letter("q"), );
 }
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-    assert_eq!(keys::letter("q"), None);
+    assert_eq!(keys::letter("q"), );
 }
 ```
 
@@ -45014,7 +45014,7 @@ Keep the cap-origin fixture isolated from guide Lines through the actual family 
     for id in [owner, plane_id] {
         far.translate(id, anchor).unwrap();
     }
-    gpu.set_scene(&far, None);
+    gpu.set_scene(&far, );
     gpu.mesh_ink
         .set(&gpu.device, std::iter::empty())
         .unwrap();
@@ -45049,7 +45049,7 @@ Edit the existing block to match this code; keep unchanged lines:
     for id in [owner, plane_id] {
         far.translate(id, anchor).unwrap();
     }
-    gpu.set_scene(&far, None);
+    gpu.set_scene(&far, );
     gpu.mesh_ink
         .set(&gpu.device, std::iter::empty())
         .unwrap();
@@ -47012,7 +47012,7 @@ fn actual_retained_pedestal_ambient_reaches_visible_ground_and_preserves_cache_a
     renderer.set_ambient(true);
     let on =
         crate::widget_tests::pixels_format(&mut renderer, &matrix, [640, 480], format);
-    assert_eq!(renderer.ambient_error(), None);
+    assert_eq!(renderer.ambient_error(), );
     assert_ne!(on, off);
     let ground = off
         .chunks_exact(4)
@@ -47051,7 +47051,7 @@ fn actual_retained_pedestal_ambient_reaches_visible_ground_and_preserves_cache_a
         crate::widget_tests::pixels_format(&mut renderer, &matrix, [640, 480], format),
         on
     );
-    assert_eq!(renderer.ambient_error(), None);
+    assert_eq!(renderer.ambient_error(), );
     assert_eq!(renderer.stats()[0], uploads);
     assert_eq!(
         scene
@@ -47091,7 +47091,7 @@ pub fn edge_chains(b: &BRep, fms: &[Mesh]) -> Vec<Option<EdgeChain>> {
 
     for (ei, e) in b.m_edges.iter().enumerate() {
         if e.degenerated {
-            out.push(None);
+            out.push();
             continue;
         }
 
@@ -47162,7 +47162,7 @@ pub fn edge_chains(b: &BRep, fms: &[Mesh]) -> Vec<Option<EdgeChain>> {
 
     for (ei, e) in b.m_edges.iter().enumerate() {
         if e.degenerated {
-            out.push(None);
+            out.push();
             continue;
         }
 

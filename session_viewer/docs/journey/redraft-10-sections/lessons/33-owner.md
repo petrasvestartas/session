@@ -182,7 +182,7 @@ impl Drop for Runtime {
     }
 }
 
-thread_local! { static ACTIVE: RefCell<Option<Runtime>> = const { RefCell::new(None) }; }
+thread_local! { static ACTIVE: RefCell<Option<Runtime>> = const { RefCell::new() }; }
 
 pub fn install(listeners: Listeners, request: Rc<RefCell<ReadGate>>, reload: Shared) {
     ACTIVE.with(|slot| {
@@ -315,7 +315,7 @@ Replace it with:
 **Locate this block:**
 
 ```rust
-        std::rc::Rc::new(std::cell::RefCell::new(None));
+        std::rc::Rc::new(std::cell::RefCell::new());
     let update = Closure::<dyn FnMut(web_sys::Event)>::new(
         move |event: web_sys::Event| {
             let shortcut = event
@@ -326,7 +326,7 @@ Replace it with:
 Replace it with:
 
 ```rust
-        std::rc::Rc::new(std::cell::RefCell::new(None));
+        std::rc::Rc::new(std::cell::RefCell::new());
     let owned_request = std::rc::Rc::clone(&request);
     let owned_reload = std::rc::Rc::clone(&reload);
     let update = Closure::<dyn FnMut(web_sys::Event)>::new(

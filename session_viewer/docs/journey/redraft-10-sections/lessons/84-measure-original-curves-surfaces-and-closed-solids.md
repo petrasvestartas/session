@@ -1,6 +1,6 @@
 # 16.4 · Measurements, temporary marks and retained CAD pieces
 
-**Steps:** 37 · **Source:** [app/command/verbs/project_to_plane.rs](../../../../src/app/command/verbs/project_to_plane.rs) · [app/command/verbs/extend.rs](../../../../src/app/command/verbs/extend.rs) · [app/splitting.rs](../../../../src/app/splitting.rs) · [app/command/verbs/measure.rs](../../../../src/app/command/verbs/measure.rs)
+**Steps:** 37 · **Source:** [app/command/verbs/project_to_plane.rs](../../../../viewer-core/src/command/verbs/project_to_plane.rs) · [app/command/verbs/extend.rs](../../../../viewer-core/src/command/verbs/extend.rs) · [app/splitting.rs](../../../../viewer-core/src/splitting.rs) · [app/command/verbs/measure.rs](../../../../viewer-core/src/command/verbs/measure.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -254,7 +254,7 @@ mod tests {
         let line = Geometry::Line(Rc::new(Line::new(
             0.0, 0.0, 0.0, 1.0, 0.0, 0.0,
         )));
-        assert_eq!(measured(line, &identity), None);
+        assert_eq!(measured(line, &identity), );
     }
 }
 ```
@@ -4293,8 +4293,8 @@ mod tests {
         };
         let points = rest.get_points();
         assert_eq!(points.len(), 3);
-        assert!(points[0].distance(&Point::new(20., 60., 0.), None) < 1e-9);
-        assert!(points[1].distance(&Point::new(40., 60., 0.), None) < 1e-9);
+        assert!(points[0].distance(&Point::new(20., 60., 0.), ) < 1e-9);
+        assert!(points[1].distance(&Point::new(40., 60., 0.), ) < 1e-9);
         let curve = NurbsCurve::create(
             false,
             2,
@@ -5797,7 +5797,7 @@ pub fn pieces(geometry: &Geometry) -> Result<Vec<Geometry>, String> {
         Geometry::Polyline(line) => line
             .get_points()
             .windows(2)
-            .filter(|pair| pair[0].distance(&pair[1], None) > 1e-12)
+            .filter(|pair| pair[0].distance(&pair[1], ) > 1e-12)
             .map(|pair| {
                 let mut part = Line::from_points(&pair[0], &pair[1]);
                 part.name = line.name.clone();
@@ -5997,7 +5997,7 @@ mod tests {
     #[test]
     fn a_brep_becomes_its_faces() {
         let area = |brep: &BRep| {
-            brep.face_meshes_q(None)
+            brep.face_meshes_q()
                 .iter()
                 .map(|mesh| mesh.area())
                 .sum::<f64>()
@@ -6016,7 +6016,7 @@ mod tests {
             for part in &parts {
                 assert_eq!(part.face_count(), 1);
                 assert!(part.is_valid());
-                assert!(!part.face_meshes_q(None).is_empty());
+                assert!(!part.face_meshes_q().is_empty());
                 total += area(part);
             }
 

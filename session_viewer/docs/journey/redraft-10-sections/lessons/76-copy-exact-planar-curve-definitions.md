@@ -1,6 +1,6 @@
 # 14.6 · Exact parabola recipes and editable freeform controls
 
-**Steps:** 5 · **Source:** [app/walk/sheet.rs](../../../../src/app/walk/sheet.rs) · [app/sheet_query.rs](../../../../src/app/sheet_query.rs) · [app/stream.rs](../../../../src/app/stream.rs) · [app/cplane.rs](../../../../src/app/cplane.rs)
+**Steps:** 5 · **Source:** [app/walk/sheet.rs](../../../../viewer-core/src/walk/sheet.rs) · [app/sheet_query.rs](../../../../viewer-core/src/sheet_query.rs) · [app/stream.rs](../../../../viewer-core/src/stream.rs) · [app/cplane.rs](../../../../viewer-core/src/cplane.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -249,19 +249,19 @@ mod tests {
         assert!(
             curve
                 .point_at(a)
-                .distance(&p(0.0, 0.0, 0.0), None)
+                .distance(&p(0.0, 0.0, 0.0), )
                 < 1e-9
         );
         assert!(
             curve
                 .point_at(0.5 * (a + b))
-                .distance(&p(500.0, 400.0, 0.0), None)
+                .distance(&p(500.0, 400.0, 0.0), )
                 < 1e-9
         );
         assert!(
             curve
                 .point_at(b)
-                .distance(&p(1000.0, 0.0, 0.0), None)
+                .distance(&p(1000.0, 0.0, 0.0), )
                 < 1e-9
         );
         let flat = [
@@ -333,7 +333,7 @@ use session_rust::{NurbsCurve, Point};
 /// A curve through control points; ending on the start closes it smoothly.
 pub fn curve(points: &[Point]) -> NurbsCurve {
     let count = points.len();
-    let closed = count >= 4 && points[0].distance(&points[count - 1], None) <= 1e-12;
+    let closed = count >= 4 && points[0].distance(&points[count - 1], ) <= 1e-12;
 
     if closed {
         return NurbsCurve::create(
@@ -401,7 +401,7 @@ mod tests {
         assert!(
             closed
                 .point_at_start()
-                .distance(&closed.point_at_end(), None)
+                .distance(&closed.point_at_end(), )
                 < 1e-9
         );
         let triangle = curve(&[
@@ -728,7 +728,7 @@ fn closed_curve_replays_world_points_once_and_keeps_an_original_smooth_curve() {
     assert!(
         source
             .point_at_start()
-            .distance(&source.point_at_end(), None)
+            .distance(&source.point_at_end(), )
             < 1e-9
     );
     command(&mut e, "Undo").unwrap();
@@ -803,7 +803,7 @@ fn editing_a_created_rational_arc_preserves_weights_knots_other_controls_and_und
             edited
                 .get_cv(i)
                 .unwrap()
-                .distance(&expected, None)
+                .distance(&expected, )
                 < 1e-12
         );
     }

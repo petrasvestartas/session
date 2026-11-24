@@ -615,7 +615,7 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 ```rust
     scene.clear();
-    gpu.set_scene(&scene, None);
+    gpu.set_scene(&scene, );
     assert!(gpu.instances.ordinary.is_empty());
     assert_eq!(&gpu.instance_usage()[..3], &[0, 0, 0]);
 ```
@@ -624,7 +624,7 @@ Replace it with:
 
 ```rust
     scene.clear();
-    gpu.set_scene(&scene, None);
+    gpu.set_scene(&scene, );
     assert!(gpu.instances.ordinary.is_empty());
     assert!(gpu.instances.space.is_none());
     assert_eq!(&gpu.instance_usage()[..3], &[0, 0, 0]);
@@ -682,7 +682,7 @@ Replace it with:
     pixels(&gpu);
     let retained = gpu.instances.ordinary.clone();
     assert!(scene.remove(b));
-    gpu.set_scene(&scene, None);
+    gpu.set_scene(&scene, );
 ```
 
 Replace it with:
@@ -702,7 +702,7 @@ Replace it with:
     let first_slot = location(&gpu, a);
     let retained = gpu.instances.ordinary.clone();
     assert!(scene.remove(b));
-    gpu.set_scene(&scene, None);
+    gpu.set_scene(&scene, );
 ```
 
 ## <a id="checkpoint-96zzzzl-prepare-one-plan-for-draw-slots-and-lookup"></a>4. Prepare one plan for draw slots and lookup
@@ -2242,13 +2242,13 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 ```rust
     assert_eq!(colour_pixels(&mut gpu), plain);
     Rc::make_mut(&mut scene.view).hide(&[b], true);
-    gpu.set_scene(&scene, None);
+    gpu.set_scene(&scene, );
     assert_eq!(&gpu.instance_usage()[..3], &[0, 0, 376]);
     gpu.request_pick([-0.45, 0.], identity())
         .unwrap();
     assert_eq!(finish(&mut gpu).unwrap()[0], a.value());
     Rc::make_mut(&mut scene.view).hide(&[b], false);
-    gpu.set_scene(&scene, None);
+    gpu.set_scene(&scene, );
     assert_eq!(&gpu.instance_usage()[..3], &[1, 2, 376]);
     assert_eq!(colour_pixels(&mut gpu), plain);
 ```
@@ -2258,13 +2258,13 @@ Replace it with:
 ```rust
     assert_eq!(colour_pixels(&mut gpu), plain);
     Rc::make_mut(&mut scene.view).hide(&[b], true);
-    gpu.set_scene(&scene, None);
+    gpu.set_scene(&scene, );
     assert_eq!(&gpu.instance_usage()[..3], &[0, 0, 16760]);
     gpu.request_pick([-0.45, 0.], identity())
         .unwrap();
     assert_eq!(finish(&mut gpu).unwrap()[0], a.value());
     Rc::make_mut(&mut scene.view).hide(&[b], false);
-    gpu.set_scene(&scene, None);
+    gpu.set_scene(&scene, );
     assert_eq!(&gpu.instance_usage()[..3], &[1, 2, 16760]);
     assert_eq!(colour_pixels(&mut gpu), plain);
 ```
@@ -2451,7 +2451,7 @@ Replace it with:
 **Locate this block:**
 
 ```rust
-    gpu.set_scene(&instances, None);
+    gpu.set_scene(&instances, );
     pixels(&gpu);
     let placed = primitive_pixels(&gpu, &gpu.primitive.texture);
     assert_eq!(placed[120 * 320 + 64], 1);
@@ -2464,7 +2464,7 @@ Replace it with:
 Replace it with:
 
 ```rust
-    gpu.set_scene(&instances, None);
+    gpu.set_scene(&instances, );
     pixels(&gpu);
     let placed = primitive_pixels(&gpu, &gpu.primitive.texture);
     let ids = gpu
@@ -3478,7 +3478,7 @@ fn actual_lookup_projection_groups_reuse_current_inputs_and_replace_output_bindi
         .is_none()
     );
     scene.clear();
-    gpu.set_scene(&scene, None);
+    gpu.set_scene(&scene, );
     assert!(
         crate::projection_lookup::Bindings::new(
             &gpu.device,
@@ -3598,7 +3598,7 @@ Replace it with:
 ```rust
             return;
         }
-        encoder.clear_buffer(&self.projected, 0, None);
+        encoder.clear_buffer(&self.projected, 0, );
         for row in &mut self.rows {
             let bindings = row.group.get_or_insert_with(|| {
                 group(
@@ -3641,7 +3641,7 @@ Replace it with:
 ```rust
             return;
         }
-        encoder.clear_buffer(&self.projected, 0, None);
+        encoder.clear_buffer(&self.projected, 0, );
         if let Some(lookup) = &mut self.lookup {
             let bindings = lookup.group(
                 device,
@@ -3958,7 +3958,7 @@ fn actual_lookup_projection_matches_legacy_bytes_keeps_selection_cache_and_relea
     scene.translate(copy, [0.4, 0., 0.]).unwrap();
     let mut gpu = renderer(&scene);
     gpu.set_opacity(0.95);
-    gpu.set_scene(&scene, None);
+    gpu.set_scene(&scene, );
     let ctx = crate::text_gpu_support::GpuCtx::new(&gpu.device, &gpu.queue);
     let image = pixels(&gpu);
     assert!(gpu.tiles.borrow().lookup.is_some());
@@ -3991,7 +3991,7 @@ fn actual_lookup_projection_matches_legacy_bytes_keeps_selection_cache_and_relea
     assert_eq!(gpu.tile_usage()[5], projections);
     assert_eq!(gpu.stats()[0], uploads);
     scene.clear();
-    gpu.set_scene(&scene, None);
+    gpu.set_scene(&scene, );
     pixels(&gpu);
     assert!(gpu.tiles.borrow().lookup.is_none());
     assert_eq!(&gpu.tile_usage()[..5], &[96, 16, 48, 0, 0]);
@@ -5132,7 +5132,7 @@ fn actual_arena_reclaims_history_retained_sources_and_keeps_survivor_pixels_and_
     history.edit(&mut scene, |scene| {
         assert!(scene.remove(a));
     });
-    gpu.set_scene(&scene, None);
+    gpu.set_scene(&scene, );
     assert!(expired.upgrade().is_none());
     assert!(
         history
@@ -5149,7 +5149,7 @@ fn actual_arena_reclaims_history_retained_sources_and_keeps_survivor_pixels_and_
         );
     });
     let c = c.unwrap();
-    gpu.set_scene(&scene, None);
+    gpu.set_scene(&scene, );
     let reused = gpu
         .meshes
         .iter()
@@ -5189,9 +5189,9 @@ fn actual_arena_reclaims_history_retained_sources_and_keeps_survivor_pixels_and_
         );
     }
     assert!(history.undo(&mut scene));
-    gpu.set_scene(&scene, None);
+    gpu.set_scene(&scene, );
     assert!(history.undo(&mut scene));
-    gpu.set_scene(&scene, None);
+    gpu.set_scene(&scene, );
     assert!(Rc::ptr_eq(
         &source,
         &scene
@@ -5221,7 +5221,7 @@ fn actual_arena_reclaims_history_retained_sources_and_keeps_survivor_pixels_and_
         (4, 288)
     );
     scene.clear();
-    gpu.set_scene(&scene, None);
+    gpu.set_scene(&scene, );
     pixels(&gpu);
     assert_eq!(gpu.geometry.entries(), 0);
     assert_eq!(gpu.geometry.allocated_bytes(), 0);

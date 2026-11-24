@@ -1,0 +1,33 @@
+use crate::app::command::{Action, CommandHost, Spec};
+
+pub const SPEC: Spec = Spec {
+    aliases: &["esc"],
+    arity: Some(0),
+    ..Spec::new(&["Escape"], "", parse)
+};
+
+/// Cancel the running command, else clear the selection.
+fn parse(_verb: &str, _rest: &[&str]) -> Result<Box<dyn Action>, String> {
+    Ok(Box::new(Escape))
+}
+
+#[derive(Debug)]
+struct Escape;
+
+impl Action for Escape {
+    /// Cancel a running command and keep the selection; with none running, drop the selection.
+    fn run(&self, state: &mut dyn CommandHost) -> Result<String, String> {
+        if state.drafting() {
+            state.cancel_drawing();
+            return Ok("cancelled".into());
+        }
+
+        state.escape_selection();
+        Ok("selection cleared".into())
+    }
+
+    /// The draft is its to cancel.
+    fn keeps_draft(&self) -> bool {
+        true
+    }
+}

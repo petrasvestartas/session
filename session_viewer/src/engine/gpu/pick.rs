@@ -1,15 +1,9 @@
 use super::buffers::GpuCtx;
 use super::frame::PickView;
 use super::targets::{Attachment, TextureSpec};
+pub use crate::rows::Pick;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicU8, Ordering};
-
-/// What the pixel under the cursor holds.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct Pick {
-    pub row: u32, // object row
-    pub sub: u32, // 0 = the object; else a tagged edge, face, dot or point id
-}
 
 /// Textures the id pass draws into, sized to the pick window.
 struct IdTargets {

@@ -39,7 +39,7 @@ export function auditAcceptance(course: ActiveCourse, assemble: (subject: string
     return failures;
 }
 
-const registrations = new Set(['src/lib.rs', 'src/app/mod.rs', 'src/engine/mod.rs',
+const registrations = new Set(['src/lib.rs', 'viewer-core/src/lib.rs', 'src/app/mod.rs', 'src/engine/mod.rs',
     'src/engine/gpu/mod.rs', 'src/engine/gpu/objects.rs', 'src/engine/gpu/hull.rs',
     'src/engine/gpu/instance.rs', 'src/engine/pipelines/mod.rs', 'src/app/stage/mod.rs', 'examples/course/registration.rs']);
 

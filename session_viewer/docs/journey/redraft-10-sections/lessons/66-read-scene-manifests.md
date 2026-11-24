@@ -1,6 +1,6 @@
 # 12.1 · Complete viewer files and published scene sources
 
-**Steps:** 44 · **Source:** [app/manifest.rs](../../../../src/app/manifest.rs) · [app/session_io.rs](../../../../src/app/session_io.rs) · [app/stream.rs](../../../../src/app/stream.rs) · [app/range_gate.rs](../../../../src/app/range_gate.rs)
+**Steps:** 44 · **Source:** [app/manifest.rs](../../../../viewer-core/src/manifest.rs) · [app/session_io.rs](../../../../viewer-core/src/session_io.rs) · [app/stream.rs](../../../../viewer-core/src/stream.rs) · [app/range_gate.rs](../../../../viewer-core/src/range_gate.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -427,7 +427,7 @@ mod tests {
         )
         .unwrap();
         assert_eq!(manifest.items[0].encoded_size(), Some(90));
-        assert_eq!(manifest.items[1].encoded_size(), None);
+        assert_eq!(manifest.items[1].encoded_size(), );
         assert!(Manifest::parse(b"items: [{file: a.pb, encoding: gzip}]").is_err());
     }
 
@@ -681,7 +681,7 @@ mod tests {
         assert!(revisions.changed("scene", Some("b".into()), b"two"));
         assert!(revisions.changed("other", None, b"two"));
         revisions.forget("scene");
-        assert_eq!(revisions.etag("scene"), None);
+        assert_eq!(revisions.etag("scene"), );
         assert!(revisions.changed("scene", None, b"two"));
         assert!(!revisions.changed("other", None, b"two"));
     }
@@ -2463,7 +2463,7 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     let mut matrix = parent.clone();
     if let Some(id) = original.object {
         let Some(row) = scene.objects().iter().find(|r| r.id == id) else {
-            return Ok(None);
+            return Ok();
         };
         node.name = row.guid.clone();
         matrix = row.model.clone();
@@ -2484,7 +2484,7 @@ Replace it with:
     let mut matrix = parent.clone();
     if let Some(id) = original.object {
         let Some(guid) = scene.row_guid(id) else {
-            return Ok(None);
+            return Ok();
         };
         node.name = guid.to_owned();
         matrix = scene
@@ -4588,7 +4588,7 @@ mod tests {
         let saved = crate::scene_archive::save(&editor.scene).unwrap();
         let camera = editor.camera.uniform();
         let old = editor.scene.clouds()[0].id;
-        let ready = prepare(&editor.scene, &saved, true, None).unwrap();
+        let ready = prepare(&editor.scene, &saved, true, ).unwrap();
         editor
             .apply(Action::Adopt {
                 scene: Box::new(ready),
@@ -4631,7 +4631,7 @@ mod tests {
         editor.apply(Action::AddBox).unwrap();
         let id = editor.scene.objects().last().unwrap().id;
         editor.apply(Action::Undo).unwrap();
-        assert!(prepare(&editor.scene, b"broken", true, None).is_err());
+        assert!(prepare(&editor.scene, b"broken", true, ).is_err());
         editor.apply(Action::Redo).unwrap();
         assert!(editor.scene.contains(id));
         let location = Rc::new(crate::reload_url::ReloadUrl::new(
@@ -5597,7 +5597,7 @@ mod tests {
         );
         assert_eq!(path_scene("/view_floor"), Some("view_floor"));
         assert!(path_scene("/index.html").is_none());
-        assert!(select(None, "/", Some("off"), None, None, None).is_none());
+        assert!(select(None, "/", Some("off"), None, None, ).is_none());
     }
     #[test]
     fn live_routes_keep_local_directories_poll_bounds_and_explicit_notification_urls() {
@@ -5757,7 +5757,7 @@ impl Index {
     }
     pub fn replacement(&mut self, previous: &Scene) -> Result<Option<Scene>, String> {
         if !self.pending {
-            return Ok(None);
+            return Ok();
         }
         let manifest = self
             .manifest
@@ -5860,7 +5860,7 @@ mod tests {
                 .unwrap()
         );
         assert_eq!(index.etag("scene"), Some("W/c".into()));
-        assert_eq!(index.etag("files/mesh.pb"), None);
+        assert_eq!(index.etag("files/mesh.pb"), );
         assert!(index.replacement(&scene).unwrap().is_none());
         assert_eq!(scene.objects()[0].id, id);
         assert!(Rc::ptr_eq(
@@ -5910,7 +5910,7 @@ mod tests {
                 .source("mesh.pb", Some("bad".into()), b"broken")
                 .is_err()
         );
-        assert_eq!(index.etag("mesh.pb"), None);
+        assert_eq!(index.etag("mesh.pb"), );
         assert!(index.replacement(&scene).unwrap().is_none());
         assert_eq!(scene.objects()[0].id, id);
         assert!(
@@ -5918,7 +5918,7 @@ mod tests {
                 .manifest("scene", None, b"invalid: manifest")
                 .is_err()
         );
-        assert_eq!(index.etag("scene"), None);
+        assert_eq!(index.etag("scene"), );
         assert!(
             index
                 .manifest("scene", None, manifest)
@@ -6251,7 +6251,7 @@ impl Publication {
             poll.as_deref(),
             notify.as_deref(),
         ) else {
-            return Ok(Self(None));
+            return Ok(Self());
         };
         let index = Index::new(route.base.clone());
         Ok(Self(Some(Rc::new(RefCell::new(State {
@@ -6303,7 +6303,7 @@ impl Control {
             }
         }
         if let Some(source) = state.notify.take() {
-            source.set_onmessage(None);
+            source.set_onmessage();
             source.close();
         }
         state.message = None;
@@ -6311,12 +6311,12 @@ impl Control {
     }
     pub fn take(&self) -> Result<Option<crate::editor::Action>, String> {
         let Some(state) = self.state() else {
-            return Ok(None);
+            return Ok();
         };
         let mut state = state.borrow_mut();
         if !state.active {
             state.delivery = None;
-            return Ok(None);
+            return Ok();
         }
         state
             .delivery
@@ -6392,7 +6392,7 @@ fn poll(state: Rc<RefCell<State>>) {
                 owner.delivery = Some(Ok(Box::new(scene)));
                 true
             }
-            Ok(None) => false,
+            Ok() => false,
             Err(error) => {
                 if owner.last_error.as_ref() == Some(&error) {
                     false
@@ -6610,7 +6610,7 @@ impl Drop for Runtime {
     }
 }
 
-thread_local! { static ACTIVE: RefCell<Option<Runtime>> = const { RefCell::new(None) }; }
+thread_local! { static ACTIVE: RefCell<Option<Runtime>> = const { RefCell::new() }; }
 
 pub fn install(
     listeners: Listeners,
@@ -6642,7 +6642,7 @@ impl Drop for Runtime {
     }
 }
 
-thread_local! { static ACTIVE: RefCell<Option<Runtime>> = const { RefCell::new(None) }; }
+thread_local! { static ACTIVE: RefCell<Option<Runtime>> = const { RefCell::new() }; }
 
 pub fn install(
     listeners: Listeners,
@@ -6695,10 +6695,10 @@ Replace it with:
 
 ```rust
     else {
-        return Ok(None);
+        return Ok();
     };
     if array.length() as usize > crate::document::MAX_BYTES {
-        return Ok(None);
+        return Ok();
     }
     let Some(file) = delivery.borrow_mut().take() else {
 ```
@@ -6707,10 +6707,10 @@ Replace it with:
 
 ```rust
     else {
-        return Ok(None);
+        return Ok();
     };
     if array.length() as usize > crate::archive::LIMIT {
-        return Ok(None);
+        return Ok();
     }
     let Some(file) = delivery.borrow_mut().take() else {
 ```
@@ -6723,7 +6723,7 @@ pub fn action(
     delivery: &Delivery,
 ) -> Result<Option<crate::editor::Action>, JsValue> {
     let Some(event) = event.dyn_ref::<web_sys::CustomEvent>() else {
-        return Ok(None);
+        return Ok();
 ```
 
 Replace it with:
@@ -6735,7 +6735,7 @@ pub fn action(
     scene: &crate::scene::Scene,
 ) -> Result<Option<crate::editor::Action>, JsValue> {
     let Some(event) = event.dyn_ref::<web_sys::CustomEvent>() else {
-        return Ok(None);
+        return Ok();
 ```
 
 **Locate this block:**
@@ -7030,7 +7030,7 @@ Replace it with:
 **Locate this block:**
 
 ```rust
-        std::rc::Rc::new(std::cell::RefCell::new(None));
+        std::rc::Rc::new(std::cell::RefCell::new());
     let owned_request = std::rc::Rc::clone(&request);
     let owned_reload = std::rc::Rc::clone(&reload);
     let active_fault = fault.clone();
@@ -7039,7 +7039,7 @@ Replace it with:
 Replace it with:
 
 ```rust
-        std::rc::Rc::new(std::cell::RefCell::new(None));
+        std::rc::Rc::new(std::cell::RefCell::new());
     let publication = crate::browser_publication::Publication::new(
         std::rc::Rc::clone(&shared),
         fault.clone(),

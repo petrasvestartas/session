@@ -12,8 +12,8 @@ Requires [5. Project and fit a scene](completion-camera.md). Checkpoint `rows` (
 
 | Group | Owned files |
 | --- | --- |
-| Build & row layout | [build.rs](../../build.rs), [gpu/instance.rs](../../src/engine/gpu/instance.rs), [gpu/instance/layout.rs](../../src/engine/gpu/instance/layout.rs) |
-| Buffers, table & bounds | [gpu/buffers.rs](../../src/engine/gpu/buffers.rs), [gpu/objects.rs](../../src/engine/gpu/objects.rs), [gpu/objects/table.rs](../../src/engine/gpu/objects/table.rs), [gpu/hull.rs](../../src/engine/gpu/hull.rs), [gpu/hull/geometry.rs](../../src/engine/gpu/hull/geometry.rs) |
+| Build & row layout | [build.rs](../../build.rs), [gpu/instance.rs](../../src/engine/gpu/instance.rs), [gpu/instance/layout.rs](../../viewer-core/src/rows/instance.rs) |
+| Buffers, table & bounds | [gpu/buffers.rs](../../src/engine/gpu/buffers.rs), [gpu/objects.rs](../../src/engine/gpu/objects.rs), [gpu/objects/table.rs](../../src/engine/gpu/objects/table.rs), [gpu/hull.rs](../../src/engine/gpu/hull.rs), [gpu/hull/geometry.rs](../../viewer-core/src/rows/hull.rs) |
 | Pipelines & timing | [pipelines/mod.rs](../../src/engine/pipelines/mod.rs), [pipelines/bindings.rs](../../src/engine/pipelines/bindings.rs), [pipelines/layouts.rs](../../src/engine/pipelines/layouts.rs), [pipelines/core.rs](../../src/engine/pipelines/core.rs), [performance.rs](../../src/engine/performance.rs), [diagnostics.rs](../../src/engine/diagnostics.rs) |
 | Shared WGSL headers | [scene.wgsl](../../src/shaders/scene.wgsl), [normals.wgsl](../../src/shaders/normals.wgsl), [physical.wgsl](../../src/shaders/physical.wgsl), [projected_triangle.wgsl](../../src/shaders/projected_triangle.wgsl), [clip.wgsl](../../src/shaders/clip.wgsl), [ink_visibility.wgsl](../../src/shaders/ink_visibility.wgsl) |
 | Checkpoint entry | [examples/course/rows.rs](../../examples/course/rows.rs) |
@@ -42,13 +42,14 @@ Create `build.rs` at the crate root. `build.rs` expands `#include "file.wgsl"` d
 `src/engine/gpu/instance/layout.rs` defines the `#[repr(C)]` `Pod` `Instance` struct pinned to `112` bytes: `model` (`64 B` rotation + scale), `color` (`16 B`), `flags`, `ao_radius`, `spacing`, the `u32` word following `spacing` carries the packed edge colour, and `effect` (`16 B`) stores `[reveal, point_scale, 0.0, 0.0]`:
 
 ```rust
---8<-- "session_viewer/src/engine/gpu/instance/layout.rs:object-instance-layout"
+--8<-- "session_viewer/viewer-core/src/rows/instance.rs:object-instance-layout"
 ```
 
 - `src/engine/gpu/buffers.rs` provides `GpuCtx`, `Template`, and `GrowBuf` (`append`, `reserve`, `WRITE_CHUNK`-bounded `fill`, `fits` against device/storage limits, `reset`, `release`, and GPU-copied `packed`), rebuilding bind groups whenever growth swaps an underlying `wgpu::Buffer`.
 - `src/engine/gpu/objects/table.rs` (`InstanceTable` / `ObjectRows`) mirrors CPU rows alongside `instances` (`N × 112 B`) and `translations` (`N × 16 B`), keeping any gizmo widget row last and uploading single-row edits via `write_at`.
 - `src/engine/gpu/hull/geometry.rs` extracts scale-normalized convex `extreme_points` (up to `8,192` vertices, falling back to the source box) so `placed_box` computes tight rotated bounds without transforming full meshes.
 - `src/engine/gpu/hull.rs`, `src/engine/gpu/instance.rs`, `src/engine/gpu/objects.rs` and `src/engine/pipelines/mod.rs` re-export narrow public types (`Hull`, `Instance`, `ObjectRows`, `Layouts`, `Cache`) that Tutorial 7 extends additively.
+- `viewer-core/src/rows/` (`mod.rs`, `instance.rs`, `objects.rs`, `hull.rs`, `lanes.rs`, `patch.rs`, `upload.rs`, `encode.rs`, `gizmo.rs`) and `viewer-core/src/sink.rs` (`GpuSink`) keep all `Pod` staging row layouts, lane strides, preview padding and upload contracts free of `wgpu` types so `viewer-core` compiles and tests natively or on `wasm32` without a GPU adapter.
 
 `set_placement` keeps world translation in `f64` on the CPU, subtracts the throttled camera anchor into `translations[i]`, and writes rotation/scale into `Instance.model`:
 

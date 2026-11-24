@@ -103,7 +103,7 @@ pub fn specimen() -> Vec<u8> {
     ] {
         brep.surfacecolor = Color::new(0.35, 0.65, 0.85, 1.);
         brep.transform(&session_rust::Xform::translation(0., 0., z));
-        session.add_brep(brep, None);
+        session.add_brep(brep, );
     }
     session.to_proto().encode_to_vec()
 }

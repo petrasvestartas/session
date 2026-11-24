@@ -2876,7 +2876,7 @@ impl Drop for Runtime {
     }
 }
 
-thread_local! { static ACTIVE: RefCell<Option<Runtime>> = const { RefCell::new(None) }; }
+thread_local! { static ACTIVE: RefCell<Option<Runtime>> = const { RefCell::new() }; }
 
 pub fn install(
     listeners: Listeners,
@@ -2909,7 +2909,7 @@ impl Drop for Runtime {
     }
 }
 
-thread_local! { static ACTIVE: RefCell<Option<Runtime>> = const { RefCell::new(None) }; }
+thread_local! { static ACTIVE: RefCell<Option<Runtime>> = const { RefCell::new() }; }
 
 pub fn install(
     listeners: Listeners,
@@ -3067,7 +3067,7 @@ pub fn adopt() -> Result<Option<String>, JsValue> {
     let url = web_sys::Url::new(&window.location().href()?)?;
     let params = url.search_params();
     let Some(reason) = params.get("recovered") else {
-        return Ok(None);
+        return Ok();
     };
     POLICY.with(|policy| policy.replace(crate::recovery::Recovery::adopted()));
     params.delete("recovered");

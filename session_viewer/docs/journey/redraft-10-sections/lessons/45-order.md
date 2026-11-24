@@ -1,6 +1,6 @@
 # 6.4 · Ordered multi-selection and atomic edits
 
-**Steps:** 5 · **Source:** [engine/gpu/pick.rs](../../../../src/engine/gpu/pick.rs) · [app/selection.rs](../../../../src/app/selection.rs) · [engine/gpu/faces.rs](../../../../src/engine/gpu/faces.rs) · [app/walk/mesh_topology.rs](../../../../src/app/walk/mesh_topology.rs)
+**Steps:** 5 · **Source:** [engine/gpu/pick.rs](../../../../src/engine/gpu/pick.rs) · [app/selection.rs](../../../../viewer-core/src/selection.rs) · [engine/gpu/faces.rs](../../../../src/engine/gpu/faces.rs) · [app/walk/mesh_topology.rs](../../../../viewer-core/src/walk/mesh_topology.rs)
 
 ## <a id="checkpoint-45-order"></a>1. Preserve unique selections in pick order
 
@@ -1938,7 +1938,7 @@ mod multi_selection_tests;
 **Locate this existing block:**
 
 ```rust
-    renderer.set_scene(&editor.scene, None);
+    renderer.set_scene(&editor.scene, );
     assert_eq!(renderer.highlight_bytes(), 0);
 }
 ```
@@ -1946,7 +1946,7 @@ mod multi_selection_tests;
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-    renderer.set_scene(&editor.scene, None);
+    renderer.set_scene(&editor.scene, );
     assert_eq!(renderer.highlight_bytes(), 0);
 }
 
@@ -2127,13 +2127,13 @@ fn cycling_skips_locked_and_hidden_rows_and_wraps_across_geometry_lanes() {
     scene
         .insert_point(crate::marker::PreparedPoint::new(Rc::new(hidden)).unwrap())
         .unwrap();
-    assert_eq!(scene.next(None), Some(mesh));
+    assert_eq!(scene.next(), Some(mesh));
     assert_eq!(scene.next(Some(locked)), Some(mesh));
     assert_eq!(scene.next(Some(mesh)), Some(point));
     assert_eq!(scene.next(Some(point)), Some(path));
     assert_eq!(scene.next(Some(path)), Some(mesh));
     scene.clear();
-    assert_eq!(scene.next(None), None);
+    assert_eq!(scene.next(), );
 }
 ```
 
@@ -2241,7 +2241,7 @@ Replace it with:
                 let closing = matches!(&action, Action::Close);
                 let unloading = matches!(&action, Action::UnloadSources);
                 let waiting = if editor.selected_objects().len() > 1 {
-                    Ok(None)
+                    Ok()
                 } else {
                     crate::edit_intent::Intent::capture(
                         &action,
@@ -2332,7 +2332,7 @@ Replace it with:
                         "example triangle" => Action::ToggleExtra,
                         "select next" => Action::SelectNext,
                         "select all" => Action::SelectAll,
-                        "select none" => Action::Picked(None),
+                        "select none" => Action::Picked(),
                         "select object" => {
                             Action::PickMode(crate::pick_sources::Mode::Object)
                         }

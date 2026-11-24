@@ -1,6 +1,6 @@
 # 6.4 · Ordered multi-selection and atomic edits
 
-**Steps:** 5 · **Source:** [engine/gpu/pick.rs](../../../src/engine/gpu/pick.rs) · [app/selection.rs](../../../src/app/selection.rs) · [engine/gpu/faces.rs](../../../src/engine/gpu/faces.rs) · [app/walk/mesh_topology.rs](../../../src/app/walk/mesh_topology.rs)
+**Steps:** 5 · **Source:** [engine/gpu/pick.rs](../../../src/engine/gpu/pick.rs) · [app/selection.rs](../../../viewer-core/src/selection.rs) · [engine/gpu/faces.rs](../../../src/engine/gpu/faces.rs) · [app/walk/mesh_topology.rs](../../../viewer-core/src/walk/mesh_topology.rs)
 
 ## <a id="checkpoint-45-order"></a>1. Preserve unique selections in pick order
 

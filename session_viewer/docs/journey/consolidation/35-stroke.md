@@ -1,10 +1,10 @@
 # 5.1 · Original lines and a screen-space stroke lane
 
-**Steps:** 7 · **Source:** [app/walk/curves.rs](../../../src/app/walk/curves.rs) · [engine/gpu/segments.rs](../../../src/engine/gpu/segments.rs) · [shaders/ribbon.wgsl](../../../src/shaders/ribbon.wgsl) · [shaders/vector.wgsl](../../../src/shaders/vector.wgsl)
+**Steps:** 7 · **Source:** [app/walk/curves.rs](../../../viewer-core/src/walk/curves.rs) · [engine/gpu/segments.rs](../../../src/engine/gpu/segments.rs) · [shaders/ribbon.wgsl](../../../src/shaders/ribbon.wgsl) · [shaders/vector.wgsl](../../../src/shaders/vector.wgsl)
 
 ## Authored width and projected radius
 
-The maintained [width encoder](../../../src/app/walk/encode.rs) maps a finite positive authored width other than the default value `1` to a negative half-width. Default, nonpositive and nonfinite widths use zero. The [stroke shader](../../../src/shaders/ribbon.wgsl) interprets zero as the default pen, negative radius as a pen multiplier and positive radius as a world-space radius. These are encoded meanings, so applying an absolute value at upload would change the result.
+The maintained [width encoder](../../../viewer-core/src/walk/encode.rs) maps a finite positive authored width other than the default value `1` to a negative half-width. Default, nonpositive and nonfinite widths use zero. The [stroke shader](../../../src/shaders/ribbon.wgsl) interprets zero as the default pen, negative radius as a pen multiplier and positive radius as a world-space radius. These are encoded meanings, so applying an absolute value at upload would change the result.
 
 For a world-space radius, orthographic projection scales by viewport height and camera height; perspective projection also divides by endpoint depth. A screen pen stays readable as the camera moves away. Predict the difference between a negative encoded radius and a positive world radius when zooming out: the pen retains its screen width while the world-space stroke becomes thinner.
 
@@ -25,7 +25,7 @@ Keep the kernel's line or curve unchanged while giving its GPU segments the auth
 The radius field has three meanings. Zero uses the default pen; a negative value multiplies screen pen thickness; a positive value is a world-space radius projected at the endpoint depth. Kernel `width` is a full pen-width multiplier: `encode_width` stores `-width / 2`, except the default or invalid value becomes zero. The shader computes a half-width, so forgetting the division by two doubles the visible stroke.
 
 ```rust
---8<-- "session_viewer/src/app/walk/curves.rs:curve-dash-chain"
+--8<-- "session_viewer/viewer-core/src/walk/curves.rs:curve-dash-chain"
 ```
 
 The walker emits one row for each nonzero neighbouring pair and retains a chain range. Each row receives the distance accumulated before it, then contributes its own length. The first two finite positive pattern entries become the on/off pair; a single positive entry supplies both lengths. Additional entries produce a warning and are not a longer repeating pattern. No valid positive entry means solid ink.

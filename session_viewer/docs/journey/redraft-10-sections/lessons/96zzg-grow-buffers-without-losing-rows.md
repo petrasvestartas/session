@@ -2746,7 +2746,7 @@ Supply exact shared-owner accounting, cached-source reuse, preserved standalone 
     let uploads = gpu.stats();
     pixels(&gpu);
     assert_eq!(gpu.stats(), uploads);
-    gpu.set_scene(&Scene::empty(), None);
+    gpu.set_scene(&Scene::empty(), );
     assert_eq!(gpu.usage(), [0; 4]);
 }
 ```
@@ -2788,7 +2788,7 @@ Edit the existing block to match this code; keep unchanged lines:
     let uploads = gpu.stats();
     pixels(&gpu);
     assert_eq!(gpu.stats(), uploads);
-    gpu.set_scene(&Scene::empty(), None);
+    gpu.set_scene(&Scene::empty(), );
     assert_eq!(gpu.usage(), [0; 4]);
     assert_eq!(gpu.arena_cpu_bytes(), 0);
 }
@@ -3697,7 +3697,7 @@ fn actual_contact_marker_is_opaque_unlit_selected_and_keeps_original_ownership()
     assert_eq!(gpu.stats()[0], uploads);
     assert_eq!(source.alphas(), vec![1. / 255.; vertices]);
     scene.clear();
-    gpu.set_scene(&scene, None);
+    gpu.set_scene(&scene, );
     assert_eq!(gpu.usage(), [0; 4]);
 }
 ```
@@ -3835,7 +3835,7 @@ pub(crate) fn prepare(
     place: &Xform,
     point_px: f32,
 ) -> Result<Source, String> {
-    prepare_at(bytes, place, point_px, None)
+    prepare_at(bytes, place, point_px, )
 }
 pub(crate) fn prepare_at(
     bytes: &[u8],
@@ -4144,7 +4144,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 ) -> Result<u32, String> {
-    import_at(scene, bytes, name, place, point_px, None)
+    import_at(scene, bytes, name, place, point_px, )
 }
 pub fn import_at(
     scene: &mut Scene,
@@ -4302,7 +4302,7 @@ fn full_element_file_preparation_retains_originals_interactions_and_shared_reloa
     assert!(!origin.header.interactions.is_empty());
     assert_eq!(scene.all_ids(), before);
     assert_eq!(
-        prepare(&scene, &[255], true, None)
+        prepare(&scene, &[255], true, )
             .err()
             .unwrap(),
         "Invalid session protobuf"
@@ -4709,8 +4709,8 @@ Edit the existing block to match this code; keep unchanged lines:
             | Action::ImportAt(_, _)
             | Action::ReplaceAt(_, _)) => {
                 let (bytes, replace, location) = match file {
-                    Action::Replace(bytes) => (bytes, true, None),
-                    Action::Import(bytes) => (bytes, false, None),
+                    Action::Replace(bytes) => (bytes, true, ),
+                    Action::Import(bytes) => (bytes, false, ),
                     Action::ImportAt(bytes, location) => (bytes, false, Some(location)),
                     Action::ReplaceAt(bytes, location) => (bytes, true, Some(location)),
                     _ => unreachable!(),
@@ -5117,7 +5117,7 @@ Edit the existing block to match this code; keep unchanged lines:
     assert_eq!(gpu.stats()[0], uploads);
     assert_eq!(source.alphas(), vec![1. / 255.; vertices]);
     scene.clear();
-    gpu.set_scene(&scene, None);
+    gpu.set_scene(&scene, );
     assert_eq!(gpu.usage(), [0; 4]);
 }
 

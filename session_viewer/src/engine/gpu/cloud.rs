@@ -1,32 +1,6 @@
 use super::buffers::{GpuCtx, GrowBuf, ROWS};
-use super::upload::drop_rows;
 use crate::engine::pipelines::Layouts;
-
-/// Marker for a cloud that has no normals.
-pub const NO_NORMALS: u32 = u32::MAX;
-
-/// One batch of points added to a cloud.
-pub struct CloudDraw {
-    pub instance: u32,   // object row of the cloud
-    pub from: u32,       // first point index within the cloud
-    pub count: u32,      // points in this batch
-    pub first: u32,      // row of the first point in the upload
-    pub spacing: f32,    // typical distance between points
-    pub node_first: u32, // first octree node in the upload
-    pub node_count: u32, // octree nodes; 0 = no octree
-    pub nrm_first: u32,  // first normal row, or NO_NORMALS
-}
-
-/// One box of the cloud's octree.
-#[derive(Clone, Copy)]
-pub struct LodNode {
-    pub center: [f32; 3],   // box center
-    pub size: f32,          // box edge length
-    pub spacing: f32,       // point spacing inside the box
-    pub first: u32,         // first point of the box, within the cloud
-    pub count: u32,         // points in the box
-    pub children: [i32; 8], // child node indices, -1 = none
-}
+pub use crate::rows::{CloudDraw, CloudRows, LodNode, NO_NORMALS};
 
 /// A run of cloud points stored on the GPU.
 #[derive(Clone, Copy)]
@@ -64,34 +38,6 @@ impl Cloud {
         }
 
         None
-    }
-}
-
-/// Point rows of one upload.
-#[derive(Default)]
-pub struct CloudRows {
-    pub pos: Vec<f32>,         // x, y, z per point
-    pub col: Vec<u32>,         // packed color per point
-    pub nrm: Vec<u32>,         // packed normal per point
-    pub draws: Vec<CloudDraw>, // point batches in this upload
-    pub nodes: Vec<LodNode>,   // octree nodes in this upload
-    pub expect: u32,           // points known to follow this upload
-    pub expect_normals: u32,   // normals known to follow this upload
-}
-
-impl CloudRows {
-    /// Points in this upload so far.
-    pub fn point_count(&self) -> u32 {
-        (self.pos.len() / 3) as u32
-    }
-
-    /// Empty every table and free its memory.
-    pub fn drop_rows(&mut self) {
-        drop_rows(&mut self.pos);
-        drop_rows(&mut self.col);
-        drop_rows(&mut self.nrm);
-        drop_rows(&mut self.draws);
-        drop_rows(&mut self.nodes);
     }
 }
 
@@ -373,31 +319,5 @@ impl super::lane::Lane for CloudLane {
 
     fn bytes(&self) -> (u64, u64) {
         (self.allocated_bytes(), 0)
-    }
-}
-
-impl CloudRows {
-    /// Move `other`'s points after these, its batches shifted to match.
-    pub fn merge(&mut self, other: &mut CloudRows) {
-        let cloud = self;
-        let points = cloud.point_count();
-        let nodes = cloud.nodes.len() as u32;
-        let normals = cloud.nrm.len() as u32;
-
-        for mut draw in other.draws.drain(..) {
-            draw.first += points;
-            draw.node_first += nodes;
-
-            if draw.nrm_first != NO_NORMALS {
-                draw.nrm_first += normals;
-            }
-
-            cloud.draws.push(draw);
-        }
-
-        cloud.pos.append(&mut other.pos);
-        cloud.col.append(&mut other.col);
-        cloud.nrm.append(&mut other.nrm);
-        cloud.nodes.append(&mut other.nodes);
     }
 }

@@ -1,6 +1,6 @@
 # 6.3 · Pick original faces, edges and controls
 
-**Steps:** 14 · **Source:** [engine/gpu/pick.rs](../../../src/engine/gpu/pick.rs) · [app/selection.rs](../../../src/app/selection.rs) · [engine/gpu/faces.rs](../../../src/engine/gpu/faces.rs) · [app/walk/mesh_topology.rs](../../../src/app/walk/mesh_topology.rs)
+**Steps:** 14 · **Source:** [engine/gpu/pick.rs](../../../src/engine/gpu/pick.rs) · [app/selection.rs](../../../viewer-core/src/selection.rs) · [engine/gpu/faces.rs](../../../src/engine/gpu/faces.rs) · [app/walk/mesh_topology.rs](../../../viewer-core/src/walk/mesh_topology.rs)
 
 ## <a id="checkpoint-44-topology"></a>1. Preserve source faces and edges
 

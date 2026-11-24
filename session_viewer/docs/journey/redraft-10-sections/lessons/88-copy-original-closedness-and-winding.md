@@ -154,7 +154,7 @@ mod tests {
         let mut open = cube.clone();
         let first = *open.face.keys().min().unwrap();
         open.face.remove(&first);
-        assert_eq!(solid_orientation(&open), None);
+        assert_eq!(solid_orientation(&open), );
 
         let mut mixed = cube.clone();
         mixed.face.get_mut(&first).unwrap().reverse();
@@ -2288,7 +2288,7 @@ Edit the existing block to match this code; keep unchanged lines:
         planes: u32,
     ) {
         let Some(target) = &self.target else { return };
-        encoder.clear_buffer(&self.records, 0, None);
+        encoder.clear_buffer(&self.records, 0, );
         for pipeline in [&self.pipes.count, &self.pipes.nearest] {
             let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 label: Some("original section count and nearest owner"),
@@ -3728,7 +3728,7 @@ fn actual_closed_original_sections_draw_grey_hatch_and_selected_color_then_relea
         "selection retains original closedness cache"
     );
     scene.clear();
-    r.set_scene(&scene, None);
+    r.set_scene(&scene, );
     pixels(&r);
     assert_eq!(r.cap_usage()[0], 24);
     assert_eq!(r.cap_usage()[1], 0);
@@ -3842,8 +3842,8 @@ fn actual_cap_picks_name_the_nearest_nested_original_and_keep_locked_caps_unpick
         Some([outer.value(), 0])
     );
     Rc::make_mut(&mut scene.view).lock(&[outer, inner], true);
-    r.set_scene(&scene, None);
-    assert_eq!(picked(&mut r, [0.3, 0.2]), None);
+    r.set_scene(&scene, );
+    assert_eq!(picked(&mut r, [0.3, 0.2]), );
 }
 #[test]
 fn actual_section_depth_hides_retained_lines_and_points_in_color_and_first_picks_even_when_locked()
@@ -3877,7 +3877,7 @@ fn actual_section_depth_hides_retained_lines_and_points_in_color_and_first_picks
         }
     }
     Rc::make_mut(&mut scene.view).lock(&[owner], true);
-    r.set_scene(&scene, None);
+    r.set_scene(&scene, );
     for at in [[0.3, 0.2], [-0.3, -0.2]] {
         assert_eq!(
             picked(&mut r, at),
@@ -4058,7 +4058,7 @@ fn actual_two_original_planes_cap_their_shared_corner_and_remove_cut_owners() {
             Some([owner.value(), 0])
         );
     }
-    assert_eq!(picked(&mut r, [0.5, 0.2]), None);
+    assert_eq!(picked(&mut r, [0.5, 0.2]), );
     let image = pixels(&r);
     for x in [112, 192] {
         let p = crate::cap_gpu_tests::at(&image, x, 96);

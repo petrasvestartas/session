@@ -41,7 +41,7 @@ Write `Cargo.toml` with both `cdylib` (for the browser `.wasm` target) and `rlib
 --8<-- "session_viewer/Cargo.toml:1:26"
 ```
 
-Create `src/lib.rs` plus the three additive module roots (`src/app/mod.rs`, `src/engine/mod.rs`, `src/engine/gpu/mod.rs`):
+Create `src/lib.rs` plus the three additive module roots (`src/app/mod.rs`, `src/engine/mod.rs`, `src/engine/gpu/mod.rs`), alongside `viewer-core/Cargo.toml` and `viewer-core/src/lib.rs` so the UI- and GPU-free `viewer-core` workspace member grows additively from Tutorial 5 onward without `wgpu`, `winit`, `egui` or `web-sys` dependencies:
 
 ```rust
 --8<-- "session_viewer/src/lib.rs:1:12"

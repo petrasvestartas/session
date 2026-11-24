@@ -1,6 +1,6 @@
 # 6.1 · A bounded integer picking pass
 
-**Steps:** 12 · **Source:** [engine/gpu/pick.rs](../../../../src/engine/gpu/pick.rs) · [app/selection.rs](../../../../src/app/selection.rs) · [engine/gpu/faces.rs](../../../../src/engine/gpu/faces.rs) · [app/walk/mesh_topology.rs](../../../../src/app/walk/mesh_topology.rs)
+**Steps:** 12 · **Source:** [engine/gpu/pick.rs](../../../../src/engine/gpu/pick.rs) · [app/selection.rs](../../../../viewer-core/src/selection.rs) · [engine/gpu/faces.rs](../../../../src/engine/gpu/faces.rs) · [app/walk/mesh_topology.rs](../../../../viewer-core/src/walk/mesh_topology.rs)
 
 ## <a id="checkpoint-42-window"></a>1. Bound the cursor image and decode a hit
 
@@ -327,7 +327,7 @@ fn pick_decoding_ignores_padding_and_prefers_visible_ink_within_the_tolerance() 
         Some([16_777_217, 0])
     );
     bytes[at(6, 6)..at(6, 6) + 8].fill(0);
-    assert_eq!(w.closest(&bytes).unwrap(), None);
+    assert_eq!(w.closest(&bytes).unwrap(), );
     assert!(w.closest(&bytes[..bytes.len() - 1]).is_err());
 }
 ```
@@ -2499,7 +2499,7 @@ Replace it with:
             size: [640, 480],
             density: 1.0,
         };
-        renderer.set_scene(scene, None);
+        renderer.set_scene(scene, );
         renderer
 ```
 
@@ -2511,7 +2511,7 @@ Replace it with:
             density: 1.0,
             picker,
         };
-        renderer.set_scene(scene, None);
+        renderer.set_scene(scene, );
         renderer
 ```
 
@@ -3132,7 +3132,7 @@ fn accepted_gpu_picks_resolve_current_rows_without_consuming_document_history() 
     assert!(editor.scene.points().is_empty());
     editor.apply(Action::Undo).unwrap();
     assert_eq!(editor.scene.points()[0].id, id);
-    editor.apply(Action::Picked(None)).unwrap();
+    editor.apply(Action::Picked()).unwrap();
     assert!(editor.selected.is_none());
 }
 
@@ -3278,7 +3278,7 @@ fn actual_integer_pick_preserves_high_ids_depth_and_locked_occlusion() {
         Some([back.value(), 0])
     );
     let front = scene.insert(triangle(0.2)).unwrap();
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     renderer
         .request_pick([0.0, 0.0], identity())
         .unwrap();
@@ -3289,16 +3289,16 @@ fn actual_integer_pick_preserves_high_ids_depth_and_locked_occlusion() {
     let mut locked = scene.objects[1].metadata.as_ref().clone();
     locked.is_locked = true;
     scene.objects[1].metadata = Rc::new(locked);
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     renderer
         .request_pick([0.0, 0.0], identity())
         .unwrap();
-    assert_eq!(finish(&mut renderer), None);
-    assert_eq!(scene.pick_id(front.value()), None);
+    assert_eq!(finish(&mut renderer), );
+    assert_eq!(scene.pick_id(front.value()), );
     let mut hidden = scene.objects[1].metadata.as_ref().clone();
     hidden.is_visible = false;
     scene.objects[1].metadata = Rc::new(hidden);
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     renderer
         .request_pick([0.0, 0.0], identity())
         .unwrap();
@@ -3309,7 +3309,7 @@ fn actual_integer_pick_preserves_high_ids_depth_and_locked_occlusion() {
     renderer
         .request_pick([0.95, 0.95], identity())
         .unwrap();
-    assert_eq!(finish(&mut renderer), None);
+    assert_eq!(finish(&mut renderer), );
 }
 
 #[test]
@@ -3384,7 +3384,7 @@ fn actual_ink_pick_uses_coverage_depth_density_and_bounded_coalescing() {
         renderer.take_pick().is_none(),
         "A newer cursor supersedes the first result"
     );
-    assert_eq!(finish(&mut renderer), None);
+    assert_eq!(finish(&mut renderer), );
     assert_eq!(&renderer.pick_usage()[..2], &[0, 0]);
     assert!(
         renderer.pick_usage()[2] <= 25 * 256 + 31 * 31 * 12 + 176,
@@ -3403,12 +3403,12 @@ fn cancelled_readback_cannot_select_a_new_document_or_keep_its_source_alive() {
         .request_pick([0.0, 0.0], identity())
         .unwrap();
     scene.clear();
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     assert!(weak.upgrade().is_none());
     assert_eq!(&renderer.pick_usage()[..3], &[0, 0, 144]);
     let new = scene.insert(triangle(0.3)).unwrap();
     assert_ne!(old, new);
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     renderer
         .request_pick([0.0, 0.0], identity())
         .unwrap();

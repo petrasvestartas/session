@@ -1923,7 +1923,7 @@ fn actual_primitive_mrt_keeps_placed_intervals_and_overlay_addresses() {
             before,
             "A derived selected-face mesh must retain original triangle addresses"
         );
-        gpu.set_highlight(&scene, None).unwrap();
+        gpu.set_highlight(&scene, ).unwrap();
     }
     let mut instances = Scene::empty();
     crate::scene_document::import(
@@ -1934,7 +1934,7 @@ fn actual_primitive_mrt_keeps_placed_intervals_and_overlay_addresses() {
         0.,
     )
     .unwrap();
-    gpu.set_scene(&instances, None);
+    gpu.set_scene(&instances, );
     pixels(&gpu);
     let placed = addresses(&gpu);
     assert_eq!(placed[120 * 320 + 64], 1);
@@ -1954,7 +1954,7 @@ fn actual_primitive_mrt_keeps_placed_intervals_and_overlay_addresses() {
         width: 320,
         height: 240,
     });
-    gpu.set_scene(&Scene::empty(), None);
+    gpu.set_scene(&Scene::empty(), );
     pixels(&gpu);
     assert!(addresses(&gpu).iter().all(|id| *id == 0));
 }
@@ -3117,7 +3117,7 @@ fn actual_primitive_mrt_keeps_placed_intervals_and_overlay_addresses() {
             before,
             "A derived selected-face mesh must retain original triangle addresses"
         );
-        gpu.set_highlight(&scene, None).unwrap();
+        gpu.set_highlight(&scene, ).unwrap();
     }
     let mut instances = Scene::empty();
     crate::scene_document::import(
@@ -3128,7 +3128,7 @@ fn actual_primitive_mrt_keeps_placed_intervals_and_overlay_addresses() {
         0.,
     )
     .unwrap();
-    gpu.set_scene(&instances, None);
+    gpu.set_scene(&instances, );
     pixels(&gpu);
     let placed = addresses(&gpu);
     assert_eq!(placed[120 * 320 + 64], 1);
@@ -3148,7 +3148,7 @@ fn actual_primitive_mrt_keeps_placed_intervals_and_overlay_addresses() {
         width: 320,
         height: 240,
     });
-    gpu.set_scene(&Scene::empty(), None);
+    gpu.set_scene(&Scene::empty(), );
     pixels(&gpu);
     assert!(addresses(&gpu).iter().all(|id| *id == 0));
 }
@@ -3259,7 +3259,7 @@ fn actual_primitive_mrt_keeps_placed_intervals_and_overlay_addresses() {
             before,
             "A derived selected-face mesh must retain original triangle addresses"
         );
-        gpu.set_highlight(&scene, None).unwrap();
+        gpu.set_highlight(&scene, ).unwrap();
     }
     let mut instances = Scene::empty();
     crate::scene_document::import(
@@ -3270,7 +3270,7 @@ fn actual_primitive_mrt_keeps_placed_intervals_and_overlay_addresses() {
         0.,
     )
     .unwrap();
-    gpu.set_scene(&instances, None);
+    gpu.set_scene(&instances, );
     pixels(&gpu);
     let placed = primitive_pixels(&gpu, &gpu.primitive.texture);
     assert_eq!(placed[120 * 320 + 64], 1);
@@ -3290,7 +3290,7 @@ fn actual_primitive_mrt_keeps_placed_intervals_and_overlay_addresses() {
         width: 320,
         height: 240,
     });
-    gpu.set_scene(&Scene::empty(), None);
+    gpu.set_scene(&Scene::empty(), );
     pixels(&gpu);
     assert!(
         primitive_pixels(&gpu, &gpu.primitive.texture)
@@ -3358,7 +3358,7 @@ fn actual_first_pick_primitives_match_current_cropped_owners_before_color() {
         }
     }
     Rc::make_mut(&mut scene.view).hide(&[a], true);
-    gpu.set_scene(&scene, None);
+    gpu.set_scene(&scene, );
     gpu.request_pick([0.5, 0.], matrix())
         .unwrap();
     wait(&gpu);
@@ -3631,7 +3631,7 @@ fn a_point_on_a_sloping_original_face_keeps_its_disc_and_first_pick() {
         let mut renderer = renderer(&front, size, density as f32);
         let flat = red_pixels(&renderer, size);
         let (sloped, _, point) = scene(0.5, 2, true);
-        renderer.set_scene(&sloped, None);
+        renderer.set_scene(&sloped, );
         assert_eq!(
             picked(&mut renderer, [0., 0.]).unwrap()[0],
             point.value(),
@@ -3643,7 +3643,7 @@ fn a_point_on_a_sloping_original_face_keeps_its_disc_and_first_pick() {
             "a coplanar point keeps the same full CSS disc on a sloping face"
         );
         let (hidden, solid, _) = scene(0.7, 2, true);
-        renderer.set_scene(&hidden, None);
+        renderer.set_scene(&hidden, );
         assert_eq!(
             picked(&mut renderer, [0., 0.]).unwrap()[0],
             solid.value()
@@ -4590,7 +4590,7 @@ fn actual_cap_color_primitives_keep_plane_selection_and_empty_pixels() {
         );
         gpu.select_objects(&scene, &[]).unwrap();
     }
-    gpu.set_scene(&Scene::empty(), None);
+    gpu.set_scene(&Scene::empty(), );
     cap_primitive_frame(&gpu);
     assert!(
         primitive_pixels(&gpu, &gpu.primitive.texture)

@@ -1,6 +1,6 @@
 # 8.4 · Navigation, delayed picks and direct dragging
 
-**Steps:** 18 · **Source:** [app/hierarchy.rs](../../../../src/app/hierarchy.rs) · [app/layers.rs](../../../../src/app/layers.rs) · [app/ui/layers.rs](../../../../src/app/ui/layers.rs) · [app/gesture/mod.rs](../../../../src/app/gesture/mod.rs)
+**Steps:** 18 · **Source:** [app/hierarchy.rs](../../../../viewer-core/src/hierarchy.rs) · [app/layers.rs](../../../../viewer-core/src/layers.rs) · [app/ui/layers.rs](../../../../src/app/ui/layers.rs) · [app/gesture/mod.rs](../../../../src/app/gesture/mod.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -1318,9 +1318,9 @@ impl Drag {
     }
     pub fn answer(&self, hit: bool) -> Answer {
         match (hit, self.released) {
-            (true, None) => Answer::Follow,
+            (true, ) => Answer::Follow,
             (true, Some((add, remove))) => Answer::Move { add, remove },
-            (false, None) => Answer::Rectangle,
+            (false, ) => Answer::Rectangle,
             (false, Some((add, remove))) => Answer::Select { add, remove },
         }
     }
@@ -3248,10 +3248,10 @@ fn a_click_selects_but_a_left_drag_does_not() {
         Some(Motion::Pick([12.0, 20.0]))
     );
     input.press(1, 0, [10.0, 20.0]);
-    assert_eq!(input.move_to(1, [20.0, 20.0]), None);
-    assert_eq!(input.release(1, [10.0, 20.0]), None);
+    assert_eq!(input.move_to(1, [20.0, 20.0]), );
+    assert_eq!(input.release(1, [10.0, 20.0]), );
     input.press(1, 0, [10.0, 20.0]);
-    assert_eq!(input.release(1, [30.0, 20.0]), None);
+    assert_eq!(input.release(1, [30.0, 20.0]), );
 }
 
 #[test]
@@ -3259,8 +3259,8 @@ fn only_the_captured_pointer_can_move_or_finish_the_gesture() {
     let mut input = Gesture::default();
     assert!(input.press(1, 2, [0.0, 0.0]));
     assert!(!input.press(2, 0, [0.0, 0.0]));
-    assert_eq!(input.move_to(2, [100.0, 50.0]), None);
-    assert_eq!(input.release(2, [0.0, 0.0]), None);
+    assert_eq!(input.move_to(2, [100.0, 50.0]), );
+    assert_eq!(input.release(2, [0.0, 0.0]), );
     input.cancel_pointer(2);
     assert_eq!(
         input.move_to(1, [10.0, 5.0]),
@@ -3270,8 +3270,8 @@ fn only_the_captured_pointer_can_move_or_finish_the_gesture() {
         input.move_to(1, [30.0, 8.0]),
         Some(Motion::Orbit([20.0, 3.0]))
     );
-    assert_eq!(input.release(1, [30.0, 8.0]), None);
-    assert_eq!(input.move_to(1, [40.0, 8.0]), None);
+    assert_eq!(input.release(1, [30.0, 8.0]), );
+    assert_eq!(input.move_to(1, [40.0, 8.0]), );
     input.press(3, 2, [0.0, 0.0]);
     assert_eq!(
         input.release(3, [5.0, 2.0]),
@@ -3284,10 +3284,10 @@ fn cancellation_never_selects_and_allows_a_fresh_press() {
     let mut input = Gesture::default();
     input.press(1, 0, [0.0, 0.0]);
     input.cancel_pointer(1);
-    assert_eq!(input.release(1, [0.0, 0.0]), None);
+    assert_eq!(input.release(1, [0.0, 0.0]), );
     assert!(input.press(2, 2, [0.0, 0.0]));
     input.cancel();
-    assert_eq!(input.move_to(2, [20.0, 0.0]), None);
+    assert_eq!(input.move_to(2, [20.0, 0.0]), );
     assert!(!input.press(1, 1, [0.0, 0.0]));
     assert!(!input.press(1, 0, [f64::NAN, 0.0]));
 ```
@@ -3330,8 +3330,8 @@ fn only_the_captured_pointer_can_move_or_finish_the_gesture() {
     let mut input = Gesture::default();
     assert!(input.press(1, 2, [0.0, 0.0]));
     assert!(!input.press(2, 0, [0.0, 0.0]));
-    assert_eq!(input.move_to(2, [100.0, 50.0]), None);
-    assert_eq!(input.release(2, [0.0, 0.0]), None);
+    assert_eq!(input.move_to(2, [100.0, 50.0]), );
+    assert_eq!(input.release(2, [0.0, 0.0]), );
     input.cancel_pointer(2);
     assert_eq!(
         input.move_to(1, [10.0, 5.0]),
@@ -3341,8 +3341,8 @@ fn only_the_captured_pointer_can_move_or_finish_the_gesture() {
         input.move_to(1, [30.0, 8.0]),
         Some(Motion::Orbit([20.0, 3.0]))
     );
-    assert_eq!(input.release(1, [30.0, 8.0]), None);
-    assert_eq!(input.move_to(1, [40.0, 8.0]), None);
+    assert_eq!(input.release(1, [30.0, 8.0]), );
+    assert_eq!(input.move_to(1, [40.0, 8.0]), );
     input.press(3, 2, [0.0, 0.0]);
     assert_eq!(
         input.release(3, [5.0, 2.0]),
@@ -3355,10 +3355,10 @@ fn cancellation_never_selects_and_allows_a_fresh_press() {
     let mut input = Gesture::default();
     input.press(1, 0, [0.0, 0.0]);
     input.cancel_pointer(1);
-    assert_eq!(input.release(1, [0.0, 0.0]), None);
+    assert_eq!(input.release(1, [0.0, 0.0]), );
     assert!(input.press(2, 2, [0.0, 0.0]));
     input.cancel();
-    assert_eq!(input.move_to(2, [20.0, 0.0]), None);
+    assert_eq!(input.move_to(2, [20.0, 0.0]), );
     assert!(input.press(1, 1, [0.0, 0.0]));
     assert_eq!(
         input.move_to(1, [10., 0.]),
@@ -4109,7 +4109,7 @@ Replace it with:
                             "blur" | "resize" | "pointercancel" | "lostpointercapture"
                         ) =>
                     {
-                        Some(Action::ToolHover(None))
+                        Some(Action::ToolHover())
                     }
                     None if editor.draft.is_some()
                         && !panel.consumed
@@ -4195,7 +4195,7 @@ Edit the existing block to match this code; keep unchanged lines:
                             "blur" | "resize" | "pointercancel" | "lostpointercapture"
                         ) =>
                     {
-                        Some(Action::ToolHover(None))
+                        Some(Action::ToolHover())
                     }
                     None if editor.draft.is_some()
                         && !panel.consumed
@@ -4607,7 +4607,7 @@ fn cursor_zoom_holds_the_target_plane_point_in_both_projections_and_frames() {
 fn slop_pan_and_free_canvas_are_css_based_without_document_history() {
     let mut input = Gesture::default();
     input.press_with(1, 2, [10., 20.], true);
-    assert_eq!(input.move_to(1, [13., 23.]), None);
+    assert_eq!(input.move_to(1, [13., 23.]), );
     assert_eq!(
         input.move_to(1, [15., 24.]),
         Some(Motion::Pan([5., 4.]))
@@ -4753,7 +4753,7 @@ fn a_released_miss_uses_release_modifiers_and_new_press_discards_the_old_drag() 
     })
     .unwrap();
     assert_eq!(
-        e.apply(Action::CanvasHit(None)).unwrap(),
+        e.apply(Action::CanvasHit()).unwrap(),
         Change::View
     );
     assert!(e.selected_objects().is_empty());
@@ -4913,7 +4913,7 @@ fn panel_free_fit_contains_every_corner_in_perspective_and_orthographic() {
 fn only_an_unmoved_right_click_repeats_and_cancel_clears_the_request() {
     let mut gesture = Gesture::default();
     gesture.press(1, 2, [0., 0.]);
-    assert_eq!(gesture.release(1, [2., 2.]), None);
+    assert_eq!(gesture.release(1, [2., 2.]), );
     assert!(gesture.take_repeat());
     assert!(!gesture.take_repeat());
     gesture.press(1, 2, [0., 0.]);

@@ -1768,7 +1768,7 @@ fn actual_surface_outline_culls_occluded_selection_and_selected_edge_ink_cannot_
     }
     assert!(opaque > 100);
     scene.clear();
-    renderer.set_scene(&scene, None);
+    renderer.set_scene(&scene, );
     colour_pixels(&mut renderer);
     assert_eq!(renderer.outline_usage()[0], 0);
 }
