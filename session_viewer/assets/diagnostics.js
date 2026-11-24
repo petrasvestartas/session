@@ -39,7 +39,7 @@
         page: location.origin + location.pathname, browser: navigator.userAgent,
         secureContext: isSecureContext, webgpu: !!navigator.gpu,
         viewport: [innerWidth, innerHeight], devicePixelRatio,
-        storage: true, events: [], phases: [], resources: [], liveReloads: 0,
+        storage: true, events: [], phases: [], resources: [], longFrames: [], liveReloads: 0,
     };
 
     function save() {
@@ -108,6 +108,25 @@
             save();
         });
         observer.observe({type: 'resource', buffered: true});
+        const supported = PerformanceObserver.supportedEntryTypes || [];
+        const stallType = supported.includes('long-animation-frame')
+            ? 'long-animation-frame'
+            : supported.includes('longtask') ? 'longtask' : null;
+        if (stallType) {
+            const stalls = new PerformanceObserver(list => {
+                for (const entry of list.getEntries()) {
+                    report.longFrames.push({
+                        type: stallType,
+                        startMs: Math.round(entry.startTime * 10) / 10,
+                        durationMs: Math.round(entry.duration * 10) / 10,
+                        blockingMs: Math.round((entry.blockingDuration ?? Math.max(0, entry.duration - 50)) * 10) / 10,
+                    });
+                }
+                report.longFrames = report.longFrames.slice(-64);
+                save();
+            });
+            stalls.observe({type: stallType, buffered: true});
+        }
     }
     // Use the viewer's adapter request; wgpu currently drops architecture/vendor on WebGPU.
     if (navigator.gpu?.requestAdapter) {

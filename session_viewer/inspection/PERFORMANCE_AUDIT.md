@@ -140,6 +140,19 @@ From [REPOSITORY_INSPECTION.md](REPOSITORY_INSPECTION.md#measured-headless-frame
 
 Conclusions that are measured, not hypothesised: (1) the **ink pass is ~90% of GPU frame time** in every scene; faces are negligible. (2) Opacity 0.95 vs 1 is a real ink cost. (3) Heavy scenes miss 60 Hz at rest and have 37 ms p95 spikes while the drag tier switches in. (4) Load time is the BRep walk on the main thread (H5). Still unmeasured: everything in the browser (H1-H3, H7), see §5.
 
+### 3.5 Milestone M1 5-run reproducible baseline & ink sub-pass breakdown (2026-11-24)
+
+Measured via `python3 tests/native-benchmark.py --runs 5 --frames 60` (`examples/selftest` release build, Vulkan, NVIDIA RTX 4080 Laptop GPU, `900x700`, CPU verified unthrottled at `5,200,000 / 5,200,000` kHz). Values are the **median of 5 run medians** in milliseconds (`PassTimer` splits `ink_pass` into 5 sub-passes only when `VIEWER_GPU_TIMING=1` is set; normal rendering keeps a single `begin_ink` pass):
+
+| Scenario | Wall p50 | Drag p95 | `tiles` | `points` | `faces` | `ink.strokes` | `ink.outlines` | `ink.lanes` | `ink.markers` | `ink.text` | `ink_total` |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| `timber-floor.pb`, rest | 8.40 | — | 0.002 | 0.002 | 0.049 | **7.339** | 0.003 | 0.003 | 0.024 | 0.008 | **7.377** |
+| `timber-floor.pb`, orbit drag | 8.60 | 10.00 | 0.422 | 0.002 | 0.050 | **7.134** | 0.003 | 0.003 | 0.023 | 0.008 | **7.171** |
+| `assets/view_local.yaml`, rest | 18.50 | — | 0.003 | 0.002 | 0.050 | **17.297** | 0.003 | 0.003 | 0.085 | 0.009 | **17.398** |
+| `assets/view_local.yaml`, orbit drag | 24.00 | 29.20 | 0.329 | 0.810 | 0.055 | **21.531** | 0.003 | 0.003 | 0.099 | 0.009 | **21.647** |
+
+**M1 finding (confirms H14):** **`ink.strokes` (`ribbon.wgsl` + `ink_visibility.wgsl`) accounts for 99.4–99.5% of total ink GPU time** (`7.339 / 7.377 ms` on `timber-floor.pb`, `17.297 / 17.398 ms` at rest and `21.531 / 21.647 ms` in tier-0 orbit on `view_local.yaml`). Outlines (`0.003 ms`), vectors/lanes (`0.003 ms`), markers (`0.024–0.099 ms`), and text (`0.008–0.009 ms`) are negligible. During `view_local.yaml` orbit, un-LOD'd point clouds add `0.810 ms` (`points`) and tile binning adds `0.329 ms` (`tiles`). Browser WebGPU timing remains unmeasured on this Linux workstation because local Chrome WebGPU selects a software path that renders black (`AGENT_BRIEF.md §4`); `tests/orbit-benchmark.cjs` (`?inspect=perf`) and `tests/soak.cjs` are implemented and syntax-verified for hardware WebGPU runs.
+
 ### 3.3 Perf-related history (`git log --oneline --grep=perf -i`, viewer-relevant)
 
 | Commit | Date | Subject |

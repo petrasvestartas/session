@@ -1,3 +1,57 @@
+use std::collections::VecDeque;
+
+/// Maximum frames kept in each rolling percentile ring.
+const RING_CAP: usize = 600;
+
+/// CPU wall-clock split of the latest browser redraw, in milliseconds.
+#[derive(Clone, Copy, Debug, Default, PartialEq, serde::Serialize)]
+pub struct CpuSplit {
+    pub setup_ms: f64,  // hidden/size/resize checks before egui
+    pub ui_ms: f64,     // egui layout, tessellation and buffer upload
+    pub render_ms: f64, // State::render total wall time (includes encode_ms)
+    pub encode_ms: f64, // Gpu::encode_frame command encoding time
+}
+
+/// What scheduled a redraw.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum RedrawCause {
+    Hover,
+    Egui,
+    Input,
+    Refine,
+    Pick,
+    Perf,
+    Rebase,
+    AsyncPass,
+    RoughSettle,
+    Scene,
+}
+
+/// Cumulative counts of redraw requests by cause.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, serde::Serialize)]
+pub struct RedrawCauses {
+    pub hover: u64,
+    pub egui: u64,
+    pub input: u64,
+    pub refine: u64,
+    pub pick: u64,
+    pub perf: u64,
+    pub rebase: u64,
+    pub async_pass: u64,
+    pub rough_settle: u64,
+    pub scene: u64,
+}
+
+/// Rolling [p50, p95, p99] distributions over up to `RING_CAP` recent frames, in ms.
+#[derive(Clone, Debug, Default, PartialEq, serde::Serialize)]
+pub struct FrameStats {
+    pub samples: usize,
+    pub gap_ms: Option<[f64; 3]>,
+    pub encode_ms: Option<[f64; 3]>,
+    pub ui_ms: Option<[f64; 3]>,
+    pub completion_ms: Option<[f64; 3]>,
+}
+
 /// Frame timing, the drag quality tiers and the slow-interaction detector.
 pub struct Performance {
     prev_frame: f64,       // time of the last frame, ms
@@ -17,6 +71,12 @@ pub struct Performance {
     slow: bool,            // the run reached SLOW_FRAMES; read once
     completed: std::sync::Arc<std::sync::atomic::AtomicBool>, // GPU finished the first geometry frame
     shown: bool,                                              // a frame with geometry was presented
+    pub cpu: CpuSplit,                                        // latest redraw CPU breakdown
+    pub causes: RedrawCauses,                                 // cumulative redraw causes
+    gaps: VecDeque<f64>,                                      // recent frame-to-frame gaps, ms
+    encodes: VecDeque<f64>,                                   // recent Gpu::encode_frame times, ms
+    uis: VecDeque<f64>,                                       // recent egui frame times, ms
+    completions: VecDeque<f64>, // recent submit->GPU completion latencies, ms
 }
 
 /// Drag frames the tier decision takes the median of.
@@ -68,6 +128,66 @@ impl Performance {
             slow: false,
             completed: std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false)),
             shown: false,
+            cpu: CpuSplit::default(),
+            causes: RedrawCauses::default(),
+            gaps: VecDeque::with_capacity(RING_CAP),
+            encodes: VecDeque::with_capacity(RING_CAP),
+            uis: VecDeque::with_capacity(RING_CAP),
+            completions: VecDeque::with_capacity(RING_CAP),
+        }
+    }
+
+    /// Record one redraw cause.
+    pub fn note_redraw(&mut self, cause: RedrawCause) {
+        match cause {
+            RedrawCause::Hover => self.causes.hover += 1,
+            RedrawCause::Egui => self.causes.egui += 1,
+            RedrawCause::Input => self.causes.input += 1,
+            RedrawCause::Refine => self.causes.refine += 1,
+            RedrawCause::Pick => self.causes.pick += 1,
+            RedrawCause::Perf => self.causes.perf += 1,
+            RedrawCause::Rebase => self.causes.rebase += 1,
+            RedrawCause::AsyncPass => self.causes.async_pass += 1,
+            RedrawCause::RoughSettle => self.causes.rough_settle += 1,
+            RedrawCause::Scene => self.causes.scene += 1,
+        }
+    }
+
+    /// Record the CPU split of one redraw.
+    pub fn record_cpu(
+        &mut self,
+        setup_ms: f64,
+        ui_ms: f64,
+        render_ms: f64,
+        encode_ms: Option<f64>,
+    ) {
+        self.cpu = CpuSplit {
+            setup_ms,
+            ui_ms,
+            render_ms,
+            encode_ms: encode_ms.unwrap_or(0.0),
+        };
+        push_ring(&mut self.uis, ui_ms);
+        if let Some(enc) = encode_ms {
+            push_ring(&mut self.encodes, enc);
+        }
+    }
+
+    /// Record one submit-to-GPU-completion latency in ms.
+    pub fn record_completion(&mut self, ms: f64) {
+        if ms.is_finite() && ms >= 0.0 {
+            push_ring(&mut self.completions, ms);
+        }
+    }
+
+    /// Rolling [p50, p95, p99] percentiles across the recent ring buffers.
+    pub fn stats(&self) -> FrameStats {
+        FrameStats {
+            samples: self.gaps.len(),
+            gap_ms: percentiles(&self.gaps),
+            encode_ms: percentiles(&self.encodes),
+            ui_ms: percentiles(&self.uis),
+            completion_ms: percentiles(&self.completions),
         }
     }
 
@@ -155,6 +275,9 @@ impl Performance {
         self.frames += 1;
         self.draws = draws;
         self.rough = self.drag_tier() > 0;
+        if self.frames > 1 && dt.is_finite() && dt >= 0.0 {
+            push_ring(&mut self.gaps, dt);
+        }
         self.drag(dt);
 
         // smooth the frame time
@@ -170,13 +293,23 @@ impl Performance {
             } else {
                 0.0
             };
+            let stats = self.stats();
+            let gap = stats.gap_ms.unwrap_or([self.frame_ms; 3]);
+            let comp = stats.completion_ms.unwrap_or([0.0; 3]);
             log::info!(
-                "perf: {:.1} fps | {:.2} ms | {} draws | {} objects | tier {} | wasm capacity {:.0} MiB",
+                "perf: {:.1} fps | {:.2} ms | {} draws | {} objects | tier {} | gap p50/p95 {:.1}/{:.1} ms | gpu-done p50/p95 {:.1}/{:.1} ms | ui {:.2} enc {:.2} ms | hover {} | wasm capacity {:.0} MiB",
                 fps,
                 self.frame_ms,
                 draws,
                 objects,
                 self.tier,
+                gap[0],
+                gap[1],
+                comp[0],
+                comp[1],
+                self.cpu.ui_ms,
+                self.cpu.encode_ms,
+                self.causes.hover,
                 heap_mb()
             );
             self.last_log = now;
@@ -552,4 +685,49 @@ fn geometry_submission_is_not_gpu_completion() {
     let flag = performance.completion_flag();
     flag.store(true, std::sync::atomic::Ordering::Relaxed);
     assert!(performance.geometry_complete());
+}
+
+fn push_ring(ring: &mut VecDeque<f64>, value: f64) {
+    if ring.len() == RING_CAP {
+        ring.pop_front();
+    }
+    ring.push_back(value);
+}
+
+fn percentiles(ring: &VecDeque<f64>) -> Option<[f64; 3]> {
+    if ring.is_empty() {
+        return None;
+    }
+    let mut sorted: Vec<f64> = ring.iter().copied().collect();
+    sorted.sort_by(f64::total_cmp);
+    let at = |pct: usize| sorted[(sorted.len() - 1) * pct / 100];
+    Some([at(50), at(95), at(99)])
+}
+
+#[cfg(test)]
+#[test]
+fn percentile_rings_cpu_split_and_redraw_causes_are_bounded() {
+    let mut perf = Performance::new();
+    assert_eq!(perf.stats().gap_ms, None);
+    let t0 = perf.prev_frame;
+    perf.frame(4, 2, t0 + 10.0, false);
+    for i in 1..=700 {
+        perf.frame(4, 2, t0 + 10.0 + f64::from(i) * 10.0, false);
+        perf.record_cpu(0.2, 1.5, 4.0, Some(2.5));
+        perf.record_completion(f64::from(i % 100) + 1.0);
+    }
+    perf.note_redraw(RedrawCause::Hover);
+    perf.note_redraw(RedrawCause::Hover);
+    perf.note_redraw(RedrawCause::Input);
+    let stats = perf.stats();
+    assert_eq!(stats.samples, RING_CAP);
+    assert_eq!(stats.gap_ms, Some([10.0, 10.0, 10.0]));
+    assert_eq!(stats.encode_ms, Some([2.5, 2.5, 2.5]));
+    assert_eq!(stats.ui_ms, Some([1.5, 1.5, 1.5]));
+    let comp = stats.completion_ms.expect("completion percentiles");
+    assert!((comp[0] - 50.0).abs() <= 1.0);
+    assert!((comp[1] - 96.0).abs() <= 1.0);
+    assert!((comp[2] - 100.0).abs() <= 1.0);
+    assert_eq!(perf.causes.hover, 2);
+    assert_eq!(perf.causes.input, 1);
 }

@@ -292,3 +292,10 @@ check requires the local `view_local_*` assets.
 `NO_IDLE_CALLBACK=1 node tests/ambient-lighting.cjs` checks Arctic startup and resource release without `requestIdleCallback`.
 
 `node tests/ambient-motion.cjs` records a 32-frame camera rotation of `view_live` with Arctic enabled. It checks camera continuity and WebGPU errors, and saves frames plus matrices for visual comparison. The ignored native test `rotation_reprojects_ground_shadows_without_erasing_them` measures temporal variation at fixed ground points and retains a spatial-only comparison.
+
+## Performance baseline and soak scripts
+
+- `python3 tests/native-benchmark.py --runs 5 --frames 60` checks CPU frequency scaling and runs the 5-repetition release `selftest` GPU baseline (`timber-floor.pb` and `assets/view_local.yaml`, rest and `VIEWER_FRAMES_ORBIT=2 VIEWER_INTERACT=1`), printing median-of-medians per-pass hardware timestamps including `ink.strokes`, `ink.outlines`, `ink.lanes`, `ink.markers`, `ink.text`, and `ink_total`.
+- `node tests/orbit-benchmark.cjs` runs 5 s bare hover, 5 s right-drag orbit, and 5 s wheel at desktop (`1200×800`) and phone (`412×915` DPR `2.625`) viewports using `?inspect=perf` and `window.viewerFrames`.
+- `node tests/soak.cjs` runs a sustained orbit (`SOAK_SECONDS=600` default) sampling `wasm_capacity_bytes`, `gpu_buffer_capacity_bytes`, `gpu_texture_estimate_bytes`, and `[p50, p95, p99]` frame/completion latencies every 10 s.
+See `docs/benchmarking.md` for full details.

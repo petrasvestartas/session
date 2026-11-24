@@ -62,6 +62,7 @@ nav:
   - Reference:
     - "Architecture": ARCHITECTURE.md
     - "Reading failures": docs/debugging.md
+    - "How to benchmark": docs/benchmarking.md
     - "Small code, bounded work": docs/performance-patterns.md
     - "Using the command line": docs/command-line-walkthrough.md
     - "Ambient occlusion": docs/ssao.md

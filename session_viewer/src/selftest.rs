@@ -530,11 +530,17 @@ pub fn render_scene(files: &[SceneFile], w: u32, h: u32, out: &str) -> String {
         );
 
         if let Some(timer) = gpu.timer.take() {
-            let spans: Vec<String> = timer
-                .medians()
+            let medians = timer.medians();
+            let ink_total: f64 = medians
+                .iter()
+                .filter(|(label, _)| label.starts_with("ink"))
+                .map(|(_, ms)| *ms)
+                .sum();
+            let mut spans: Vec<String> = medians
                 .iter()
                 .map(|(label, ms)| format!("{label} {ms:.3}"))
                 .collect();
+            spans.push(format!("ink_total {ink_total:.3}"));
             println!("gpu ms, median per pass: {}", spans.join(", "));
             let (buffers, textures) = gpu.allocated_bytes();
             let tiles = gpu.arena.tiles.allocated_bytes().0;

@@ -2,11 +2,28 @@
 use crate::State;
 mod source_memory; // register:release
 
-/// Write the viewer state onto the canvas for browser tests.
+/// Write `window.viewerFrames` cheaply, and the full JSON snapshot onto `#canvas` when `?inspect=1`.
 #[cfg(target_arch = "wasm32")]
 pub fn publish(state: &State) {
-    if super::route::query("inspect").as_deref() != Some("1") {
-        return; // only with ?inspect=1
+    let frames = state.gpu.performance.frames;
+    PUBLISHED_FRAMES.with(|last| {
+        if last.get() != frames
+            && let Some(window) = web_sys::window()
+        {
+            last.set(frames);
+            let _ = js_sys::Reflect::set(&window, &"viewerFrames".into(), &(frames as f64).into());
+            if let Some(canvas) = window
+                .document()
+                .and_then(|d| d.get_element_by_id("canvas"))
+            {
+                let _ = canvas.set_attribute("data-viewer-frames", &frames.to_string());
+            }
+        }
+    });
+
+    let inspect = super::route::query("inspect");
+    if !matches!(inspect.as_deref(), Some("1" | "perf")) {
+        return; // only with ?inspect=1 or ?inspect=perf
     }
 
     let Some(window) = web_sys::window() else {
@@ -18,6 +35,21 @@ pub fn publish(state: &State) {
     let Some(canvas) = document.get_element_by_id("canvas") else {
         return;
     };
+    if inspect.as_deref() == Some("perf") {
+        let light = serde_json::json!({
+            "submitted_at_ms": crate::engine::performance::now_ms(),
+            "frames": state.gpu.performance.frames,
+            "draw_calls": state.gpu.performance.draws,
+            "interacting": state.gpu.performance.interacting,
+            "navigation_tier": state.gpu.performance.drag_tier(),
+            "rough": state.gpu.performance.rough(),
+            "cpu_ms": state.gpu.performance.cpu,
+            "frame_stats": state.gpu.performance.stats(),
+            "redraw_causes": state.gpu.performance.causes,
+        });
+        let _ = canvas.set_attribute("data-viewer-inspection", &light.to_string());
+        return;
+    }
     let (buffers, textures) = state.gpu.allocated_bytes();
     let source_memory = SOURCE_MEMORY.with_borrow_mut(|cache| cache.snapshot(&state.scene.docs)); // register:release
     let parent = state.scene.selected;
@@ -72,6 +104,9 @@ pub fn publish(state: &State) {
     snapshot["interacting"] = serde_json::json!(state.gpu.performance.interacting);
     snapshot["navigation_tier"] = serde_json::json!(state.gpu.performance.drag_tier());
     snapshot["rough"] = serde_json::json!(state.gpu.performance.rough());
+    snapshot["cpu_ms"] = serde_json::json!(state.gpu.performance.cpu);
+    snapshot["frame_stats"] = serde_json::json!(state.gpu.performance.stats());
+    snapshot["redraw_causes"] = serde_json::json!(state.gpu.performance.causes);
     snapshot["opacity"] = serde_json::json!(state.gpu.view.opacity);
     snapshot["element_interactions"] = serde_json::json!(state.scene.interactions);
     snapshot["element_attributes"] = serde_json::json!(state.scene.attributes);
@@ -238,6 +273,7 @@ fn kind(geometry: &session_rust::Geometry) -> &'static str {
 
 thread_local! {
     static SOURCE_MEMORY: std::cell::RefCell<source_memory::SourceCache> = Default::default();
+    static PUBLISHED_FRAMES: std::cell::Cell<u64> = const { std::cell::Cell::new(u64::MAX) };
 }
 
 /// The picked entity of the selected sheet, if known.

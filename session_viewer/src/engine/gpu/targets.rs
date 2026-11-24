@@ -199,9 +199,19 @@ impl Targets {
         encoder: &'a mut wgpu::CommandEncoder,
         view: &'a wgpu::TextureView,
     ) -> wgpu::RenderPass<'a> {
-        // at 4x the pass resolves into the canvas here
+        self.begin_ink_part(encoder, view, true)
+    }
+
+    /// Open a sub-pass of the ink pass; `resolve_msaa` resolves into `view` on the final sub-pass.
+    pub fn begin_ink_part<'a>(
+        &'a self,
+        encoder: &'a mut wgpu::CommandEncoder,
+        view: &'a wgpu::TextureView,
+        resolve_msaa: bool,
+    ) -> wgpu::RenderPass<'a> {
+        // at 4x the final pass resolves into the canvas here
         let (target, resolve) = match self.msaa.as_deref() {
-            Some(msaa) => (msaa, Some(view)),
+            Some(msaa) => (msaa, resolve_msaa.then_some(view)),
             None => (view, None),
         };
         encoder.begin_render_pass(&wgpu::RenderPassDescriptor {

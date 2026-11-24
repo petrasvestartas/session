@@ -34,8 +34,12 @@ impl Gpu {
         self.mark(encoder, "faces"); // register:gtao
         // pass 2: ambient occlusion and the outline masks, each pass in turn
         self.each_pass(|pass, g| draws += pass.after_faces(g, encoder, &frame));
+        self.mark(encoder, "after_faces"); // register:gtao
+        let timed_ink = self.timer.is_some();
         draws += self.ink_pass(encoder, view); // pass 3: lines, markers, outlines and text; register:ink
-        self.mark(encoder, "ink"); // register:gtao
+        if !timed_ink {
+            self.mark(encoder, "ink"); // register:gtao
+        }
         self.pending_pick(encoder); // a click waiting: draw the id pass now; register:shell
         draws += self.widget.draw(encoder, view, &self.targets); // gumball on top, own depth; register:gumball
         self.draw_panels(encoder, view); // register:egui
@@ -102,12 +106,42 @@ impl Gpu {
 impl Gpu {
     /// Pass 3: lines, markers, outlines and text over the faces.
     fn ink_pass(&mut self, encoder: &mut wgpu::CommandEncoder, view: &wgpu::TextureView) -> u32 {
-        let mut pass = self.targets.begin_ink(encoder, view);
-        self.scene_list(&mut pass)
+        if self.timer.is_none() {
+            let mut pass = self.targets.begin_ink(encoder, view);
+            return self.scene_list(&mut pass);
+        }
+
+        // Timed breakdown per ink sub-draw; only the final sub-pass resolves MSAA.
+        let mut draws = 0;
+        {
+            let mut pass = self.targets.begin_ink_part(encoder, view, false);
+            draws += self.ink_strokes_part(&mut pass);
+        }
+        self.mark(encoder, "ink.strokes");
+        {
+            let mut pass = self.targets.begin_ink_part(encoder, view, false);
+            draws += self.ink_outlines_part(&mut pass);
+        }
+        self.mark(encoder, "ink.outlines");
+        {
+            let mut pass = self.targets.begin_ink_part(encoder, view, false);
+            draws += self.ink_lanes_part(&mut pass);
+        }
+        self.mark(encoder, "ink.lanes");
+        {
+            let mut pass = self.targets.begin_ink_part(encoder, view, false);
+            draws += self.ink_markers_part(&mut pass);
+        }
+        self.mark(encoder, "ink.markers");
+        {
+            let mut pass = self.targets.begin_ink_part(encoder, view, true);
+            draws += self.text.draw(&mut pass); // register:text
+        }
+        self.mark(encoder, "ink.text");
+        draws
     }
 
-    /// Draws of the ink pass, back to front.
-    fn scene_list(&self, pass: &mut wgpu::RenderPass<'_>) -> u32 {
+    fn ink_strokes_part(&self, pass: &mut wgpu::RenderPass<'_>) -> u32 {
         let v = &self.view;
         let basic = self.frame.binds(&self.objects.group);
         let b = self.frame.binds(self.objects.ink_group());
@@ -117,24 +151,50 @@ impl Gpu {
         draws += self
             .segments
             .draw_unselected(pass, &b, v.show_mesh_edges, v.show_lines);
-        // selected mesh edges now, its curves after the outline
         draws += self
             .segments
             .draw_selected(pass, &b, v.show_mesh_edges, false);
+        draws
+    }
+
+    fn ink_outlines_part(&self, pass: &mut wgpu::RenderPass<'_>) -> u32 {
+        let b = self.frame.binds(self.objects.ink_group());
+        let mut draws = 0;
         for other in &self.passes {
             draws += other.over_ink(self, pass, &b);
         }
-        // selected curves over the outline
-        draws += self.segments.draw_selected(pass, &b, false, v.show_lines);
+        draws
+    }
+
+    fn ink_lanes_part(&self, pass: &mut wgpu::RenderPass<'_>) -> u32 {
+        let v = &self.view;
+        let b = self.frame.binds(self.objects.ink_group());
+        let mut draws = self.segments.draw_selected(pass, &b, false, v.show_lines);
         for lane in &self.registered {
             draws += lane.draw_ink(pass, &b, v);
         }
+        draws
+    }
 
+    fn ink_markers_part(&self, pass: &mut wgpu::RenderPass<'_>) -> u32 {
+        let basic = self.frame.binds(&self.objects.group);
+        let b = self.frame.binds(self.objects.ink_group());
+        let mut draws = 0;
         draws += self.sphere_draws(pass, &b); // register:markers
         draws += self.arena.draw_text(pass, &basic);
         draws += self.dot_draws(pass, &b); // register:markers
         draws += self.control_net.draw_ribbons(pass, &b); // register:shell
         draws += self.controls.draw_dots(pass, &b); // register:shell
+        draws
+    }
+
+    /// Draws of the ink pass, back to front.
+    fn scene_list(&self, pass: &mut wgpu::RenderPass<'_>) -> u32 {
+        let mut draws = 0;
+        draws += self.ink_strokes_part(pass);
+        draws += self.ink_outlines_part(pass);
+        draws += self.ink_lanes_part(pass);
+        draws += self.ink_markers_part(pass);
         draws += self.text.draw(pass); // register:text
         draws
     }

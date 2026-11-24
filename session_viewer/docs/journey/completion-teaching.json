@@ -32,7 +32,7 @@
   {
     "path": "assets/diagnostics.js",
     "owner": "application",
-    "sourceSha256": "11cc770dc67130dad0dda0f7d58ffb87c839e0063ca100e9a509c6273933e13f",
+    "sourceSha256": "7e6dbc253d77f6b0ba51fda4057a206abfb74e8a2176a205d5d7a40e386b3cf2",
     "explanation": {
       "page": "journey/completion-debugging.md",
       "heading": "### Step 1: Browser diagnostics, feedback and `?inspect=1` snapshots",
@@ -1222,7 +1222,7 @@
   {
     "path": "src/app/inspection.rs",
     "owner": "application",
-    "sourceSha256": "01897843f1f53ed9e90646d5e3607b68c691af70e1c84ca5c269319409c119ce",
+    "sourceSha256": "fbbb0ce953df824e261a3062da450c13a3f05cfd42521e6abaef028168a3f5a3",
     "explanation": {
       "page": "journey/completion-debugging.md",
       "heading": "### Step 1: Browser diagnostics, feedback and `?inspect=1` snapshots",
@@ -1392,7 +1392,7 @@
   {
     "path": "src/app/runtime.rs",
     "owner": "application",
-    "sourceSha256": "75ac88ef8360589b09238b005ce9e64b03460f258713b16c20c4520ce74e495c",
+    "sourceSha256": "903db33d8275d900aa62f39caa70107cd0b13ce97e80c99bfc40b2dddfe341db",
     "explanation": {
       "page": "journey/completion-application.md",
       "heading": "### Step 1: Serialize async updates into one `State` owner",
@@ -2632,7 +2632,7 @@
   {
     "path": "src/engine/gpu/pacing.rs",
     "owner": "geometry",
-    "sourceSha256": "9e5916950f6658ad02b28aae1e009cfdc4546c4a4c4ba24c59c9194a7675b427",
+    "sourceSha256": "d434d3912af99a74bd4b80441eb34eb0d627e88cab9948e45f9ce7567d0e9450",
     "explanation": {
       "page": "journey/completion-geometry.md",
       "heading": "### Step 4. Pace submissions and assemble the `3`-object scene (`present.rs`, `pacing.rs`, `geometry.rs`)",
@@ -2692,7 +2692,7 @@
   {
     "path": "src/engine/gpu/render.rs",
     "owner": "geometry",
-    "sourceSha256": "024ab39d6ee379297f209120f510063dd0037cabc69780b9b0afb1a7e67b5921",
+    "sourceSha256": "cf53ae6f0e98ffa777bdbfea290cd42c67350b9eff16e0ac52084b9dd360de2a",
     "explanation": {
       "page": "journey/completion-geometry.md",
       "heading": "### Step 2. Extrude mitered ribbons, `0.30` arrows, planes, grids and backdrop (`ribbon.wgsl`, `arrow.wgsl`, `vector.wgsl`, `plane.wgsl`, `grid.wgsl`, `background.wgsl`)",
@@ -2802,7 +2802,7 @@
   {
     "path": "src/engine/gpu/targets.rs",
     "owner": "geometry",
-    "sourceSha256": "f16908f3fd299e876687d0894374a440820ed713d3adc57689765f9991d2f140",
+    "sourceSha256": "84190b18f940a6dde04be06927324a11d3c8b0d65ef1c65028c07cfc696224b7",
     "explanation": {
       "page": "journey/completion-geometry.md",
       "heading": "### Step 1. Walk meshes, BRep trims and shared `20`-byte arena vertices (`slot_table.wgsl`)",
@@ -2952,7 +2952,7 @@
   {
     "path": "src/engine/performance.rs",
     "owner": "rows",
-    "sourceSha256": "1a3d117f8e09ce3cc2dbfa5a446637e3429616f4cb0f03071e5708a009def7d8",
+    "sourceSha256": "414a40c81356c7966e3bcf14d30a47652d949f8ba1ae7b7b40bf64437297ffa7",
     "explanation": {
       "page": "journey/completion-debugging.md",
       "heading": "### Step 1: Browser diagnostics, feedback and `?inspect=1` snapshots",
@@ -3042,7 +3042,7 @@
   {
     "path": "src/selftest.rs",
     "owner": "application",
-    "sourceSha256": "87131f0c1ddd8bdc620dcd205815f6dd86894aac0df780dce6c393d7fb8cb8fc",
+    "sourceSha256": "3693bc790fa906f4bfb7aef77fb88bb12594b6d9247adbc274ef4c491c6af45a",
     "explanation": {
       "page": "journey/completion-debugging.md",
       "heading": "### Step 2: Headless `selftest` CPU ray oracle and software witnesses",
@@ -3412,7 +3412,7 @@
   {
     "path": "src/state.rs",
     "owner": "application",
-    "sourceSha256": "10a43d8a2db19114bd5fe33cc605ee11791b94a884f681db71bba8a358a1e3db",
+    "sourceSha256": "d67e50e0665c492563e9e471bf6a8bcac323134d5519f9ee851c789243209144",
     "explanation": {
       "page": "journey/completion-application.md",
       "heading": "### Step 1: Serialize async updates into one `State` owner",

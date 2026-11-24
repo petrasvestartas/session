@@ -29,19 +29,15 @@ flowchart LR
 
 Evidence: REPOSITORY_INSPECTION.md §What was run; FEATURE_INVENTORY.md §8-9.
 
-## M1 — Instrumentation and a reproducible baseline (performance, step 1)
+## M1 — Instrumentation and a reproducible baseline (DONE 2026-11-24)
 
 | Field | Content |
 |---|---|
 | Objective | Browser frame data exists; ink cost is broken down; numbers are reproducible per commit. |
 | Existing dependencies | `engine/performance.rs`, `engine/gpu/timing.rs` (`PassTimer`), `engine/gpu/pacing.rs`, `app/runtime.rs`, `app/inspection.rs`, `assets/diagnostics.js`, `examples/selftest` |
-| Files affected | `runtime.rs`, `performance.rs`, `pacing.rs`, `state.rs:289-300,607,670`, `render.rs` (ink sub-marks), `segments.rs:647-675`, `assets/diagnostics.js`, new `tests/orbit-benchmark.cjs`, new `tests/soak.cjs` |
-| Required changes | PERFORMANCE_AUDIT §5 I1-I8: CPU split per redraw, p50/p95/p99 ring, submit→completion latency, long-animation-frame observer, redraw-by-cause counters, cheap `window.viewerFrames` counter (tests stop timing `?inspect=1`), `PassTimer` marks inside the ink pass per sub-draw (ribbon / vector / glyph / text). |
-| Tests | existing `navigation-pacing.cjs`, `visibility-idle.cjs` still pass |
-| Benchmarks | `selftest` rows of PERFORMANCE_AUDIT §3.4 ×5 runs (median of medians); browser baseline D (§5.1): floor fixture + `view_local.yaml`, desktop 1200×800 and phone 412×915, 5 s orbit / hover / wheel |
-| Documentation | PERFORMANCE_AUDIT §3 gains a browser table; a `docs/` page "how to benchmark" replaces hand recipes |
-| Acceptance criteria | One command prints p50/p95 frame gap, completion latency, redraws by cause and ink sub-pass ms for both fixtures |
-| Risks | Low; everything behind `?perf` / `?inspect` / env knobs |
+| Files changed | `src/engine/performance.rs`, `src/engine/gpu/pacing.rs`, `src/engine/gpu/targets.rs`, `src/engine/gpu/render.rs`, `src/selftest.rs`, `src/app/runtime.rs`, `src/state.rs`, `src/app/inspection.rs`, `assets/diagnostics.js`, `tests/native-benchmark.py`, `tests/orbit-benchmark.cjs`, `tests/soak.cjs`, `docs/benchmarking.md`, `mkdocs.yml`, `tests/README.md` |
+| Delivered | 1. Added `CpuSplit` (`setup_ms`, `ui_ms`, `render_ms`, `encode_ms`), 600-frame rolling `[p50, p95, p99]` `FrameStats` (`gap_ms`, `encode_ms`, `ui_ms`, `completion_ms`), and `RedrawCauses` counters (`hover`, `egui`, `input`, `refine`, `pick`, `perf`, `rebase`, `async_pass`, `rough_settle`, `scene`). 2. Added lock-free `AtomicU64` submit→`on_submitted_work_done` latency tracking in `FramePacing`. 3. Added `window.viewerFrames` / `data-viewer-frames` and lightweight `?inspect=perf` JSON so browser benchmarks avoid `source_memory` serialization overhead. 4. Added `PerformanceObserver` (`long-animation-frame` / `longtask`) in `assets/diagnostics.js`. 5. Added `PassTimer`-gated ink sub-pass marks (`ink.strokes`, `ink.outlines`, `ink.lanes`, `ink.markers`, `ink.text`, `ink_total`) leaving normal rendering as one single `begin_ink` pass. 6. Created `tests/native-benchmark.py`, `tests/orbit-benchmark.cjs`, `tests/soak.cjs`, and `docs/benchmarking.md`. |
+| Measured baseline (5 runs × 60 frames, 900×700, 5.20 GHz) | `timber-floor.pb` rest: wall p50 `8.40 ms`, `ink_total` `7.377 ms` (`ink.strokes` **`7.339 ms`** = 99.5%); orbit: wall p50 `8.60 ms` / drag p95 `10.00 ms`, `ink_total` `7.171 ms` (`tiles` `0.422 ms`). `assets/view_local.yaml` rest: wall p50 `18.50 ms`, `ink_total` `17.398 ms` (`ink.strokes` **`17.297 ms`** = 99.4%); orbit: wall p50 `24.00 ms` / drag p95 `29.20 ms`, `ink_total` `21.647 ms` (`ink.strokes` **`21.531 ms`**, `points` `0.810 ms`, `tiles` `0.329 ms`). Browser scripts syntax-checked (`node --check`); live browser WebGPU numbers unverified on this host due to black software WebGPU (`AGENT_BRIEF.md §4`). |
 
 ## M2 — Performance fixes (ranked by evidence)
 

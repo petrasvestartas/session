@@ -46,25 +46,26 @@ pub struct State {
     load_camera: crate::camera::CameraPose, // the view before loading started
     pub scene: Scene,         // the loaded documents
     pub(crate) mode: Option<Box<dyn crate::app::mode::Mode<State>>>,
-    pub needs_frame: bool,        // draw again on the next redraw
-    gpu_stopped: bool,            // failure handled; never submit again
-    pub interacting: bool,        // a drag or pinch is in progress
-    dirty: bool,                  // the picture changed
-    last_frame_ms: f64,           // when the last frame was drawn
-    last_resize_ms: f64,          // when the last resize was applied
-    pub selection: SelectionMode, // object, edge, face or control points
+    pub needs_frame: bool,                  // draw again on the next redraw
+    gpu_stopped: bool,                      // failure handled; never submit again
+    pub interacting: bool,                  // a drag or pinch is in progress
+    dirty: bool,                            // the picture changed
+    last_frame_ms: f64,                     // when the last frame was drawn
+    last_resize_ms: f64,                    // when the last resize was applied
+    pub(crate) last_encode_ms: Option<f64>, // command encoding time of the frame just presented
+    pub selection: SelectionMode,           // object, edge, face or control points
     pub selection_tool: crate::app::selection::SelectionTool, // what a click selects
-    controls: Controls,           // control points of the selected object
-    requested: PickMode,          // what the pending pick looks for
-    pub(crate) additive_selection: bool, // Shift held: add to the selection
-    pub(crate) snap_rotation: bool, // Shift held: the gumball turns by 90 degree steps
-    pub(crate) shift_held: bool,  // Shift held: a selection rectangle adds
-    pub(crate) ctrl_held: bool,   // Ctrl held: a selection rectangle takes out
-    selection_order: Vec<u32>,    // selected rows in pick order
-    highlighted: Vec<u32>,        // rows highlighted, when several are selected
-    pub selection_radius_css: f64, // click tolerance in CSS pixels
-    show_selected_names: bool,    // name label on the selection, `View Names` toggles
-    pub(crate) features: Features, // what each feature keeps, features.rs
+    controls: Controls,                     // control points of the selected object
+    requested: PickMode,                    // what the pending pick looks for
+    pub(crate) additive_selection: bool,    // Shift held: add to the selection
+    pub(crate) snap_rotation: bool,         // Shift held: the gumball turns by 90 degree steps
+    pub(crate) shift_held: bool,            // Shift held: a selection rectangle adds
+    pub(crate) ctrl_held: bool,             // Ctrl held: a selection rectangle takes out
+    selection_order: Vec<u32>,              // selected rows in pick order
+    highlighted: Vec<u32>,                  // rows highlighted, when several are selected
+    pub selection_radius_css: f64,          // click tolerance in CSS pixels
+    show_selected_names: bool,              // name label on the selection, `View Names` toggles
+    pub(crate) features: Features,          // what each feature keeps, features.rs
 }
 
 impl State {
@@ -91,6 +92,7 @@ impl State {
             dirty: true,
             last_frame_ms: 0.0,
             last_resize_ms: f64::NEG_INFINITY,
+            last_encode_ms: None,
             selection: SelectionMode::Object,
             selection_tool: crate::app::selection::SelectionTool::default(),
             controls: Controls::default(),
@@ -151,6 +153,9 @@ impl State {
             self.scene.docs.len(),
             heap_mb()
         );
+        self.gpu
+            .performance
+            .note_redraw(crate::engine::performance::RedrawCause::Scene);
         self.touch();
     }
 
@@ -169,6 +174,9 @@ impl State {
         self.scene.clear(&mut self.gpu);
         self.place_gizmo(None); // register:editing
         self.refresh_layers(); // register:panel
+        self.gpu
+            .performance
+            .note_redraw(crate::engine::performance::RedrawCause::Scene);
         self.touch();
     }
 
@@ -603,6 +611,11 @@ impl State {
             || self.features.pending_split.is_some();
         if !interacting && !editing && !self.gpu.view.spin {
             let (refining, changed) = self.scene.refine_display(&mut self.gpu, &self.camera);
+            if refining || changed {
+                self.gpu
+                    .performance
+                    .note_redraw(crate::engine::performance::RedrawCause::Refine);
+            }
             self.needs_frame |= refining;
             self.dirty |= changed;
             if changed {
@@ -630,6 +643,26 @@ impl State {
             }),
             now_ms,
         };
+        if rebase.moved || rebase.pending {
+            self.gpu
+                .performance
+                .note_redraw(crate::engine::performance::RedrawCause::Rebase);
+        }
+        if self.gpu.view.perf || self.gpu.view.spin {
+            self.gpu
+                .performance
+                .note_redraw(crate::engine::performance::RedrawCause::Perf);
+        }
+        if self.gpu.ambient_pending() || self.gpu.visibility_pending() {
+            self.gpu
+                .performance
+                .note_redraw(crate::engine::performance::RedrawCause::AsyncPass);
+        }
+        if self.gpu.performance.rough() && !interacting {
+            self.gpu
+                .performance
+                .note_redraw(crate::engine::performance::RedrawCause::RoughSettle);
+        }
         self.dirty |= rebase.moved
             || self.gpu.view.perf
             || self.gpu.view.spin
@@ -645,6 +678,7 @@ impl State {
             let gap = now_ms - self.last_frame_ms; // time since the last frame
             self.last_frame_ms = now_ms;
             let drawn = self.gpu.present(&input); // encode time, None when the frame was dropped
+            self.last_encode_ms = drawn;
 
             // Slow navigation already uses temporary ink/outline tiers. Keep the chosen
             // raster resolution and MSAA: a drag must not permanently blur the resting view.
@@ -746,6 +780,9 @@ impl State {
             .pick
             .configure(mode, self.selection_radius_css, scale);
         self.gpu.pick.request(x, y);
+        self.gpu
+            .performance
+            .note_redraw(crate::engine::performance::RedrawCause::Pick);
         self.needs_frame = true;
     }
 
@@ -772,12 +809,16 @@ impl State {
         crate::app::feedback::status(message);
     }
 
-    /// The `?perf=1` line: frame number, gap, encode time, heap.
+    /// The `?perf=1` line: frame number, gap, p95, UI/encode CPU split, heap.
     #[cfg(target_arch = "wasm32")]
     fn perf_line(&self, gap_ms: f64, encode_ms: f64) {
+        let stats = self.gpu.performance.stats();
+        let p95 = stats.gap_ms.map_or(gap_ms, |g| g[1]);
+        let done_p95 = stats.completion_ms.map_or(0.0, |c| c[1]);
         let line = format!(
-            "f{} gap {gap_ms:.0} enc {encode_ms:.1} ms wasm capacity {:.0} MiB",
+            "f{} gap {gap_ms:.0} (p95 {p95:.0}) gpu {done_p95:.1} ui {:.1} enc {encode_ms:.1} ms wasm {:.0} MiB",
             self.gpu.performance.frames,
+            self.gpu.performance.cpu.ui_ms,
             heap_mb()
         );
         crate::engine::performance::perf_line(&line);

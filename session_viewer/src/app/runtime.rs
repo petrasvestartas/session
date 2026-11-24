@@ -1,7 +1,7 @@
-use crate::{app, camera, State};
+use crate::app::scene::FileDoc;
 #[cfg(target_arch = "wasm32")]
 use crate::engine;
-use crate::app::scene::FileDoc;
+use crate::{State, app, camera};
 
 #[cfg(all(target_arch = "wasm32", not(feature = "tutorial")))]
 use wasm_bindgen::prelude::*;
@@ -212,9 +212,16 @@ impl ApplicationHandler<Msg> for App {
                 false
             }
             WindowEvent::RedrawRequested => {
-                if page_hidden() || desired_canvas_size().is_none() {
+                if let Some(ms) = state.gpu.pacing.take_completion_ms() {
+                    state.gpu.performance.record_completion(ms);
+                }
+                let t_start = engine::performance::now_ms();
+                if page_hidden() {
                     return;
                 }
+                let Some(canvas_size) = desired_canvas_size() else {
+                    return;
+                };
 
                 if !state.gpu.pacing.ready() {
                     state.needs_frame = false;
@@ -222,29 +229,38 @@ impl ApplicationHandler<Msg> for App {
                 }
 
                 // resize first; a resize not ready yet holds the frame
-                let held = match desired_canvas_size() {
-                    Some((w, h)) if (w, h) != (state.gpu.config.width, state.gpu.config.height) => {
-                        !state.resize(w, h)
-                    }
-                    _ => false,
+                let held = if canvas_size != (state.gpu.config.width, state.gpu.config.height) {
+                    !state.resize(canvas_size.0, canvas_size.1)
+                } else {
+                    false
                 };
 
                 if held {
                     state.needs_frame = true;
                 } else {
+                    let t_ui = engine::performance::now_ms();
                     // panels lay out, then the scene draws; a deck has only its two DOM arrows
                     let repaint = if state.mode.is_some() {
                         self.ui.as_mut().is_some_and(|ui| ui.mode_frame(state))
                     } else {
                         self.ui.as_mut().is_some_and(|ui| ui.frame(state)) // register:egui
                     };
+                    let t_render = engine::performance::now_ms();
                     state.render();
+                    let t_done = engine::performance::now_ms();
+                    let encode = state.last_encode_ms.take();
+                    state.gpu.performance.record_cpu(
+                        t_ui - t_start,
+                        t_render - t_ui,
+                        t_done - t_render,
+                        encode,
+                    );
                     repaint_if(state, repaint); // register:egui
                     // Include UI uploads and pick work in the same completion fence.
                     state
                         .gpu
                         .pacing
-                        .submitted(&state.gpu.ctx.queue, state.window.clone());
+                        .submitted(&state.gpu.ctx.queue, state.window.clone(), t_done);
                 }
 
                 false
@@ -265,7 +281,9 @@ impl ApplicationHandler<Msg> for App {
                 let scale = state.window.scale_factor();
                 let now = engine::performance::now_ms();
                 let mut mode = state.mode.take();
-                let used = mode.as_mut().is_some_and(|mode| mode.pointer(&other, scale, now, state));
+                let used = mode
+                    .as_mut()
+                    .is_some_and(|mode| mode.pointer(&other, scale, now, state));
                 state.mode = mode;
                 used
             }
@@ -273,6 +291,10 @@ impl ApplicationHandler<Msg> for App {
         };
 
         if changed {
+            state
+                .gpu
+                .performance
+                .note_redraw(engine::performance::RedrawCause::Input);
             state.touch();
         }
 
@@ -458,6 +480,15 @@ impl App {
         }
 
         if repaint {
+            let cause = if matches!(event, WindowEvent::CursorMoved { .. })
+                && !state.interacting
+                && !self.input.tool_held()
+            {
+                engine::performance::RedrawCause::Hover
+            } else {
+                engine::performance::RedrawCause::Egui
+            };
+            state.gpu.performance.note_redraw(cause);
             state.request_frame();
         }
 
@@ -499,6 +530,10 @@ impl App {
 #[cfg(target_arch = "wasm32")]
 fn repaint_if(state: &mut State, repaint: bool) {
     if repaint {
+        state
+            .gpu
+            .performance
+            .note_redraw(engine::performance::RedrawCause::Egui);
         state.request_frame();
     }
 }
