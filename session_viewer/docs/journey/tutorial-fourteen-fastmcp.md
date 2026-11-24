@@ -31,7 +31,7 @@ Owned files in build order (`10` files):
 
 ### Step 1 · `viewer-core/src/command/host.rs`
 
-`viewer-core/src/command/host.rs` defines `CommandHost` and the pure-Rust `HeadlessHost`, `src/state/host.rs` implements `CommandHost` for `State` over one authoritative `SelectionState`, and `viewer-core/src/command/headless_tests.rs` executes all `86` registered specs in `REGISTRY` natively without a window, `egui` or GPU. Spanning `1830` lines, this module stays free of duplicate state by exposing `ViewFlag`, `DisplaySettings`, `SelectionState`, `selected_rows` without introducing UI/GPU coupling cycles. Spanning `1830` lines, this module stays free of duplicate state by exposing `ViewFlag`, `DisplaySettings`, `SelectionState`, `selected_rows` without introducing UI/GPU coupling cycles.
+`viewer-core/src/command/host.rs` (1830 lines) defines `enum ViewFlag`, `struct DisplaySettings`, `struct SelectionState`, `selected_rows()`, `ordered_rows()`. It operates purely on CPU data structures and `GpuSink` rows so `viewer-core` stays decoupled from `wgpu` and `egui`.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/command/host.rs"
@@ -39,7 +39,7 @@ Owned files in build order (`10` files):
 
 ### Step 2 · `src/state/host.rs`
 
-`viewer-core/src/command/host.rs` defines `CommandHost` and the pure-Rust `HeadlessHost`, `src/state/host.rs` implements `CommandHost` for `State` over one authoritative `SelectionState`, and `viewer-core/src/command/headless_tests.rs` executes all `86` registered specs in `REGISTRY` natively without a window, `egui` or GPU. Spanning `566` lines, this module stays free of duplicate state by wiring internal module helpers without introducing UI/GPU coupling cycles. Spanning `566` lines, this module stays free of duplicate state by wiring internal module helpers without introducing UI/GPU coupling cycles.
+`src/state/host.rs` (566 lines) implements internal state and helper routines for `state`. It keeps browser event routing and scene mutations synchronized without redundant redraws.
 
 ```rust
 --8<-- "session_viewer/src/state/host.rs"
@@ -47,7 +47,7 @@ Owned files in build order (`10` files):
 
 ### Step 3 · `viewer-core/src/command/headless_tests.rs`
 
-`viewer-core/src/command/host.rs` defines `CommandHost` and the pure-Rust `HeadlessHost`, `src/state/host.rs` implements `CommandHost` for `State` over one authoritative `SelectionState`, and `viewer-core/src/command/headless_tests.rs` executes all `86` registered specs in `REGISTRY` natively without a window, `egui` or GPU. Spanning `321` lines, this module stays free of duplicate state by wiring internal module helpers and verified by `headless_host_executes_every_registered_verb_without_gpu_or_window`. Spanning `321` lines, this module stays free of duplicate state by wiring internal module helpers and verified by `headless_host_executes_every_registered_verb_without_gpu_or_window`.
+`viewer-core/src/command/headless_tests.rs` (321 lines) houses regression tests `headless_host_executes_every_registered_verb_without_gpu_or_window`. It verified by `cargo xtest` (`headless_host_executes_every_registered_verb_without_gpu_or_window`).
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/command/headless_tests.rs"
@@ -55,7 +55,7 @@ Owned files in build order (`10` files):
 
 ### Step 4 · `viewer-core/src/op.rs`
 
-`viewer-core/src/op.rs` defines the serde-serializable `Op` API (`Request`, `Response`, `Reply`, `OpError`, `ObjectRef`, `LayerRef` and `execute`) shared by typed command verbs, browser `execute_op`, the native CLI and the Python FastMCP server. Spanning `3397` lines, this module stays free of duplicate state by exposing `Request`, `Response`, `Reply`, `ErrorCode` and verified by `every_catalog_example_deserializes_as_valid_op` (+3 more tests). Spanning `3397` lines, this module stays free of duplicate state by exposing `Request`, `Response`, `Reply`, `ErrorCode` and verified by `every_catalog_example_deserializes_as_valid_op` (+3 more tests).
+`viewer-core/src/op.rs` defines the serde-serializable `Op` API (`Request`, `Response`, `Reply`, `OpError`, `ObjectRef`, `LayerRef` and `execute`) shared by typed command verbs, browser `execute_op`, the native CLI and the Python FastMCP server.
 
 ~~~~rust
 --8<-- "session_viewer/viewer-core/src/op.rs"

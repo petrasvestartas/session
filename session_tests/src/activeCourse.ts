@@ -7,11 +7,17 @@ export interface ActiveSubject {
   acceptance: 'pending' | 'accepted';
   review?: {path: string; sha256: string};
 }
+export interface ActiveTutorial {
+  id: string;
+  page: string;
+  chapters: string[];
+}
 export interface ActiveCourse {
   version: 1;
   status: 'incomplete';
   historicalManifest: string;
   subjects: ActiveSubject[];
+  tutorials?: ActiveTutorial[];
 }
 
 export function activeCourse(value: ActiveCourse): ActiveCourse {
@@ -35,6 +41,20 @@ export function activeCourse(value: ActiveCourse): ActiveCourse {
       pages.add(page);
     }
     seen.add(subject.id);
+  }
+  if (value.tutorials) {
+    if (!value.tutorials.length) throw Error('Empty tutorials route');
+    const seenIds = new Set<string>(), tutorialPages = new Set<string>();
+    for (const tutorial of value.tutorials) {
+      if (!/^[a-z0-9-]+$/.test(tutorial.id) || seenIds.has(tutorial.id))
+        throw Error(`Invalid or duplicate tutorial: ${tutorial.id}`);
+      seenIds.add(tutorial.id);
+      for (const page of [tutorial.page, ...tutorial.chapters]) {
+        if (!/^journey\/[a-z-]+\.md$/.test(page) || tutorialPages.has(page))
+          throw Error(`Invalid or duplicate tutorial page: ${page}`);
+        tutorialPages.add(page);
+      }
+    }
   }
   return value;
 }

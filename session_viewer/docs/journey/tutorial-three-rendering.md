@@ -40,7 +40,7 @@ Owned files in build order (`19` files):
 
 ### Step 1 · `build.rs`
 
-Create `build.rs` at the crate root. `build.rs` expands `#include "file.wgsl"` directives once per shader, rejects `/*` block comments, strips `//` comments and redundant whitespace, and writes minified `.wgsl` sources into `OUT_DIR/shaders/` for `src/lib.rs`'s `shader!()` macro: Spanning `61` lines, this module stays free of duplicate state by wiring internal module helpers without introducing UI/GPU coupling cycles. Spanning `61` lines, this module stays free of duplicate state by wiring internal module helpers without introducing UI/GPU coupling cycles.
+`build.rs` (61 lines) implements internal state and helper routines for `session_viewer`. It keeps browser event routing and scene mutations synchronized without redundant redraws.
 
 ```rust
 --8<-- "session_viewer/build.rs"
@@ -48,7 +48,7 @@ Create `build.rs` at the crate root. `build.rs` expands `#include "file.wgsl"` d
 
 ### Step 2 · `src/engine/pipelines/mod.rs`
 
-`src/engine/gpu/hull.rs`, `src/engine/gpu/instance.rs`, `src/engine/gpu/objects.rs` and `src/engine/pipelines/mod.rs` re-export narrow public types (`Hull`, `Instance`, `ObjectRows`, `Layouts`, `Cache`) that Tutorial 7 extends additively. Spanning `7` lines, this module stays free of duplicate state by wiring internal module helpers without introducing UI/GPU coupling cycles. Spanning `7` lines, this module stays free of duplicate state by wiring internal module helpers without introducing UI/GPU coupling cycles.
+`src/engine/pipelines/mod.rs` (7 lines) coordinates submodules `bindings`, `layouts`, `core`, `geometry`. It keeps browser event routing and scene mutations synchronized without redundant redraws.
 
 ```rust
 --8<-- "session_viewer/src/engine/pipelines/mod.rs"
@@ -56,7 +56,7 @@ Create `build.rs` at the crate root. `build.rs` expands `#include "file.wgsl"` d
 
 ### Step 3 · `src/engine/pipelines/bindings.rs`
 
-`src/engine/pipelines/bindings.rs` constructs typed uniform, read-only storage and `2D`/multisampled texture `BindGroupLayoutEntry` descriptors without allocating GPU memory. Spanning `36` lines, this module stays free of duplicate state by exposing `buffer_entry`, `texture_entry` without introducing UI/GPU coupling cycles. Spanning `36` lines, this module stays free of duplicate state by exposing `buffer_entry`, `texture_entry` without introducing UI/GPU coupling cycles.
+`src/engine/pipelines/bindings.rs` constructs typed uniform, read-only storage and `2D`/multisampled texture `BindGroupLayoutEntry` descriptors without allocating GPU memory.
 
 ```rust
 --8<-- "session_viewer/src/engine/pipelines/bindings.rs"
@@ -64,7 +64,7 @@ Create `build.rs` at the crate root. `build.rs` expands `#include "file.wgsl"` d
 
 ### Step 4 · `src/engine/pipelines/layouts.rs`
 
-`src/engine/pipelines/layouts.rs` assembles `Layouts`: camera `mvp` (`@group(0)`), `LineUniform` + `ClipUniform` (`@group(1)`), and `instances` + `translations` (`@group(2)`), plus depth/ID/tile bindings for ink visibility. Spanning `199` lines, this module stays free of duplicate state by exposing `Layouts` without introducing UI/GPU coupling cycles. Spanning `199` lines, this module stays free of duplicate state by exposing `Layouts` without introducing UI/GPU coupling cycles.
+`src/engine/pipelines/layouts.rs` assembles `Layouts`: camera `mvp` (`@group(0)`), `LineUniform` + `ClipUniform` (`@group(1)`), and `instances` + `translations` (`@group(2)`), plus depth/ID/tile bindings for ink visibility.
 
 ```rust
 --8<-- "session_viewer/src/engine/pipelines/layouts.rs"
@@ -72,7 +72,7 @@ Create `build.rs` at the crate root. `build.rs` expands `#include "file.wgsl"` d
 
 ### Step 5 · `src/engine/pipelines/core.rs`
 
-`src/engine/pipelines/core.rs` wraps shaders and pipelines in `Lazy<T>` (`Rc<LazyCell<...>>`) inside `Cache`, keying render pipelines by entry points, layouts, topology, sample count, target format and `CLIPPING` specialization so unused variants never compile. Spanning `587` lines, this module stays free of duplicate state by exposing `count_pipeline`, `count_shader`, `created`, `Lazy` without introducing UI/GPU coupling cycles. Spanning `587` lines, this module stays free of duplicate state by exposing `count_pipeline`, `count_shader`, `created`, `Lazy` without introducing UI/GPU coupling cycles.
+`src/engine/pipelines/core.rs` wraps shaders and pipelines in `Lazy<T>` (`Rc<LazyCell<...>>`) inside `Cache`, keying render pipelines by entry points, layouts, topology, sample count, target format and `CLIPPING` specialization so unused variants never compile.
 
 ```rust
 --8<-- "session_viewer/src/engine/pipelines/core.rs"
@@ -80,7 +80,7 @@ Create `build.rs` at the crate root. `build.rs` expands `#include "file.wgsl"` d
 
 ### Step 6 · `src/engine/pipelines/geometry.rs`
 
-`src/engine/pipelines/geometry.rs` binds `GpuVertex` (`20 B` stride: `pos: [f32; 3]`, `oct32` normal `u32`, `rgba8` `u32`) to arena pipelines and includes the adapter-gated lazy-compilation test verifying `1×`/`4×` MSAA target reuse without redundant shader builds, while `src/engine/gpu/sink.rs` implements `viewer_core::GpuSink` on `Gpu` so `Scene` flushes staged uploads, patches and compactions without depending on `wgpu`. Spanning `71` lines, this module stays free of duplicate state by exposing `vertex_layout` without introducing UI/GPU coupling cycles. Spanning `71` lines, this module stays free of duplicate state by exposing `vertex_layout` without introducing UI/GPU coupling cycles.
+`src/engine/pipelines/geometry.rs` (71 lines) defines `vertex_layout()`. It keeps browser event routing and scene mutations synchronized without redundant redraws.
 
 ```rust
 --8<-- "session_viewer/src/engine/pipelines/geometry.rs"
@@ -88,7 +88,7 @@ Create `build.rs` at the crate root. `build.rs` expands `#include "file.wgsl"` d
 
 ### Step 7 · `src/shaders/scene.wgsl`
 
-1. **`src/shaders/scene.wgsl`** mirrors the `112 B` `Instance` and `80 B` `LineUniform` structs, resolves selection/tint/edge colours, offsets coplanar contact layers along the view ray (`depth_layer`), and places vertices via `place(i, p) = (instances[i].model * vec4(p, 1.0)).xyz + translations[i].xyz`: Keep struct field offsets and `@group`/`@binding` indices synchronized with the Rust `bytemuck` mirrors in `cargo xtest`; this `144`-line shader defines shared WGSL helper functions and uniform structs compiled directly through `build.rs` into `OUT_DIR`. Keep struct field offsets and `@group`/`@binding` indices synchronized with the Rust `bytemuck` mirrors in `cargo xtest`; this `144`-line shader defines shared WGSL helper functions and uniform structs compiled directly through `build.rs` into `OUT_DIR`.
+1. **`src/shaders/scene.wgsl`** mirrors the `112 B` `Instance` and `80 B` `LineUniform` structs, resolves selection/tint/edge colours, offsets coplanar contact layers along the view ray (`depth_layer`), and places vertices via `place(i, p) = (instances[i].model * vec4(p, 1.0)).xyz + translations[i].xyz`.
 
 ```wgsl
 --8<-- "session_viewer/src/shaders/scene.wgsl"
@@ -96,7 +96,7 @@ Create `build.rs` at the crate root. `build.rs` expands `#include "file.wgsl"` d
 
 ### Step 8 · `src/shaders/clip.wgsl`
 
-5. **`src/shaders/clip.wgsl`** declares the `448 B` `ClipUniform` (`6` world/screen section planes, hatch numerators/denominators, `CLIP_OFFSETS` for `4×` MSAA, scale-aware `CLIP_SLACK = 2^-17` for faces, `8`-epsilon dot-product rounding for on-plane ink, and `override CLIPPING: bool`): Keep struct field offsets and `@group`/`@binding` indices synchronized with the Rust `bytemuck` mirrors in `cargo xtest`; this `188`-line shader defines shared WGSL helper functions and uniform structs compiled directly through `build.rs` into `OUT_DIR`. Keep struct field offsets and `@group`/`@binding` indices synchronized with the Rust `bytemuck` mirrors in `cargo xtest`; this `188`-line shader defines shared WGSL helper functions and uniform structs compiled directly through `build.rs` into `OUT_DIR`.
+5. **`src/shaders/clip.wgsl`** declares the `448 B` `ClipUniform` (`6` world/screen section planes, hatch numerators/denominators, `CLIP_OFFSETS` for `4×` MSAA, scale-aware `CLIP_SLACK = 2^-17` for faces, `8`-epsilon dot-product rounding for on-plane ink, and `override CLIPPING: bool`).
 
 ```wgsl
 --8<-- "session_viewer/src/shaders/clip.wgsl"
@@ -104,7 +104,7 @@ Create `build.rs` at the crate root. `build.rs` expands `#include "file.wgsl"` d
 
 ### Step 9 · `src/shaders/physical.wgsl`
 
-3. **`src/shaders/physical.wgsl`** splits `32`-bit triangle IDs across two `16`-bit halves (`rg16uint`) alongside colour and `(object, subobject)` pick outputs because WebGPU forbids `4×` MSAA on `r32uint` attachments: Keep struct field offsets and `@group`/`@binding` indices synchronized with the Rust `bytemuck` mirrors in `cargo xtest`; this `16`-line shader defines shared WGSL helper functions and uniform structs compiled directly through `build.rs` into `OUT_DIR`. Keep struct field offsets and `@group`/`@binding` indices synchronized with the Rust `bytemuck` mirrors in `cargo xtest`; this `16`-line shader defines shared WGSL helper functions and uniform structs compiled directly through `build.rs` into `OUT_DIR`.
+3. **`src/shaders/physical.wgsl`** splits `32`-bit triangle IDs across two `16`-bit halves (`rg16uint`) alongside colour and `(object, subobject)` pick outputs because WebGPU forbids `4×` MSAA on `r32uint` attachments.
 
 ```wgsl
 --8<-- "session_viewer/src/shaders/physical.wgsl"
@@ -112,7 +112,7 @@ Create `build.rs` at the crate root. `build.rs` expands `#include "file.wgsl"` d
 
 ### Step 10 · `src/shaders/normals.wgsl`
 
-2. **`src/shaders/normals.wgsl`** transforms normals by the cofactor inverse-transpose matrix (preserving perpendicularity under non-uniform scale and flipping sign when $\det(\mathbf{M}) < 0$) and decodes octahedral `16`-bit and `32`-bit normals while reserving `0x80008000` for absent normals: Keep struct field offsets and `@group`/`@binding` indices synchronized with the Rust `bytemuck` mirrors in `cargo xtest`; this `59`-line shader defines shared WGSL helper functions and uniform structs compiled directly through `build.rs` into `OUT_DIR`. Keep struct field offsets and `@group`/`@binding` indices synchronized with the Rust `bytemuck` mirrors in `cargo xtest`; this `59`-line shader defines shared WGSL helper functions and uniform structs compiled directly through `build.rs` into `OUT_DIR`.
+2. **`src/shaders/normals.wgsl`** transforms normals by the cofactor inverse-transpose matrix (preserving perpendicularity under non-uniform scale and flipping sign when $\det(\mathbf{M}) < 0$) and decodes octahedral `16`-bit and `32`-bit normals while reserving `0x80008000` for absent normals.
 
 ```wgsl
 --8<-- "session_viewer/src/shaders/normals.wgsl"
@@ -120,7 +120,7 @@ Create `build.rs` at the crate root. `build.rs` expands `#include "file.wgsl"` d
 
 ### Step 11 · `src/shaders/projected_triangle.wgsl`
 
-4. **`src/shaders/projected_triangle.wgsl`** defines the `96 B` `ProjectedTriangle` screen-space record (`edge0..3` inward line equations, reference point, linear depth gradient and pixel bounds) and evaluates exact point-in-triangle depth across at most `262,144` adaptive screen tiles: Keep struct field offsets and `@group`/`@binding` indices synchronized with the Rust `bytemuck` mirrors in `cargo xtest`; this `52`-line shader defines shared WGSL helper functions and uniform structs compiled directly through `build.rs` into `OUT_DIR`. Keep struct field offsets and `@group`/`@binding` indices synchronized with the Rust `bytemuck` mirrors in `cargo xtest`; this `52`-line shader defines shared WGSL helper functions and uniform structs compiled directly through `build.rs` into `OUT_DIR`.
+4. **`src/shaders/projected_triangle.wgsl`** defines the `96 B` `ProjectedTriangle` screen-space record (`edge0..3` inward line equations, reference point, linear depth gradient and pixel bounds) and evaluates exact point-in-triangle depth across at most `262,144` adaptive screen tiles.
 
 ```wgsl
 --8<-- "session_viewer/src/shaders/projected_triangle.wgsl"
@@ -128,7 +128,7 @@ Create `build.rs` at the crate root. `build.rs` expands `#include "file.wgsl"` d
 
 ### Step 12 · `src/shaders/ink_visibility.wgsl`
 
-3. **`src/shaders/ink_visibility.wgsl`** carries neighbour depth along verified planar surfaces (`ink_pair_planar`) and adds `ink_sag_slack(sag, gradient)` when testing tile triangles so curved BRep edges rising above grazing facets stay unbroken while rear edges disappear cleanly: Keep struct field offsets and `@group`/`@binding` indices synchronized with the Rust `bytemuck` mirrors in `cargo xtest`; this `459`-line shader defines shared WGSL helper functions and uniform structs after `#include` expansion of `projected_triangle.wgsl`. Keep struct field offsets and `@group`/`@binding` indices synchronized with the Rust `bytemuck` mirrors in `cargo xtest`; this `459`-line shader defines shared WGSL helper functions and uniform structs after `#include` expansion of `projected_triangle.wgsl`.
+3. **`src/shaders/ink_visibility.wgsl`** carries neighbour depth along verified planar surfaces (`ink_pair_planar`) and adds `ink_sag_slack(sag, gradient)` when testing tile triangles so curved BRep edges rising above grazing facets stay unbroken while rear edges disappear cleanly.
 
 ```wgsl
 --8<-- "session_viewer/src/shaders/ink_visibility.wgsl"
@@ -136,7 +136,7 @@ Create `build.rs` at the crate root. `build.rs` expands `#include "file.wgsl"` d
 
 ### Step 13 · `src/engine/gpu/lane.rs`
 
-`src/engine/gpu/lane.rs` defines `Lane` (`reset` vs `release`, `retarget`, `append`, `draw`, `bytes`) and `RowLane` (`Registered` table descriptors retiring edited rows to the hidden sink instead of shifting offsets): Spanning `80` lines, this module stays free of duplicate state by exposing `Lane`, `RowLane`, `Registered`, `REGISTRY` without introducing UI/GPU coupling cycles. Spanning `80` lines, this module stays free of duplicate state by exposing `Lane`, `RowLane`, `Registered`, `REGISTRY` without introducing UI/GPU coupling cycles.
+`src/engine/gpu/lane.rs` defines `Lane` (`reset` vs `release`, `retarget`, `append`, `draw`, `bytes`) and `RowLane` (`Registered` table descriptors retiring edited rows to the hidden sink instead of shifting offsets).
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/lane.rs"
@@ -144,7 +144,7 @@ Create `build.rs` at the crate root. `build.rs` expands `#include "file.wgsl"` d
 
 ### Step 14 · `src/engine/gpu/pass.rs`
 
-Defines `Pass` lifecycle hooks (`PASSES`: instancing, clipping, SSAO, outlines), swapping each pass with `Nothing` during mutable `Gpu` borrows. Spanning `153` lines, this module stays free of duplicate state by exposing `Frame`, `Pass`, `PASSES`, `Nothing` without introducing UI/GPU coupling cycles. Spanning `153` lines, this module stays free of duplicate state by exposing `Frame`, `Pass`, `PASSES`, `Nothing` without introducing UI/GPU coupling cycles.
+Defines `Pass` lifecycle hooks (`PASSES`: instancing, clipping, SSAO, outlines), swapping each pass with `Nothing` during mutable `Gpu` borrows.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/pass.rs"
@@ -152,7 +152,7 @@ Defines `Pass` lifecycle hooks (`PASSES`: instancing, clipping, SSAO, outlines),
 
 ### Step 15 · `src/engine/gpu/render.rs`
 
-Encodes one frame in strict order: pass prep + triangle tiles + splats -> backdrop, caps, faces & splat resolve -> SSAO & outlines -> ink, lanes, markers, text & gizmo. Spanning `552` lines, this module stays free of duplicate state by exposing `encode_frame`, `backdrop_list`, `point_pass`, `id_pass` and verified by `only_stroke_picks_read_the_tables`. Spanning `552` lines, this module stays free of duplicate state by exposing `encode_frame`, `backdrop_list`, `point_pass`, `id_pass` and verified by `only_stroke_picks_read_the_tables`.
+Encodes one frame in strict order: pass prep + triangle tiles + splats -> backdrop, caps, faces & splat resolve -> SSAO & outlines -> ink, lanes, markers, text & gizmo.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/render.rs"
@@ -160,7 +160,7 @@ Encodes one frame in strict order: pass prep + triangle tiles + splats -> backdr
 
 ### Step 16 · `src/engine/gpu/backdrop.rs`
 
-Renders the fullscreen background triangle and anchor-rebased `f64` construction grid without rebuilding vertex buffers on pan/orbit. Spanning `224` lines, this module stays free of duplicate state by exposing `SHADERS`, `BackdropLane`, `set_grid_frame`, `rebase` and verified by `grid_uniform_keeps_far_world_fractions_across_anchor_returns`. Spanning `224` lines, this module stays free of duplicate state by exposing `SHADERS`, `BackdropLane`, `set_grid_frame`, `rebase` and verified by `grid_uniform_keeps_far_world_fractions_across_anchor_returns`.
+Renders the fullscreen background triangle and anchor-rebased `f64` construction grid without rebuilding vertex buffers on pan/orbit.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/backdrop.rs"
@@ -168,7 +168,7 @@ Renders the fullscreen background triangle and anchor-rebased `f64` construction
 
 ### Step 17 · `src/engine/gpu/backdrop/application_tests.rs`
 
-Verifies `0` changed pixels on `WARP` when rebasing the construction grid from `(0, 0, 0)` to `10^12` units and back. Spanning `165` lines, this module stays free of duplicate state by wiring internal module helpers without introducing UI/GPU coupling cycles. Spanning `165` lines, this module stays free of duplicate state by wiring internal module helpers without introducing UI/GPU coupling cycles.
+`src/engine/gpu/backdrop/application_tests.rs` (165 lines) implements internal state and helper routines for `backdrop`. It maintains explicit buffer capacities, bind-group layouts, and frame-submission ordering for WebGPU.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/backdrop/application_tests.rs"
@@ -176,7 +176,7 @@ Verifies `0` changed pixels on `WARP` when rebasing the construction grid from `
 
 ### Step 18 · `src/shaders/background.wgsl`
 
-4. **`src/shaders/background.wgsl`** and **`src/shaders/grid.wgsl`** draw the paper backdrop (`1.0`, or `0.94` under SSAO) and `±5 m` construction grid without vertex buffers: Keep struct field offsets and `@group`/`@binding` indices synchronized with the Rust `bytemuck` mirrors in `cargo xtest`; this `26`-line shader defines `@vertex fn vs_main`, `@fragment fn fs_main` compiled directly through `build.rs` into `OUT_DIR`. Keep struct field offsets and `@group`/`@binding` indices synchronized with the Rust `bytemuck` mirrors in `cargo xtest`; this `26`-line shader defines `@vertex fn vs_main`, `@fragment fn fs_main` compiled directly through `build.rs` into `OUT_DIR`.
+`src/shaders/background.wgsl`: One vertex of the fullscreen triangle. Defines entry points `@vertex fn vs_main`, `@fragment fn fs_main`; keep struct layouts and binding indices aligned with their Rust `bytemuck` mirrors and Naga validation tests.
 
 ```wgsl
 --8<-- "session_viewer/src/shaders/background.wgsl"
@@ -184,7 +184,7 @@ Verifies `0` changed pixels on `WARP` when rebasing the construction grid from `
 
 ### Step 19 · `src/shaders/grid.wgsl`
 
-4. **`src/shaders/background.wgsl`** and **`src/shaders/grid.wgsl`** draw the paper backdrop (`1.0`, or `0.94` under SSAO) and `±5 m` construction grid without vertex buffers: Keep struct field offsets and `@group`/`@binding` indices synchronized with the Rust `bytemuck` mirrors in `cargo xtest`; this `78`-line shader defines `@vertex fn vs_main`, `@fragment fn fs_main` compiled directly through `build.rs` into `OUT_DIR`. Keep struct field offsets and `@group`/`@binding` indices synchronized with the Rust `bytemuck` mirrors in `cargo xtest`; this `78`-line shader defines `@vertex fn vs_main`, `@fragment fn fs_main` compiled directly through `build.rs` into `OUT_DIR`.
+`src/shaders/grid.wgsl`: Floor line color. Defines entry points `@vertex fn vs_main`, `@fragment fn fs_main`; bindings `@group(2) @binding(0) grid_frame`; keep struct layouts and binding indices aligned with their Rust `bytemuck` mirrors and Naga validation tests.
 
 ```wgsl
 --8<-- "session_viewer/src/shaders/grid.wgsl"

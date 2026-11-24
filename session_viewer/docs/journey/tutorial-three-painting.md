@@ -23,7 +23,7 @@ Owned files in build order (`2` files):
 
 ### Step 1 · `src/engine/gpu/ui.rs`
 
-Create `src/engine/gpu/ui.rs` and declare `pub mod ui;` in `src/engine/gpu/mod.rs`. `Ui::prepare` frees textures retired by the *previous* frame (`free_last_frame`), uploads `textures_delta.set`, tessellates `output.shapes` at `pixels_per_point`, and uploads vertex/index buffers before `Ui::draw` opens a second render pass with `LoadOp::Load` so Tutorial 1's cleared white canvas survives underneath: Spanning `105` lines, this module stays free of duplicate state by exposing `Ui`, `prepare`, `draw` without introducing UI/GPU coupling cycles. Spanning `105` lines, this module stays free of duplicate state by exposing `Ui`, `prepare`, `draw` without introducing UI/GPU coupling cycles.
+Create `src/engine/gpu/ui.rs` and declare `pub mod ui;` in `src/engine/gpu/mod.rs`. `Ui::prepare` frees textures retired by the *previous* frame (`free_last_frame`), uploads `textures_delta.set`, tessellates `output.shapes` at `pixels_per_point`, and uploads vertex/index buffers before `Ui::draw` opens a second render pass with `LoadOp::Load` so Tutorial 1's cleared white canvas survives underneath.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/ui.rs"

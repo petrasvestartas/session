@@ -35,7 +35,7 @@ Owned files in build order (`14` files):
 
 ### Step 1 · `src/engine/gpu/pick.rs`
 
-Renders a cropped cursor window (`+3 px` visibility halo, `256 B`-aligned readback row) tagged by a monotonic generation counter for non-blocking `poll`. Spanning `769` lines, this module stays free of duplicate state by exposing `PICK_RADIUS`, `PICK_HALO`, `Window`, `about` and verified by `window_clamps` (+1 more tests). Spanning `769` lines, this module stays free of duplicate state by exposing `PICK_RADIUS`, `PICK_HALO`, `Window`, `about` and verified by `window_clamps` (+1 more tests).
+Renders a cropped cursor window (`+3 px` visibility halo, `256 B`-aligned readback row) tagged by a monotonic generation counter for non-blocking `poll`.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/pick.rs"
@@ -43,7 +43,7 @@ Renders a cropped cursor window (`+3 px` visibility halo, `256 B`-aligned readba
 
 ### Step 2 · `viewer-core/src/selection.rs`
 
-Separates parent row ID from `SelectionMode` (`Object`, `Edge`, `Face`, `ControlId`), building finite control cages while keeping cloud points GPU-resident. Spanning `287` lines, this module stays free of duplicate state by exposing `ControlId`, `SelectionMode`, `parent`, `select_edge` and verified by `switching_parent_replaces_specialized_selection_and_escape_retains_parent` (+1 more tests). Spanning `287` lines, this module stays free of duplicate state by exposing `ControlId`, `SelectionMode`, `parent`, `select_edge` and verified by `switching_parent_replaces_specialized_selection_and_escape_retains_parent` (+1 more tests).
+Separates parent row ID from `SelectionMode` (`Object`, `Edge`, `Face`, `ControlId`), building finite control cages while keeping cloud points GPU-resident.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/selection.rs"
@@ -51,7 +51,7 @@ Separates parent row ID from `SelectionMode` (`Object`, `Edge`, `Face`, `Control
 
 ### Step 3 · `src/app/gesture/object.rs`
 
-Activates only after mouse motion exceeds the drag threshold, pairing delayed GPU pick results with ground/vertical-plane translation or falling back to box select on miss. Spanning `10` lines, this module stays free of duplicate state by exposing `GESTURE` without introducing UI/GPU coupling cycles. Spanning `10` lines, this module stays free of duplicate state by exposing `GESTURE` without introducing UI/GPU coupling cycles.
+Activates only after mouse motion exceeds the drag threshold, pairing delayed GPU pick results with ground/vertical-plane translation or falling back to box select on miss.
 
 ```rust
 --8<-- "session_viewer/src/app/gesture/object.rs"
@@ -59,7 +59,7 @@ Activates only after mouse motion exceeds the drag threshold, pairing delayed GP
 
 ### Step 4 · `src/app/gesture/box_select.rs`
 
-Tracks mouse-drag rectangles without touching geometry, delegating window (left-to-right) and crossing (right-to-left) resolution on release. Spanning `10` lines, this module stays free of duplicate state by exposing `GESTURE` without introducing UI/GPU coupling cycles. Spanning `10` lines, this module stays free of duplicate state by exposing `GESTURE` without introducing UI/GPU coupling cycles.
+Tracks mouse-drag rectangles without touching geometry, delegating window (left-to-right) and crossing (right-to-left) resolution on release.
 
 ```rust
 --8<-- "session_viewer/src/app/gesture/box_select.rs"
@@ -67,7 +67,7 @@ Tracks mouse-drag rectangles without touching geometry, delegating window (left-
 
 ### Step 5 · `src/state/box_select.rs`
 
-Applies `Ctrl`-remove before `Shift`-add on release (solid window left-to-right, dashed crossing right-to-left) and refuses start during active drawing/splitting. Spanning `106` lines, this module stays free of duplicate state by exposing `BoxSelect`, `start_box`, `drag_box`, `end_box` and verified by `the_drag_direction_picks_window_or_crossing`. Spanning `106` lines, this module stays free of duplicate state by exposing `BoxSelect`, `start_box`, `drag_box`, `end_box` and verified by `the_drag_direction_picks_window_or_crossing`.
+Applies `Ctrl`-remove before `Shift`-add on release (solid window left-to-right, dashed crossing right-to-left) and refuses start during active drawing/splitting.
 
 ```rust
 --8<-- "session_viewer/src/state/box_select.rs"
@@ -75,7 +75,7 @@ Applies `Ctrl`-remove before `Shift`-add on release (solid window left-to-right,
 
 ### Step 6 · `viewer-core/src/command/verbs/selecting.rs`
 
-Filters ascending selectable, unhidden rows and runs budgeted even-odd scanline crossings for window vs crossing region picks. Spanning `509` lines, this module stays free of duplicate state by exposing `EDGE_STEPS`, `candidates`, `apply`, `Region` and verified by `a_rectangle_holds_and_crosses` (+1 more tests). Spanning `509` lines, this module stays free of duplicate state by exposing `EDGE_STEPS`, `candidates`, `apply`, `Region` and verified by `a_rectangle_holds_and_crosses` (+1 more tests).
+Filters ascending selectable, unhidden rows and runs budgeted even-odd scanline crossings for window vs crossing region picks.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/command/verbs/selecting.rs"
@@ -83,7 +83,7 @@ Filters ascending selectable, unhidden rows and runs budgeted even-odd scanline 
 
 ### Step 7 · `viewer-core/src/command/verbs/select_all.rs`
 
-`select_all.rs` selects all eligible rows; `select_by_name.rs` matches unquoted case-insensitive substrings; `select_small.rs` filters world-box diagonals strictly below `L`; `select_lasso.rs` records `>= 2 px` screen loops (decimating at `4,096` vertices). Spanning `41` lines, this module stays free of duplicate state by registering `SPEC` in `verbs!` and verified by `select_all_takes_no_arguments`. Spanning `41` lines, this module stays free of duplicate state by registering `SPEC` in `verbs!` and verified by `select_all_takes_no_arguments`.
+`viewer-core/src/command/verbs/select_all.rs` implements the `select_all` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/command/verbs/select_all.rs"
@@ -91,7 +91,7 @@ Filters ascending selectable, unhidden rows and runs budgeted even-odd scanline 
 
 ### Step 8 · `viewer-core/src/command/verbs/select_by_name.rs`
 
-`select_all.rs` selects all eligible rows; `select_by_name.rs` matches unquoted case-insensitive substrings; `select_small.rs` filters world-box diagonals strictly below `L`; `select_lasso.rs` records `>= 2 px` screen loops (decimating at `4,096` vertices). Spanning `95` lines, this module stays free of duplicate state by registering `SPEC` in `verbs!` and verified by `names_match_by_substring_in_any_case` (+1 more tests). Spanning `95` lines, this module stays free of duplicate state by registering `SPEC` in `verbs!` and verified by `names_match_by_substring_in_any_case` (+1 more tests).
+`viewer-core/src/command/verbs/select_by_name.rs` implements the `select_by_name` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/command/verbs/select_by_name.rs"
@@ -99,7 +99,7 @@ Filters ascending selectable, unhidden rows and runs budgeted even-odd scanline 
 
 ### Step 9 · `viewer-core/src/command/verbs/select_lasso.rs`
 
-`select_all.rs` selects all eligible rows; `select_by_name.rs` matches unquoted case-insensitive substrings; `select_small.rs` filters world-box diagonals strictly below `L`; `select_lasso.rs` records `>= 2 px` screen loops (decimating at `4,096` vertices). Spanning `411` lines, this module stays free of duplicate state by registering `SPEC` in `verbs!` and verified by `a_loop_holds_what_it_surrounds` (+6 more tests). Spanning `411` lines, this module stays free of duplicate state by registering `SPEC` in `verbs!` and verified by `a_loop_holds_what_it_surrounds` (+6 more tests).
+`viewer-core/src/command/verbs/select_lasso.rs` implements the `select_lasso` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/command/verbs/select_lasso.rs"
@@ -107,7 +107,7 @@ Filters ascending selectable, unhidden rows and runs budgeted even-odd scanline 
 
 ### Step 10 · `viewer-core/src/command/verbs/select_small.rs`
 
-`select_all.rs` selects all eligible rows; `select_by_name.rs` matches unquoted case-insensitive substrings; `select_small.rs` filters world-box diagonals strictly below `L`; `select_lasso.rs` records `>= 2 px` screen loops (decimating at `4,096` vertices). Spanning `96` lines, this module stays free of duplicate state by registering `SPEC` in `verbs!` and verified by `select_small_takes_one_positive_length` (+1 more tests). Spanning `96` lines, this module stays free of duplicate state by registering `SPEC` in `verbs!` and verified by `select_small_takes_one_positive_length` (+1 more tests).
+`viewer-core/src/command/verbs/select_small.rs` implements the `select_small` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/command/verbs/select_small.rs"
@@ -115,7 +115,7 @@ Filters ascending selectable, unhidden rows and runs budgeted even-odd scanline 
 
 ### Step 11 · `viewer-core/src/command/verbs/object.rs`
 
-`object.rs`, `edge.rs` and `face.rs` clear stale selections before switching `selection_tool`; `controls.rs` activates `enable_controls` for vertex/CV editing. Spanning `26` lines, this module stays free of duplicate state by registering `SPEC` in `verbs!` without introducing UI/GPU coupling cycles. Spanning `26` lines, this module stays free of duplicate state by registering `SPEC` in `verbs!` without introducing UI/GPU coupling cycles.
+`viewer-core/src/command/verbs/object.rs` implements the `object` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/command/verbs/object.rs"
@@ -123,7 +123,7 @@ Filters ascending selectable, unhidden rows and runs budgeted even-odd scanline 
 
 ### Step 12 · `viewer-core/src/command/verbs/edge.rs`
 
-`object.rs`, `edge.rs` and `face.rs` clear stale selections before switching `selection_tool`; `controls.rs` activates `enable_controls` for vertex/CV editing. Spanning `26` lines, this module stays free of duplicate state by registering `SPEC` in `verbs!` without introducing UI/GPU coupling cycles. Spanning `26` lines, this module stays free of duplicate state by registering `SPEC` in `verbs!` without introducing UI/GPU coupling cycles.
+`viewer-core/src/command/verbs/edge.rs` implements the `edge` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/command/verbs/edge.rs"
@@ -131,7 +131,7 @@ Filters ascending selectable, unhidden rows and runs budgeted even-odd scanline 
 
 ### Step 13 · `viewer-core/src/command/verbs/face.rs`
 
-`object.rs`, `edge.rs` and `face.rs` clear stale selections before switching `selection_tool`; `controls.rs` activates `enable_controls` for vertex/CV editing. Spanning `26` lines, this module stays free of duplicate state by registering `SPEC` in `verbs!` without introducing UI/GPU coupling cycles. Spanning `26` lines, this module stays free of duplicate state by registering `SPEC` in `verbs!` without introducing UI/GPU coupling cycles.
+`viewer-core/src/command/verbs/face.rs` implements the `face` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/command/verbs/face.rs"
@@ -139,7 +139,7 @@ Filters ascending selectable, unhidden rows and runs budgeted even-odd scanline 
 
 ### Step 14 · `viewer-core/src/command/verbs/controls.rs`
 
-`object.rs`, `edge.rs` and `face.rs` clear stale selections before switching `selection_tool`; `controls.rs` activates `enable_controls` for vertex/CV editing. Spanning `24` lines, this module stays free of duplicate state by registering `SPEC` in `verbs!` without introducing UI/GPU coupling cycles. Spanning `24` lines, this module stays free of duplicate state by registering `SPEC` in `verbs!` without introducing UI/GPU coupling cycles.
+`viewer-core/src/command/verbs/controls.rs` implements the `controls` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/command/verbs/controls.rs"

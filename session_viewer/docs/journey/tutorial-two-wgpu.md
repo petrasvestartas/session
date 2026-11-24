@@ -30,7 +30,7 @@ Owned files in build order (`9` files):
 
 ### Step 1 · `src/engine/gpu/device.rs`
 
-Write `src/engine/gpu/device.rs` to select `BROWSER_WEBGPU` on wasm or `PRIMARY` natively, cap `max_storage_buffer_binding_size` at `256 MiB`, prefer an sRGB surface format, and store the first uncaptured GPU error or device loss in `Arc<Mutex<Option<String>>>`: Spanning `347` lines, this module stays free of duplicate state by exposing `Options`, `DeviceSetup`, `open` without introducing UI/GPU coupling cycles. Spanning `347` lines, this module stays free of duplicate state by exposing `Options`, `DeviceSetup`, `open` without introducing UI/GPU coupling cycles.
+Write `src/engine/gpu/device.rs` to select `BROWSER_WEBGPU` on wasm or `PRIMARY` natively, cap `max_storage_buffer_binding_size` at `256 MiB`, prefer an sRGB surface format, and store the first uncaptured GPU error or device loss in `Arc<Mutex<Option<String>>>`.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/device.rs"
@@ -38,7 +38,7 @@ Write `src/engine/gpu/device.rs` to select `BROWSER_WEBGPU` on wasm or `PRIMARY`
 
 ### Step 2 · `src/engine/diagnostics.rs`
 
-Forwards optional `viewerDiagnostic` events and query-stripped `phase` load durations/bytes on `wasm32` while remaining a zero-cost no-op natively. Spanning `28` lines, this module stays free of duplicate state by exposing `diagnostic`, `phase` without introducing UI/GPU coupling cycles. Spanning `28` lines, this module stays free of duplicate state by exposing `diagnostic`, `phase` without introducing UI/GPU coupling cycles.
+Forwards optional `viewerDiagnostic` events and query-stripped `phase` load durations/bytes on `wasm32` while remaining a zero-cost no-op natively.
 
 ```rust
 --8<-- "session_viewer/src/engine/diagnostics.rs"
@@ -46,7 +46,7 @@ Forwards optional `viewerDiagnostic` events and query-stripped `phase` load dura
 
 ### Step 3 · `src/engine/gpu/view.rs`
 
-Stores view flags (`0.95` desktop face opacity, `1.0` coarse-pointer default, Arctic auto-outlines, and DPR cap `<= 2`). Spanning `211` lines, this module stays free of duplicate state by exposing `View`, `set_arctic`, `from_env`, `DEFAULT_MAX_DPR` and verified by `phones_start_solid_and_desktops_keep_nearly_solid_faces`. Spanning `211` lines, this module stays free of duplicate state by exposing `View`, `set_arctic`, `from_env`, `DEFAULT_MAX_DPR` and verified by `phones_start_solid_and_desktops_keep_nearly_solid_faces`.
+Stores view flags (`0.95` desktop face opacity, `1.0` coarse-pointer default, Arctic auto-outlines, and DPR cap `<= 2`).
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/view.rs"
@@ -54,7 +54,7 @@ Stores view flags (`0.95` desktop face opacity, `1.0` coarse-pointer default, Ar
 
 ### Step 4 · `src/engine/gpu/targets.rs`
 
-Allocates reverse-Z depth, optional `4×` MSAA colour, `2×u16` triangle-ID attachments and `1×1` sample-type-matched placeholders. Spanning `373` lines, this module stays free of duplicate state by exposing `Targets`, `destroy`, `msaa_budget`, `samples_for` and verified by `msaa_follows_the_adapter` (+1 more tests). Spanning `373` lines, this module stays free of duplicate state by exposing `Targets`, `destroy`, `msaa_budget`, `samples_for` and verified by `msaa_follows_the_adapter` (+1 more tests).
+Allocates reverse-Z depth, optional `4×` MSAA colour, `2×u16` triangle-ID attachments and `1×1` sample-type-matched placeholders.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/targets.rs"
@@ -62,7 +62,7 @@ Allocates reverse-Z depth, optional `4×` MSAA colour, `2×u16` triangle-ID atta
 
 ### Step 5 · `src/engine/gpu/present.rs`
 
-`src/engine/gpu/present.rs` updates frame uniforms, widgets and text, reconfigures suboptimal/outdated surfaces, submits the encoded frame, and schedules idle post-present pipeline warming. Spanning `281` lines, this module stays free of duplicate state by exposing `write_frame_uniforms`, `ambient_pending`, `visibility_pending`, `present` without introducing UI/GPU coupling cycles. Spanning `281` lines, this module stays free of duplicate state by exposing `write_frame_uniforms`, `ambient_pending`, `visibility_pending`, `present` without introducing UI/GPU coupling cycles.
+`src/engine/gpu/present.rs` updates frame uniforms, widgets and text, reconfigures suboptimal/outdated surfaces, submits the encoded frame, and schedules idle post-present pipeline warming.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/present.rs"
@@ -70,7 +70,7 @@ Allocates reverse-Z depth, optional `4×` MSAA colour, `2×u16` triangle-ID atta
 
 ### Step 6 · `src/engine/gpu/frame.rs`
 
-Packs `FrameInput`, `FrameCx` and the checked `80 B` `LineUniform`, installing `@group(0..2)` bindings via `Binds::set`. Spanning `477` lines, this module stays free of duplicate state by exposing `FrameInput`, `FrameCx`, `Binds`, `set` and verified by `pick_view_clip_transform`. Spanning `477` lines, this module stays free of duplicate state by exposing `FrameInput`, `FrameCx`, `Binds`, `set` and verified by `pick_view_clip_transform`.
+Packs `FrameInput`, `FrameCx` and the checked `80 B` `LineUniform`, installing `@group(0..2)` bindings via `Binds::set`.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/frame.rs"
@@ -78,7 +78,7 @@ Packs `FrameInput`, `FrameCx` and the checked `80 B` `LineUniform`, installing `
 
 ### Step 7 · `src/engine/gpu/pacing.rs`
 
-`src/engine/gpu/pacing.rs` (`FramePacing`) gates redraws behind an `Arc` acquire/release queue-completion callback so slow frames never build an unbounded submission backlog. Spanning `69` lines, this module stays free of duplicate state by exposing `FramePacing`, `ready`, `take_completion_ms`, `submitted` without introducing UI/GPU coupling cycles. Spanning `69` lines, this module stays free of duplicate state by exposing `FramePacing`, `ready`, `take_completion_ms`, `submitted` without introducing UI/GPU coupling cycles.
+`src/engine/gpu/pacing.rs` (`FramePacing`) gates redraws behind an `Arc` acquire/release queue-completion callback so slow frames never build an unbounded submission backlog.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/pacing.rs"
@@ -86,7 +86,7 @@ Packs `FrameInput`, `FrameCx` and the checked `80 B` `LineUniform`, installing `
 
 ### Step 8 · `src/engine/gpu/context.rs`
 
-Owns `Gpu` (`device`, `queue`, `Targets`, `ObjectRows`, fixed/registered `Lane`s via `lane_list!`, `Pass`es, `Picker` and `PassTimer`). Spanning `681` lines, this module stays free of duplicate state by exposing `Gpu`, `allocated_bytes`, `new_headless`, `build` without introducing UI/GPU coupling cycles. Spanning `681` lines, this module stays free of duplicate state by exposing `Gpu`, `allocated_bytes`, `new_headless`, `build` without introducing UI/GPU coupling cycles.
+Owns `Gpu` (`device`, `queue`, `Targets`, `ObjectRows`, fixed/registered `Lane`s via `lane_list!`, `Pass`es, `Picker` and `PassTimer`).
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/context.rs"

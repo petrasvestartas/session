@@ -96,7 +96,7 @@ Owned files in build order (`75` files):
 
 ### Step 1 · `viewer-core/src/sink.rs`
 
-`viewer-core/src/rows/` (`mod.rs`, `instance.rs`, `objects.rs`, `hull.rs`, `lanes.rs`, `patch.rs`, `upload.rs`, `encode.rs`, `gizmo.rs`) and `viewer-core/src/sink.rs` (`GpuSink`) keep all `Pod` staging row layouts, lane strides, preview padding and upload contracts free of `wgpu` types so `viewer-core` compiles and tests natively or on `wasm32` without a GPU adapter. Spanning `51` lines, this module stays free of duplicate state by exposing `GpuSink` without introducing UI/GPU coupling cycles. Spanning `51` lines, this module stays free of duplicate state by exposing `GpuSink` without introducing UI/GPU coupling cycles.
+`viewer-core/src/sink.rs` (51 lines) defines `trait GpuSink`. It operates purely on CPU data structures and `GpuSink` rows so `viewer-core` stays decoupled from `wgpu` and `egui`.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/sink.rs"
@@ -104,7 +104,7 @@ Owned files in build order (`75` files):
 
 ### Step 2 · `viewer-core/src/rows/mod.rs`
 
-`viewer-core/src/rows/` (`mod.rs`, `instance.rs`, `objects.rs`, `hull.rs`, `lanes.rs`, `patch.rs`, `upload.rs`, `encode.rs`, `gizmo.rs`) and `viewer-core/src/sink.rs` (`GpuSink`) keep all `Pod` staging row layouts, lane strides, preview padding and upload contracts free of `wgpu` types so `viewer-core` compiles and tests natively or on `wasm32` without a GPU adapter. Spanning `20` lines, this module stays free of duplicate state by wiring internal module helpers without introducing UI/GPU coupling cycles. Spanning `20` lines, this module stays free of duplicate state by wiring internal module helpers without introducing UI/GPU coupling cycles.
+`viewer-core/src/rows/mod.rs` (20 lines) coordinates submodules `encode`, `gizmo`, `hull`, `instance`, `lanes`, `objects`. It operates purely on CPU data structures and `GpuSink` rows so `viewer-core` stays decoupled from `wgpu` and `egui`.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/rows/mod.rs"
@@ -112,7 +112,7 @@ Owned files in build order (`75` files):
 
 ### Step 3 · `viewer-core/src/rows/encode.rs`
 
-`viewer-core/src/rows/` (`mod.rs`, `instance.rs`, `objects.rs`, `hull.rs`, `lanes.rs`, `patch.rs`, `upload.rs`, `encode.rs`, `gizmo.rs`) and `viewer-core/src/sink.rs` (`GpuSink`) keep all `Pod` staging row layouts, lane strides, preview padding and upload contracts free of `wgpu` types so `viewer-core` compiles and tests natively or on `wasm32` without a GPU adapter. Spanning `78` lines, this module stays free of duplicate state by exposing `encode_width`, `pack_rgba`, `oct16`, `BLACK` without introducing UI/GPU coupling cycles. Spanning `78` lines, this module stays free of duplicate state by exposing `encode_width`, `pack_rgba`, `oct16`, `BLACK` without introducing UI/GPU coupling cycles.
+`viewer-core/src/rows/encode.rs` (78 lines) defines `struct Pen`, `encode_width()`, `pack_rgba()`, `oct16()`, `BLACK`. It operates purely on CPU data structures and `GpuSink` rows so `viewer-core` stays decoupled from `wgpu` and `egui`.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/rows/encode.rs"
@@ -120,7 +120,7 @@ Owned files in build order (`75` files):
 
 ### Step 4 · `viewer-core/src/rows/gizmo.rs`
 
-`viewer-core/src/rows/` (`mod.rs`, `instance.rs`, `objects.rs`, `hull.rs`, `lanes.rs`, `patch.rs`, `upload.rs`, `encode.rs`, `gizmo.rs`) and `viewer-core/src/sink.rs` (`GpuSink`) keep all `Pod` staging row layouts, lane strides, preview padding and upload contracts free of `wgpu` types so `viewer-core` compiles and tests natively or on `wasm32` without a GPU adapter. Spanning `14` lines, this module stays free of duplicate state by exposing `ARM`, `BALL_AT`, `HUB`, `PLANE_MIN` without introducing UI/GPU coupling cycles. Spanning `14` lines, this module stays free of duplicate state by exposing `ARM`, `BALL_AT`, `HUB`, `PLANE_MIN` without introducing UI/GPU coupling cycles.
+`viewer-core/src/rows/gizmo.rs` (14 lines) defines `ARM`, `BALL_AT`. It operates purely on CPU data structures and `GpuSink` rows so `viewer-core` stays decoupled from `wgpu` and `egui`.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/rows/gizmo.rs"
@@ -128,7 +128,7 @@ Owned files in build order (`75` files):
 
 ### Step 5 · `viewer-core/src/rows/hull.rs`
 
-`viewer-core/src/rows/` (`mod.rs`, `instance.rs`, `objects.rs`, `hull.rs`, `lanes.rs`, `patch.rs`, `upload.rs`, `encode.rs`, `gizmo.rs`) and `viewer-core/src/sink.rs` (`GpuSink`) keep all `Pod` staging row layouts, lane strides, preview padding and upload contracts free of `wgpu` types so `viewer-core` compiles and tests natively or on `wasm32` without a GPU adapter. Spanning `392` lines, this module stays free of duplicate state by exposing `Hull`, `Points`, `of`, `extreme_points` and verified by `a_turned_beam_is_boxed_by_its_extreme_points` (+3 more tests). Spanning `392` lines, this module stays free of duplicate state by exposing `Hull`, `Points`, `of`, `extreme_points` and verified by `a_turned_beam_is_boxed_by_its_extreme_points` (+3 more tests).
+`viewer-core/src/rows/hull.rs` (392 lines) defines `type Hull`, `struct Points`, `of()`, `extreme_points()`, `placed_box()`. It verified by `cargo xtest` (`a_turned_beam_is_boxed_by_its_extreme_points`, `every_direction_peaks_on_a_kept_point`, `a_round_set_gives_up` (+1 more)).
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/rows/hull.rs"
@@ -136,7 +136,7 @@ Owned files in build order (`75` files):
 
 ### Step 6 · `viewer-core/src/rows/instance.rs`
 
-`viewer-core/src/rows/` (`mod.rs`, `instance.rs`, `objects.rs`, `hull.rs`, `lanes.rs`, `patch.rs`, `upload.rs`, `encode.rs`, `gizmo.rs`) and `viewer-core/src/sink.rs` (`GpuSink`) keep all `Pod` staging row layouts, lane strides, preview padding and upload contracts free of `wgpu` types so `viewer-core` compiles and tests natively or on `wasm32` without a GPU adapter. Spanning `93` lines, this module stays free of duplicate state by exposing `Instance`, `FLAG_SELECTED`, `FLAG_HIDDEN`, `FLAG_INSIDE` without introducing UI/GPU coupling cycles. Spanning `93` lines, this module stays free of duplicate state by exposing `Instance`, `FLAG_SELECTED`, `FLAG_HIDDEN`, `FLAG_INSIDE` without introducing UI/GPU coupling cycles.
+`viewer-core/src/rows/instance.rs` (93 lines) defines `struct Instance`, `placeholder()`, `FLAG_SELECTED`, `FLAG_HIDDEN`. It operates purely on CPU data structures and `GpuSink` rows so `viewer-core` stays decoupled from `wgpu` and `egui`.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/rows/instance.rs"
@@ -144,7 +144,7 @@ Owned files in build order (`75` files):
 
 ### Step 7 · `viewer-core/src/rows/lanes.rs`
 
-`viewer-core/src/rows/` (`mod.rs`, `instance.rs`, `objects.rs`, `hull.rs`, `lanes.rs`, `patch.rs`, `upload.rs`, `encode.rs`, `gizmo.rs`) and `viewer-core/src/sink.rs` (`GpuSink`) keep all `Pod` staging row layouts, lane strides, preview padding and upload contracts free of `wgpu` types so `viewer-core` compiles and tests natively or on `wasm32` without a GPU adapter. Spanning `557` lines, this module stays free of duplicate state by exposing `Pick`, `PickMode`, `FACE_TAG`, `FaceSource` and verified by `lane_rows_by_type`. Spanning `557` lines, this module stays free of duplicate state by exposing `Pick`, `PickMode`, `FACE_TAG`, `FaceSource` and verified by `lane_rows_by_type`.
+`viewer-core/src/rows/lanes.rs` (557 lines) defines `struct Pick`, `enum PickMode`, `struct FaceSource`, `drop_rows()`, `is_silhouette()`. It verified by `cargo xtest` (`lane_rows_by_type`).
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/rows/lanes.rs"
@@ -152,7 +152,7 @@ Owned files in build order (`75` files):
 
 ### Step 8 · `viewer-core/src/rows/objects.rs`
 
-`viewer-core/src/rows/` (`mod.rs`, `instance.rs`, `objects.rs`, `hull.rs`, `lanes.rs`, `patch.rs`, `upload.rs`, `encode.rs`, `gizmo.rs`) and `viewer-core/src/sink.rs` (`GpuSink`) keep all `Pod` staging row layouts, lane strides, preview padding and upload contracts free of `wgpu` types so `viewer-core` compiles and tests natively or on `wasm32` without a GPU adapter. Spanning `50` lines, this module stays free of duplicate state by exposing `ObjectRow`, `ObjectRows`, `world_box`, `placed_bounds` without introducing UI/GPU coupling cycles. Spanning `50` lines, this module stays free of duplicate state by exposing `ObjectRow`, `ObjectRows`, `world_box`, `placed_bounds` without introducing UI/GPU coupling cycles.
+`viewer-core/src/rows/objects.rs` (50 lines) defines `struct ObjectRow`, `struct ObjectRows`, `world_box()`, `placed_bounds()`. It operates purely on CPU data structures and `GpuSink` rows so `viewer-core` stays decoupled from `wgpu` and `egui`.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/rows/objects.rs"
@@ -160,7 +160,7 @@ Owned files in build order (`75` files):
 
 ### Step 9 · `viewer-core/src/rows/patch.rs`
 
-`viewer-core/src/rows/` (`mod.rs`, `instance.rs`, `objects.rs`, `hull.rs`, `lanes.rs`, `patch.rs`, `upload.rs`, `encode.rs`, `gizmo.rs`) and `viewer-core/src/sink.rs` (`GpuSink`) keep all `Pod` staging row layouts, lane strides, preview padding and upload contracts free of `wgpu` types so `viewer-core` compiles and tests natively or on `wasm32` without a GPU adapter. Spanning `224` lines, this module stays free of duplicate state by exposing `RowSpec`, `ROW_REGISTRY`, `REGISTERED`, `LaneId` without introducing UI/GPU coupling cycles. Spanning `224` lines, this module stays free of duplicate state by exposing `RowSpec`, `ROW_REGISTRY`, `REGISTERED`, `LaneId` without introducing UI/GPU coupling cycles.
+`viewer-core/src/rows/patch.rs` (224 lines) defines `struct RowSpec`, `enum LaneId`, `struct Counts`, `all()`, `stride()`. It uses additive registration seams `register:markers`, `register:meshes`, `register:strokes`.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/rows/patch.rs"
@@ -168,7 +168,7 @@ Owned files in build order (`75` files):
 
 ### Step 10 · `viewer-core/src/rows/upload.rs`
 
-`viewer-core/src/rows/` (`mod.rs`, `instance.rs`, `objects.rs`, `hull.rs`, `lanes.rs`, `patch.rs`, `upload.rs`, `encode.rs`, `gizmo.rs`) and `viewer-core/src/sink.rs` (`GpuSink`) keep all `Pod` staging row layouts, lane strides, preview padding and upload contracts free of `wgpu` types so `viewer-core` compiles and tests natively or on `wasm32` without a GPU adapter. Spanning `173` lines, this module stays free of duplicate state by exposing `Upload`, `drop_uploaded`, `merge`, `shift_vertices` without introducing UI/GPU coupling cycles. Spanning `173` lines, this module stays free of duplicate state by exposing `Upload`, `drop_uploaded`, `merge`, `shift_vertices` without introducing UI/GPU coupling cycles.
+`viewer-core/src/rows/upload.rs` (173 lines) defines `struct Upload`, `drop_uploaded()`, `merge()`, `shift_vertices()`. It uses additive registration seams `register:clouds`, `register:markers`, `register:meshes`, `register:strokes`.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/rows/upload.rs"
@@ -176,7 +176,7 @@ Owned files in build order (`75` files):
 
 ### Step 11 · `src/engine/gpu/sink.rs`
 
-`src/engine/pipelines/geometry.rs` binds `GpuVertex` (`20 B` stride: `pos: [f32; 3]`, `oct32` normal `u32`, `rgba8` `u32`) to arena pipelines and includes the adapter-gated lazy-compilation test verifying `1×`/`4×` MSAA target reuse without redundant shader builds, while `src/engine/gpu/sink.rs` implements `viewer_core::GpuSink` on `Gpu` so `Scene` flushes staged uploads, patches and compactions without depending on `wgpu`. Spanning `188` lines, this module stays free of duplicate state by wiring internal module helpers without introducing UI/GPU coupling cycles. Spanning `188` lines, this module stays free of duplicate state by wiring internal module helpers without introducing UI/GPU coupling cycles.
+`src/engine/gpu/sink.rs` (188 lines) implements internal state and helper routines for `gpu`. It maintains explicit buffer capacities, bind-group layouts, and frame-submission ordering for WebGPU.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/sink.rs"
@@ -184,7 +184,7 @@ Owned files in build order (`75` files):
 
 ### Step 12 · `src/engine/gpu/buffers.rs`
 
-`src/engine/gpu/buffers.rs` provides `GpuCtx`, `Template`, and `GrowBuf` (`append`, `reserve`, `WRITE_CHUNK`-bounded `fill`, `fits` against device/storage limits, `reset`, `release`, and GPU-copied `packed`), rebuilding bind groups whenever growth swaps an underlying `wgpu::Buffer`. Spanning `378` lines, this module stays free of duplicate state by exposing `GpuCtx`, `ROWS`, `WRITE_CHUNK`, `VERTS` and verified by `reserve_is_exact_and_stops_at_the_largest_buffer` (+1 more tests). Spanning `378` lines, this module stays free of duplicate state by exposing `GpuCtx`, `ROWS`, `WRITE_CHUNK`, `VERTS` and verified by `reserve_is_exact_and_stops_at_the_largest_buffer` (+1 more tests).
+`src/engine/gpu/buffers.rs` provides `GpuCtx`, `Template`, and `GrowBuf` (`append`, `reserve`, `WRITE_CHUNK`-bounded `fill`, `fits` against device/storage limits, `reset`, `release`, and GPU-copied `packed`), rebuilding bind groups whenever growth swaps an underlying `wgpu::Buffer`.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/buffers.rs"
@@ -192,7 +192,7 @@ Owned files in build order (`75` files):
 
 ### Step 13 · `src/engine/gpu/upload.rs`
 
-Stages CPU lane vectors, rebases vertex indices and valid face IDs on merge, and frees host vectors via `drop_uploaded` after GPU transfer. Spanning `2` lines, this module stays free of duplicate state by wiring internal module helpers without introducing UI/GPU coupling cycles. Spanning `2` lines, this module stays free of duplicate state by wiring internal module helpers without introducing UI/GPU coupling cycles.
+Stages CPU lane vectors, rebases vertex indices and valid face IDs on merge, and frees host vectors via `drop_uploaded` after GPU transfer.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/upload.rs"
@@ -200,7 +200,7 @@ Stages CPU lane vectors, rebases vertex indices and valid face IDs on merge, and
 
 ### Step 14 · `src/engine/gpu/instance.rs`
 
-`src/engine/gpu/hull.rs`, `src/engine/gpu/instance.rs`, `src/engine/gpu/objects.rs` and `src/engine/pipelines/mod.rs` re-export narrow public types (`Hull`, `Instance`, `ObjectRows`, `Layouts`, `Cache`) that Tutorial 7 extends additively. Spanning `6` lines, this module stays free of duplicate state by wiring internal module helpers without introducing UI/GPU coupling cycles. Spanning `6` lines, this module stays free of duplicate state by wiring internal module helpers without introducing UI/GPU coupling cycles.
+`src/engine/gpu/instance.rs` (6 lines) coordinates submodules `layout`, `validation`. It maintains explicit buffer capacities, bind-group layouts, and frame-submission ordering for WebGPU.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/instance.rs"
@@ -208,7 +208,7 @@ Stages CPU lane vectors, rebases vertex indices and valid face IDs on merge, and
 
 ### Step 15 · `src/engine/gpu/instance/layout.rs`
 
-`src/engine/gpu/instance/layout.rs` defines the `#[repr(C)]` `Pod` `Instance` struct pinned to `112` bytes: `model` (`64 B` rotation + scale), `color` (`16 B`), `flags`, `ao_radius`, `spacing`, the `u32` word following `spacing` carries the packed edge colour, and `effect` (`16 B`) stores `[reveal, point_scale, 0.0, 0.0]`: Spanning `1` lines, this module stays free of duplicate state by wiring internal module helpers without introducing UI/GPU coupling cycles. Spanning `1` lines, this module stays free of duplicate state by wiring internal module helpers without introducing UI/GPU coupling cycles.
+`src/engine/gpu/instance/layout.rs` defines the `#[repr(C)]` `Pod` `Instance` struct pinned to `112` bytes: `model` (`64 B` rotation + scale), `color` (`16 B`), `flags`, `ao_radius`, `spacing`, the `u32` word following `spacing` carries the packed edge colour, and `effect` (`16 B`) stores `[reveal, point_scale, 0.0, 0.0]`.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/instance/layout.rs"
@@ -216,7 +216,7 @@ Stages CPU lane vectors, rebases vertex indices and valid face IDs on merge, and
 
 ### Step 16 · `src/engine/gpu/instance/validation.rs`
 
-Parses WGSL struct declarations and verifies exact field order and `112 B` / `80 B` byte sizes against Rust `Instance` and `LineUniform`. Spanning `214` lines, this module stays free of duplicate state by exposing `wgsl_fields` and verified by `instance_mirror` (+3 more tests). Spanning `214` lines, this module stays free of duplicate state by exposing `wgsl_fields` and verified by `instance_mirror` (+3 more tests).
+Parses WGSL struct declarations and verifies exact field order and `112 B` / `80 B` byte sizes against Rust `Instance` and `LineUniform`.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/instance/validation.rs"
@@ -224,7 +224,7 @@ Parses WGSL struct declarations and verifies exact field order and `112 B` / `80
 
 ### Step 17 · `src/engine/gpu/objects.rs`
 
-`src/engine/gpu/hull.rs`, `src/engine/gpu/instance.rs`, `src/engine/gpu/objects.rs` and `src/engine/pipelines/mod.rs` re-export narrow public types (`Hull`, `Instance`, `ObjectRows`, `Layouts`, `Cache`) that Tutorial 7 extends additively. Spanning `9` lines, this module stays free of duplicate state by wiring internal module helpers without introducing UI/GPU coupling cycles. Spanning `9` lines, this module stays free of duplicate state by wiring internal module helpers without introducing UI/GPU coupling cycles.
+`src/engine/gpu/objects.rs` (9 lines) coordinates submodules `gpu_tests`, `ink`, `lane`, `table`. It maintains explicit buffer capacities, bind-group layouts, and frame-submission ordering for WebGPU.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/objects.rs"
@@ -232,7 +232,7 @@ Parses WGSL struct declarations and verifies exact field order and `112 B` / `80
 
 ### Step 18 · `src/engine/gpu/objects/table.rs`
 
-`src/engine/gpu/objects/table.rs` (`InstanceTable` / `ObjectRows`) mirrors CPU rows alongside `instances` (`N × 112 B`) and `translations` (`N × 16 B`), keeping any gizmo widget row last and uploading single-row edits via `write_at`. Spanning `1185` lines, this module stays free of duplicate state by exposing `Rebase`, `InstanceTable`, `instance_buffer`, `geometry_revision` and verified by `world_box_translates` (+6 more tests). Spanning `1185` lines, this module stays free of duplicate state by exposing `Rebase`, `InstanceTable`, `instance_buffer`, `geometry_revision` and verified by `world_box_translates` (+6 more tests).
+`src/engine/gpu/objects/table.rs` (`InstanceTable` / `ObjectRows`) mirrors CPU rows alongside `instances` (`N × 112 B`) and `translations` (`N × 16 B`), keeping any gizmo widget row last and uploading single-row edits via `write_at`.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/objects/table.rs"
@@ -240,7 +240,7 @@ Parses WGSL struct declarations and verifies exact field order and `112 B` / `80
 
 ### Step 19 · `src/engine/gpu/objects/lane.rs`
 
-Adapts `ObjectRows` to the `Lane` reset, release and byte-accounting contract alongside geometry lanes. Spanning `17` lines, this module stays free of duplicate state by wiring internal module helpers without introducing UI/GPU coupling cycles. Spanning `17` lines, this module stays free of duplicate state by wiring internal module helpers without introducing UI/GPU coupling cycles.
+`src/engine/gpu/objects/lane.rs` (17 lines) implements internal state and helper routines for `objects`. It maintains explicit buffer capacities, bind-group layouts, and frame-submission ordering for WebGPU.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/objects/lane.rs"
@@ -248,7 +248,7 @@ Adapts `ObjectRows` to the `Lane` reset, release and byte-accounting contract al
 
 ### Step 20 · `src/engine/gpu/objects/ink.rs`
 
-Builds `@group(2)` ink bind groups combining object rows, translations, `1×`/`4×` depth and primitive-ID views, projected triangles and tile lists. Spanning `83` lines, this module stays free of duplicate state by exposing `InkScene`, `ink_group`, `rebind_ink`, `pick_group` without introducing UI/GPU coupling cycles. Spanning `83` lines, this module stays free of duplicate state by exposing `InkScene`, `ink_group`, `rebind_ink`, `pick_group` without introducing UI/GPU coupling cycles.
+Builds `@group(2)` ink bind groups combining object rows, translations, `1×`/`4×` depth and primitive-ID views, projected triangles and tile lists.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/objects/ink.rs"
@@ -256,7 +256,7 @@ Builds `@group(2)` ink bind groups combining object rows, translations, `1×`/`4
 
 ### Step 21 · `src/engine/gpu/objects/gpu_tests.rs`
 
-Adapter-gated headless GPU test verifying neighbour row isolation, scale-updated `ao_radius` and widget-last ordering. Spanning `52` lines, this module stays free of duplicate state by wiring internal module helpers without introducing UI/GPU coupling cycles. Spanning `52` lines, this module stays free of duplicate state by wiring internal module helpers without introducing UI/GPU coupling cycles.
+Adapter-gated headless GPU test verifying neighbour row isolation, scale-updated `ao_radius` and widget-last ordering.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/objects/gpu_tests.rs"
@@ -264,7 +264,7 @@ Adapter-gated headless GPU test verifying neighbour row isolation, scale-updated
 
 ### Step 22 · `src/engine/gpu/hull.rs`
 
-`src/engine/gpu/hull.rs`, `src/engine/gpu/instance.rs`, `src/engine/gpu/objects.rs` and `src/engine/pipelines/mod.rs` re-export narrow public types (`Hull`, `Instance`, `ObjectRows`, `Layouts`, `Cache`) that Tutorial 7 extends additively. Spanning `2` lines, this module stays free of duplicate state by wiring internal module helpers without introducing UI/GPU coupling cycles. Spanning `2` lines, this module stays free of duplicate state by wiring internal module helpers without introducing UI/GPU coupling cycles.
+`src/engine/gpu/hull.rs` (2 lines) implements internal state and helper routines for `gpu`. It maintains explicit buffer capacities, bind-group layouts, and frame-submission ordering for WebGPU.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/hull.rs"
@@ -272,7 +272,7 @@ Adapter-gated headless GPU test verifying neighbour row isolation, scale-updated
 
 ### Step 23 · `src/engine/gpu/patch.rs`
 
-Tracks per-lane `Counts` and `Span` offsets (including CPU source-ID mirrors) so edits test in-place fit across all lanes simultaneously. Spanning `2` lines, this module stays free of duplicate state by wiring internal module helpers without introducing UI/GPU coupling cycles. Spanning `2` lines, this module stays free of duplicate state by wiring internal module helpers without introducing UI/GPU coupling cycles.
+Tracks per-lane `Counts` and `Span` offsets (including CPU source-ID mirrors) so edits test in-place fit across all lanes simultaneously.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/patch.rs"
@@ -280,7 +280,7 @@ Tracks per-lane `Counts` and `Span` offsets (including CPU source-ID mirrors) so
 
 ### Step 24 · `src/engine/gpu/arena.rs`
 
-Packs vertices into `20 B` (`xyz` `f32`, octahedral normal `u32`, RGBA `u32`) with separate ordinary, printed-fill and text-outline index streams. Spanning `623` lines, this module stays free of duplicate state by exposing `SHADERS`, `GpuVertex`, `layout`, `ArenaLane` and verified by `packed_vertex_is_twenty_bytes` (+2 more tests). Spanning `623` lines, this module stays free of duplicate state by exposing `SHADERS`, `GpuVertex`, `layout`, `ArenaLane` and verified by `packed_vertex_is_twenty_bytes` (+2 more tests).
+Packs vertices into `20 B` (`xyz` `f32`, octahedral normal `u32`, RGBA `u32`) with separate ordinary, printed-fill and text-outline index streams.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/arena.rs"
@@ -288,7 +288,7 @@ Packs vertices into `20 B` (`xyz` `f32`, octahedral normal `u32`, RGBA `u32`) wi
 
 ### Step 25 · `src/engine/gpu/slots.rs`
 
-Maps shared definition meshes to placed instances via `8 B` `(object_row, tri_id_base)` entries (`slot 0 = OWN_ROW`) and a `1024`-wide lookup texture. Spanning `942` lines, this module stays free of duplicate state by exposing `OWN_ROW`, `Slot`, `slot_layout`, `row_slot_layout` and verified by `instance_ids_follow_the_arena` (+4 more tests). Spanning `942` lines, this module stays free of duplicate state by exposing `OWN_ROW`, `Slot`, `slot_layout`, `row_slot_layout` and verified by `instance_ids_follow_the_arena` (+4 more tests).
+Maps shared definition meshes to placed instances via `8 B` `(object_row, tri_id_base)` entries (`slot 0 = OWN_ROW`) and a `1024`-wide lookup texture.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/slots.rs"
@@ -296,7 +296,7 @@ Maps shared definition meshes to placed instances via `8 B` `(object_row, tri_id
 
 ### Step 26 · `src/shaders/slot_table.wgsl`
 
-Binary-searches `placed_triangle` across the `1024`-texel slot texture so shared definition triangles resolve to each instance's own row and unique triangle ID. Keep struct field offsets and `@group`/`@binding` indices synchronized with the Rust `bytemuck` mirrors in `cargo xtest`; this `45`-line shader defines shared WGSL helper functions and uniform structs compiled directly through `build.rs` into `OUT_DIR`. Keep struct field offsets and `@group`/`@binding` indices synchronized with the Rust `bytemuck` mirrors in `cargo xtest`; this `45`-line shader defines shared WGSL helper functions and uniform structs compiled directly through `build.rs` into `OUT_DIR`.
+Binary-searches `placed_triangle` across the `1024`-texel slot texture so shared definition triangles resolve to each instance's own row and unique triangle ID.
 
 ```wgsl
 --8<-- "session_viewer/src/shaders/slot_table.wgsl"
@@ -304,7 +304,7 @@ Binary-searches `placed_triangle` across the `1024`-texel slot texture so shared
 
 ### Step 27 · `src/engine/gpu/faces.rs`
 
-Maps drawn triangles to source faces and binds physical, opaque, clipped, object-ID, face-pick, highlight and mask pipelines. Spanning `383` lines, this module stays free of duplicate state by exposing `Faces`, `prewarm`, `retarget`, `append` without introducing UI/GPU coupling cycles. Spanning `383` lines, this module stays free of duplicate state by exposing `Faces`, `prewarm`, `retarget`, `append` without introducing UI/GPU coupling cycles.
+Maps drawn triangles to source faces and binds physical, opaque, clipped, object-ID, face-pick, highlight and mask pipelines.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/faces.rs"
@@ -312,7 +312,7 @@ Maps drawn triangles to source faces and binds physical, opaque, clipped, object
 
 ### Step 28 · `src/shaders/triangle.wgsl`
 
-1. **`src/shaders/triangle.wgsl`** transforms arena and slot-instanced vertices (`slot_row`), preserves unlit opaque contact fills pulled forward via `depth_layer`, detects mirrored transforms (`det(model) < 0`), and writes `PhysicalColor` (`color` + `2×u16` `primitive`): Keep struct field offsets and `@group`/`@binding` indices synchronized with the Rust `bytemuck` mirrors in `cargo xtest`; this `386`-line shader defines `@vertex fn vs_main`, `@vertex fn vs_triangle`, `@vertex fn vs_face`, `@fragment fn fs_id` compiled directly through `build.rs` into `OUT_DIR`. Keep struct field offsets and `@group`/`@binding` indices synchronized with the Rust `bytemuck` mirrors in `cargo xtest`; this `386`-line shader defines `@vertex fn vs_main`, `@vertex fn vs_triangle`, `@vertex fn vs_face`, `@fragment fn fs_id` compiled directly through `build.rs` into `OUT_DIR`.
+1. **`src/shaders/triangle.wgsl`** transforms arena and slot-instanced vertices (`slot_row`), preserves unlit opaque contact fills pulled forward via `depth_layer`, detects mirrored transforms (`det(model) < 0`), and writes `PhysicalColor` (`color` + `2×u16` `primitive`).
 
 ```wgsl
 --8<-- "session_viewer/src/shaders/triangle.wgsl"
@@ -320,7 +320,7 @@ Maps drawn triangles to source faces and binds physical, opaque, clipped, object
 
 ### Step 29 · `src/engine/gpu/segments.rs`
 
-Expands `40 B` CPU segments into `72 B` `StrokeSegment` records across pipe, ribbon and sheet tables while keeping source entity intervals separate from GPU offsets. Spanning `859` lines, this module stays free of duplicate state by exposing `SHADERS`, `SegChunk`, `SegSheet`, `HEAD_MARK` and verified by `cylinder_segment_mirror` (+3 more tests). Spanning `859` lines, this module stays free of duplicate state by exposing `SHADERS`, `SegChunk`, `SegSheet`, `HEAD_MARK` and verified by `cylinder_segment_mirror` (+3 more tests).
+Expands `40 B` CPU segments into `72 B` `StrokeSegment` records across pipe, ribbon and sheet tables while keeping source entity intervals separate from GPU offsets.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/segments.rs"
@@ -328,7 +328,7 @@ Expands `40 B` CPU segments into `72 B` `StrokeSegment` records across pipe, rib
 
 ### Step 30 · `src/shaders/ribbon.wgsl`
 
-1. **`src/shaders/ribbon.wgsl`** reads each `72 B` `StrokeSegment`, tests adjacent face normals (`edge_faces_camera`), and bisects consecutive screen directions in `join_plane` so chained curve segments meet at clean mitered corners without overlapping alpha: Keep struct field offsets and `@group`/`@binding` indices synchronized with the Rust `bytemuck` mirrors in `cargo xtest`; this `735`-line shader defines `@vertex fn vs_main`, `@vertex fn vs_unselected`, `@vertex fn vs_selected`, `@vertex fn vs_front` compiled directly through `build.rs` into `OUT_DIR`. Keep struct field offsets and `@group`/`@binding` indices synchronized with the Rust `bytemuck` mirrors in `cargo xtest`; this `735`-line shader defines `@vertex fn vs_main`, `@vertex fn vs_unselected`, `@vertex fn vs_selected`, `@vertex fn vs_front` compiled directly through `build.rs` into `OUT_DIR`.
+1. **`src/shaders/ribbon.wgsl`** reads each `72 B` `StrokeSegment`, tests adjacent face normals (`edge_faces_camera`), and bisects consecutive screen directions in `join_plane` so chained curve segments meet at clean mitered corners without overlapping alpha.
 
 ```wgsl
 --8<-- "session_viewer/src/shaders/ribbon.wgsl"
@@ -336,7 +336,7 @@ Expands `40 B` CPU segments into `72 B` `StrokeSegment` records across pipe, rib
 
 ### Step 31 · `src/shaders/arrow.wgsl`
 
-2. **`src/shaders/arrow.wgsl`** and **`src/shaders/vector.wgsl`**: `src/shaders/arrow.wgsl` generates `18` shaft and narrow `HEAD_ASPECT = 0.30` start/end head vertices per vector (landing on the exact endpoint) by accepting scalar/vector arguments individually in `arrow_corner` rather than a packed `VectorRow` struct, avoiding an observed Android WebGPU driver struct-argument corruption bug: Keep struct field offsets and `@group`/`@binding` indices synchronized with the Rust `bytemuck` mirrors in `cargo xtest`; this `429`-line shader defines `@fragment fn fs_main`, `@fragment fn fs_id` compiled directly through `build.rs` into `OUT_DIR`. Keep struct field offsets and `@group`/`@binding` indices synchronized with the Rust `bytemuck` mirrors in `cargo xtest`; this `429`-line shader defines `@fragment fn fs_main`, `@fragment fn fs_id` compiled directly through `build.rs` into `OUT_DIR`.
+`src/shaders/arrow.wgsl`: An arrow's corners and ink: what the vector and plane lanes share; each adds its rows and its vertex entry. Defines entry points `@fragment fn fs_main`, `@fragment fn fs_id`; keep struct layouts and binding indices aligned with their Rust `bytemuck` mirrors and Naga validation tests.
 
 ```wgsl
 --8<-- "session_viewer/src/shaders/arrow.wgsl"
@@ -344,7 +344,7 @@ Expands `40 B` CPU segments into `72 B` `StrokeSegment` records across pipe, rib
 
 ### Step 32 · `src/engine/gpu/vectors.rs`
 
-Registers `VectorLane` (`64 B` `VectorRow` stride, `18` generated vertices per arrow) with matching colour and object-ID pipelines. Spanning `950` lines, this module stays free of duplicate state by exposing `SHADERS`, `VectorLane`, `REGISTERED`, `arrow` and verified by `vector_row_mirror` (+4 more tests). Spanning `950` lines, this module stays free of duplicate state by exposing `SHADERS`, `VectorLane`, `REGISTERED`, `arrow` and verified by `vector_row_mirror` (+4 more tests).
+Registers `VectorLane` (`64 B` `VectorRow` stride, `18` generated vertices per arrow) with matching colour and object-ID pipelines.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/vectors.rs"
@@ -352,7 +352,7 @@ Registers `VectorLane` (`64 B` `VectorRow` stride, `18` generated vertices per a
 
 ### Step 33 · `src/shaders/vector.wgsl`
 
-2. **`src/shaders/arrow.wgsl`** and **`src/shaders/vector.wgsl`**: `src/shaders/arrow.wgsl` generates `18` shaft and narrow `HEAD_ASPECT = 0.30` start/end head vertices per vector (landing on the exact endpoint) by accepting scalar/vector arguments individually in `arrow_corner` rather than a packed `VectorRow` struct, avoiding an observed Android WebGPU driver struct-argument corruption bug: Keep struct field offsets and `@group`/`@binding` indices synchronized with the Rust `bytemuck` mirrors in `cargo xtest`; this `22`-line shader defines `@vertex fn vs_main` after `#include` expansion of `arrow.wgsl`. Keep struct field offsets and `@group`/`@binding` indices synchronized with the Rust `bytemuck` mirrors in `cargo xtest`; this `22`-line shader defines `@vertex fn vs_main` after `#include` expansion of `arrow.wgsl`.
+`src/shaders/vector.wgsl`: Vectors: one instance per VectorRow, its corners from arrow.wgsl. Defines entry points `@vertex fn vs_main`; bindings `@group(3) @binding(0) vectors`; including `arrow.wgsl`; keep struct layouts and binding indices aligned with their Rust `bytemuck` mirrors and Naga validation tests.
 
 ```wgsl
 --8<-- "session_viewer/src/shaders/vector.wgsl"
@@ -360,7 +360,7 @@ Registers `VectorLane` (`64 B` `VectorRow` stride, `18` generated vertices per a
 
 ### Step 34 · `src/engine/gpu/glyphs.rs`
 
-Stores `48 B` `GlyphPoint` records (position, signed radius, colour, row and up to `6` packed face normals) for dots and vertex markers. Spanning `333` lines, this module stays free of duplicate state by exposing `SHADERS`, `GlyphLane`, `patch_marker`, `patch` and verified by `glyph_point_mirror`. Spanning `333` lines, this module stays free of duplicate state by exposing `SHADERS`, `GlyphLane`, `patch_marker`, `patch` and verified by `glyph_point_mirror`.
+Stores `48 B` `GlyphPoint` records (position, signed radius, colour, row and up to `6` packed face normals) for dots and vertex markers.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/glyphs.rs"
@@ -368,7 +368,7 @@ Stores `48 B` `GlyphPoint` records (position, signed radius, colour, row and up 
 
 ### Step 35 · `src/shaders/glyph.wgsl`
 
-1. **`src/shaders/glyph.wgsl`** circumscribes each `48 B` `GlyphPoint` with one `3`-vertex equilateral triangle `(0, 2), (-1.732, -1), (1.732, -1)` and cuts the anti-aliased circle in the fragment shader, while **`src/shaders/sphere.wgsl`** tapers dense mesh vertex markers down to `TAPER_MIN = 0.15`: Keep struct field offsets and `@group`/`@binding` indices synchronized with the Rust `bytemuck` mirrors in `cargo xtest`; this `181`-line shader defines `@fragment fn fs_main`, `@fragment fn fs_id`, `@vertex fn vs_main`, `@vertex fn vs_source` compiled directly through `build.rs` into `OUT_DIR`. Keep struct field offsets and `@group`/`@binding` indices synchronized with the Rust `bytemuck` mirrors in `cargo xtest`; this `181`-line shader defines `@fragment fn fs_main`, `@fragment fn fs_id`, `@vertex fn vs_main`, `@vertex fn vs_source` compiled directly through `build.rs` into `OUT_DIR`.
+`src/shaders/glyph.wgsl`: One marker or dot, 48 bytes; matches GlyphPoint in Rust. Defines entry points `@fragment fn fs_main`, `@fragment fn fs_id`, `@vertex fn vs_main`, `@vertex fn vs_source`; bindings `@group(3) @binding(0) glyphs`; keep struct layouts and binding indices aligned with their Rust `bytemuck` mirrors and Naga validation tests.
 
 ```wgsl
 --8<-- "session_viewer/src/shaders/glyph.wgsl"
@@ -376,7 +376,7 @@ Stores `48 B` `GlyphPoint` records (position, signed radius, colour, row and up 
 
 ### Step 36 · `src/shaders/sphere.wgsl`
 
-1. **`src/shaders/glyph.wgsl`** circumscribes each `48 B` `GlyphPoint` with one `3`-vertex equilateral triangle `(0, 2), (-1.732, -1), (1.732, -1)` and cuts the anti-aliased circle in the fragment shader, while **`src/shaders/sphere.wgsl`** tapers dense mesh vertex markers down to `TAPER_MIN = 0.15`: Keep struct field offsets and `@group`/`@binding` indices synchronized with the Rust `bytemuck` mirrors in `cargo xtest`; this `211`-line shader defines `@vertex fn vs_main`, `@vertex fn vs_front`, `@fragment fn fs_main`, `@fragment fn fs_id` compiled directly through `build.rs` into `OUT_DIR`. Keep struct field offsets and `@group`/`@binding` indices synchronized with the Rust `bytemuck` mirrors in `cargo xtest`; this `211`-line shader defines `@vertex fn vs_main`, `@vertex fn vs_front`, `@fragment fn fs_main`, `@fragment fn fs_id` compiled directly through `build.rs` into `OUT_DIR`.
+`src/shaders/sphere.wgsl`: One marker or dot, 48 bytes; matches GlyphPoint in Rust. Defines entry points `@vertex fn vs_main`, `@vertex fn vs_front`, `@fragment fn fs_main`, `@fragment fn fs_id`; bindings `@group(3) @binding(0) glyphs`; keep struct layouts and binding indices aligned with their Rust `bytemuck` mirrors and Naga validation tests.
 
 ```wgsl
 --8<-- "session_viewer/src/shaders/sphere.wgsl"
@@ -384,7 +384,7 @@ Stores `48 B` `GlyphPoint` records (position, signed radius, colour, row and up 
 
 ### Step 37 · `src/engine/gpu/planes.rs`
 
-Registers `PlaneLane` (`48 B` stride, `1` instanced draw -> `22` grid lines + `3` axis arrows) with atomic `f64` global plane-size scaling. Spanning `254` lines, this module stays free of duplicate state by exposing `SHADERS`, `PlaneLane`, `REGISTERED` and verified by `plane_row_mirror` (+1 more tests). Spanning `254` lines, this module stays free of duplicate state by exposing `SHADERS`, `PlaneLane`, `REGISTERED` and verified by `plane_row_mirror` (+1 more tests).
+Registers `PlaneLane` (`48 B` stride, `1` instanced draw -> `22` grid lines + `3` axis arrows) with atomic `f64` global plane-size scaling.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/planes.rs"
@@ -392,7 +392,7 @@ Registers `PlaneLane` (`48 B` stride, `1` instanced draw -> `22` grid lines + `3
 
 ### Step 38 · `src/shaders/plane.wgsl`
 
-3. **`src/shaders/plane.wgsl`** synthesizes `22` grid segments (`132` vertices) plus `3` RGB `XYZ` arrows (`54` vertices) per `48 B` `PlaneRow` by calling `arrow_corner`: Keep struct field offsets and `@group`/`@binding` indices synchronized with the Rust `bytemuck` mirrors in `cargo xtest`; this `47`-line shader defines `@vertex fn vs_plane` after `#include` expansion of `arrow.wgsl`. Keep struct field offsets and `@group`/`@binding` indices synchronized with the Rust `bytemuck` mirrors in `cargo xtest`; this `47`-line shader defines `@vertex fn vs_plane` after `#include` expansion of `arrow.wgsl`.
+3. **`src/shaders/plane.wgsl`** synthesizes `22` grid segments (`132` vertices) plus `3` RGB `XYZ` arrows (`54` vertices) per `48 B` `PlaneRow` by calling `arrow_corner`.
 
 ```wgsl
 --8<-- "session_viewer/src/shaders/plane.wgsl"
@@ -400,7 +400,7 @@ Registers `PlaneLane` (`48 B` stride, `1` instanced draw -> `22` grid lines + `3
 
 ### Step 39 · `viewer-core/src/knobs.rs`
 
-Latches diagnostic `VIEWER_*` environment switches once via `OnceLock` for profiling, edge/dot suppression, coplanar edges and BRep refinement. Spanning `60` lines, this module stays free of duplicate state by exposing `profile`, `drop_sessions`, `no_edges`, `no_dots` without introducing UI/GPU coupling cycles. Spanning `60` lines, this module stays free of duplicate state by exposing `profile`, `drop_sessions`, `no_edges`, `no_dots` without introducing UI/GPU coupling cycles.
+Latches diagnostic `VIEWER_*` environment switches once via `OnceLock` for profiling, edge/dot suppression, coplanar edges and BRep refinement.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/knobs.rs"
@@ -408,7 +408,7 @@ Latches diagnostic `VIEWER_*` environment switches once via `OnceLock` for profi
 
 ### Step 40 · `viewer-core/src/interactions.rs`
 
-Separates contact, joint, cut and drill edge interactions from owned element features in deterministic graph-edge creation order. Spanning `202` lines, this module stays free of duplicate state by exposing `Hosted`, `is_interaction`, `hosted`, `own` and verified by `features_group_under_their_interactions`. Spanning `202` lines, this module stays free of duplicate state by exposing `Hosted`, `is_interaction`, `hosted`, `own` and verified by `features_group_under_their_interactions`.
+Separates contact, joint, cut and drill edge interactions from owned element features in deterministic graph-edge creation order.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/interactions.rs"
@@ -416,7 +416,7 @@ Separates contact, joint, cut and drill edge interactions from owned element fea
 
 ### Step 41 · `viewer-core/src/walk/mod.rs`
 
-Splits mutable `Upload` borrows via `Walk::solid` and threads `WalkCx` (`row`, `cloud_px`, `arrowhead_pens` override) so converters append faces, edges and dots without cloning tables. Spanning `317` lines, this module stays free of duplicate state by exposing `Walk`, `of`, `WalkCx`, `Row` without introducing UI/GPU coupling cycles. Spanning `317` lines, this module stays free of duplicate state by exposing `Walk`, `of`, `WalkCx`, `Row` without introducing UI/GPU coupling cycles.
+Splits mutable `Upload` borrows via `Walk::solid` and threads `WalkCx` (`row`, `cloud_px`, `arrowhead_pens` override) so converters append faces, edges and dots without cloning tables.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/walk/mod.rs"
@@ -424,7 +424,7 @@ Splits mutable `Upload` borrows via `Walk::solid` and threads `WalkCx` (`row`, `
 
 ### Step 42 · `viewer-core/src/walk/encode.rs`
 
-Packs RGBA bytes, maps explicit pixel widths to negative half-widths, and quantizes octahedral normals while reserving `0xffffffff` for unknown facing. Spanning `3` lines, this module stays free of duplicate state by wiring internal module helpers without introducing UI/GPU coupling cycles. Spanning `3` lines, this module stays free of duplicate state by wiring internal module helpers without introducing UI/GPU coupling cycles.
+Packs RGBA bytes, maps explicit pixel widths to negative half-widths, and quantizes octahedral normals while reserving `0xffffffff` for unknown facing.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/walk/encode.rs"
@@ -432,7 +432,7 @@ Packs RGBA bytes, maps explicit pixel widths to negative half-widths, and quanti
 
 ### Step 43 · `viewer-core/src/walk/bounds.rs`
 
-Records pre-append `Baselines`, unions live placed bounds in `file_extent`, and flags `z < 0.001` planar batches as `0.5`-unit drawing sheets. Spanning `118` lines, this module stays free of duplicate state by exposing `Baselines`, `capture`, `file_extent`, `planar_band` without introducing UI/GPU coupling cycles. Spanning `118` lines, this module stays free of duplicate state by exposing `Baselines`, `capture`, `file_extent`, `planar_band` without introducing UI/GPU coupling cycles.
+Records pre-append `Baselines`, unions live placed bounds in `file_extent`, and flags `z < 0.001` planar batches as `0.5`-unit drawing sheets.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/walk/bounds.rs"
@@ -440,7 +440,7 @@ Records pre-append `Baselines`, unions live placed bounds in `file_extent`, and 
 
 ### Step 44 · `viewer-core/src/walk/mesh.rs`
 
-Applies `MeshOpts` (ordinary, smooth sampled, or closed element), estimates spacing from `diag / sqrt(V)`, and drops raw wireframe above `200,000` triangles. Spanning `310` lines, this module stays free of duplicate state by exposing `MESH_RAW_MIN`, `with_wireframe_edges`, `force_wireframe_edges`, `WIREFRAME_BLACK_MIN` without introducing UI/GPU coupling cycles. Spanning `310` lines, this module stays free of duplicate state by exposing `MESH_RAW_MIN`, `with_wireframe_edges`, `force_wireframe_edges`, `WIREFRAME_BLACK_MIN` without introducing UI/GPU coupling cycles.
+Applies `MeshOpts` (ordinary, smooth sampled, or closed element), estimates spacing from `diag / sqrt(V)`, and drops raw wireframe above `200,000` triangles.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/walk/mesh.rs"
@@ -448,7 +448,7 @@ Applies `MeshOpts` (ordinary, smooth sampled, or closed element), estimates spac
 
 ### Step 45 · `viewer-core/src/walk/mesh_topology.rs`
 
-Maps vertex keys to dense or hash slots, computes Newell polygon normals, and pairs shared edges with hole rings oriented against outer borders. Spanning `270` lines, this module stays free of duplicate state by exposing `SlotMap`, `slot`, `MeshTopo`, `mesh_topology` and verified by `hole_rims_carry_both_faces_without_reordering_source_edges` (+1 more tests). Spanning `270` lines, this module stays free of duplicate state by exposing `SlotMap`, `slot`, `MeshTopo`, `mesh_topology` and verified by `hole_rims_carry_both_faces_without_reordering_source_edges` (+1 more tests).
+Maps vertex keys to dense or hash slots, computes Newell polygon normals, and pairs shared edges with hole rings oriented against outer borders.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/walk/mesh_topology.rs"
@@ -456,7 +456,7 @@ Maps vertex keys to dense or hash slots, computes Newell polygon normals, and pa
 
 ### Step 46 · `viewer-core/src/walk/mesh_ink.rs`
 
-Suppresses coplanar diagonals, retains borders and creases above `25°`, marks smooth silhouette seams, and switches wireframes above `10,000` edges to black. Spanning `409` lines, this module stays free of duplicate state by exposing `Ink`, `InkCx`, `edges_and_dots` and verified by `box_ink_rows` (+1 more tests). Spanning `409` lines, this module stays free of duplicate state by exposing `Ink`, `InkCx`, `edges_and_dots` and verified by `box_ink_rows` (+1 more tests).
+Suppresses coplanar diagonals, retains borders and creases above `25°`, marks smooth silhouette seams, and switches wireframes above `10,000` edges to black.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/walk/mesh_ink.rs"
@@ -464,7 +464,7 @@ Suppresses coplanar diagonals, retains borders and creases above `25°`, marks s
 
 ### Step 47 · `viewer-core/src/walk/brep.rs`
 
-Reuses congruent shapes or requests per-face display meshes, retains `(u, v)` samples and face IDs, and sets smooth/open/closed row flags without mutating the BRep. Spanning `915` lines, this module stays free of duplicate state by exposing `QUALITY`, `walk_brep`, `walk_surface` and verified by `repeated_surface_color_metadata_cannot_expand_a_display_candidate` (+8 more tests). Spanning `915` lines, this module stays free of duplicate state by exposing `QUALITY`, `walk_brep`, `walk_surface` and verified by `repeated_surface_color_metadata_cannot_expand_a_display_candidate` (+8 more tests).
+Reuses congruent shapes or requests per-face display meshes, retains `(u, v)` samples and face IDs, and sets smooth/open/closed row flags without mutating the BRep.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/walk/brep.rs"
@@ -472,7 +472,7 @@ Reuses congruent shapes or requests per-face display meshes, retains `(u, v)` sa
 
 ### Step 48 · `viewer-core/src/walk/brep_orient.rs`
 
-Traverses shared-edge BFS components on closed shells and flips connected components by signed volume so solid normals point outward reproducibly. Spanning `289` lines, this module stays free of duplicate state by exposing `face_signs` and verified by `kernel_solids_keep_their_normals` (+3 more tests). Spanning `289` lines, this module stays free of duplicate state by exposing `face_signs` and verified by `kernel_solids_keep_their_normals` (+3 more tests).
+Traverses shared-edge BFS components on closed shells and flips connected components by signed volume so solid normals point outward reproducibly.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/walk/brep_orient.rs"
@@ -480,7 +480,7 @@ Traverses shared-edge BFS components on closed shells and flips connected compon
 
 ### Step 49 · `viewer-core/src/walk/brep_shapes.rs`
 
-Scopes thread-local `SharedWalks` to one document walk so congruent shapes replay recorded vertex/edge ranges under distinct placed object rows. Spanning `946` lines, this module stays free of duplicate state by exposing `Frame`, `Marks`, `of`, `Recording` and verified by `a_moved_copy_replays_its_shape` (+1 more tests). Spanning `946` lines, this module stays free of duplicate state by exposing `Frame`, `Marks`, `of`, `Recording` and verified by `a_moved_copy_replays_its_shape` (+1 more tests).
+Scopes thread-local `SharedWalks` to one document walk so congruent shapes replay recorded vertex/edge ranges under distinct placed object rows.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/walk/brep_shapes.rs"
@@ -488,7 +488,7 @@ Scopes thread-local `SharedWalks` to one document walk so congruent shapes repla
 
 ### Step 50 · `viewer-core/src/walk/brep_edges.rs`
 
-Evaluates exact `3D` trim/seam curves, unwraps closed seams, and stores each chord's geometric sag above its facet so curved ink stays visible without global depth bias. Spanning `1736` lines, this module stays free of duplicate state by exposing `EdgeUse`, `iso_chain`, `EdgeChain`, `edge_chains` and verified by `silhouettes_use_flat_triangle_normals_and_exclude_planar_and_boundary_edges` (+17 more tests). Spanning `1736` lines, this module stays free of duplicate state by exposing `EdgeUse`, `iso_chain`, `EdgeChain`, `edge_chains` and verified by `silhouettes_use_flat_triangle_normals_and_exclude_planar_and_boundary_edges` (+17 more tests).
+Evaluates exact `3D` trim/seam curves, unwraps closed seams, and stores each chord's geometric sag above its facet so curved ink stays visible without global depth bias.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/walk/brep_edges.rs"
@@ -496,7 +496,7 @@ Evaluates exact `3D` trim/seam curves, unwraps closed seams, and stores each cho
 
 ### Step 51 · `viewer-core/src/walk/curves.rs`
 
-Emits chained polyline/NURBS segments with cumulative arc-length dash offsets, `arrowhead_pens`-scaled terminal `VectorRow`s landing on exact endpoints, and marker-aware trims. Spanning `545` lines, this module stays free of duplicate state by exposing `push_polyline`, `push_heads`, `walk_line`, `walk_polyline` and verified by `polyline_heads_aim_along_the_end_segments` (+4 more tests). Spanning `545` lines, this module stays free of duplicate state by exposing `push_polyline`, `push_heads`, `walk_line`, `walk_polyline` and verified by `polyline_heads_aim_along_the_end_segments` (+4 more tests).
+Emits chained polyline/NURBS segments with cumulative arc-length dash offsets, `arrowhead_pens`-scaled terminal `VectorRow`s landing on exact endpoints, and marker-aware trims.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/walk/curves.rs"
@@ -504,7 +504,7 @@ Emits chained polyline/NURBS segments with cumulative arc-length dash offsets, `
 
 ### Step 52 · `viewer-core/src/walk/plane.rs`
 
-Emits `48 B` `Plane` frame rows (`12`-edge ribbons for `OBB`s) and separates clipping-plane rectangles + cut arrows from orientation grids, triggering solid-mesh verification on first cut. Spanning `199` lines, this module stays free of duplicate state by exposing `NAME`, `is_clipping`, `verify_solids`, `solids_verified` without introducing UI/GPU coupling cycles. Spanning `199` lines, this module stays free of duplicate state by exposing `NAME`, `is_clipping`, `verify_solids`, `solids_verified` without introducing UI/GPU coupling cycles.
+Emits `48 B` `Plane` frame rows (`12`-edge ribbons for `OBB`s) and separates clipping-plane rectangles + cut arrows from orientation grids, triggering solid-mesh verification on first cut.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/walk/plane.rs"
@@ -512,7 +512,7 @@ Emits `48 B` `Plane` frame rows (`12`-edge ribbons for `OBB`s) and separates cli
 
 ### Step 53 · `viewer-core/src/walk/points.rs`
 
-Appends one signed-distance dot per `Point` (`-3 px` default radius) while keeping scene bounds restricted to the world point centre. Spanning `23` lines, this module stays free of duplicate state by exposing `walk_point` without introducing UI/GPU coupling cycles. Spanning `23` lines, this module stays free of duplicate state by exposing `walk_point` without introducing UI/GPU coupling cycles.
+Appends one signed-distance dot per `Point` (`-3 px` default radius) while keeping scene bounds restricted to the world point centre.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/walk/points.rs"
@@ -520,7 +520,7 @@ Appends one signed-distance dot per `Point` (`-3 px` default radius) while keepi
 
 ### Step 54 · `viewer-core/src/walk/frames.rs`
 
-Converts coordinate frames and vectors into compact `48 B` plane and `64 B` `VectorRow` GPU records instead of tessellated arrow meshes. Spanning `121` lines, this module stays free of duplicate state by exposing `walk_plane`, `walk_obb` and verified by `plane_is_one_row_of_its_frame`. Spanning `121` lines, this module stays free of duplicate state by exposing `walk_plane`, `walk_obb` and verified by `plane_is_one_row_of_its_frame`.
+Converts coordinate frames and vectors into compact `48 B` plane and `64 B` `VectorRow` GPU records instead of tessellated arrow meshes.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/walk/frames.rs"
@@ -528,7 +528,7 @@ Converts coordinate frames and vectors into compact `48 B` plane and `64 B` `Vec
 
 ### Step 55 · `viewer-core/src/walk/display.rs`
 
-Quantizes `Quality::for_error` in half-octave steps and subdivides knot spans up to depth `16` and `4,096` segments with a drop-guarded candidate state. Spanning `828` lines, this module stays free of duplicate state by exposing `CURVE_SEGMENTS`, `SURFACE_STEPS`, `OBJECT_BYTES`, `brep_source_bytes` and verified by `inflections_are_bounded_even_when_the_midpoint_is_on_the_chord` (+14 more tests). Spanning `828` lines, this module stays free of duplicate state by exposing `CURVE_SEGMENTS`, `SURFACE_STEPS`, `OBJECT_BYTES`, `brep_source_bytes` and verified by `inflections_are_bounded_even_when_the_midpoint_is_on_the_chord` (+14 more tests).
+Quantizes `Quality::for_error` in half-octave steps and subdivides knot spans up to depth `16` and `4,096` segments with a drop-guarded candidate state.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/walk/display.rs"
@@ -536,7 +536,7 @@ Quantizes `Quality::for_error` in half-octave steps and subdivides knot spans up
 
 ### Step 56 · `viewer-core/src/walk/display_features.rs`
 
-Caps element annotations at `256` features and `4,096` finite points, copying lean display polylines so hidden kernel caches are not retained. Spanning `253` lines, this module stays free of duplicate state by exposing `Cost`, `cost`, `snapshot` and verified by `snapshot_preserves_feature_identity_without_retaining_plane_or_dash` (+2 more tests). Spanning `253` lines, this module stays free of duplicate state by exposing `Cost`, `cost`, `snapshot` and verified by `snapshot_preserves_feature_identity_without_retaining_plane_or_dash` (+2 more tests).
+Caps element annotations at `256` features and `4,096` finite points, copying lean display polylines so hidden kernel caches are not retained.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/walk/display_features.rs"
@@ -544,7 +544,7 @@ Caps element annotations at `256` features and `4,096` finite points, copying le
 
 ### Step 57 · `viewer-core/src/walk/application_tests.rs`
 
-Verifies element feature/contact polygon ribbons, dots and parent-row ID inheritance when element annotations toggle on/off. Spanning `121` lines, this module stays free of duplicate state by wiring internal module helpers and verified by `interactions_join_the_element_row` (+1 more tests). Spanning `121` lines, this module stays free of duplicate state by wiring internal module helpers and verified by `interactions_join_the_element_row` (+1 more tests).
+Verifies element feature/contact polygon ribbons, dots and parent-row ID inheritance when element annotations toggle on/off.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/walk/application_tests.rs"
@@ -552,7 +552,7 @@ Verifies element feature/contact polygon ribbons, dots and parent-row ID inherit
 
 ### Step 58 · `viewer-core/src/walk/brep/application_tests.rs`
 
-Verifies rational cylindrical NURBS border-to-face vertex sharing, preserved source `.pb` bytes and exact `Δz` surface-preview pipe offsets. Spanning `91` lines, this module stays free of duplicate state by wiring internal module helpers and verified by `exact_rational_border_samples_preserve_faces_source_ids_and_edit_preview`. Spanning `91` lines, this module stays free of duplicate state by wiring internal module helpers and verified by `exact_rational_border_samples_preserve_faces_source_ids_and_edit_preview`.
+Verifies rational cylindrical NURBS border-to-face vertex sharing, preserved source `.pb` bytes and exact `Δz` surface-preview pipe offsets.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/walk/brep/application_tests.rs"
@@ -560,7 +560,7 @@ Verifies rational cylindrical NURBS border-to-face vertex sharing, preserved sou
 
 ### Step 59 · `viewer-core/src/scene.rs`
 
-`src/app/scene.rs` wraps `Rc<Session>` inside `FileDoc` (name, file `Xform`, `point_size`, shell flag) so two placements can share one kernel `Session` while `(doc_idx, GUID)` maps each placed object to its own GPU display row. Spanning `1704` lines, this module stays free of duplicate state by exposing `READ_ONLY`, `FileDoc`, `Picked`, `PickedPoint` and verified by `duplicate_guids_keep_their_document_and_control_owners` (+8 more tests). Spanning `1704` lines, this module stays free of duplicate state by exposing `READ_ONLY`, `FileDoc`, `Picked`, `PickedPoint` and verified by `duplicate_guids_keep_their_document_and_control_owners` (+8 more tests).
+`src/app/scene.rs` wraps `Rc<Session>` inside `FileDoc` (name, file `Xform`, `point_size`, shell flag) so two placements can share one kernel `Session` while `(doc_idx, GUID)` maps each placed object to its own GPU display row.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/scene.rs"
@@ -568,7 +568,7 @@ Verifies rational cylindrical NURBS border-to-face vertex sharing, preserved sou
 
 ### Step 60 · `viewer-core/src/scene_rows.rs`
 
-Separates `(doc_idx, GUID)` row identity (plus text/free/sink/tomb sentinels) from `Footprint` (`One`, `Many`, `Cloud`, `None`) lane spans. Spanning `314` lines, this module stays free of duplicate state by exposing `EdgeStep`, `TEXT`, `FREE`, `SINK` and verified by `footprint_is_12_bytes_and_counts_roundtrip` (+1 more tests). Spanning `314` lines, this module stays free of duplicate state by exposing `EdgeStep`, `TEXT`, `FREE`, `SINK` and verified by `footprint_is_12_bytes_and_counts_roundtrip` (+1 more tests).
+Separates `(doc_idx, GUID)` row identity (plus text/free/sink/tomb sentinels) from `Footprint` (`One`, `Many`, `Cloud`, `None`) lane spans.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/scene_rows.rs"
@@ -576,7 +576,7 @@ Separates `(doc_idx, GUID)` row identity (plus text/free/sink/tomb sentinels) fr
 
 ### Step 61 · `viewer-core/src/scene_sync.rs`
 
-Drains change notes, deduplicates identities, expands `SUBTREE` descendants and emits ordered `Staged` GPU updates (`retire`, `bury`, `patch`, `geometry`, `place`). Spanning `647` lines, this module stays free of duplicate state by exposing `TOMB_CAP`, `Work`, `has_pending`, `dead_bytes` without introducing UI/GPU coupling cycles. Spanning `647` lines, this module stays free of duplicate state by exposing `TOMB_CAP`, `Work`, `has_pending`, `dead_bytes` without introducing UI/GPU coupling cycles.
+Drains change notes, deduplicates identities, expands `SUBTREE` descendants and emits ordered `Staged` GPU updates (`retire`, `bury`, `patch`, `geometry`, `place`).
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/scene_sync.rs"
@@ -584,7 +584,7 @@ Drains change notes, deduplicates identities, expands `SUBTREE` descendants and 
 
 ### Step 62 · `viewer-core/src/scene_sync/allocation.rs`
 
-Reuses an identity's grave when all lane counts match, pads drag previews by ~`50%`, and routes retired tails to the hidden sink row. Spanning `142` lines, this module stays free of duplicate state by exposing `place_rows`, `append`, `retire`, `kill_lanes` without introducing UI/GPU coupling cycles. Spanning `142` lines, this module stays free of duplicate state by exposing `place_rows`, `append`, `retire`, `kill_lanes` without introducing UI/GPU coupling cycles.
+Reuses an identity's grave when all lane counts match, pads drag previews by ~`50%`, and routes retired tails to the hidden sink row.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/scene_sync/allocation.rs"
@@ -592,7 +592,7 @@ Reuses an identity's grave when all lane counts match, pads drag previews by ~`5
 
 ### Step 63 · `viewer-core/src/scene_sync/compaction.rs`
 
-`src/app/scene_sync/compaction.rs` triggers GPU lane compaction once dead bytes reach `16 MiB` and dead + tomb bytes exceed live bytes, rebuilding buffer bind groups and skipping shared `Rc<Session>` purges, while `src/engine/gpu/scene_gpu_tests/` (`mod.rs`, `contacts.rs`, `frames.rs`, `instances.rs`, `split.rs`) verifies offscreen pixel and object-ID parity across edits, undos, instancing and compactions on a native headless GPU adapter. Spanning `174` lines, this module stays free of duplicate state by exposing `compaction_due`, `purge_step`, `cloud_compaction_due`, `compact_clouds` without introducing UI/GPU coupling cycles. Spanning `174` lines, this module stays free of duplicate state by exposing `compaction_due`, `purge_step`, `cloud_compaction_due`, `compact_clouds` without introducing UI/GPU coupling cycles.
+`viewer-core/src/scene_sync/compaction.rs` (174 lines) defines `compaction_due()`, `purge_step()`, `cloud_compaction_due()`. It uses additive registration seams `register:editing`, `register:instancing`.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/scene_sync/compaction.rs"
@@ -600,7 +600,7 @@ Reuses an identity's grave when all lane counts match, pads drag previews by ~`5
 
 ### Step 64 · `viewer-core/src/scene_sync/nodes.rs`
 
-Resolves affected tree nodes via weak caches and batched per-document searches, multiplying file `Xform` by root-to-node transforms. Spanning `274` lines, this module stays free of duplicate state by exposing `find_nodes`, `cached`, `cache_hit`, `beside_parent` without introducing UI/GPU coupling cycles. Spanning `274` lines, this module stays free of duplicate state by exposing `find_nodes`, `cached`, `cache_hit`, `beside_parent` without introducing UI/GPU coupling cycles.
+Resolves affected tree nodes via weak caches and batched per-document searches, multiplying file `Xform` by root-to-node transforms.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/scene_sync/nodes.rs"
@@ -608,7 +608,7 @@ Resolves affected tree nodes via weak caches and batched per-document searches, 
 
 ### Step 65 · `viewer-core/src/scene_sync/notes.rs`
 
-Translates forward and reverse kernel transaction ops into `GEOMETRY`, `PLACE`, `PRESENCE` and `SUBTREE` invalidation flags without rebuilding untouched objects. Spanning `84` lines, this module stays free of duplicate state by exposing `commit`, `stepped` without introducing UI/GPU coupling cycles. Spanning `84` lines, this module stays free of duplicate state by exposing `commit`, `stepped` without introducing UI/GPU coupling cycles.
+Translates forward and reverse kernel transaction ops into `GEOMETRY`, `PLACE`, `PRESENCE` and `SUBTREE` invalidation flags without rebuilding untouched objects.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/scene_sync/notes.rs"
@@ -616,7 +616,7 @@ Translates forward and reverse kernel transaction ops into `GEOMETRY`, `PLACE`, 
 
 ### Step 66 · `viewer-core/src/scene_sync/tombs.rs`
 
-Retains up to `256 MiB` of deleted lane spans keyed by weak kernel tomb pointers so `Undo` unburies rows without re-tessellating geometry. Spanning `204` lines, this module stays free of duplicate state by exposing `record_of`, `bury`, `revive`, `free_tomb` without introducing UI/GPU coupling cycles. Spanning `204` lines, this module stays free of duplicate state by exposing `record_of`, `bury`, `revive`, `free_tomb` without introducing UI/GPU coupling cycles.
+Retains up to `256 MiB` of deleted lane spans keyed by weak kernel tomb pointers so `Undo` unburies rows without re-tessellating geometry.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/scene_sync/tombs.rs"
@@ -624,7 +624,7 @@ Retains up to `256 MiB` of deleted lane spans keyed by weak kernel tomb pointers
 
 ### Step 67 · `viewer-core/src/scene_sync/testing.rs`
 
-Models `settle` upload bookkeeping on the CPU and compares incremental edits bit-for-bit against a fresh multi-document walk (`verify`). Spanning `135` lines, this module stays free of duplicate state by exposing `settle`, `rewalk_cpu`, `verify` without introducing UI/GPU coupling cycles. Spanning `135` lines, this module stays free of duplicate state by exposing `settle`, `rewalk_cpu`, `verify` without introducing UI/GPU coupling cycles.
+Models `settle` upload bookkeeping on the CPU and compares incremental edits bit-for-bit against a fresh multi-document walk (`verify`).
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/scene_sync/testing.rs"
@@ -632,7 +632,7 @@ Models `settle` upload bookkeeping on the CPU and compares incremental edits bit
 
 ### Step 68 · `viewer-core/src/scene_sync/tests.rs`
 
-Runs `150`-step seeded random edit sequences (including a `4,096 B` tomb cap and cache on/off parity) against the fresh-scene oracle. Spanning `216` lines, this module stays free of duplicate state by exposing `file`, `p`, `arc`, `other` without introducing UI/GPU coupling cycles. Spanning `216` lines, this module stays free of duplicate state by exposing `file`, `p`, `arc`, `other` without introducing UI/GPU coupling cycles.
+Runs `150`-step seeded random edit sequences (including a `4,096 B` tomb cap and cache on/off parity) against the fresh-scene oracle.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/scene_sync/tests.rs"
@@ -640,7 +640,7 @@ Runs `150`-step seeded random edit sequences (including a `4,096 B` tomb cap and
 
 ### Step 69 · `src/engine/gpu/scene_gpu_tests/mod.rs`
 
-`src/app/scene_sync/compaction.rs` triggers GPU lane compaction once dead bytes reach `16 MiB` and dead + tomb bytes exceed live bytes, rebuilding buffer bind groups and skipping shared `Rc<Session>` purges, while `src/engine/gpu/scene_gpu_tests/` (`mod.rs`, `contacts.rs`, `frames.rs`, `instances.rs`, `split.rs`) verifies offscreen pixel and object-ID parity across edits, undos, instancing and compactions on a native headless GPU adapter. Spanning `4` lines, this module stays free of duplicate state by wiring internal module helpers without introducing UI/GPU coupling cycles. Spanning `4` lines, this module stays free of duplicate state by wiring internal module helpers without introducing UI/GPU coupling cycles.
+`src/engine/gpu/scene_gpu_tests/mod.rs` (4 lines) coordinates submodules `contacts`, `frames`, `instances`, `split`. It maintains explicit buffer capacities, bind-group layouts, and frame-submission ordering for WebGPU.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/scene_gpu_tests/mod.rs"
@@ -648,7 +648,7 @@ Runs `150`-step seeded random edit sequences (including a `4,096 B` tomb cap and
 
 ### Step 70 · `src/engine/gpu/scene_gpu_tests/contacts.rs`
 
-`src/app/scene_sync/compaction.rs` triggers GPU lane compaction once dead bytes reach `16 MiB` and dead + tomb bytes exceed live bytes, rebuilding buffer bind groups and skipping shared `Rc<Session>` purges, while `src/engine/gpu/scene_gpu_tests/` (`mod.rs`, `contacts.rs`, `frames.rs`, `instances.rs`, `split.rs`) verifies offscreen pixel and object-ID parity across edits, undos, instancing and compactions on a native headless GPU adapter. Spanning `102` lines, this module stays free of duplicate state by wiring internal module helpers without introducing UI/GPU coupling cycles. Spanning `102` lines, this module stays free of duplicate state by wiring internal module helpers without introducing UI/GPU coupling cycles.
+`src/engine/gpu/scene_gpu_tests/contacts.rs` (102 lines) implements internal state and helper routines for `scene_gpu_tests`. It maintains explicit buffer capacities, bind-group layouts, and frame-submission ordering for WebGPU.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/scene_gpu_tests/contacts.rs"
@@ -656,7 +656,7 @@ Runs `150`-step seeded random edit sequences (including a `4,096 B` tomb cap and
 
 ### Step 71 · `src/engine/gpu/scene_gpu_tests/frames.rs`
 
-`src/app/scene_sync/compaction.rs` triggers GPU lane compaction once dead bytes reach `16 MiB` and dead + tomb bytes exceed live bytes, rebuilding buffer bind groups and skipping shared `Rc<Session>` purges, while `src/engine/gpu/scene_gpu_tests/` (`mod.rs`, `contacts.rs`, `frames.rs`, `instances.rs`, `split.rs`) verifies offscreen pixel and object-ID parity across edits, undos, instancing and compactions on a native headless GPU adapter. Spanning `222` lines, this module stays free of duplicate state by wiring internal module helpers and verified by `authored_line_widths_reach_the_pixels`. Spanning `222` lines, this module stays free of duplicate state by wiring internal module helpers and verified by `authored_line_widths_reach_the_pixels`.
+`src/engine/gpu/scene_gpu_tests/frames.rs` (222 lines) houses regression tests `authored_line_widths_reach_the_pixels`. It verified by `cargo xtest` (`authored_line_widths_reach_the_pixels`).
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/scene_gpu_tests/frames.rs"
@@ -664,7 +664,7 @@ Runs `150`-step seeded random edit sequences (including a `4,096 B` tomb cap and
 
 ### Step 72 · `src/engine/gpu/scene_gpu_tests/instances.rs`
 
-`src/app/scene_sync/compaction.rs` triggers GPU lane compaction once dead bytes reach `16 MiB` and dead + tomb bytes exceed live bytes, rebuilding buffer bind groups and skipping shared `Rc<Session>` purges, while `src/engine/gpu/scene_gpu_tests/` (`mod.rs`, `contacts.rs`, `frames.rs`, `instances.rs`, `split.rs`) verifies offscreen pixel and object-ID parity across edits, undos, instancing and compactions on a native headless GPU adapter. Spanning `409` lines, this module stays free of duplicate state by wiring internal module helpers without introducing UI/GPU coupling cycles. Spanning `409` lines, this module stays free of duplicate state by wiring internal module helpers without introducing UI/GPU coupling cycles.
+`src/engine/gpu/scene_gpu_tests/instances.rs` (409 lines) implements internal state and helper routines for `scene_gpu_tests`. It maintains explicit buffer capacities, bind-group layouts, and frame-submission ordering for WebGPU.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/scene_gpu_tests/instances.rs"
@@ -672,7 +672,7 @@ Runs `150`-step seeded random edit sequences (including a `4,096 B` tomb cap and
 
 ### Step 73 · `src/engine/gpu/scene_gpu_tests/split.rs`
 
-`src/app/scene_sync/compaction.rs` triggers GPU lane compaction once dead bytes reach `16 MiB` and dead + tomb bytes exceed live bytes, rebuilding buffer bind groups and skipping shared `Rc<Session>` purges, while `src/engine/gpu/scene_gpu_tests/` (`mod.rs`, `contacts.rs`, `frames.rs`, `instances.rs`, `split.rs`) verifies offscreen pixel and object-ID parity across edits, undos, instancing and compactions on a native headless GPU adapter. Spanning `758` lines, this module stays free of duplicate state by wiring internal module helpers without introducing UI/GPU coupling cycles. Spanning `758` lines, this module stays free of duplicate state by wiring internal module helpers without introducing UI/GPU coupling cycles.
+`src/engine/gpu/scene_gpu_tests/split.rs` (758 lines) implements internal state and helper routines for `scene_gpu_tests`. It maintains explicit buffer capacities, bind-group layouts, and frame-submission ordering for WebGPU.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/scene_gpu_tests/split.rs"

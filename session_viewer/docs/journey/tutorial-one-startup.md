@@ -35,7 +35,7 @@ Owned files in build order (`14` files):
 
 ### Step 1 · `Cargo.toml`
 
-Write `Cargo.toml` with both `cdylib` (for the browser `.wasm` target) and `rlib` (for native tests), linking `wgpu 29`, `winit 0.30`, `egui 0.34.3`, and `session_rust` with `default-features = false` and `viewer-display`. Copy `Cargo.lock` alongside it so `skrifa`/`swash` font crates, `wasm-bindgen`, `web-sys` DOM bindings, JS `getrandom` on wasm, and native-only `pollster` stay locked to exact versions. Keep this `101`-line configuration synchronized with the workspace toolchain and deterministic build rules. Keep this `97`-line configuration synchronized with the workspace toolchain and deterministic build rules.
+`Cargo.toml` configures the `[workspace]` (`members = [".", "viewer-core"]`), compiles `session_viewer` as both `cdylib` (browser WASM) and `rlib` (native tests/CLI), and pins `wgpu = "29"`, `winit = "0.30"`, `egui = "0.34.3"`, `glyphon = "0.11"`, and `session_rust` (`viewer-display`). Trap: keep `panic = "abort"` and `opt-level = 3` in `[profile.release]` while leaving fat LTO to CI so incremental WASM checks stay fast.
 
 ```toml
 --8<-- "session_viewer/Cargo.toml"
@@ -59,7 +59,7 @@ Write `Cargo.toml` with both `cdylib` (for the browser `.wasm` target) and `rlib
 
 ### Step 4 · `viewer-core/Cargo.toml`
 
-Create `src/lib.rs` plus the three additive module roots (`src/app/mod.rs`, `src/engine/mod.rs`, `src/engine/gpu/mod.rs`), alongside `viewer-core/Cargo.toml` and `viewer-core/src/lib.rs` so the UI- and GPU-free `viewer-core` workspace member grows additively from Tutorial 5 onward without `wgpu`, `winit`, `egui` or `web-sys` dependencies: Keep this `22`-line configuration synchronized with the workspace toolchain and deterministic build rules. Keep this `22`-line configuration synchronized with the workspace toolchain and deterministic build rules.
+`viewer-core/Cargo.toml` defines the UI- and GPU-independent core crate, depending only on `session_rust`, `bytemuck`, `prost`, `serde`, `serde_json`, `serde_yaml_ng`, and optional `toml`. Trap: never add `wgpu`, `winit`, `egui`, `web-sys`, `wasm-bindgen`, or `glyphon` here—`cargo tree -p viewer-core` must stay pure Rust.
 
 ```toml
 --8<-- "session_viewer/viewer-core/Cargo.toml"
@@ -67,7 +67,7 @@ Create `src/lib.rs` plus the three additive module roots (`src/app/mod.rs`, `src
 
 ### Step 5 · `viewer-core/src/lib.rs`
 
-Create `src/lib.rs` plus the three additive module roots (`src/app/mod.rs`, `src/engine/mod.rs`, `src/engine/gpu/mod.rs`), alongside `viewer-core/Cargo.toml` and `viewer-core/src/lib.rs` so the UI- and GPU-free `viewer-core` workspace member grows additively from Tutorial 5 onward without `wgpu`, `winit`, `egui` or `web-sys` dependencies: Spanning `40` lines, this module stays free of duplicate state by wiring internal module helpers without introducing UI/GPU coupling cycles. Spanning `40` lines, this module stays free of duplicate state by wiring internal module helpers without introducing UI/GPU coupling cycles.
+`viewer-core/src/lib.rs` exports the 35 pure-Rust domain modules (`camera`, `command`, `op`, `rows`, `scene`, `selection`, `session_io`, `snap`, `walk`, and geometry helpers) plus `GpuSink`. Trap: keep module visibility `pub` across the `viewer_core` crate boundary so both `session_viewer` (browser) and `session-viewer-cli` (headless) call the same APIs.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/lib.rs"
@@ -75,7 +75,7 @@ Create `src/lib.rs` plus the three additive module roots (`src/app/mod.rs`, `src
 
 ### Step 6 · `src/lib.rs`
 
-Create `src/lib.rs` plus the three additive module roots (`src/app/mod.rs`, `src/engine/mod.rs`, `src/engine/gpu/mod.rs`), alongside `viewer-core/Cargo.toml` and `viewer-core/src/lib.rs` so the UI- and GPU-free `viewer-core` workspace member grows additively from Tutorial 5 onward without `wgpu`, `winit`, `egui` or `web-sys` dependencies: Spanning `37` lines, this module stays free of duplicate state by wiring internal module helpers without introducing UI/GPU coupling cycles. Spanning `37` lines, this module stays free of duplicate state by wiring internal module helpers without introducing UI/GPU coupling cycles.
+`src/lib.rs` defines the `shader!` macro over `OUT_DIR`, mounts `engine`, `app`, `command_dock`, `state`, `text_quality`, and `selftest`, and exports `#[wasm_bindgen(start)] pub fn run_web()` plus `reload_scene` and `execute_op`. Trap: gate `examples/course/entry.rs` behind `#[cfg(all(target_arch = "wasm32", feature = "tutorial"))]` so production WASM starts `app::run_web()` directly.
 
 ```rust
 --8<-- "session_viewer/src/lib.rs"
@@ -83,7 +83,7 @@ Create `src/lib.rs` plus the three additive module roots (`src/app/mod.rs`, `src
 
 ### Step 7 · `src/engine/mod.rs`
 
-Create `src/lib.rs` plus the three additive module roots (`src/app/mod.rs`, `src/engine/mod.rs`, `src/engine/gpu/mod.rs`), alongside `viewer-core/Cargo.toml` and `viewer-core/src/lib.rs` so the UI- and GPU-free `viewer-core` workspace member grows additively from Tutorial 5 onward without `wgpu`, `winit`, `egui` or `web-sys` dependencies: Spanning `6` lines, this module stays free of duplicate state by wiring internal module helpers without introducing UI/GPU coupling cycles. Spanning `6` lines, this module stays free of duplicate state by wiring internal module helpers without introducing UI/GPU coupling cycles.
+`src/engine/mod.rs` wires the four rendering-engine subsystems—`diagnostics`, `gpu`, `performance`, and `pipelines`—under `crate::engine`. Trap: keep `engine` free of `crate::state` imports so GPU pipelines and headless self-tests compile without interactive UI state.
 
 ```rust
 --8<-- "session_viewer/src/engine/mod.rs"
@@ -91,7 +91,7 @@ Create `src/lib.rs` plus the three additive module roots (`src/app/mod.rs`, `src
 
 ### Step 8 · `src/engine/gpu/mod.rs`
 
-Create `src/lib.rs` plus the three additive module roots (`src/app/mod.rs`, `src/engine/mod.rs`, `src/engine/gpu/mod.rs`), alongside `viewer-core/Cargo.toml` and `viewer-core/src/lib.rs` so the UI- and GPU-free `viewer-core` workspace member grows additively from Tutorial 5 onward without `wgpu`, `winit`, `egui` or `web-sys` dependencies: Spanning `61` lines, this module stays free of duplicate state by wiring internal module helpers without introducing UI/GPU coupling cycles. Spanning `61` lines, this module stays free of duplicate state by wiring internal module helpers without introducing UI/GPU coupling cycles.
+`src/engine/gpu/mod.rs` declares all 33 WebGPU resource, lane, pass, target, text, outline, SSAO, splat, clip, and `GpuSink` adapter modules under `engine::gpu` and re-exports `Gpu`. Trap: `completion.ts` filters these `mod` declarations per cumulative assembly, so keep one `mod <name>;` declaration per line.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/mod.rs"
@@ -99,7 +99,7 @@ Create `src/lib.rs` plus the three additive module roots (`src/app/mod.rs`, `src
 
 ### Step 9 · `src/app/mod.rs`
 
-Create `src/lib.rs` plus the three additive module roots (`src/app/mod.rs`, `src/engine/mod.rs`, `src/engine/gpu/mod.rs`), alongside `viewer-core/Cargo.toml` and `viewer-core/src/lib.rs` so the UI- and GPU-free `viewer-core` workspace member grows additively from Tutorial 5 onward without `wgpu`, `winit`, `egui` or `web-sys` dependencies: Spanning `60` lines, this module stays free of duplicate state by wiring internal module helpers without introducing UI/GPU coupling cycles. Spanning `60` lines, this module stays free of duplicate state by wiring internal module helpers without introducing UI/GPU coupling cycles.
+`src/app/mod.rs` mounts browser shell modules (`launch`, `runtime`, `mode`, `stage`, `input`, `touch`, `keys`, `gesture`, `ui`, `loader`, `live`, `fetch`) and re-exports shared `viewer_core` modules into `crate::app`. Trap: keep thin browser adapters (`decode`, `session_io`, `stream`, `cloud_query`, `sheet_query`) delegating to `viewer_core` rather than duplicating logic.
 
 ```rust
 --8<-- "session_viewer/src/app/mod.rs"
@@ -107,7 +107,7 @@ Create `src/lib.rs` plus the three additive module roots (`src/app/mod.rs`, `src
 
 ### Step 10 · `src/app/launch.rs`
 
-Create `examples/course/index.html` with a full-viewport `#canvas` element, then add `src/app/launch.rs` so `EventLoopProxy<Message>` is cloned *before* `spawn_app` starts the `async` WebGPU handshake without borrowing the event loop across `.await`: Spanning `12` lines, this module stays free of duplicate state by wiring internal module helpers without introducing UI/GPU coupling cycles. Spanning `12` lines, this module stays free of duplicate state by wiring internal module helpers without introducing UI/GPU coupling cycles.
+`src/app/launch.rs` builds the `winit::event_loop::EventLoop<M>`, clones its `EventLoopProxy<M>` up front, and hands the constructed handler to `EventLoopExtWebSys::spawn_app`. Trap: `EventLoop::create_proxy` must run before `spawn_app` consumes the `EventLoop`, because `&ActiveEventLoop` inside `resumed` cannot mint typed user-event proxies.
 
 ```rust
 --8<-- "session_viewer/src/app/launch.rs"

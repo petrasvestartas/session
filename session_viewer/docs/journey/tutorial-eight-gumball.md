@@ -29,7 +29,7 @@ Owned files in build order (`8` files):
 
 ### Step 1 · `viewer-core/src/gizmo.rs`
 
-Computes `3`-axis arrow, quarter-ring arc and scale-ball `Xform` deltas from ray-axis closest points, plane angles (`90°` snap) and pivot reach. Spanning `910` lines, this module stays free of duplicate state by exposing `GizmoAlign`, `rotation_about`, `scaling_about`, `Handle` and verified by `arm_grab_accepts_a_ray_within_the_screen_aperture` (+14 more tests). Spanning `910` lines, this module stays free of duplicate state by exposing `GizmoAlign`, `rotation_about`, `scaling_about`, `Handle` and verified by `arm_grab_accepts_a_ray_within_the_screen_aperture` (+14 more tests).
+Computes `3`-axis arrow, quarter-ring arc and scale-ball `Xform` deltas from ray-axis closest points, plane angles (`90°` snap) and pivot reach.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/gizmo.rs"
@@ -37,7 +37,7 @@ Computes `3`-axis arrow, quarter-ring arc and scale-ball `Xform` deltas from ray
 
 ### Step 2 · `viewer-core/src/command/verbs/gumball.rs`
 
-`lock.rs` locks selected objects or unlocks all as an undoable appearance step; `gumball.rs` aligns the gumball to `World`, `Object` or `CPlane` axes and relocates or resets its pivot; `properties.rs` toggles the object properties and display settings panel. Spanning `62` lines, this module stays free of duplicate state by registering `SPEC` in `verbs!` without introducing UI/GPU coupling cycles. Spanning `62` lines, this module stays free of duplicate state by registering `SPEC` in `verbs!` without introducing UI/GPU coupling cycles.
+`viewer-core/src/command/verbs/gumball.rs` implements the `gumball` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/command/verbs/gumball.rs"
@@ -45,7 +45,7 @@ Computes `3`-axis arrow, quarter-ring arc and scale-ball `Xform` deltas from ray
 
 ### Step 3 · `src/engine/gpu/widget_mesh.rs`
 
-Builds the static CSS-sized gumball mesh once with `10` handle IDs matching `gizmo.rs` hit-test geometry. Spanning `158` lines, this module stays free of duplicate state by exposing `Vertex`, `vertices` without introducing UI/GPU coupling cycles. Spanning `158` lines, this module stays free of duplicate state by exposing `Vertex`, `vertices` without introducing UI/GPU coupling cycles.
+`src/engine/gpu/widget_mesh.rs` (158 lines) defines `struct Vertex`, `vertices()`. It maintains explicit buffer capacities, bind-group layouts, and frame-submission ordering for WebGPU.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/widget_mesh.rs"
@@ -53,7 +53,7 @@ Builds the static CSS-sized gumball mesh once with `10` handle IDs matching `giz
 
 ### Step 4 · `src/engine/gpu/widget.rs`
 
-Renders the gumball into a private depth-tested tile (`96 B` uniform) and composites it over the scene so solids never bury active handles. Spanning `415` lines, this module stays free of duplicate state by exposing `Widget`, `clear`, `retarget`, `allocated_bytes` without introducing UI/GPU coupling cycles. Spanning `415` lines, this module stays free of duplicate state by exposing `Widget`, `clear`, `retarget`, `allocated_bytes` without introducing UI/GPU coupling cycles.
+Renders the gumball into a private depth-tested tile (`96 B` uniform) and composites it over the scene so solids never bury active handles.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/widget.rs"
@@ -61,7 +61,7 @@ Renders the gumball into a private depth-tested tile (`96 B` uniform) and compos
 
 ### Step 5 · `src/shaders/widget.wgsl`
 
-4. **`src/shaders/widget.wgsl`** shades the `10`-handle manipulation gumball inside its own depth-tested tile (`widget.rect`) so handles occlude each other cleanly in `3D` while floating unobstructed above scene solids: Keep struct field offsets and `@group`/`@binding` indices synchronized with the Rust `bytemuck` mirrors in `cargo xtest`; this `61`-line shader defines `@vertex fn vs_main`, `@fragment fn fs_main`, `@vertex fn vs_composite`, `@fragment fn fs_composite` compiled directly through `build.rs` into `OUT_DIR`. Keep struct field offsets and `@group`/`@binding` indices synchronized with the Rust `bytemuck` mirrors in `cargo xtest`; this `61`-line shader defines `@vertex fn vs_main`, `@fragment fn fs_main`, `@vertex fn vs_composite`, `@fragment fn fs_composite` compiled directly through `build.rs` into `OUT_DIR`.
+4. **`src/shaders/widget.wgsl`** shades the `10`-handle manipulation gumball inside its own depth-tested tile (`widget.rect`) so handles occlude each other cleanly in `3D` while floating unobstructed above scene solids.
 
 ```wgsl
 --8<-- "session_viewer/src/shaders/widget.wgsl"
@@ -69,7 +69,7 @@ Renders the gumball into a private depth-tested tile (`96 B` uniform) and compos
 
 ### Step 6 · `src/app/gesture/gizmo.rs`
 
-Claims gumball handle presses: a click without motion opens the floating `number_box`, whereas a drag previews on GPU rows and commits once on release. Spanning `20` lines, this module stays free of duplicate state by exposing `GESTURE` without introducing UI/GPU coupling cycles. Spanning `20` lines, this module stays free of duplicate state by exposing `GESTURE` without introducing UI/GPU coupling cycles.
+Claims gumball handle presses: a click without motion opens the floating `number_box`, whereas a drag previews on GPU rows and commits once on release.
 
 ```rust
 --8<-- "session_viewer/src/app/gesture/gizmo.rs"
@@ -77,7 +77,7 @@ Claims gumball handle presses: a click without motion opens the floating `number
 
 ### Step 7 · `src/app/gesture/control.rs`
 
-Claims control-point presses, cancelling sub-threshold clicks cleanly while committing true vertex/CV drags on release. Spanning `21` lines, this module stays free of duplicate state by exposing `GESTURE` without introducing UI/GPU coupling cycles. Spanning `21` lines, this module stays free of duplicate state by exposing `GESTURE` without introducing UI/GPU coupling cycles.
+Claims control-point presses, cancelling sub-threshold clicks cleanly while committing true vertex/CV drags on release.
 
 ```rust
 --8<-- "session_viewer/src/app/gesture/control.rs"
@@ -85,7 +85,7 @@ Claims control-point presses, cancelling sub-threshold clicks cleanly while comm
 
 ### Step 8 · `src/state/drag.rs`
 
-Bins snap `Targets` in screen cells (invalidated on camera change) and retains early mouse-release state in `ObjectDrag` until delayed GPU pick readback resolves. Spanning `681` lines, this module stays free of duplicate state by exposing `ObjectDrag`, `Targets`, `start_object_drag`, `drag_object` and verified by `a_flick_finishes_when_its_pick_answers` (+2 more tests). Spanning `681` lines, this module stays free of duplicate state by exposing `ObjectDrag`, `Targets`, `start_object_drag`, `drag_object` and verified by `a_flick_finishes_when_its_pick_answers` (+2 more tests).
+Bins snap `Targets` in screen cells (invalidated on camera change) and retains early mouse-release state in `ObjectDrag` until delayed GPU pick readback resolves.
 
 ```rust
 --8<-- "session_viewer/src/state/drag.rs"

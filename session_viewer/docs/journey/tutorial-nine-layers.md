@@ -46,7 +46,7 @@ Owned files in build order (`25` files):
 
 ### Step 1 · `viewer-core/src/hierarchy.rs`
 
-`src/app/hierarchy.rs` flattens document trees into pre-order node slices (`depth`, `subtree_end`, row range, `128`-node UI pages and `truncated` flag) refreshed on `row_revision` while keeping graph edges separate. Spanning `1155` lines, this module stays free of duplicate state by exposing `PAGE_SIZE`, `Node`, `Pick`, `Hierarchy` and verified by `a_layer_lamp_keeps_the_lamps_below` (+6 more tests). Spanning `1155` lines, this module stays free of duplicate state by exposing `PAGE_SIZE`, `Node`, `Pick`, `Hierarchy` and verified by `a_layer_lamp_keeps_the_lamps_below` (+6 more tests).
+`src/app/hierarchy.rs` flattens document trees into pre-order node slices (`depth`, `subtree_end`, row range, `128`-node UI pages and `truncated` flag) refreshed on `row_revision` while keeping graph edges separate.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/hierarchy.rs"
@@ -54,7 +54,7 @@ Owned files in build order (`25` files):
 
 ### Step 2 · `viewer-core/src/layers.rs`
 
-`src/app/layers.rs` validates editable targets, deduplicates `(doc_idx, GUID)` pairs, drops descendants already carried by a selected ancestor, and moves tree nodes into the destination layer. Spanning `1762` lines, this module stays free of duplicate state by exposing `Layer`, `Kind`, `label`, `key` and verified by `the_panel_lists_documents_then_the_kinds_present` (+19 more tests). Spanning `1762` lines, this module stays free of duplicate state by exposing `Layer`, `Kind`, `label`, `key` and verified by `the_panel_lists_documents_then_the_kinds_present` (+19 more tests).
+`src/app/layers.rs` validates editable targets, deduplicates `(doc_idx, GUID)` pairs, drops descendants already carried by a selected ancestor, and moves tree nodes into the destination layer.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/layers.rs"
@@ -62,7 +62,7 @@ Owned files in build order (`25` files):
 
 ### Step 3 · `viewer-core/src/scene_display.rs`
 
-Scans up to `128` visible rows per idle frame under bounded source/refinement caches, refining only live or revision-matched geometry. Spanning `929` lines, this module stays free of duplicate state by exposing `Display`, `quality`, `forget`, `reset_allocations` and verified by `retries_are_finite_and_never_coarser_than_the_current_display` (+10 more tests). Spanning `929` lines, this module stays free of duplicate state by exposing `Display`, `quality`, `forget`, `reset_allocations` and verified by `retries_are_finite_and_never_coarser_than_the_current_display` (+10 more tests).
+Scans up to `128` visible rows per idle frame under bounded source/refinement caches, refining only live or revision-matched geometry.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/scene_display.rs"
@@ -70,7 +70,7 @@ Scans up to `128` visible rows per idle frame under bounded source/refinement ca
 
 ### Step 4 · `viewer-core/src/scene_instances.rs`
 
-Walks each shared definition once into a hidden row and assigns monotonic batch keys across clears for placed instances. Spanning `1211` lines, this module stays free of duplicate state by exposing `Instancing`, `clear`, `clear_dirty`, `batch_rows` and verified by `a_definition_is_walked_once_for_every_instance` (+7 more tests). Spanning `1211` lines, this module stays free of duplicate state by exposing `Instancing`, `clear`, `clear_dirty`, `batch_rows` and verified by `a_definition_is_walked_once_for_every_instance` (+7 more tests).
+Walks each shared definition once into a hidden row and assigns monotonic batch keys across clears for placed instances.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/scene_instances.rs"
@@ -78,7 +78,7 @@ Walks each shared definition once into a hidden row and assigns monotonic batch 
 
 ### Step 5 · `src/engine/gpu/instanced.rs`
 
-Synchronizes face/stroke instance draw ranges and slot buffers after arena growth, invalidating projected triangle tile lists on change. Spanning `100` lines, this module stays free of duplicate state by exposing `set_instanced`, `follow_arena`, `Instanced`, `pass` without introducing UI/GPU coupling cycles. Spanning `100` lines, this module stays free of duplicate state by exposing `set_instanced`, `follow_arena`, `Instanced`, `pass` without introducing UI/GPU coupling cycles.
+Synchronizes face/stroke instance draw ranges and slot buffers after arena growth, invalidating projected triangle tile lists on change.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/instanced.rs"
@@ -86,7 +86,7 @@ Synchronizes face/stroke instance draw ranges and slot buffers after arena growt
 
 ### Step 6 · `src/app/ui/mod.rs`
 
-Runs registered `Panel`s (`fill` -> `draw` -> `apply`) in one `egui` pass, ordering `number_box` ahead of `command_line` for `Escape` priority. Spanning `435` lines, this module stays free of duplicate state by exposing `keys_taken`, `history_taken`, `hit`, `Ui` without introducing UI/GPU coupling cycles. Spanning `435` lines, this module stays free of duplicate state by exposing `keys_taken`, `history_taken`, `hit`, `Ui` without introducing UI/GPU coupling cycles.
+Runs registered `Panel`s (`fill` -> `draw` -> `apply`) in one `egui` pass, ordering `number_box` ahead of `command_line` for `Escape` priority.
 
 ```rust
 --8<-- "session_viewer/src/app/ui/mod.rs"
@@ -94,7 +94,7 @@ Runs registered `Panel`s (`fill` -> `draw` -> `apply`) in one `egui` pass, order
 
 ### Step 7 · `src/app/ui/theme.rs`
 
-Re-exports `command_dock` `Visuals` and orders static `Noto Sans` + `Symbols` subsets so UI and scene labels share one initial font allocation. Spanning `8` lines, this module stays free of duplicate state by exposing `BUNDLED` without introducing UI/GPU coupling cycles. Spanning `8` lines, this module stays free of duplicate state by exposing `BUNDLED` without introducing UI/GPU coupling cycles.
+Re-exports `command_dock` `Visuals` and orders static `Noto Sans` + `Symbols` subsets so UI and scene labels share one initial font allocation.
 
 ```rust
 --8<-- "session_viewer/src/app/ui/theme.rs"
@@ -102,7 +102,7 @@ Re-exports `command_dock` `Visuals` and orders static `Noto Sans` + `Symbols` su
 
 ### Step 8 · `src/app/ui/pointer.rs`
 
-`src/app/ui/pointer.rs` checks live `egui` panel and popup rectangles on press so panel drags stay inside UI, scene drags released over panels cancel cleanly, and wheel/touch events respect the canvas rect. Spanning `105` lines, this module stays free of duplicate state by exposing `event` without introducing UI/GPU coupling cycles. Spanning `105` lines, this module stays free of duplicate state by exposing `event` without introducing UI/GPU coupling cycles.
+`src/app/ui/pointer.rs` checks live `egui` panel and popup rectangles on press so panel drags stay inside UI, scene drags released over panels cancel cleanly, and wheel/touch events respect the canvas rect.
 
 ```rust
 --8<-- "session_viewer/src/app/ui/pointer.rs"
@@ -110,7 +110,7 @@ Re-exports `command_dock` `Visuals` and orders static `Noto Sans` + `Symbols` su
 
 ### Step 9 · `src/app/ui/overlay.rs`
 
-Converts physical preview pixels once into `egui` points to draw rubber-band lines, dashed crossing boxes, snap squares and padded measurement chips. Spanning `102` lines, this module stays free of duplicate state by exposing `drawing`, `marks`, `tool_marks` without introducing UI/GPU coupling cycles. Spanning `102` lines, this module stays free of duplicate state by exposing `drawing`, `marks`, `tool_marks` without introducing UI/GPU coupling cycles.
+Converts physical preview pixels once into `egui` points to draw rubber-band lines, dashed crossing boxes, snap squares and padded measurement chips.
 
 ```rust
 --8<-- "session_viewer/src/app/ui/overlay.rs"
@@ -118,7 +118,7 @@ Converts physical preview pixels once into `egui` points to draw rubber-band lin
 
 ### Step 10 · `src/app/ui/layers.rs`
 
-Draws the collapsible layer tree, inline rename field and graph toggle, deferring tree mutations until the `egui` pass finishes. Spanning `672` lines, this module stays free of duplicate state by exposing `Layers`, `Rename`, `Hooks`, `SELECTED` without introducing UI/GPU coupling cycles. Spanning `672` lines, this module stays free of duplicate state by exposing `Layers`, `Rename`, `Hooks`, `SELECTED` without introducing UI/GPU coupling cycles.
+Draws the collapsible layer tree, inline rename field and graph toggle, deferring tree mutations until the `egui` pass finishes.
 
 ```rust
 --8<-- "session_viewer/src/app/ui/layers.rs"
@@ -126,7 +126,7 @@ Draws the collapsible layer tree, inline rename field and graph toggle, deferrin
 
 ### Step 11 · `src/app/ui/graph.rs`
 
-Virtualizes bidirectional relationship-graph rows via `show_rows`, returning clicked endpoint pairs for selection without mutating documents. Spanning `114` lines, this module stays free of duplicate state by exposing `show` without introducing UI/GPU coupling cycles. Spanning `114` lines, this module stays free of duplicate state by exposing `show` without introducing UI/GPU coupling cycles.
+Virtualizes bidirectional relationship-graph rows via `show_rows`, returning clicked endpoint pairs for selection without mutating documents.
 
 ```rust
 --8<-- "session_viewer/src/app/ui/graph.rs"
@@ -134,7 +134,7 @@ Virtualizes bidirectional relationship-graph rows via `show_rows`, returning cli
 
 ### Step 12 · `src/app/ui/number_box.rs`
 
-Paints the floating gizmo numeric entry field, retains focus until `Enter` or `Escape`, and closes automatically if the handle projects behind the eye. Spanning `164` lines, this module stays free of duplicate state by exposing `NumberBox`, `Hooks` without introducing UI/GPU coupling cycles. Spanning `164` lines, this module stays free of duplicate state by exposing `NumberBox`, `Hooks` without introducing UI/GPU coupling cycles.
+Paints the floating gizmo numeric entry field, retains focus until `Enter` or `Escape`, and closes automatically if the handle projects behind the eye.
 
 ```rust
 --8<-- "session_viewer/src/app/ui/number_box.rs"
@@ -142,7 +142,7 @@ Paints the floating gizmo numeric entry field, retains focus until `Enter` or `E
 
 ### Step 13 · `src/app/ui/properties.rs`
 
-Displays selection GUID, geometry kind, document/layer, dimensions, editable face/edge RGB, per-object alpha, gumball alignment and viewport display toggles. Spanning `413` lines, this module stays free of duplicate state by exposing `PropertiesModel`, `Hooks` without introducing UI/GPU coupling cycles. Spanning `413` lines, this module stays free of duplicate state by exposing `PropertiesModel`, `Hooks` without introducing UI/GPU coupling cycles.
+Displays selection GUID, geometry kind, document/layer, dimensions, editable face/edge RGB, per-object alpha, gumball alignment and viewport display toggles.
 
 ```rust
 --8<-- "session_viewer/src/app/ui/properties.rs"
@@ -150,7 +150,7 @@ Displays selection GUID, geometry kind, document/layer, dimensions, editable fac
 
 ### Step 14 · `src/state/panel.rs`
 
-`src/state/panel.rs` decodes layer-panel clicks into `(doc_idx, GUID)` face and edge colour override maps (restricting edge overrides to rows with faces) and refreshes GPU rows. Spanning `642` lines, this module stays free of duplicate state by exposing `selected_group_count`, `panel_action`, `reveal_layer`, `set_rows_hidden` without introducing UI/GPU coupling cycles. Spanning `642` lines, this module stays free of duplicate state by exposing `selected_group_count`, `panel_action`, `reveal_layer`, `set_rows_hidden` without introducing UI/GPU coupling cycles.
+`src/state/panel.rs` decodes layer-panel clicks into `(doc_idx, GUID)` face and edge colour override maps (restricting edge overrides to rows with faces) and refreshes GPU rows.
 
 ```rust
 --8<-- "session_viewer/src/state/panel.rs"
@@ -158,7 +158,7 @@ Displays selection GUID, geometry kind, document/layer, dimensions, editable fac
 
 ### Step 15 · `src/state/number_box.rs`
 
-Projects the active gizmo handle into CSS coordinates and commits valid typed distances, angles or scale factors as one labelled transaction. Spanning `93` lines, this module stays free of duplicate state by exposing `NumberPrompt`, `number_box_open`, `number_prompt`, `close_number_box` without introducing UI/GPU coupling cycles. Spanning `93` lines, this module stays free of duplicate state by exposing `NumberPrompt`, `number_box_open`, `number_prompt`, `close_number_box` without introducing UI/GPU coupling cycles.
+Projects the active gizmo handle into CSS coordinates and commits valid typed distances, angles or scale factors as one labelled transaction.
 
 ```rust
 --8<-- "session_viewer/src/state/number_box.rs"
@@ -166,7 +166,7 @@ Projects the active gizmo handle into CSS coordinates and commits valid typed di
 
 ### Step 16 · `viewer-core/src/command/verbs/layers.rs`
 
-`layers.rs` toggles/expands the hierarchy panel (`All`/`Off`); `report.rs` triggers JSON diagnostics export through the `feedback` boundary. Spanning `44` lines, this module stays free of duplicate state by registering `SPEC` in `verbs!` without introducing UI/GPU coupling cycles. Spanning `44` lines, this module stays free of duplicate state by registering `SPEC` in `verbs!` without introducing UI/GPU coupling cycles.
+`viewer-core/src/command/verbs/layers.rs` implements the `layers` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/command/verbs/layers.rs"
@@ -174,7 +174,7 @@ Projects the active gizmo handle into CSS coordinates and commits valid typed di
 
 ### Step 17 · `viewer-core/src/command/verbs/add_group.rs`
 
-Reparents selected single-document objects under their deepest shared layer while rebasing local transforms so world positions stay fixed. Spanning `382` lines, this module stays free of duplicate state by exposing `add_group` and verified by `a_group_takes_the_selection_under_one_new_node_and_undo_puts_the_tree_back` (+7 more tests). Spanning `382` lines, this module stays free of duplicate state by exposing `add_group` and verified by `a_group_takes_the_selection_under_one_new_node_and_undo_puts_the_tree_back` (+7 more tests).
+Reparents selected single-document objects under their deepest shared layer while rebasing local transforms so world positions stay fixed.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/command/verbs/add_group.rs"
@@ -182,7 +182,7 @@ Reparents selected single-document objects under their deepest shared layer whil
 
 ### Step 18 · `viewer-core/src/command/verbs/add_edge.rs`
 
-Connects two editable objects in the relationship graph and pairs an `EdgeStep` with a marker transform so `Undo` removes added graph vertices. Spanning `227` lines, this module stays free of duplicate state by exposing `connect` and verified by `an_edge_joins_two_objects_and_undo_redo_follow` (+2 more tests). Spanning `227` lines, this module stays free of duplicate state by exposing `connect` and verified by `an_edge_joins_two_objects_and_undo_redo_follow` (+2 more tests).
+Connects two editable objects in the relationship graph and pairs an `EdgeStep` with a marker transform so `Undo` removes added graph vertices.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/command/verbs/add_edge.rs"
@@ -190,7 +190,7 @@ Connects two editable objects in the relationship graph and pairs an `EdgeStep` 
 
 ### Step 19 · `viewer-core/src/command/verbs/hide.rs`
 
-`hide.rs`, `show.rs` and `fit.rs` invoke `hide_selected`, `show_all` and `fit_selected_or_all`; `escape.rs` (`Esc`) preserves an active draft long enough to call `cancel_drawing` before falling back to `escape_selection`. Spanning `23` lines, this module stays free of duplicate state by registering `SPEC` in `verbs!` without introducing UI/GPU coupling cycles. Spanning `23` lines, this module stays free of duplicate state by registering `SPEC` in `verbs!` without introducing UI/GPU coupling cycles.
+`viewer-core/src/command/verbs/hide.rs` implements the `hide` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/command/verbs/hide.rs"
@@ -198,7 +198,7 @@ Connects two editable objects in the relationship graph and pairs an `EdgeStep` 
 
 ### Step 20 · `viewer-core/src/command/verbs/show.rs`
 
-`hide.rs`, `show.rs` and `fit.rs` invoke `hide_selected`, `show_all` and `fit_selected_or_all`; `escape.rs` (`Esc`) preserves an active draft long enough to call `cancel_drawing` before falling back to `escape_selection`. Spanning `23` lines, this module stays free of duplicate state by registering `SPEC` in `verbs!` without introducing UI/GPU coupling cycles. Spanning `23` lines, this module stays free of duplicate state by registering `SPEC` in `verbs!` without introducing UI/GPU coupling cycles.
+`viewer-core/src/command/verbs/show.rs` implements the `show` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/command/verbs/show.rs"
@@ -206,7 +206,7 @@ Connects two editable objects in the relationship graph and pairs an `EdgeStep` 
 
 ### Step 21 · `viewer-core/src/command/verbs/delete.rs`
 
-`undo.rs` and `redo.rs` step `Scene` history and run `after_history` (reporting empty stacks); `delete.rs` marks `requires_selection` and calls `delete_selection` without touching GPU buffers directly. Spanning `34` lines, this module stays free of duplicate state by registering `SPEC` in `verbs!` without introducing UI/GPU coupling cycles. Spanning `34` lines, this module stays free of duplicate state by registering `SPEC` in `verbs!` without introducing UI/GPU coupling cycles.
+`viewer-core/src/command/verbs/delete.rs` implements the `delete` (aliases `del`) command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/command/verbs/delete.rs"
@@ -214,7 +214,7 @@ Connects two editable objects in the relationship graph and pairs an `EdgeStep` 
 
 ### Step 22 · `viewer-core/src/command/verbs/lock.rs`
 
-`lock.rs` locks selected objects or unlocks all as an undoable appearance step; `gumball.rs` aligns the gumball to `World`, `Object` or `CPlane` axes and relocates or resets its pivot; `properties.rs` toggles the object properties and display settings panel. Spanning `30` lines, this module stays free of duplicate state by registering `SPEC` in `verbs!` without introducing UI/GPU coupling cycles. Spanning `30` lines, this module stays free of duplicate state by registering `SPEC` in `verbs!` without introducing UI/GPU coupling cycles.
+`viewer-core/src/command/verbs/lock.rs` implements the `lock` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/command/verbs/lock.rs"
@@ -222,7 +222,7 @@ Connects two editable objects in the relationship graph and pairs an `EdgeStep` 
 
 ### Step 23 · `viewer-core/src/command/verbs/properties.rs`
 
-`lock.rs` locks selected objects or unlocks all as an undoable appearance step; `gumball.rs` aligns the gumball to `World`, `Object` or `CPlane` axes and relocates or resets its pivot; `properties.rs` toggles the object properties and display settings panel. Spanning `33` lines, this module stays free of duplicate state by registering `SPEC` in `verbs!` without introducing UI/GPU coupling cycles. Spanning `33` lines, this module stays free of duplicate state by registering `SPEC` in `verbs!` without introducing UI/GPU coupling cycles.
+`viewer-core/src/command/verbs/properties.rs` implements the `properties` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/command/verbs/properties.rs"
@@ -230,7 +230,7 @@ Connects two editable objects in the relationship graph and pairs an `EdgeStep` 
 
 ### Step 24 · `viewer-core/src/command/verbs/interactions.rs`
 
-`attributes.rs` toggles owned element features; `interactions.rs` toggles joint/cut/contact features (rewalking when needed); `arrowhead.rs` (`None`/`Start`/`End`/`Both`) replaces unlocked selected curves in one transaction. Spanning `34` lines, this module stays free of duplicate state by registering `SPEC` in `verbs!` without introducing UI/GPU coupling cycles. Spanning `34` lines, this module stays free of duplicate state by registering `SPEC` in `verbs!` without introducing UI/GPU coupling cycles.
+`viewer-core/src/command/verbs/interactions.rs` implements the `interactions` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/command/verbs/interactions.rs"
@@ -238,7 +238,7 @@ Connects two editable objects in the relationship graph and pairs an `EdgeStep` 
 
 ### Step 25 · `viewer-core/src/scene_sync/panel_tests.rs`
 
-Verifies point create/delete/undo row identity survival and exact group-to-descendant row targeting in `Hierarchy`. Spanning `38` lines, this module stays free of duplicate state by wiring internal module helpers and verified by `hierarchy_follows_edits`. Spanning `38` lines, this module stays free of duplicate state by wiring internal module helpers and verified by `hierarchy_follows_edits`.
+`viewer-core/src/scene_sync/panel_tests.rs` (38 lines) houses regression tests `hierarchy_follows_edits`. It verified by `cargo xtest` (`hierarchy_follows_edits`).
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/scene_sync/panel_tests.rs"

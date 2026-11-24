@@ -31,7 +31,7 @@ Owned files in build order (`10` files):
 
 ### Step 1 · `viewer-core/src/camera.rs`
 
-`src/camera.rs` implements quaternion `orbit` (world-up yaw + right-axis pitch), distance-scaled `pan`, world `ray` unprojection, `fit_in` across all `8` `AABB` corners inside `frame`, and cursor-locked `zoom_at`, which shifts `target` by `(1 - k)` times the cursor's offset on the target plane so the point under the cursor never drifts: Spanning `898` lines, this module stays free of duplicate state by exposing `FOVY_DEG`, `Unit`, `to_meters`, `NEAR_FRACTION` and verified by `pose_tracks_navigation_without_tracking_scene_extent` (+13 more tests). Spanning `898` lines, this module stays free of duplicate state by exposing `FOVY_DEG`, `Unit`, `to_meters`, `NEAR_FRACTION` and verified by `pose_tracks_navigation_without_tracking_scene_extent` (+13 more tests).
+`src/camera.rs` implements quaternion `orbit` (world-up yaw + right-axis pitch), distance-scaled `pan`, world `ray` unprojection, `fit_in` across all `8` `AABB` corners inside `frame`, and cursor-locked `zoom_at`, which shifts `target` by `(1 - k)` times the cursor's offset on the target plane so the point under the cursor never drifts.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/camera.rs"
@@ -39,7 +39,7 @@ Owned files in build order (`10` files):
 
 ### Step 2 · `viewer-core/src/coords.rs`
 
-`src/app/coords.rs` parses absolute `x,y,z`, relative `@dx,dy,dz`, polar `@r<deg`, direction-locked distances and explicit `w` world prefixes before projecting through the active `CPlane`. Spanning `369` lines, this module stays free of duplicate state by exposing `set_plane`, `plane`, `Typed`, `hint` and verified by `the_four_forms_parse` (+6 more tests). Spanning `369` lines, this module stays free of duplicate state by exposing `set_plane`, `plane`, `Typed`, `hint` and verified by `the_four_forms_parse` (+6 more tests).
+`src/app/coords.rs` parses absolute `x,y,z`, relative `@dx,dy,dz`, polar `@r<deg`, direction-locked distances and explicit `w` world prefixes before projecting through the active `CPlane`.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/coords.rs"
@@ -47,7 +47,7 @@ Owned files in build order (`10` files):
 
 ### Step 3 · `src/state.rs`
 
-`src/state.rs` holds `Arc<Window>`, `Gpu`, `Camera`, `Scene` and `Selection` in one struct mutated exclusively on the event loop thread via `EventLoopProxy<Msg>`, preserving user camera navigation if `State::append` finishes after the camera moved from its load-start pose. Spanning `1283` lines, this module stays free of duplicate state by exposing `State`, `aspect`, `viewport`, `append` and verified by `the_selection_keeps_pick_order`. Spanning `1283` lines, this module stays free of duplicate state by exposing `State`, `aspect`, `viewport`, `append` and verified by `the_selection_keeps_pick_order`.
+`src/state.rs` holds `Arc<Window>`, `Gpu`, `Camera`, `Scene` and `Selection` in one struct mutated exclusively on the event loop thread via `EventLoopProxy<Msg>`, preserving user camera navigation if `State::append` finishes after the camera moved from its load-start pose.
 
 ```rust
 --8<-- "session_viewer/src/state.rs"
@@ -55,7 +55,7 @@ Owned files in build order (`10` files):
 
 ### Step 4 · `src/state/features.rs`
 
-`src/state/features.rs` stores cross-frame interaction state (`Draft`, `ObjectDrag`, pending splits, cloud/sheet query generations, `Snap` and `Hierarchy`) and dispatches ordered `TAKE_PICK` hooks so active drags claim delayed GPU picks before ordinary selection runs. Spanning `67` lines, this module stays free of duplicate state by exposing `Features`, `BEFORE_PICKS`, `AFTER_PICKS`, `TAKE_PICK` without introducing UI/GPU coupling cycles. Spanning `67` lines, this module stays free of duplicate state by exposing `Features`, `BEFORE_PICKS`, `AFTER_PICKS`, `TAKE_PICK` without introducing UI/GPU coupling cycles.
+`src/state/features.rs` stores cross-frame interaction state (`Draft`, `ObjectDrag`, pending splits, cloud/sheet query generations, `Snap` and `Hierarchy`) and dispatches ordered `TAKE_PICK` hooks so active drags claim delayed GPU picks before ordinary selection runs.
 
 ```rust
 --8<-- "session_viewer/src/state/features.rs"
@@ -63,7 +63,7 @@ Owned files in build order (`10` files):
 
 ### Step 5 · `src/app/runtime.rs`
 
-`src/app/runtime.rs` implements `ApplicationHandler<Msg>`: panels consume events before scene shortcuts, `Box<dyn Mode<State>>` temporarily moves out during callbacks to avoid double mutable borrows, `FramePacing` prevents submission backlogs, and `State::resize` throttles target rebuilds to `100 ms`. Spanning `698` lines, this module stays free of duplicate state by exposing `run_web`, `Msg`, `execute_op`, `App` without introducing UI/GPU coupling cycles. Spanning `698` lines, this module stays free of duplicate state by exposing `run_web`, `Msg`, `execute_op`, `App` without introducing UI/GPU coupling cycles.
+`src/app/runtime.rs` implements `ApplicationHandler<Msg>`: panels consume events before scene shortcuts, `Box<dyn Mode<State>>` temporarily moves out during callbacks to avoid double mutable borrows, `FramePacing` prevents submission backlogs, and `State::resize` throttles target rebuilds to `100 ms`.
 
 ```rust
 --8<-- "session_viewer/src/app/runtime.rs"
@@ -71,7 +71,7 @@ Owned files in build order (`10` files):
 
 ### Step 6 · `src/app/input.rs`
 
-Enforces `> 10 CSS px` (or `> 4 px` held `200 ms`) drag hysteresis, distinguishes right-click repeat from right-drag orbit, and cancels touch edits when a second finger lands. Spanning `531` lines, this module stays free of duplicate state by exposing `Input`, `key`, `history_key`, `mouse` and verified by `a_quick_wobble_is_a_click`. Spanning `531` lines, this module stays free of duplicate state by exposing `Input`, `key`, `history_key`, `mouse` and verified by `a_quick_wobble_is_a_click`.
+Enforces `> 10 CSS px` (or `> 4 px` held `200 ms`) drag hysteresis, distinguishes right-click repeat from right-drag orbit, and cancels touch edits when a second finger lands.
 
 ```rust
 --8<-- "session_viewer/src/app/input.rs"
@@ -79,7 +79,7 @@ Enforces `> 10 CSS px` (or `> 4 px` held `200 ms`) drag hysteresis, distinguishe
 
 ### Step 7 · `src/app/touch.rs`
 
-`src/app/touch.rs` tracks active touch IDs (`1` finger orbits, `2` fingers pan by midpoint and clamped pinch-zoom, double-tap fits bounds) while resetting span baselines whenever finger count changes. Spanning `185` lines, this module stays free of duplicate state by exposing `TAP_SLOP`, `Act`, `Touches`, `event` without introducing UI/GPU coupling cycles. Spanning `185` lines, this module stays free of duplicate state by exposing `TAP_SLOP`, `Act`, `Touches`, `event` without introducing UI/GPU coupling cycles.
+`src/app/touch.rs` tracks active touch IDs (`1` finger orbits, `2` fingers pan by midpoint and clamped pinch-zoom, double-tap fits bounds) while resetting span baselines whenever finger count changes.
 
 ```rust
 --8<-- "session_viewer/src/app/touch.rs"
@@ -87,7 +87,7 @@ Enforces `> 10 CSS px` (or `> 4 px` held `200 ms`) drag hysteresis, distinguishe
 
 ### Step 8 · `src/app/keys.rs`
 
-Maps unfocused canvas keys (`Escape`, `Enter`, `Delete`, `F`, `H`, `S`, `Ctrl/Cmd+Z/Y/A`) through the shared command dispatcher after text-focus checks. Spanning `80` lines, this module stays free of duplicate state by exposing `letter`, `history` and verified by `undo_and_redo_shortcuts` (+1 more tests). Spanning `80` lines, this module stays free of duplicate state by exposing `letter`, `history` and verified by `undo_and_redo_shortcuts` (+1 more tests).
+Maps unfocused canvas keys (`Escape`, `Enter`, `Delete`, `F`, `H`, `S`, `Ctrl/Cmd+Z/Y/A`) through the shared command dispatcher after text-focus checks.
 
 ```rust
 --8<-- "session_viewer/src/app/keys.rs"
@@ -95,7 +95,7 @@ Maps unfocused canvas keys (`Escape`, `Enter`, `Delete`, `F`, `H`, `S`, `Ctrl/Cm
 
 ### Step 9 · `src/app/gesture/mod.rs`
 
-`src/app/gesture/mod.rs` tests registered handlers in priority order (`control` -> `gizmo` -> `object` -> `box_select`), converting CSS thresholds into physical pixels with wider touch hit radii so clicks never accidentally drag geometry. Spanning `61` lines, this module stays free of duplicate state by exposing `Gesture`, `GESTURES`, `press`, `start` and verified by `gestures_are_tried_control_then_gizmo_then_object_then_box`. Spanning `61` lines, this module stays free of duplicate state by exposing `Gesture`, `GESTURES`, `press`, `start` and verified by `gestures_are_tried_control_then_gizmo_then_object_then_box`.
+`src/app/gesture/mod.rs` tests registered handlers in priority order (`control` -> `gizmo` -> `object` -> `box_select`), converting CSS thresholds into physical pixels with wider touch hit radii so clicks never accidentally drag geometry.
 
 ```rust
 --8<-- "session_viewer/src/app/gesture/mod.rs"

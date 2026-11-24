@@ -35,7 +35,7 @@ Owned files in build order (`14` files):
 
 ### Step 1 · `src/engine/gpu/triangle_tiles.rs`
 
-Manages projected-triangle buffers, tile headers and the shared reference pool, polling async overflow readbacks to grow capacity up to ceiling. Spanning `1190` lines, this module stays free of duplicate state by exposing `PROJECTED_BYTES`, `TriangleTiles`, `prewarm`, `map_report` and verified by `tile_shaders_validate` (+7 more tests). Spanning `1190` lines, this module stays free of duplicate state by exposing `PROJECTED_BYTES`, `TriangleTiles`, `prewarm`, `map_report` and verified by `tile_shaders_validate` (+7 more tests).
+Manages projected-triangle buffers, tile headers and the shared reference pool, polling async overflow readbacks to grow capacity up to ceiling.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/triangle_tiles.rs"
@@ -43,7 +43,7 @@ Manages projected-triangle buffers, tile headers and the shared reference pool, 
 
 ### Step 2 · `src/shaders/project_triangles.wgsl`
 
-1. **`src/shaders/project_triangles.wgsl`** runs a `64`-thread compute pass (`PROJECT_ROW_GROUPS` `2D` dispatch above `65,535` groups) that resolves each triangle via `placed_triangle`, clips against the near plane, fits inward edge equations `equations[0..3]`, and chooses a local corner reference on small far triangles so homogeneous depth extrapolation never suffers cancellation: Keep struct field offsets and `@group`/`@binding` indices synchronized with the Rust `bytemuck` mirrors in `cargo xtest`; this `239`-line shader defines `@compute fn cs_main` after `#include` expansion of `slot_table.wgsl`, `clip.wgsl`, `projected_triangle.wgsl`. Keep struct field offsets and `@group`/`@binding` indices synchronized with the Rust `bytemuck` mirrors in `cargo xtest`; this `239`-line shader defines `@compute fn cs_main` after `#include` expansion of `slot_table.wgsl`, `clip.wgsl`, `projected_triangle.wgsl`.
+1. **`src/shaders/project_triangles.wgsl`** runs a `64`-thread compute pass (`PROJECT_ROW_GROUPS` `2D` dispatch above `65,535` groups) that resolves each triangle via `placed_triangle`, clips against the near plane, fits inward edge equations `equations[0..3]`, and chooses a local corner reference on small far triangles so homogeneous depth extrapolation never suffers cancellation.
 
 ```wgsl
 --8<-- "session_viewer/src/shaders/project_triangles.wgsl"
@@ -51,7 +51,7 @@ Manages projected-triangle buffers, tile headers and the shared reference pool, 
 
 ### Step 3 · `src/shaders/triangle_tiles.wgsl`
 
-2. **`src/shaders/triangle_tiles.wgsl`** rasterizes one quad over each projected triangle's tile bounding box, discards uncovered tiles via `covered_tile`, atomically counts hits in `fs_count`, and packs `(primitive, nearest_depth_bound)` pairs in `fs_fill`: Keep struct field offsets and `@group`/`@binding` indices synchronized with the Rust `bytemuck` mirrors in `cargo xtest`; this `122`-line shader defines `@vertex fn vs_main`, `@fragment fn fs_count`, `@fragment fn fs_fill` after `#include` expansion of `projected_triangle.wgsl`. Keep struct field offsets and `@group`/`@binding` indices synchronized with the Rust `bytemuck` mirrors in `cargo xtest`; this `122`-line shader defines `@vertex fn vs_main`, `@fragment fn fs_count`, `@fragment fn fs_fill` after `#include` expansion of `projected_triangle.wgsl`.
+2. **`src/shaders/triangle_tiles.wgsl`** rasterizes one quad over each projected triangle's tile bounding box, discards uncovered tiles via `covered_tile`, atomically counts hits in `fs_count`, and packs `(primitive, nearest_depth_bound)` pairs in `fs_fill`.
 
 ```wgsl
 --8<-- "session_viewer/src/shaders/triangle_tiles.wgsl"
@@ -59,7 +59,7 @@ Manages projected-triangle buffers, tile headers and the shared reference pool, 
 
 ### Step 4 · `src/shaders/scan_triangle_tiles.wgsl`
 
-3. **`src/shaders/scan_triangle_tiles.wgsl`** executes a `256`-lane Hillis-Steele / Blelloch workgroup prefix sum (`scan_tiles` -> `scan_blocks` -> `finish_offsets`) between `fs_count` and `fs_fill`, saturating at buffer capacity instead of wrapping on overflow: Keep struct field offsets and `@group`/`@binding` indices synchronized with the Rust `bytemuck` mirrors in `cargo xtest`; this `135`-line shader defines `@compute fn scan_tiles`, `@compute fn scan_blocks`, `@compute fn finish_offsets` after `#include` expansion of `projected_triangle.wgsl`. Keep struct field offsets and `@group`/`@binding` indices synchronized with the Rust `bytemuck` mirrors in `cargo xtest`; this `135`-line shader defines `@compute fn scan_tiles`, `@compute fn scan_blocks`, `@compute fn finish_offsets` after `#include` expansion of `projected_triangle.wgsl`.
+3. **`src/shaders/scan_triangle_tiles.wgsl`** executes a `256`-lane Hillis-Steele / Blelloch workgroup prefix sum (`scan_tiles` -> `scan_blocks` -> `finish_offsets`) between `fs_count` and `fs_fill`, saturating at buffer capacity instead of wrapping on overflow.
 
 ```wgsl
 --8<-- "session_viewer/src/shaders/scan_triangle_tiles.wgsl"
@@ -67,7 +67,7 @@ Manages projected-triangle buffers, tile headers and the shared reference pool, 
 
 ### Step 5 · `src/engine/gpu/clip.rs`
 
-Tests placed object bounds against active half-spaces with precision slack and builds per-plane cap resources only for verified closed solids. Spanning `890` lines, this module stays free of duplicate state by exposing `ClipView`, `Clip`, `find_solids`, `set` without introducing UI/GPU coupling cycles. Spanning `890` lines, this module stays free of duplicate state by exposing `ClipView`, `Clip`, `find_solids`, `set` without introducing UI/GPU coupling cycles.
+Tests placed object bounds against active half-spaces with precision slack and builds per-plane cap resources only for verified closed solids.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/clip.rs"
@@ -75,7 +75,7 @@ Tests placed object bounds against active half-spaces with precision slack and b
 
 ### Step 6 · `src/engine/gpu/clip/pipelines.rs`
 
-Specializes WGSL cap headers for `1×` vs `4×` MSAA count/ID textures and single-sample cap-picking passes. Spanning `208` lines, this module stays free of duplicate state by exposing `cap_source`, `pick_pipelines`, `pick_placed_pipelines`, `count_placed_pipeline` without introducing UI/GPU coupling cycles. Spanning `208` lines, this module stays free of duplicate state by exposing `cap_source`, `pick_pipelines`, `pick_placed_pipelines`, `count_placed_pipeline` without introducing UI/GPU coupling cycles.
+`src/engine/gpu/clip/pipelines.rs` (208 lines) defines `cap_source()`, `pick_pipelines()`, `pick_placed_pipelines()`. It maintains explicit buffer capacities, bind-group layouts, and frame-submission ordering for WebGPU.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/clip/pipelines.rs"
@@ -83,7 +83,7 @@ Specializes WGSL cap headers for `1×` vs `4×` MSAA count/ID textures and singl
 
 ### Step 7 · `src/engine/gpu/clip/tests.rs`
 
-Parses WGSL via `naga` to verify `ClipUniform` byte offsets against `offset_of!` and tests closed-cube section hatches on GPU. Spanning `425` lines, this module stays free of duplicate state by exposing `view` and verified by `clip_uniform_mirror` (+9 more tests). Spanning `425` lines, this module stays free of duplicate state by exposing `view` and verified by `clip_uniform_mirror` (+9 more tests).
+Parses WGSL via `naga` to verify `ClipUniform` byte offsets against `offset_of!` and tests closed-cube section hatches on GPU.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/clip/tests.rs"
@@ -91,7 +91,7 @@ Parses WGSL via `naga` to verify `ClipUniform` byte offsets against `offset_of!`
 
 ### Step 8 · `src/engine/gpu/clip/editing_tests.rs`
 
-Verifies live clipping-plane transforms, open-mesh non-capping and section restoration across interactive edits. Spanning `1146` lines, this module stays free of duplicate state by wiring internal module helpers without introducing UI/GPU coupling cycles. Spanning `1146` lines, this module stays free of duplicate state by wiring internal module helpers without introducing UI/GPU coupling cycles.
+`src/engine/gpu/clip/editing_tests.rs` (1146 lines) implements internal state and helper routines for `clip`. It maintains explicit buffer capacities, bind-group layouts, and frame-submission ordering for WebGPU.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/clip/editing_tests.rs"
@@ -99,7 +99,7 @@ Verifies live clipping-plane transforms, open-mesh non-capping and section resto
 
 ### Step 9 · `src/shaders/cap.wgsl`
 
-1. **`src/shaders/cap.wgsl`** evaluates plane depth `clip_plane_depth`, trims against every other active section plane sample-by-sample, tests whether back-minus-front crossings behind the plane exceed `0.5` (`count_at`), and outputs `45°` `box_cdf`-filtered hatches plus `CAP_PRIMITIVE`: Keep struct field offsets and `@group`/`@binding` indices synchronized with the Rust `bytemuck` mirrors in `cargo xtest`; this `198`-line shader defines `@vertex fn vs_cap`, `@fragment fn fs_cap`, `@fragment fn fs_cap_selection`, `@fragment fn fs_cap_id` compiled directly through `build.rs` into `OUT_DIR`. Keep struct field offsets and `@group`/`@binding` indices synchronized with the Rust `bytemuck` mirrors in `cargo xtest`; this `198`-line shader defines `@vertex fn vs_cap`, `@fragment fn fs_cap`, `@fragment fn fs_cap_selection`, `@fragment fn fs_cap_id` compiled directly through `build.rs` into `OUT_DIR`.
+1. **`src/shaders/cap.wgsl`** evaluates plane depth `clip_plane_depth`, trims against every other active section plane sample-by-sample, tests whether back-minus-front crossings behind the plane exceed `0.5` (`count_at`), and outputs `45°` `box_cdf`-filtered hatches plus `CAP_PRIMITIVE`.
 
 ```wgsl
 --8<-- "session_viewer/src/shaders/cap.wgsl"
@@ -107,7 +107,7 @@ Verifies live clipping-plane transforms, open-mesh non-capping and section resto
 
 ### Step 10 · `viewer-core/src/clipping.rs`
 
-Derives GPU half-space normals by crossing transformed in-plane axes (handling non-uniform scale) and anchors hatch direction to the plane frame. Spanning `340` lines, this module stays free of duplicate state by exposing `Mode`, `ALL`, `word`, `points` and verified by `modes_place_the_plane_and_the_cut_side` (+6 more tests). Spanning `340` lines, this module stays free of duplicate state by exposing `Mode`, `ALL`, `word`, `points` and verified by `modes_place_the_plane_and_the_cut_side` (+6 more tests).
+Derives GPU half-space normals by crossing transformed in-plane axes (handling non-uniform scale) and anchors hatch direction to the plane frame.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/clipping.rs"
@@ -115,7 +115,7 @@ Derives GPU half-space normals by crossing transformed in-plane axes (handling n
 
 ### Step 11 · `src/state/clipping.rs`
 
-Reads live GPU row placements so dragging a plane updates the cut immediately, keeping cuts active when the plane border is hidden and verifying closed meshes on first cut. Spanning `231` lines, this module stays free of duplicate state by exposing `update_clipping`, `clipping_status`, `clipping_half_size`, `pick_clipping_plane` without introducing UI/GPU coupling cycles. Spanning `231` lines, this module stays free of duplicate state by exposing `update_clipping`, `clipping_status`, `clipping_half_size`, `pick_clipping_plane` without introducing UI/GPU coupling cycles.
+Reads live GPU row placements so dragging a plane updates the cut immediately, keeping cuts active when the plane border is hidden and verifying closed meshes on first cut.
 
 ```rust
 --8<-- "session_viewer/src/state/clipping.rs"
@@ -123,7 +123,7 @@ Reads live GPU row placements so dragging a plane updates the cut immediately, k
 
 ### Step 12 · `viewer-core/src/command/verbs/clipping_plane.rs`
 
-Creates scene-sized section planes or toggles `On`/`Off`, `Flip` and `Hatch`/`Solid` fill modes within the `6`-plane GPU cap. Spanning `225` lines, this module stays free of duplicate state by registering `SPEC` in `verbs!` and verified by `clipping_plane_lines_parse` (+1 more tests). Spanning `225` lines, this module stays free of duplicate state by registering `SPEC` in `verbs!` and verified by `clipping_plane_lines_parse` (+1 more tests).
+Creates scene-sized section planes or toggles `On`/`Off`, `Flip` and `Hatch`/`Solid` fill modes within the `6`-plane GPU cap.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/command/verbs/clipping_plane.rs"
@@ -131,7 +131,7 @@ Creates scene-sized section planes or toggles `On`/`Off`, `Flip` and `Hatch`/`So
 
 ### Step 13 · `viewer-core/src/command/verbs/opacity.rs`
 
-`arctic.rs` enables ambient clay shading + surface outlines; `outline.rs` toggles borders independently; `opacity.rs` validates finite `[0.0, 1.0]` global face alpha; `alpha.rs` sets or resets per-object transparency overrides on the selection. Spanning `32` lines, this module stays free of duplicate state by registering `SPEC` in `verbs!` without introducing UI/GPU coupling cycles. Spanning `32` lines, this module stays free of duplicate state by registering `SPEC` in `verbs!` without introducing UI/GPU coupling cycles.
+`viewer-core/src/command/verbs/opacity.rs` implements the `opacity` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/command/verbs/opacity.rs"
@@ -139,7 +139,7 @@ Creates scene-sized section planes or toggles `On`/`Off`, `Flip` and `Hatch`/`So
 
 ### Step 14 · `viewer-core/src/command/verbs/alpha.rs`
 
-`arctic.rs` enables ambient clay shading + surface outlines; `outline.rs` toggles borders independently; `opacity.rs` validates finite `[0.0, 1.0]` global face alpha; `alpha.rs` sets or resets per-object transparency overrides on the selection. Spanning `35` lines, this module stays free of duplicate state by registering `SPEC` in `verbs!` without introducing UI/GPU coupling cycles. Spanning `35` lines, this module stays free of duplicate state by registering `SPEC` in `verbs!` without introducing UI/GPU coupling cycles.
+`viewer-core/src/command/verbs/alpha.rs` implements the `alpha` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/command/verbs/alpha.rs"

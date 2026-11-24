@@ -44,7 +44,7 @@ Owned files in build order (`23` files):
 
 ### Step 1 · `src/app/yielding.rs`
 
-`src/app/yielding.rs` pauses async decoding every `25,000` converted objects by awaiting a zero-millisecond browser timer Promise (`yield_now`), keeping `wasm32` single-threaded without holding any `RefCell` borrow across `.await`. Spanning `21` lines, this module stays free of duplicate state by exposing `sleep_ms`, `next_tick` without introducing UI/GPU coupling cycles. Spanning `21` lines, this module stays free of duplicate state by exposing `sleep_ms`, `next_tick` without introducing UI/GPU coupling cycles.
+`src/app/yielding.rs` pauses async decoding every `25,000` converted objects by awaiting a zero-millisecond browser timer Promise (`yield_now`), keeping `wasm32` single-threaded without holding any `RefCell` borrow across `.await`.
 
 ```rust
 --8<-- "session_viewer/src/app/yielding.rs"
@@ -52,7 +52,7 @@ Owned files in build order (`23` files):
 
 ### Step 2 · `viewer-core/src/validate.rs`
 
-`src/app/validate.rs` checks complete varints (`validate::varint`) and enclosing message bounds (`Reader::field`) so unknown valid fields skip cleanly while truncated tags fail, then validates decoded `prost` mesh vertex indices, cloud column lengths and NURBS control/knot invariants before constructing `session_rust` objects. Spanning `684` lines, this module stays free of duplicate state by exposing `MAX_OBJECTS`, `TOO_MANY`, `MAX_DEPTH`, `TOO_DEEP` and verified by `hostile_counts_do_not_reach_kernel_allocations` (+2 more tests). Spanning `684` lines, this module stays free of duplicate state by exposing `MAX_OBJECTS`, `TOO_MANY`, `MAX_DEPTH`, `TOO_DEEP` and verified by `hostile_counts_do_not_reach_kernel_allocations` (+2 more tests).
+`src/app/validate.rs` checks complete varints (`validate::varint`) and enclosing message bounds (`Reader::field`) so unknown valid fields skip cleanly while truncated tags fail, then validates decoded `prost` mesh vertex indices, cloud column lengths and NURBS control/knot invariants before constructing `session_rust` objects.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/validate.rs"
@@ -60,7 +60,7 @@ Owned files in build order (`23` files):
 
 ### Step 3 · `viewer-core/src/decode.rs`
 
-`src/app/decode.rs` reads `Body::Bytes` or windowed `1 MiB` `Body::Js` slices with checked offsets, enforces a `512 MiB` whole-file cap, counts at most `2,000,000` geometry records (`Rc`-shared between typed tables and GUID maps), and rebuilds the hierarchy on an explicit `Vec` stack capped at depth `64` plus bidirectional graph edges and local instance transforms. Spanning `1050` lines, this module stays free of duplicate state by exposing `ByteSource`, `Body`, `size`, `session_from_bytes` and verified by `window_decode_keeps_node_colors` (+6 more tests). Spanning `1050` lines, this module stays free of duplicate state by exposing `ByteSource`, `Body`, `size`, `session_from_bytes` and verified by `window_decode_keeps_node_colors` (+6 more tests).
+`viewer-core/src/decode.rs` (1050 lines) defines `trait ByteSource`, `enum Body`, `size()`, `session_from_bytes()`, `session_from_bytes_yielding()`. It verified by `cargo xtest` (`window_decode_keeps_node_colors`, `window_decode_matches_the_source`, `window_decode_keeps_interactions_on_their_edges` (+4 more)).
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/decode.rs"
@@ -68,7 +68,7 @@ Owned files in build order (`23` files):
 
 ### Step 4 · `src/app/decode.rs`
 
-`src/app/decode.rs` reads `Body::Bytes` or windowed `1 MiB` `Body::Js` slices with checked offsets, enforces a `512 MiB` whole-file cap, counts at most `2,000,000` geometry records (`Rc`-shared between typed tables and GUID maps), and rebuilds the hierarchy on an explicit `Vec` stack capped at depth `64` plus bidirectional graph edges and local instance transforms. Spanning `67` lines, this module stays free of duplicate state by exposing `JsBytes`, `Body`, `size`, `session_from_bytes` without introducing UI/GPU coupling cycles. Spanning `67` lines, this module stays free of duplicate state by exposing `JsBytes`, `Body`, `size`, `session_from_bytes` without introducing UI/GPU coupling cycles.
+`src/app/decode.rs` (67 lines) defines `struct JsBytes`, `enum Body`, `size()`, `session_from_bytes()`, `session_from_body()`. It keeps browser event routing and scene mutations synchronized without redundant redraws.
 
 ```rust
 --8<-- "session_viewer/src/app/decode.rs"
@@ -76,7 +76,7 @@ Owned files in build order (`23` files):
 
 ### Step 5 · `viewer-core/src/manifest.rs`
 
-Parses YAML scene manifests (`files`, `xform` overriding `at`, `point_size`, authored `text`, `view` and `grid`) independently of kernel `.pb` bytes. Spanning `457` lines, this module stays free of duplicate state by exposing `Item`, `TextItem`, `Manifest`, `encoded_size` and verified by `yaml_json_and_toml_have_identical_scene_semantics` (+8 more tests). Spanning `457` lines, this module stays free of duplicate state by exposing `Item`, `TextItem`, `Manifest`, `encoded_size` and verified by `yaml_json_and_toml_have_identical_scene_semantics` (+8 more tests).
+Parses YAML scene manifests (`files`, `xform` overriding `at`, `point_size`, authored `text`, `view` and `grid`) independently of kernel `.pb` bytes.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/manifest.rs"
@@ -84,7 +84,7 @@ Parses YAML scene manifests (`files`, `xform` overriding `at`, `point_size`, aut
 
 ### Step 6 · `src/app/route.rs`
 
-Validates scene query names (rejecting `..`, leading `/` and URL schemes) and resolves relative paths against same-origin (`data=off`) or configured data bases. Spanning `224` lines, this module stays free of duplicate state by exposing `DATA_BASE`, `LOCAL_SCENE`, `AUTO_GRID`, `is_local_url` without introducing UI/GPU coupling cycles. Spanning `224` lines, this module stays free of duplicate state by exposing `DATA_BASE`, `LOCAL_SCENE`, `AUTO_GRID`, `is_local_url` without introducing UI/GPU coupling cycles.
+Validates scene query names (rejecting `..`, leading `/` and URL schemes) and resolves relative paths against same-origin (`data=off`) or configured data bases.
 
 ```rust
 --8<-- "session_viewer/src/app/route.rs"
@@ -92,7 +92,7 @@ Validates scene query names (rejecting `..`, leading `/` and URL schemes) and re
 
 ### Step 7 · `src/app/fetch.rs`
 
-`src/app/fetch.rs` takes one-shot ownership of pre-started `window.__viewerEarly` Promises/AbortControllers (separating `8,192 B` head probes from full GETs), leaves large payloads in JS `Uint8Array`s until needed, resets stall timers per chunk, and caps whole-file bodies at `512 MiB`. Spanning `529` lines, this module stays free of duplicate state by exposing `PROBE_BYTES`, `retryable`, `Reply`, `whole` without introducing UI/GPU coupling cycles. Spanning `529` lines, this module stays free of duplicate state by exposing `PROBE_BYTES`, `retryable`, `Reply`, `whole` without introducing UI/GPU coupling cycles.
+`src/app/fetch.rs` takes one-shot ownership of pre-started `window.__viewerEarly` Promises/AbortControllers (separating `8,192 B` head probes from full GETs), leaves large payloads in JS `Uint8Array`s until needed, resets stall timers per chunk, and caps whole-file bodies at `512 MiB`.
 
 ```rust
 --8<-- "session_viewer/src/app/fetch.rs"
@@ -100,7 +100,7 @@ Validates scene query names (rejecting `..`, leading `/` and URL schemes) and re
 
 ### Step 8 · `viewer-core/src/range_gate.rs`
 
-Caps concurrent HTTP `Range` reads at `3` permits in FIFO `Future` order, handing slots forward on `Drop` and waking waiters when a scene closes. Spanning `252` lines, this module stays free of duplicate state by exposing `RANGE_READS`, `RangeGate`, `enter`, `close` and verified by `gate_runs_a_few_reads_and_queues_the_rest_in_order` (+3 more tests). Spanning `252` lines, this module stays free of duplicate state by exposing `RANGE_READS`, `RangeGate`, `enter`, `close` and verified by `gate_runs_a_few_reads_and_queues_the_rest_in_order` (+3 more tests).
+Caps concurrent HTTP `Range` reads at `3` permits in FIFO `Future` order, handing slots forward on `Drop` and waking waiters when a scene closes.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/range_gate.rs"
@@ -108,7 +108,7 @@ Caps concurrent HTTP `Range` reads at `3` permits in FIFO `Future` order, handin
 
 ### Step 9 · `src/app/loader.rs`
 
-Overlaps `8 KiB` protobuf probes with GPU setup, tracks separate load and stream generations, and decrements active-load counts via an RAII `Loading` drop guard. Spanning `1053` lines, this module stays free of duplicate state by exposing `post_stage`, `post`, `boot`, `reload_scene` without introducing UI/GPU coupling cycles. Spanning `1053` lines, this module stays free of duplicate state by exposing `post_stage`, `post`, `boot`, `reload_scene` without introducing UI/GPU coupling cycles.
+Overlaps `8 KiB` protobuf probes with GPU setup, tracks separate load and stream generations, and decrements active-load counts via an RAII `Loading` drop guard.
 
 ```rust
 --8<-- "session_viewer/src/app/loader.rs"
@@ -116,7 +116,7 @@ Overlaps `8 KiB` protobuf probes with GPU setup, tracks separate load and stream
 
 ### Step 10 · `src/state/hydrate.rs`
 
-`src/state/hydrate.rs` distinguishes read-only streamed shells from releasable documents, queues pending `Save`/edit `Resume` actions, and re-fetches source `.pb` bytes validated against the current document index and release token. Spanning `161` lines, this module stays free of duplicate state by exposing `Resume`, `fetch_wanted`, `resume_after`, `locked_reason` without introducing UI/GPU coupling cycles. Spanning `161` lines, this module stays free of duplicate state by exposing `Resume`, `fetch_wanted`, `resume_after`, `locked_reason` without introducing UI/GPU coupling cycles.
+`src/state/hydrate.rs` distinguishes read-only streamed shells from releasable documents, queues pending `Save`/edit `Resume` actions, and re-fetches source `.pb` bytes validated against the current document index and release token.
 
 ```rust
 --8<-- "session_viewer/src/state/hydrate.rs"
@@ -124,7 +124,7 @@ Overlaps `8 KiB` protobuf probes with GPU setup, tracks separate load and stream
 
 ### Step 11 · `viewer-core/src/stream.rs`
 
-`src/app/stream.rs` parses bounded `CloudFields` and `SheetFields` byte ranges (`field_at`), validating element strides, segment counts, packed-`f64` LOD alignment and source `ETag` revisions before issuing HTTP `Range` reads. Spanning `839` lines, this module stays free of duplicate state by exposing `CloudFields`, `SheetFields`, `Field`, `field_at` and verified by `normals_pack_three_doubles_per_point` (+7 more tests). Spanning `839` lines, this module stays free of duplicate state by exposing `CloudFields`, `SheetFields`, `Field`, `field_at` and verified by `normals_pack_three_doubles_per_point` (+7 more tests).
+`viewer-core/src/stream.rs` (839 lines) defines `struct CloudFields`, `struct SheetFields`, `struct Field`, `field_at()`, `set()`. It verified by `cargo xtest` (`normals_pack_three_doubles_per_point`, `metadata_window_checks_ranges_without_copying_or_following_large_skips`, `lod_parallel_arrays_bounds_ranges_and_child_graph_are_validated` (+5 more)).
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/stream.rs"
@@ -132,7 +132,7 @@ Overlaps `8 KiB` protobuf probes with GPU setup, tracks separate load and stream
 
 ### Step 12 · `src/app/stream.rs`
 
-`src/app/stream.rs` parses bounded `CloudFields` and `SheetFields` byte ranges (`field_at`), validating element strides, segment counts, packed-`f64` LOD alignment and source `ETag` revisions before issuing HTTP `Range` reads. Spanning `422` lines, this module stays free of duplicate state by exposing `reset_range_gate`, `read_window`, `start_range`, `probe` without introducing UI/GPU coupling cycles. Spanning `422` lines, this module stays free of duplicate state by exposing `reset_range_gate`, `read_window`, `start_range`, `probe` without introducing UI/GPU coupling cycles.
+`src/app/stream.rs` (422 lines) defines `reset_range_gate()`, `read_window()`, `start_range()`. It keeps browser event routing and scene mutations synchronized without redundant redraws.
 
 ```rust
 --8<-- "session_viewer/src/app/stream.rs"
@@ -140,7 +140,7 @@ Overlaps `8 KiB` protobuf probes with GPU setup, tracks separate load and stream
 
 ### Step 13 · `src/app/live.rs`
 
-`src/app/live.rs` manages an `EventSource` change relay plus polling fallback, marking a recheck flag without trusting relay bytes and detaching DOM listeners cleanly on `Drop`. Spanning `473` lines, this module stays free of duplicate state by exposing `DEFAULT_SOURCE`, `LiveSource`, `texts`, `take_opening` without introducing UI/GPU coupling cycles. Spanning `473` lines, this module stays free of duplicate state by exposing `DEFAULT_SOURCE`, `LiveSource`, `texts`, `take_opening` without introducing UI/GPU coupling cycles.
+`src/app/live.rs` manages an `EventSource` change relay plus polling fallback, marking a recheck flag without trusting relay bytes and detaching DOM listeners cleanly on `Drop`.
 
 ```rust
 --8<-- "session_viewer/src/app/live.rs"
@@ -148,7 +148,7 @@ Overlaps `8 KiB` protobuf probes with GPU setup, tracks separate load and stream
 
 ### Step 14 · `viewer-core/src/live_revision.rs`
 
-`src/app/live_revision.rs` (`Revisions`) tracks HTTP `ETag` validators separately from received content hashes and stages complete replacements so unchanged polls or failed mid-reload fetches never reset the active camera or scene. Spanning `53` lines, this module stays free of duplicate state by exposing `Revisions`, `etag`, `forget`, `changed` and verified by `identical_bytes_survive_strong_weak_missing_and_new_etags`. Spanning `53` lines, this module stays free of duplicate state by exposing `Revisions`, `etag`, `forget`, `changed` and verified by `identical_bytes_survive_strong_weak_missing_and_new_etags`.
+`src/app/live_revision.rs` (`Revisions`) tracks HTTP `ETag` validators separately from received content hashes and stages complete replacements so unchanged polls or failed mid-reload fetches never reset the active camera or scene.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/live_revision.rs"
@@ -156,7 +156,7 @@ Overlaps `8 KiB` protobuf probes with GPU setup, tracks separate load and stream
 
 ### Step 15 · `viewer-core/src/scene_release.rs`
 
-`src/app/scene_release.rs` drops resident `Session` geometry on unmodified display-only documents while keeping tree nodes, names, shape summaries, GPU rows and a unique release token for later identity-checked re-hydration. Spanning `509` lines, this module stays free of duplicate state by exposing `release`, `released_doc`, `shape`, `released_object_name` and verified by `release_keeps_rows_and_tree_and_refuses_edits` (+4 more tests). Spanning `509` lines, this module stays free of duplicate state by exposing `release`, `released_doc`, `shape`, `released_object_name` and verified by `release_keeps_rows_and_tree_and_refuses_edits` (+4 more tests).
+`src/app/scene_release.rs` drops resident `Session` geometry on unmodified display-only documents while keeping tree nodes, names, shape summaries, GPU rows and a unique release token for later identity-checked re-hydration.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/scene_release.rs"
@@ -164,7 +164,7 @@ Overlaps `8 KiB` protobuf probes with GPU setup, tracks separate load and stream
 
 ### Step 16 · `viewer-core/src/session_io.rs`
 
-Reads and writes versioned `.session` archives (`<= 512 MiB`) combining stamped document `.pb` payloads with JSON placements, overrides, text and groups. Spanning `967` lines, this module stays free of duplicate state by exposing `SavedCamera`, `from_camera`, `apply_to`, `SavedView` and verified by `lamps_load_from_and_save_to_is_visible` (+5 more tests). Spanning `967` lines, this module stays free of duplicate state by exposing `SavedCamera`, `from_camera`, `apply_to`, `SavedView` and verified by `lamps_load_from_and_save_to_is_visible` (+5 more tests).
+`viewer-core/src/session_io.rs` (967 lines) defines `struct SavedCamera`, `struct SavedView`, `struct OpenedSession`, `from_camera()`, `apply_to()`. It verified by `cargo xtest` (`lamps_load_from_and_save_to_is_visible`, `locks_load_from_and_save_to_is_locked`, `a_created_text_survives_save_and_open` (+3 more)).
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/session_io.rs"
@@ -172,7 +172,7 @@ Reads and writes versioned `.session` archives (`<= 512 MiB`) combining stamped 
 
 ### Step 17 · `src/app/session_io.rs`
 
-Reads and writes versioned `.session` archives (`<= 512 MiB`) combining stamped document `.pb` payloads with JSON placements, overrides, text and groups. Spanning `105` lines, this module stays free of duplicate state by exposing `download`, `download_text`, `pick`, `pick_import` without introducing UI/GPU coupling cycles. Spanning `105` lines, this module stays free of duplicate state by exposing `download`, `download_text`, `pick`, `pick_import` without introducing UI/GPU coupling cycles.
+`src/app/session_io.rs` (105 lines) defines `download()`, `download_text()`, `pick()`. It keeps browser event routing and scene mutations synchronized without redundant redraws.
 
 ```rust
 --8<-- "session_viewer/src/app/session_io.rs"
@@ -180,7 +180,7 @@ Reads and writes versioned `.session` archives (`<= 512 MiB`) combining stamped 
 
 ### Step 18 · `viewer-core/src/command/verbs/open.rs`
 
-Opens the browser file picker on `wasm32` and posts selected `.pb` or `.session` payloads through the async loader. Spanning `21` lines, this module stays free of duplicate state by registering `SPEC` in `verbs!` without introducing UI/GPU coupling cycles. Spanning `21` lines, this module stays free of duplicate state by registering `SPEC` in `verbs!` without introducing UI/GPU coupling cycles.
+`viewer-core/src/command/verbs/open.rs` implements the `open` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/command/verbs/open.rs"
@@ -188,7 +188,7 @@ Opens the browser file picker on `wasm32` and posts selected `.pb` or `.session`
 
 ### Step 19 · `viewer-core/src/command/verbs/save.rs`
 
-Hydrates any released documents first, then serializes the `.session` archive and triggers browser download delivery. Spanning `25` lines, this module stays free of duplicate state by registering `SPEC` in `verbs!` without introducing UI/GPU coupling cycles. Spanning `25` lines, this module stays free of duplicate state by registering `SPEC` in `verbs!` without introducing UI/GPU coupling cycles.
+`viewer-core/src/command/verbs/save.rs` implements the `save` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/command/verbs/save.rs"
@@ -196,7 +196,7 @@ Hydrates any released documents first, then serializes the `.session` archive an
 
 ### Step 20 · `viewer-core/src/command/verbs/import.rs`
 
-`export.rs` writes selected or visible surface/mesh geometry to Wavefront OBJ via the kernel writer; `import.rs` imports local `.pb`, `.obj` or `.session` files. Spanning `25` lines, this module stays free of duplicate state by registering `SPEC` in `verbs!` without introducing UI/GPU coupling cycles. Spanning `25` lines, this module stays free of duplicate state by registering `SPEC` in `verbs!` without introducing UI/GPU coupling cycles.
+`viewer-core/src/command/verbs/import.rs` implements the `import` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/command/verbs/import.rs"
@@ -204,7 +204,7 @@ Hydrates any released documents first, then serializes the `.session` archive an
 
 ### Step 21 · `viewer-core/src/command/verbs/export.rs`
 
-`export.rs` writes selected or visible surface/mesh geometry to Wavefront OBJ via the kernel writer; `import.rs` imports local `.pb`, `.obj` or `.session` files. Spanning `25` lines, this module stays free of duplicate state by registering `SPEC` in `verbs!` without introducing UI/GPU coupling cycles. Spanning `25` lines, this module stays free of duplicate state by registering `SPEC` in `verbs!` without introducing UI/GPU coupling cycles.
+`viewer-core/src/command/verbs/export.rs` implements the `export` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/command/verbs/export.rs"
@@ -212,7 +212,7 @@ Hydrates any released documents first, then serializes the `.session` archive an
 
 ### Step 22 · `assets/view_local.yaml`
 
-`assets/view_local.yaml` lists default local scene URLs, display names, `xform`/`at` instance placements and `point_size` overrides resolved relative to the active manifest route. Keep this `45`-line configuration synchronized with the workspace toolchain and deterministic build rules. Keep this `45`-line configuration synchronized with the workspace toolchain and deterministic build rules.
+`assets/view_local.yaml` lists default local scene URLs, display names, `xform`/`at` instance placements and `point_size` overrides resolved relative to the active manifest route.
 
 ```yaml
 --8<-- "session_viewer/assets/view_local.yaml"

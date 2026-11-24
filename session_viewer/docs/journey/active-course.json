@@ -106,5 +106,95 @@
       ],
       "acceptance": "pending"
     }
+  ],
+  "tutorials": [
+    {
+      "id": "01-startup",
+      "page": "journey/tutorial-one-startup.md",
+      "chapters": []
+    },
+    {
+      "id": "02-wgpu",
+      "page": "journey/tutorial-two-wgpu.md",
+      "chapters": []
+    },
+    {
+      "id": "03-rendering",
+      "page": "journey/tutorial-three-rendering.md",
+      "chapters": [
+        "journey/tutorial-three-painting.md",
+        "journey/tutorial-three-mathematics.md"
+      ]
+    },
+    {
+      "id": "04-geometry",
+      "page": "journey/tutorial-four-geometry.md",
+      "chapters": []
+    },
+    {
+      "id": "05-camera",
+      "page": "journey/tutorial-five-camera.md",
+      "chapters": []
+    },
+    {
+      "id": "06-modeling",
+      "page": "journey/tutorial-six-modeling.md",
+      "chapters": []
+    },
+    {
+      "id": "07-picking",
+      "page": "journey/tutorial-seven-picking.md",
+      "chapters": []
+    },
+    {
+      "id": "08-gumball",
+      "page": "journey/tutorial-eight-gumball.md",
+      "chapters": []
+    },
+    {
+      "id": "09-layers",
+      "page": "journey/tutorial-nine-layers.md",
+      "chapters": []
+    },
+    {
+      "id": "10-display",
+      "page": "journey/tutorial-ten-display.md",
+      "chapters": []
+    },
+    {
+      "id": "11-clouds",
+      "page": "journey/tutorial-eleven-clouds.md",
+      "chapters": []
+    },
+    {
+      "id": "12-visibility",
+      "page": "journey/tutorial-twelve-visibility.md",
+      "chapters": []
+    },
+    {
+      "id": "13-commands",
+      "page": "journey/tutorial-thirteen-commands.md",
+      "chapters": []
+    },
+    {
+      "id": "14-fastmcp",
+      "page": "journey/tutorial-fourteen-fastmcp.md",
+      "chapters": []
+    },
+    {
+      "id": "15-formats",
+      "page": "journey/tutorial-fifteen-formats.md",
+      "chapters": []
+    },
+    {
+      "id": "16-performance",
+      "page": "journey/tutorial-sixteen-performance.md",
+      "chapters": []
+    },
+    {
+      "id": "17-application",
+      "page": "journey/tutorial-seventeen-application.md",
+      "chapters": []
+    }
   ]
 }

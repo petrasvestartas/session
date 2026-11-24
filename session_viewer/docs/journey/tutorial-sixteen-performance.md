@@ -32,7 +32,7 @@ Owned files in build order (`11` files):
 
 ### Step 1 · `src/engine/performance.rs`
 
-Separates wheel/drag interaction bursts from resting frames using median frame times and hysteresis before adjusting quality tiers. Spanning `733` lines, this module stays free of duplicate state by exposing `CpuSplit`, `RedrawCause`, `RedrawCauses`, `FrameStats` and verified by `wheel_bursts_wait_for_a_frame_then_expire_and_cancel` (+4 more tests). Spanning `733` lines, this module stays free of duplicate state by exposing `CpuSplit`, `RedrawCause`, `RedrawCauses`, `FrameStats` and verified by `wheel_bursts_wait_for_a_frame_then_expire_and_cancel` (+4 more tests).
+Separates wheel/drag interaction bursts from resting frames using median frame times and hysteresis before adjusting quality tiers.
 
 ```rust
 --8<-- "session_viewer/src/engine/performance.rs"
@@ -40,7 +40,7 @@ Separates wheel/drag interaction bursts from resting frames using median frame t
 
 ### Step 2 · `src/engine/gpu/timing.rs`
 
-Records up to `32` encoder timestamp queries via `PassTimer` when `TIMESTAMP_QUERY_INSIDE_ENCODERS` is supported. Spanning `127` lines, this module stays free of duplicate state by exposing `PassTimer`, `mark`, `resolve`, `collect` without introducing UI/GPU coupling cycles. Spanning `127` lines, this module stays free of duplicate state by exposing `PassTimer`, `mark`, `resolve`, `collect` without introducing UI/GPU coupling cycles.
+`src/engine/gpu/timing.rs` (127 lines) defines `struct PassTimer`, `mark()`, `resolve()`, `collect()`. It maintains explicit buffer capacities, bind-group layouts, and frame-submission ordering for WebGPU.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/timing.rs"
@@ -48,7 +48,7 @@ Records up to `32` encoder timestamp queries via `PassTimer` when `TIMESTAMP_QUE
 
 ### Step 3 · `src/app/inspection.rs`
 
-Serializes live camera matrices, row counts, selection, lane capacities and timing counters onto `#viewer[data-viewer-inspection]` when `?inspect=1`. Spanning `346` lines, this module stays free of duplicate state by exposing `publish` without introducing UI/GPU coupling cycles. Spanning `346` lines, this module stays free of duplicate state by exposing `publish` without introducing UI/GPU coupling cycles.
+Serializes live camera matrices, row counts, selection, lane capacities and timing counters onto `#viewer[data-viewer-inspection]` when `?inspect=1`.
 
 ```rust
 --8<-- "session_viewer/src/app/inspection.rs"
@@ -56,7 +56,7 @@ Serializes live camera matrices, row counts, selection, lane capacities and timi
 
 ### Step 4 · `src/app/inspection/source_memory.rs`
 
-Sums unique `Rc<Session>` geometry vectors, strings, maps and history capacities via weak pointers to report scoped `known_bytes`. Spanning `626` lines, this module stays free of duplicate state by exposing `Payload`, `known_bytes`, `SourceCache`, `snapshot` and verified by `shared_documents_and_lookup_do_not_duplicate_geometry_payload` (+2 more tests). Spanning `626` lines, this module stays free of duplicate state by exposing `Payload`, `known_bytes`, `SourceCache`, `snapshot` and verified by `shared_documents_and_lookup_do_not_duplicate_geometry_payload` (+2 more tests).
+Sums unique `Rc<Session>` geometry vectors, strings, maps and history capacities via weak pointers to report scoped `known_bytes`.
 
 ```rust
 --8<-- "session_viewer/src/app/inspection/source_memory.rs"
@@ -64,7 +64,7 @@ Sums unique `Rc<Session>` geometry vectors, strings, maps and history capacities
 
 ### Step 5 · `src/app/feedback.rs`
 
-Routes status text, non-clobbering download progress, canonical command history and fatal error reveals between `State`, DOM and native logs. Spanning `270` lines, this module stays free of duplicate state by exposing `status`, `progress`, `error`, `focus_canvas` without introducing UI/GPU coupling cycles. Spanning `270` lines, this module stays free of duplicate state by exposing `status`, `progress`, `error`, `focus_canvas` without introducing UI/GPU coupling cycles.
+Routes status text, non-clobbering download progress, canonical command history and fatal error reveals between `State`, DOM and native logs.
 
 ```rust
 --8<-- "session_viewer/src/app/feedback.rs"
@@ -72,7 +72,7 @@ Routes status text, non-clobbering download progress, canonical command history 
 
 ### Step 6 · `assets/diagnostics.js`
 
-Records bounded startup, adapter, viewport, phase-timing and first-fatal-error JSON reports in `localStorage` + download, marking `ready` at first on-screen geometry. Keep this `153`-line configuration synchronized with the workspace toolchain and deterministic build rules. Keep this `153`-line configuration synchronized with the workspace toolchain and deterministic build rules.
+Records bounded startup, adapter, viewport, phase-timing and first-fatal-error JSON reports in `localStorage` + download, marking `ready` at first on-screen geometry.
 
 ```javascript
 --8<-- "session_viewer/assets/diagnostics.js"
@@ -80,7 +80,7 @@ Records bounded startup, adapter, viewport, phase-timing and first-fatal-error J
 
 ### Step 7 · `src/selftest.rs`
 
-Boots a headless `Gpu`, settles bounded display refinement, and exports offscreen `PPM` (`RGB`) renders controlled by `VIEWER_*` env vars. Spanning `963` lines, this module stays free of duplicate state by exposing `SceneFile`, `from_args`, `write_ppm`, `render_scene` and verified by `counts_the_final_replacement_and_stops_when_settled` (+2 more tests). Spanning `963` lines, this module stays free of duplicate state by exposing `SceneFile`, `from_args`, `write_ppm`, `render_scene` and verified by `counts_the_final_replacement_and_stops_when_settled` (+2 more tests).
+Boots a headless `Gpu`, settles bounded display refinement, and exports offscreen `PPM` (`RGB`) renders controlled by `VIEWER_*` env vars.
 
 ```rust
 --8<-- "session_viewer/src/selftest.rs"
@@ -88,7 +88,7 @@ Boots a headless `Gpu`, settles bounded display refinement, and exports offscree
 
 ### Step 8 · `src/selftest/oracle.rs`
 
-Casts independent CPU rays from stroke samples against placed triangles (with coplanar clearance) to verify GPU hidden-line occlusion. Spanning `839` lines, this module stays free of duplicate state by exposing `Oracle`, `Verdict`, `inked_share`, `cover` and verified by `close_up_edges_preserve_visibility_across_views_and_samples` (+5 more tests). Spanning `839` lines, this module stays free of duplicate state by exposing `Oracle`, `Verdict`, `inked_share`, `cover` and verified by `close_up_edges_preserve_visibility_across_views_and_samples` (+5 more tests).
+Casts independent CPU rays from stroke samples against placed triangles (with coplanar clearance) to verify GPU hidden-line occlusion.
 
 ```rust
 --8<-- "session_viewer/src/selftest/oracle.rs"
@@ -96,7 +96,7 @@ Casts independent CPU rays from stroke samples against placed triangles (with co
 
 ### Step 9 · `src/selftest/lifecycle.rs`
 
-Asserts both colour and `(object, subobject)` ID attachments across resize, rewalk, edit/undo and reload cycles. Spanning `346` lines, this module stays free of duplicate state by wiring internal module helpers without introducing UI/GPU coupling cycles. Spanning `346` lines, this module stays free of duplicate state by wiring internal module helpers without introducing UI/GPU coupling cycles.
+`src/selftest/lifecycle.rs` (346 lines): Check that resize, a second walk, edits undone and reload draw the same pixels and ids. It exposes `run()`.
 
 ```rust
 --8<-- "session_viewer/src/selftest/lifecycle.rs"
@@ -104,7 +104,7 @@ Asserts both colour and `(object, subobject)` ID attachments across resize, rewa
 
 ### Step 10 · `src/selftest/profile.rs`
 
-Times CPU `walk` stages by geometry kind (separating BRep meshing, edge chains and shell orientation) ahead of GPU submission. Spanning `274` lines, this module stays free of duplicate state by exposing `document` without introducing UI/GPU coupling cycles. Spanning `274` lines, this module stays free of duplicate state by exposing `document` without introducing UI/GPU coupling cycles.
+Times CPU `walk` stages by geometry kind (separating BRep meshing, edge chains and shell orientation) ahead of GPU submission.
 
 ```rust
 --8<-- "session_viewer/src/selftest/profile.rs"
@@ -112,7 +112,7 @@ Times CPU `walk` stages by geometry kind (separating BRep meshing, edge chains a
 
 ### Step 11 · `src/selftest/stroke_witness.rs`
 
-Captures deterministic sheet/stroke pixels, pick IDs, expanded WGSL and adapter metadata on a verified software renderer. Spanning `606` lines, this module stays free of duplicate state by exposing `Frame`, `SheetFrame`, `render_sheet`, `render_grid` without introducing UI/GPU coupling cycles. Spanning `606` lines, this module stays free of duplicate state by exposing `Frame`, `SheetFrame`, `render_sheet`, `render_grid` without introducing UI/GPU coupling cycles.
+Captures deterministic sheet/stroke pixels, pick IDs, expanded WGSL and adapter metadata on a verified software renderer.
 
 ```rust
 --8<-- "session_viewer/src/selftest/stroke_witness.rs"

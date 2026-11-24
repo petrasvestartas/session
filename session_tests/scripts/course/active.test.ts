@@ -13,6 +13,11 @@ const load = (): ActiveCourse => JSON.parse(fs.readFileSync(path.join(docs, 'jou
 test('the active route selects every actual cumulative assembly exactly once', () => {
     const route = activeCourse(load());
     assert.deepEqual(route.subjects.map(subject => subject.id), [...completionSubjects]);
+    if (route.tutorials) {
+        const subjectPages = new Set(route.subjects.flatMap(s => [s.page, ...s.chapters]));
+        const tutorialPages = new Set(route.tutorials.flatMap(t => [t.page, ...t.chapters]));
+        assert.deepEqual(tutorialPages, subjectPages);
+    }
     for (const [index, subject] of route.subjects.entries()) {
         assert.deepEqual(subject.prerequisites, index ? [route.subjects[index - 1].id] : []);
         const files = completionFiles(subject.id);

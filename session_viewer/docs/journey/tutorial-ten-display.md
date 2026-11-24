@@ -51,7 +51,7 @@ Owned files in build order (`30` files):
 
 ### Step 1 · `src/engine/gpu/surface_outline.rs`
 
-`src/engine/gpu/surface_outline.rs` builds resolved, coarse and dilated coverage masks so empty screen tiles skip border work while separating selection halos from surface silhouettes. Spanning `916` lines, this module stays free of duplicate state by exposing `MaskKey`, `OutlineKind`, `SurfaceOutline`, `is_valid` without introducing UI/GPU coupling cycles. Spanning `916` lines, this module stays free of duplicate state by exposing `MaskKey`, `OutlineKind`, `SurfaceOutline`, `is_valid` without introducing UI/GPU coupling cycles.
+`src/engine/gpu/surface_outline.rs` builds resolved, coarse and dilated coverage masks so empty screen tiles skip border work while separating selection halos from surface silhouettes.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/surface_outline.rs"
@@ -59,7 +59,7 @@ Owned files in build order (`30` files):
 
 ### Step 2 · `src/engine/gpu/surface_outline/tests.rs`
 
-Verifies that yellow selected CAD edges never paint over black curved silhouette borders across views, MSAA counts and DPRs. Spanning `646` lines, this module stays free of duplicate state by wiring internal module helpers without introducing UI/GPU coupling cycles. Spanning `646` lines, this module stays free of duplicate state by wiring internal module helpers without introducing UI/GPU coupling cycles.
+Verifies that yellow selected CAD edges never paint over black curved silhouette borders across views, MSAA counts and DPRs.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/surface_outline/tests.rs"
@@ -67,7 +67,7 @@ Verifies that yellow selected CAD edges never paint over black curved silhouette
 
 ### Step 3 · `src/shaders/face_coverage.wgsl`
 
-2. **`src/shaders/face_coverage.wgsl`** inspects the `2×u16` `physical` attachment across all `SAMPLES` to emit fractional solid coverage (`fs_fraction`): Keep struct field offsets and `@group`/`@binding` indices synchronized with the Rust `bytemuck` mirrors in `cargo xtest`; this `31`-line shader defines `@vertex fn vs_main`, `@fragment fn fs_fraction` compiled directly through `build.rs` into `OUT_DIR`. Keep struct field offsets and `@group`/`@binding` indices synchronized with the Rust `bytemuck` mirrors in `cargo xtest`; this `31`-line shader defines `@vertex fn vs_main`, `@fragment fn fs_fraction` compiled directly through `build.rs` into `OUT_DIR`.
+2. **`src/shaders/face_coverage.wgsl`** inspects the `2×u16` `physical` attachment across all `SAMPLES` to emit fractional solid coverage (`fs_fraction`).
 
 ```wgsl
 --8<-- "session_viewer/src/shaders/face_coverage.wgsl"
@@ -75,7 +75,7 @@ Verifies that yellow selected CAD edges never paint over black curved silhouette
 
 ### Step 4 · `src/shaders/surface_outline.wgsl`
 
-`src/shaders/surface_outline.wgsl` composites crisp silhouettes and selection outlines from a bounded `512`-tap offset ring (`Taps`), exiting immediately via `near_any_coverage` on interior (`center >= 0.999`) or empty blocks: Keep struct field offsets and `@group`/`@binding` indices synchronized with the Rust `bytemuck` mirrors in `cargo xtest`; this `129`-line shader defines `@vertex fn vs_main`, `@fragment fn fs_alpha`, `@fragment fn fs_main`, `@fragment fn fs_pool` compiled directly through `build.rs` into `OUT_DIR`. Keep struct field offsets and `@group`/`@binding` indices synchronized with the Rust `bytemuck` mirrors in `cargo xtest`; this `129`-line shader defines `@vertex fn vs_main`, `@fragment fn fs_alpha`, `@fragment fn fs_main`, `@fragment fn fs_pool` compiled directly through `build.rs` into `OUT_DIR`.
+`src/shaders/surface_outline.wgsl` composites crisp silhouettes and selection outlines from a bounded `512`-tap offset ring (`Taps`), exiting immediately via `near_any_coverage` on interior (`center >= 0.999`) or empty blocks.
 
 ```wgsl
 --8<-- "session_viewer/src/shaders/surface_outline.wgsl"
@@ -83,7 +83,7 @@ Verifies that yellow selected CAD edges never paint over black curved silhouette
 
 ### Step 5 · `src/engine/gpu/ssao.rs`
 
-Owns half-res depth, radius, normal, occlusion and temporal-history textures keyed by `(frame_uniforms, geometry_revision)`. Spanning `886` lines, this module stays free of duplicate state by exposing `cached`, `prewarm`, `Ssao`, `receiver` without introducing UI/GPU coupling cycles. Spanning `886` lines, this module stays free of duplicate state by exposing `cached`, `prewarm`, `Ssao`, `receiver` without introducing UI/GPU coupling cycles.
+Owns half-res depth, radius, normal, occlusion and temporal-history textures keyed by `(frame_uniforms, geometry_revision)`.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/ssao.rs"
@@ -91,7 +91,7 @@ Owns half-res depth, radius, normal, occlusion and temporal-history textures key
 
 ### Step 6 · `src/engine/gpu/ssao/pipelines.rs`
 
-Builds the `8`-stage depth-mip, occupancy, normal, horizon-SSAO, bilateral-filter, history and MSAA-aware composite pipeline family. Spanning `298` lines, this module stays free of duplicate state by exposing `SsaoPipelines`, `pipelines` without introducing UI/GPU coupling cycles. Spanning `298` lines, this module stays free of duplicate state by exposing `SsaoPipelines`, `pipelines` without introducing UI/GPU coupling cycles.
+Builds the `8`-stage depth-mip, occupancy, normal, horizon-SSAO, bilateral-filter, history and MSAA-aware composite pipeline family.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/ssao/pipelines.rs"
@@ -99,7 +99,7 @@ Builds the `8`-stage depth-mip, occupancy, normal, horizon-SSAO, bilateral-filte
 
 ### Step 7 · `src/engine/gpu/ssao/tests.rs`
 
-Checks `1×`/`4×` MSAA contact darkening, zero distant-ground halo, first-vs-settled frame agreement and `Ssao` byte accounting. Spanning `641` lines, this module stays free of duplicate state by wiring internal module helpers and verified by `resolution_follows_device_pixels_without_a_navigation_mode` (+1 more tests). Spanning `641` lines, this module stays free of duplicate state by wiring internal module helpers and verified by `resolution_follows_device_pixels_without_a_navigation_mode` (+1 more tests).
+Checks `1×`/`4×` MSAA contact darkening, zero distant-ground halo, first-vs-settled frame agreement and `Ssao` byte accounting.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/ssao/tests.rs"
@@ -107,7 +107,7 @@ Checks `1×`/`4×` MSAA contact darkening, zero distant-ground halo, first-vs-se
 
 ### Step 8 · `src/engine/gpu/ambient_warm.rs`
 
-Schedules `1×` and `4×` SSAO pipeline compilation inside browser `requestIdleCallback` (`50 ms` fallback) after first geometry presentation. Spanning `118` lines, this module stays free of duplicate state by exposing `take`, `schedule` without introducing UI/GPU coupling cycles. Spanning `118` lines, this module stays free of duplicate state by exposing `take`, `schedule` without introducing UI/GPU coupling cycles.
+Schedules `1×` and `4×` SSAO pipeline compilation inside browser `requestIdleCallback` (`50 ms` fallback) after first geometry presentation.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/ambient_warm.rs"
@@ -115,7 +115,7 @@ Schedules `1×` and `4×` SSAO pipeline compilation inside browser `requestIdleC
 
 ### Step 9 · `src/shaders/ambient_depth.wgsl`
 
-2. **`src/shaders/ambient_depth.wgsl`** reduces `2×2` linear depth + `ao_radius` (`fs_reduce`) and marks `5×5` active occupancy tiles (`fs_occupancy`): Keep struct field offsets and `@group`/`@binding` indices synchronized with the Rust `bytemuck` mirrors in `cargo xtest`; this `35`-line shader defines `@vertex fn vs_main`, `@fragment fn fs_reduce`, `@fragment fn fs_occupancy` compiled directly through `build.rs` into `OUT_DIR`. Keep struct field offsets and `@group`/`@binding` indices synchronized with the Rust `bytemuck` mirrors in `cargo xtest`; this `35`-line shader defines `@vertex fn vs_main`, `@fragment fn fs_reduce`, `@fragment fn fs_occupancy` compiled directly through `build.rs` into `OUT_DIR`.
+2. **`src/shaders/ambient_depth.wgsl`** reduces `2×2` linear depth + `ao_radius` (`fs_reduce`) and marks `5×5` active occupancy tiles (`fs_occupancy`).
 
 ```wgsl
 --8<-- "session_viewer/src/shaders/ambient_depth.wgsl"
@@ -123,7 +123,7 @@ Schedules `1×` and `4×` SSAO pipeline compilation inside browser `requestIdleC
 
 ### Step 10 · `src/shaders/ambient_geometry.wgsl`
 
-3. **`src/shaders/ambient_geometry.wgsl`** resolves each pixel's `2×u16` primitive ID through `placed_triangle` to reconstruct exact world-space triangle cross-product normals (falling back to discontinuity-aware neighbour depth differences on non-triangle pixels): Keep struct field offsets and `@group`/`@binding` indices synchronized with the Rust `bytemuck` mirrors in `cargo xtest`; this `49`-line shader defines shared WGSL helper functions and uniform structs compiled directly through `build.rs` into `OUT_DIR`. Keep struct field offsets and `@group`/`@binding` indices synchronized with the Rust `bytemuck` mirrors in `cargo xtest`; this `49`-line shader defines shared WGSL helper functions and uniform structs compiled directly through `build.rs` into `OUT_DIR`.
+3. **`src/shaders/ambient_geometry.wgsl`** resolves each pixel's `2×u16` primitive ID through `placed_triangle` to reconstruct exact world-space triangle cross-product normals (falling back to discontinuity-aware neighbour depth differences on non-triangle pixels).
 
 ```wgsl
 --8<-- "session_viewer/src/shaders/ambient_geometry.wgsl"
@@ -131,7 +131,7 @@ Schedules `1×` and `4×` SSAO pipeline compilation inside browser `requestIdleC
 
 ### Step 11 · `src/shaders/ssao.wgsl`
 
-4. **`src/shaders/ssao.wgsl`** integrates cosine-weighted GTAO horizon arcs `arc(h, n)` across `6` quadratic screen-space steps per side with mip-level selection, spatial-temporal noise phase, bilateral `X`/`Y` denoising and depth-clamped temporal history: Keep struct field offsets and `@group`/`@binding` indices synchronized with the Rust `bytemuck` mirrors in `cargo xtest`; this `382`-line shader defines `@vertex fn vs_main`, `@fragment fn fs_prepare`, `@fragment fn fs_ground`, `@fragment fn fs_main` after `#include` expansion of `ambient_geometry.wgsl`, `slot_table.wgsl`. Keep struct field offsets and `@group`/`@binding` indices synchronized with the Rust `bytemuck` mirrors in `cargo xtest`; this `382`-line shader defines `@vertex fn vs_main`, `@fragment fn fs_prepare`, `@fragment fn fs_ground`, `@fragment fn fs_main` after `#include` expansion of `ambient_geometry.wgsl`, `slot_table.wgsl`.
+4. **`src/shaders/ssao.wgsl`** integrates cosine-weighted GTAO horizon arcs `arc(h, n)` across `6` quadratic screen-space steps per side with mip-level selection, spatial-temporal noise phase, bilateral `X`/`Y` denoising and depth-clamped temporal history.
 
 ```wgsl
 --8<-- "session_viewer/src/shaders/ssao.wgsl"
@@ -139,7 +139,7 @@ Schedules `1×` and `4×` SSAO pipeline compilation inside browser `requestIdleC
 
 ### Step 12 · `src/shaders/ambient_composite.wgsl`
 
-5. **`src/shaders/ambient_composite.wgsl`** darkens interior pixels in one fullscreen pass (`fs_main`) and refines `16×16` MSAA silhouette tiles per sample (`vs_edges` / `fs_edges`): Keep struct field offsets and `@group`/`@binding` indices synchronized with the Rust `bytemuck` mirrors in `cargo xtest`; this `47`-line shader defines `@vertex fn vs_main`, `@fragment fn fs_main`, `@vertex fn vs_edges`, `@fragment fn fs_edges` compiled directly through `build.rs` into `OUT_DIR`. Keep struct field offsets and `@group`/`@binding` indices synchronized with the Rust `bytemuck` mirrors in `cargo xtest`; this `47`-line shader defines `@vertex fn vs_main`, `@fragment fn fs_main`, `@vertex fn vs_edges`, `@fragment fn fs_edges` compiled directly through `build.rs` into `OUT_DIR`.
+5. **`src/shaders/ambient_composite.wgsl`** darkens interior pixels in one fullscreen pass (`fs_main`) and refines `16×16` MSAA silhouette tiles per sample (`vs_edges` / `fs_edges`).
 
 ```wgsl
 --8<-- "session_viewer/src/shaders/ambient_composite.wgsl"
@@ -147,7 +147,7 @@ Schedules `1×` and `4×` SSAO pipeline compilation inside browser `requestIdleC
 
 ### Step 13 · `viewer-core/src/command/verbs/arctic.rs`
 
-`arctic.rs` enables ambient clay shading + surface outlines; `outline.rs` toggles borders independently; `opacity.rs` validates finite `[0.0, 1.0]` global face alpha; `alpha.rs` sets or resets per-object transparency overrides on the selection. Spanning `31` lines, this module stays free of duplicate state by registering `SPEC` in `verbs!` without introducing UI/GPU coupling cycles. Spanning `31` lines, this module stays free of duplicate state by registering `SPEC` in `verbs!` without introducing UI/GPU coupling cycles.
+`viewer-core/src/command/verbs/arctic.rs` implements the `arctic` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/command/verbs/arctic.rs"
@@ -155,7 +155,7 @@ Schedules `1×` and `4×` SSAO pipeline compilation inside browser `requestIdleC
 
 ### Step 14 · `viewer-core/src/command/verbs/outline.rs`
 
-`arctic.rs` enables ambient clay shading + surface outlines; `outline.rs` toggles borders independently; `opacity.rs` validates finite `[0.0, 1.0]` global face alpha; `alpha.rs` sets or resets per-object transparency overrides on the selection. Spanning `30` lines, this module stays free of duplicate state by registering `SPEC` in `verbs!` without introducing UI/GPU coupling cycles. Spanning `30` lines, this module stays free of duplicate state by registering `SPEC` in `verbs!` without introducing UI/GPU coupling cycles.
+`viewer-core/src/command/verbs/outline.rs` implements the `outline` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/command/verbs/outline.rs"
@@ -163,7 +163,7 @@ Schedules `1×` and `4×` SSAO pipeline compilation inside browser `requestIdleC
 
 ### Step 15 · `viewer-core/src/command/verbs/attributes.rs`
 
-`attributes.rs` toggles owned element features; `interactions.rs` toggles joint/cut/contact features (rewalking when needed); `arrowhead.rs` (`None`/`Start`/`End`/`Both`) replaces unlocked selected curves in one transaction. Spanning `34` lines, this module stays free of duplicate state by registering `SPEC` in `verbs!` without introducing UI/GPU coupling cycles. Spanning `34` lines, this module stays free of duplicate state by registering `SPEC` in `verbs!` without introducing UI/GPU coupling cycles.
+`viewer-core/src/command/verbs/attributes.rs` implements the `attributes` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/command/verbs/attributes.rs"
@@ -171,7 +171,7 @@ Schedules `1×` and `4×` SSAO pipeline compilation inside browser `requestIdleC
 
 ### Step 16 · `src/app/fonts.rs`
 
-Checks bundled `Subset` glyph coverage (`need` / `need_names`) and triggers one async HTTP fetch posting `Msg::Fonts` when a codepoint (e.g. `Ω`) is missing. Spanning `58` lines, this module stays free of duplicate state by exposing `need`, `need_names` without introducing UI/GPU coupling cycles. Spanning `58` lines, this module stays free of duplicate state by exposing `need`, `need_names` without introducing UI/GPU coupling cycles.
+Checks bundled `Subset` glyph coverage (`need` / `need_names`) and triggers one async HTTP fetch posting `Msg::Fonts` when a codepoint (e.g. `Ω`) is missing.
 
 ```rust
 --8<-- "session_viewer/src/app/fonts.rs"
@@ -179,7 +179,7 @@ Checks bundled `Subset` glyph coverage (`need` / `need_names`) and triggers one 
 
 ### Step 17 · `src/engine/text.rs`
 
-`src/engine/text.rs` defines `5` `TextPlacement` modes (screen, depth-tested anchored, overlay nameplate, world-plane and billboard) and validates `TextDocument::set_labels` atomically so moving or recolouring labels reuses shaped `glyphon` buffers while font upgrades advance `font_revision`. Spanning `479` lines, this module stays free of duplicate state by exposing `FONT_FAMILY`, `FULL_FONTS`, `TextRun`, `TextDocument` without introducing UI/GPU coupling cycles. Spanning `479` lines, this module stays free of duplicate state by exposing `FONT_FAMILY`, `FULL_FONTS`, `TextRun`, `TextDocument` without introducing UI/GPU coupling cycles.
+`src/engine/text.rs` defines `5` `TextPlacement` modes (screen, depth-tested anchored, overlay nameplate, world-plane and billboard) and validates `TextDocument::set_labels` atomically so moving or recolouring labels reuses shaped `glyphon` buffers while font upgrades advance `font_revision`.
 
 ```rust
 --8<-- "session_viewer/src/engine/text.rs"
@@ -187,7 +187,7 @@ Checks bundled `Subset` glyph coverage (`need` / `need_names`) and triggers one 
 
 ### Step 18 · `src/engine/text/application_tests.rs`
 
-Verifies nonzero glyph IDs across all command names/symbols in bundled subsets and after full-font replacement. Spanning `34` lines, this module stays free of duplicate state by wiring internal module helpers and verified by `bundled_subsets_cover_the_viewer_and_whole_fonts_the_rest`. Spanning `34` lines, this module stays free of duplicate state by wiring internal module helpers and verified by `bundled_subsets_cover_the_viewer_and_whole_fonts_the_rest`.
+`src/engine/text/application_tests.rs` (34 lines) houses regression tests `bundled_subsets_cover_the_viewer_and_whole_fonts_the_rest`. It verified by `cargo xtest` (`bundled_subsets_cover_the_viewer_and_whole_fonts_the_rest`).
 
 ```rust
 --8<-- "session_viewer/src/engine/text/application_tests.rs"
@@ -195,7 +195,7 @@ Verifies nonzero glyph IDs across all command names/symbols in bundled subsets a
 
 ### Step 19 · `src/engine/gpu/text.rs`
 
-Keys `TextLane::prepare` by `(doc_revision, font_revision, camera_or_canvas)` so static frames and pure screen-label views skip redundant GPU uploads. Spanning `1079` lines, this module stays free of duplicate state by exposing `TextFrame`, `TextStats`, `TextLane`, `allocated_bytes` without introducing UI/GPU coupling cycles. Spanning `1079` lines, this module stays free of duplicate state by exposing `TextFrame`, `TextStats`, `TextLane`, `allocated_bytes` without introducing UI/GPU coupling cycles.
+Keys `TextLane::prepare` by `(doc_revision, font_revision, camera_or_canvas)` so static frames and pure screen-label views skip redundant GPU uploads.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/text.rs"
@@ -203,7 +203,7 @@ Keys `TextLane::prepare` by `(doc_revision, font_revision, camera_or_canvas)` so
 
 ### Step 20 · `src/engine/gpu/text_plane.rs`
 
-Caches per-label world-plane textures keyed by raster inputs, freeing GPU textures automatically when a plane label drops. Spanning `791` lines, this module stays free of duplicate state by exposing `Planes`, `retarget`, `prepare`, `draw` and verified by `long_labels_rasterize_within_the_texture_limit`. Spanning `791` lines, this module stays free of duplicate state by exposing `Planes`, `retarget`, `prepare`, `draw` and verified by `long_labels_rasterize_within_the_texture_limit`.
+Caches per-label world-plane textures keyed by raster inputs, freeing GPU textures automatically when a plane label drops.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/text_plane.rs"
@@ -211,7 +211,7 @@ Caches per-label world-plane textures keyed by raster inputs, freeing GPU textur
 
 ### Step 21 · `src/engine/gpu/text_plate.rs`
 
-Emits `6`-vertex rounded label backing quads (depth-tested before overlays) preserving pre-clip centre, half-size and corner radius. Spanning `212` lines, this module stays free of duplicate state by exposing `Rectangle`, `Plates`, `retarget`, `prepare` without introducing UI/GPU coupling cycles. Spanning `212` lines, this module stays free of duplicate state by exposing `Rectangle`, `Plates`, `retarget`, `prepare` without introducing UI/GPU coupling cycles.
+Emits `6`-vertex rounded label backing quads (depth-tested before overlays) preserving pre-clip centre, half-size and corner radius.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/text_plate.rs"
@@ -219,7 +219,7 @@ Emits `6`-vertex rounded label backing quads (depth-tested before overlays) pres
 
 ### Step 22 · `src/engine/gpu/text_outline.rs`
 
-Draws pre-triangulated arena sheet lettering with flat colour and object-ID picking without reshaping strings through `glyphon`. Spanning `269` lines, this module stays free of duplicate state by exposing `OutlineBuffers`, `OutlineTextLane`, `retarget`, `draw` without introducing UI/GPU coupling cycles. Spanning `269` lines, this module stays free of duplicate state by exposing `OutlineBuffers`, `OutlineTextLane`, `retarget`, `draw` without introducing UI/GPU coupling cycles.
+Draws pre-triangulated arena sheet lettering with flat colour and object-ID picking without reshaping strings through `glyphon`.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/text_outline.rs"
@@ -227,7 +227,7 @@ Draws pre-triangulated arena sheet lettering with flat colour and object-ID pick
 
 ### Step 23 · `src/shaders/text_plane.wgsl`
 
-3. **`src/shaders/text_plate.wgsl`**, **`src/shaders/text_plane.wgsl`** and **`src/shaders/text_outline.wgsl`** render rounded label backing pills, textured `3D`/screen glyph quads, and triangulated CAD sheet outlines (`primitive = 0`): Keep struct field offsets and `@group`/`@binding` indices synchronized with the Rust `bytemuck` mirrors in `cargo xtest`; this `81`-line shader defines `@vertex fn vs_main`, `@vertex fn vs_id`, `@fragment fn fs_main`, `@fragment fn fs_id` compiled directly through `build.rs` into `OUT_DIR`. Keep struct field offsets and `@group`/`@binding` indices synchronized with the Rust `bytemuck` mirrors in `cargo xtest`; this `81`-line shader defines `@vertex fn vs_main`, `@vertex fn vs_id`, `@fragment fn fs_main`, `@fragment fn fs_id` compiled directly through `build.rs` into `OUT_DIR`.
+`src/shaders/text_plane.wgsl`: What the vertex shader hands the fragment shader. Defines entry points `@vertex fn vs_main`, `@vertex fn vs_id`, `@fragment fn fs_main`, `@fragment fn fs_id`; bindings `@group(0) @binding(0) coverage_texture`, `@group(0) @binding(1) coverage_sampler`, `@group(1) @binding(0) pick`; keep struct layouts and binding indices aligned with their Rust `bytemuck` mirrors and Naga validation tests.
 
 ```wgsl
 --8<-- "session_viewer/src/shaders/text_plane.wgsl"
@@ -235,7 +235,7 @@ Draws pre-triangulated arena sheet lettering with flat colour and object-ID pick
 
 ### Step 24 · `src/shaders/text_plate.wgsl`
 
-3. **`src/shaders/text_plate.wgsl`**, **`src/shaders/text_plane.wgsl`** and **`src/shaders/text_outline.wgsl`** render rounded label backing pills, textured `3D`/screen glyph quads, and triangulated CAD sheet outlines (`primitive = 0`): Keep struct field offsets and `@group`/`@binding` indices synchronized with the Rust `bytemuck` mirrors in `cargo xtest`; this `67`-line shader defines `@vertex fn vs_main`, `@vertex fn vs_id`, `@fragment fn fs_main`, `@fragment fn fs_id` compiled directly through `build.rs` into `OUT_DIR`. Keep struct field offsets and `@group`/`@binding` indices synchronized with the Rust `bytemuck` mirrors in `cargo xtest`; this `67`-line shader defines `@vertex fn vs_main`, `@vertex fn vs_id`, `@fragment fn fs_main`, `@fragment fn fs_id` compiled directly through `build.rs` into `OUT_DIR`.
+`src/shaders/text_plate.wgsl`: What the vertex shader hands the fragment shader. Defines entry points `@vertex fn vs_main`, `@vertex fn vs_id`, `@fragment fn fs_main`, `@fragment fn fs_id`; bindings `@group(0) @binding(0) pick`; keep struct layouts and binding indices aligned with their Rust `bytemuck` mirrors and Naga validation tests.
 
 ```wgsl
 --8<-- "session_viewer/src/shaders/text_plate.wgsl"
@@ -243,7 +243,7 @@ Draws pre-triangulated arena sheet lettering with flat colour and object-ID pick
 
 ### Step 25 · `src/shaders/text_outline.wgsl`
 
-3. **`src/shaders/text_plate.wgsl`**, **`src/shaders/text_plane.wgsl`** and **`src/shaders/text_outline.wgsl`** render rounded label backing pills, textured `3D`/screen glyph quads, and triangulated CAD sheet outlines (`primitive = 0`): Keep struct field offsets and `@group`/`@binding` indices synchronized with the Rust `bytemuck` mirrors in `cargo xtest`; this `70`-line shader defines `@vertex fn vs_main`, `@fragment fn fs_main`, `@fragment fn fs_physical_id`, `@fragment fn fs_id` compiled directly through `build.rs` into `OUT_DIR`. Keep struct field offsets and `@group`/`@binding` indices synchronized with the Rust `bytemuck` mirrors in `cargo xtest`; this `70`-line shader defines `@vertex fn vs_main`, `@fragment fn fs_main`, `@fragment fn fs_physical_id`, `@fragment fn fs_id` compiled directly through `build.rs` into `OUT_DIR`.
+`src/shaders/text_outline.wgsl`: One mesh vertex, as the arena stores it. Defines entry points `@vertex fn vs_main`, `@fragment fn fs_main`, `@fragment fn fs_physical_id`, `@fragment fn fs_id`; keep struct layouts and binding indices aligned with their Rust `bytemuck` mirrors and Naga validation tests.
 
 ```wgsl
 --8<-- "session_viewer/src/shaders/text_outline.wgsl"
@@ -251,7 +251,7 @@ Draws pre-triangulated arena sheet lettering with flat colour and object-ID pick
 
 ### Step 26 · `viewer-core/src/scene_text.rs`
 
-Registers document nameplates as independent selectable text rows joined to document `Delete`/`Undo` transactions. Spanning `228` lines, this module stays free of duplicate state by exposing `CREATED_TEXT`, `SceneText`, `set_texts`, `set_document_title` without introducing UI/GPU coupling cycles. Spanning `228` lines, this module stays free of duplicate state by exposing `CREATED_TEXT`, `SceneText`, `set_texts`, `set_document_title` without introducing UI/GPU coupling cycles.
+`viewer-core/src/scene_text.rs` (228 lines) defines `struct SceneText`, `set_texts()`, `set_document_title()`, `register_text()`, `CREATED_TEXT`. It uses additive registration seams `register:editing`.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/scene_text.rs"
@@ -259,7 +259,7 @@ Registers document nameplates as independent selectable text rows joined to docu
 
 ### Step 27 · `src/state/text.rs`
 
-Computes newly added BRep/surface bounds in `annotate_document` and anchors a rounded nameplate above the document. Spanning `203` lines, this module stays free of duplicate state by exposing `annotate_document`, `add_text`, `use_fonts`, `update_label` without introducing UI/GPU coupling cycles. Spanning `203` lines, this module stays free of duplicate state by exposing `annotate_document`, `add_text`, `use_fonts`, `update_label` without introducing UI/GPU coupling cycles.
+`src/state/text.rs` (203 lines): the box around the new BReps and surfaces. It exposes `annotate_document()`, `add_text()`, `use_fonts()`.
 
 ```rust
 --8<-- "session_viewer/src/state/text.rs"
@@ -267,7 +267,7 @@ Computes newly added BRep/surface bounds in `annotate_document` and anchors a ro
 
 ### Step 28 · `viewer-core/src/command/verbs/text.rs`
 
-Validates `1..80`-char strings, orients `CPlane` axes toward the eye, and commits an undoable world-plane white-on-black label. Spanning `259` lines, this module stays free of duplicate state by registering `SPEC` in `verbs!` and verified by `the_words_become_the_text` (+3 more tests). Spanning `259` lines, this module stays free of duplicate state by registering `SPEC` in `verbs!` and verified by `the_words_become_the_text` (+3 more tests).
+Validates `1..80`-char strings, orients `CPlane` axes toward the eye, and commits an undoable world-plane white-on-black label.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/command/verbs/text.rs"
@@ -275,7 +275,7 @@ Validates `1..80`-char strings, orients `CPlane` axes toward the eye, and commit
 
 ### Step 29 · `src/text_quality.rs`
 
-Exports the `wasm_bindgen` `TextQuality` harness driving the production `TextLane` across DPRs, sizes, accents and selection states. Spanning `363` lines, this module stays free of duplicate state by exposing `SAMPLES`, `SIZES`, `TextQuality`, `create` without introducing UI/GPU coupling cycles. Spanning `363` lines, this module stays free of duplicate state by exposing `SAMPLES`, `SIZES`, `TextQuality`, `create` without introducing UI/GPU coupling cycles.
+Exports the `wasm_bindgen` `TextQuality` harness driving the production `TextLane` across DPRs, sizes, accents and selection states.
 
 ```rust
 --8<-- "session_viewer/src/text_quality.rs"
@@ -283,7 +283,7 @@ Exports the `wasm_bindgen` `TextQuality` harness driving the production `TextLan
 
 ### Step 30 · `assets/text-quality.html`
 
-Loads the current built `.wasm` bundle and aligns same-font DOM reference specimens over GPU labels to measure sub-pixel width agreement. Keep this `166`-line configuration synchronized with the workspace toolchain and deterministic build rules. Keep this `166`-line configuration synchronized with the workspace toolchain and deterministic build rules.
+Loads the current built `.wasm` bundle and aligns same-font DOM reference specimens over GPU labels to measure sub-pixel width agreement.
 
 ```html
 --8<-- "session_viewer/assets/text-quality.html"

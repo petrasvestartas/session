@@ -29,7 +29,7 @@ Owned files in build order (`8` files):
 
 ### Step 1 · `src/app/stage/geometry.rs`
 
-`src/app/stage/geometry.rs` evaluates named `3D` points at clock `t`, emits `Spatial` descriptors (`Point`, `Line`, `Polyline`, `12`-edge cuboids, stroke width, `scale.powf(0.3)` pen scaling, dash and reveal), and places `16`-direction collision-scored anchor labels (`+15` hysteresis bonus). Spanning `309` lines, this module stays free of duplicate state by exposing `Spatial`, `SpatialKind`, `clip_len`, `ctrl` without introducing UI/GPU coupling cycles. Spanning `309` lines, this module stays free of duplicate state by exposing `Spatial`, `SpatialKind`, `clip_len`, `ctrl` without introducing UI/GPU coupling cycles.
+`src/app/stage/geometry.rs` evaluates named `3D` points at clock `t`, emits `Spatial` descriptors (`Point`, `Line`, `Polyline`, `12`-edge cuboids, stroke width, `scale.powf(0.3)` pen scaling, dash and reveal), and places `16`-direction collision-scored anchor labels (`+15` hysteresis bonus).
 
 ```rust
 --8<-- "session_viewer/src/app/stage/geometry.rs"
@@ -37,7 +37,7 @@ Owned files in build order (`8` files):
 
 ### Step 2 · `src/app/stage/net.rs`
 
-`src/app/stage/net.rs` constructs free/fixed branch-node incidence matrices `(C_N, C_F)`, assembles `D = C^T Q C`, solves `D_N x_N = p - D_F x_F` across `XYZ` for anchored positive-density nets, and exposes `Net::matrix` directly to the slide column. Spanning `333` lines, this module stays free of duplicate state by exposing `Net`, `grid`, `node`, `cable` and verified by `five_nodes_rest_at_the_weighted_average` (+1 more tests). Spanning `333` lines, this module stays free of duplicate state by exposing `Net`, `grid`, `node`, `cable` and verified by `five_nodes_rest_at_the_weighted_average` (+1 more tests).
+`src/app/stage/net.rs` constructs free/fixed branch-node incidence matrices `(C_N, C_F)`, assembles `D = C^T Q C`, solves `D_N x_N = p - D_F x_F` across `XYZ` for anchored positive-density nets, and exposes `Net::matrix` directly to the slide column.
 
 ```rust
 --8<-- "session_viewer/src/app/stage/net.rs"
@@ -45,7 +45,7 @@ Owned files in build order (`8` files):
 
 ### Step 3 · `src/app/stage/view.rs`
 
-`src/app/stage/view.rs` frames the `3D` points orthographically inside the slide's scene half (side-by-side on desktop, top half via `Frame::stacked` on upright screens) so `spatial::lens` projects node labels and `fill`/`fly` animations from live orbited coordinates. Spanning `184` lines, this module stays free of duplicate state by exposing `Cam`, `View`, `Lens`, `project` without introducing UI/GPU coupling cycles. Spanning `184` lines, this module stays free of duplicate state by exposing `Cam`, `View`, `Lens`, `project` without introducing UI/GPU coupling cycles.
+`src/app/stage/view.rs` frames the `3D` points orthographically inside the slide's scene half (side-by-side on desktop, top half via `Frame::stacked` on upright screens) so `spatial::lens` projects node labels and `fill`/`fly` animations from live orbited coordinates.
 
 ```rust
 --8<-- "session_viewer/src/app/stage/view.rs"
@@ -53,7 +53,7 @@ Owned files in build order (`8` files):
 
 ### Step 4 · `src/app/stage/spatial.rs`
 
-`src/app/stage/spatial.rs` (`Scene3`) sets `state.scene.arrowhead_pens = 24.0` for elongated `0.30`-aspect heads, bakes each `3D` `Point` as an outer `ink` disc plus a `0.58`-scale `bg` paper-centre disc, and maps stage IDs to non-pickable `112 B` GPU rows updated in place. Spanning `375` lines, this module stays free of duplicate state by exposing `Scene3`, `sync`, `camera`, `lens` without introducing UI/GPU coupling cycles. Spanning `375` lines, this module stays free of duplicate state by exposing `Scene3`, `sync`, `camera`, `lens` without introducing UI/GPU coupling cycles.
+`src/app/stage/spatial.rs` (`Scene3`) sets `state.scene.arrowhead_pens = 24.0` for elongated `0.30`-aspect heads, bakes each `3D` `Point` as an outer `ink` disc plus a `0.58`-scale `bg` paper-centre disc, and maps stage IDs to non-pickable `112 B` GPU rows updated in place.
 
 ```rust
 --8<-- "session_viewer/src/app/stage/spatial.rs"
@@ -61,7 +61,7 @@ Owned files in build order (`8` files):
 
 ### Step 5 · `src/app/stage/mode.rs`
 
-`src/app/stage/mode.rs` runs each frame in strict order: tick stage clock -> apply orthographic camera -> derive `2×4` world-to-slide `lens` -> `Presentation::paint` (emitting current `Spatial` list) -> `Scene3::sync` -> return `egui::FullOutput`. Spanning `76` lines, this module stays free of duplicate state by wiring internal module helpers without introducing UI/GPU coupling cycles. Spanning `76` lines, this module stays free of duplicate state by wiring internal module helpers without introducing UI/GPU coupling cycles.
+`src/app/stage/mode.rs` runs each frame in strict order: tick stage clock -> apply orthographic camera -> derive `2×4` world-to-slide `lens` -> `Presentation::paint` (emitting current `Spatial` list) -> `Scene3::sync` -> return `egui::FullOutput`.
 
 ```rust
 --8<-- "session_viewer/src/app/stage/mode.rs"
@@ -69,7 +69,7 @@ Owned files in build order (`8` files):
 
 ### Step 6 · `src/app/stage/application.rs`
 
-`src/app/stage/application.rs` (`StageApp`) routes `?stage=...` index/chapter/picture/font prefetches, keyboard steps/chapters/themes (`T`), scene-half mouse orbit/zoom/double-click reset, column-click advance, and touch gestures across desktop and `Frame::stacked` upright layouts. Spanning `360` lines, this module stays free of duplicate state by exposing `Loaded`, `StageApp`, `key`, `pointer` without introducing UI/GPU coupling cycles. Spanning `360` lines, this module stays free of duplicate state by exposing `Loaded`, `StageApp`, `key`, `pointer` without introducing UI/GPU coupling cycles.
+`src/app/stage/application.rs` (`StageApp`) routes `?stage=...` index/chapter/picture/font prefetches, keyboard steps/chapters/themes (`T`), scene-half mouse orbit/zoom/double-click reset, column-click advance, and touch gestures across desktop and `Frame::stacked` upright layouts.
 
 ```rust
 --8<-- "session_viewer/src/app/stage/application.rs"
@@ -77,7 +77,7 @@ Owned files in build order (`8` files):
 
 ### Step 7 · `Trunk.toml`
 
-`Trunk.toml` configures release builds, relative `public_url`, pre-build Vue docs generation, watch paths (`../session_rust`, `docs`), and `Cache-Control: no-store` on the dev index HTML. Keep this `23`-line configuration synchronized with the workspace toolchain and deterministic build rules. Keep this `23`-line configuration synchronized with the workspace toolchain and deterministic build rules.
+`Trunk.toml` configures release WASM bundling (`public_url = "./"`, `no_sri = true`), runs `build-viewer-docs.cjs` in `pre_build` so `dist/docs/` ships beside the viewer, and serves locally on `127.0.0.1:8770` with `Cache-Control: no-store`. Trap: `no_sri = true` is required because CI rewrites `*_bg.wasm` in place with `wasm-opt -O3` after Trunk emits `dist/index.html`.
 
 ```toml
 --8<-- "session_viewer/Trunk.toml"
@@ -85,7 +85,7 @@ Owned files in build order (`8` files):
 
 ### Step 8 · `index.html`
 
-`index.html` (materialized as `production.html` alongside the course's `index.html`) mounts `#viewer`, starts `window.__viewerEarly` fetches ahead of `.wasm`, loads `diagnostics.js`, copies `stage/`, `decks/`, `text/` and `docs/`, and handles same-origin `postMessage` scene reloads. Keep this `295`-line configuration synchronized with the workspace toolchain and deterministic build rules. Keep this `295`-line configuration synchronized with the workspace toolchain and deterministic build rules.
+`index.html` prefetches Cloudflare R2 scene manifests or stage fonts in parallel with `.wasm` download, mounts `#canvas`, `#command-agent` (16 px mobile IME), and `#viewer-docs`, and bridges `postMessage` (`session-viewer:reload-scene` and `session-viewer:op`). Trap: keep `touch-action: none` on `canvas` and `font-size: 16px` on `#command-agent` so iOS Safari neither steals pinch-zoom nor auto-zooms the viewport on command focus.
 
 ```html
 --8<-- "session_viewer/index.html"

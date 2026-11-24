@@ -20,12 +20,12 @@ test('nested kernel sources link to the repositories that own their contents', (
 
 test('Rust source links receive plain-text filenames and retain the original exact download bytes', () => {
   const assets = new Map<string, string>();
-  const file = path.join(viewer, 'src/app/scene_sync/notes.rs');
+  const file = path.join(viewer, 'viewer-core/src/scene_sync/notes.rs');
   const before = fs.readFileSync(file);
-  const key = registerLinkedAsset(assets, 'src/app/scene_sync/notes.rs', file, 'history notes');
-  assert.equal(key, 'src/app/scene_sync/notes.rs.txt');
+  const key = registerLinkedAsset(assets, 'viewer-core/src/scene_sync/notes.rs', file, 'history notes');
+  assert.equal(key, 'viewer-core/src/scene_sync/notes.rs.txt');
   assert.deepEqual(fs.readFileSync(assets.get(key)!), before);
-  assert.deepEqual(fs.readFileSync(assets.get('src/app/scene_sync/notes.rs')!), before);
+  assert.deepEqual(fs.readFileSync(assets.get('viewer-core/src/scene_sync/notes.rs')!), before);
 });
 
 test('an explicitly labelled HTML source link exposes exact source without running the original HTML path', () => {
