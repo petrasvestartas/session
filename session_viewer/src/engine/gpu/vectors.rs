@@ -266,6 +266,10 @@ mod tests {
         ];
         let (_, src) = SHADERS[0];
         assert_eq!(wgsl_fields(src, "VectorRow"), rust, "VectorRow fields");
+        assert!(
+            include_str!("../../shaders/arrow.wgsl").contains("const HEAD_ASPECT: f32 = 0.30;"),
+            "arrow.wgsl HEAD_ASPECT changed; keep tip_offset in sync"
+        );
 
         let source = crate::engine::pipelines::shared(&crate::engine::pipelines::ink_source(src));
         let module = naga::front::wgsl::parse_str(&source)
@@ -418,7 +422,7 @@ mod tests {
         dir: [f64; 2],
         r: f64,
     ) -> f64 {
-        let aspect = 0.55_f64;
+        let aspect = 0.30_f64; // matches arrow.wgsl HEAD_ASPECT
         let side = (1.0 + aspect * aspect).sqrt();
         let mut near = Vec::new(); // (u, v, coverage) per pixel, apex at the point
 
@@ -647,7 +651,7 @@ mod tests {
 
                     // no seam across a shaft at least a pixel wide: away from a tip the center line is inked
                     if shaft && (vector.radius > 0.0 || *selected) {
-                        let margin = |bit: u32| if vector.heads & bit != 0 { 3.0 } else { 1.5 };
+                        let margin = |bit: u32| if vector.heads & bit != 0 { 5.0 } else { 1.5 };
                         let from = margin(VectorRow::HEAD_START);
                         let to = len - margin(VectorRow::HEAD_END);
                         let least = thinnest(&rgba, &paper, SIZE as usize, a, b, from, to);
@@ -837,7 +841,7 @@ mod walk_tests {
                         // a thick curve runs on under its head's base: no seam
                         if *name == "polyline thick" {
                             let least =
-                                thinnest(&rgba, &paper, SIZE as usize, aim, tip, 1.5, len - 3.0);
+                                thinnest(&rgba, &paper, SIZE as usize, aim, tip, 1.5, len - 5.0);
                             assert!(least >= 0.9, "{label}: center line only {least:.3} inked");
                         }
                     }

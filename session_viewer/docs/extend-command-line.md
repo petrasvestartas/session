@@ -324,7 +324,7 @@ pub fn log(line: &str);
 ```
 
 - Beside `status` in `src/app/feedback.rs`. `set_text_content`, never `set_inner_html`: the module doc states it (`feedback.rs`), both writers follow it, and a log echoing typed text is where the rule is load-bearing.
-- `status` stays a one-line transient: "Select one object before pressing F10" (`src/state.rs`).
+- `status` stays a one-line transient: "Select one object before running Controls" (`src/state.rs`).
 - Cap the scrollback at 200 lines, in one place. The `<pre>`'s text is replaced wholesale per write: 200 lines of ~80 characters is 16 KB rewritten, 20 000 lines 1.6 MB per logging keystroke.
 - Three shapes: `> {line}` echoes input before dispatch, `+ box_0 (100x100x100 mm)` reports an add, a leading `? ` marks a parse failure.
 - Prompts from a click have no return value, so the tool pushes them into the same capped function.

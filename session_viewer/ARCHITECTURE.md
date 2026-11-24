@@ -74,7 +74,7 @@ Higher layers drive lower ones, never the reverse: a shader knows an object row,
 | Display | Triangles, ordered boundary node chains, curved edges sampled from their own curves, markers | Rebuilt on geometry change; source maps kept |
 | GPU | Packed vertices, `Instance` rows, draw ranges | Object-relative f32 plus rebased translations |
 
-Selecting a source face (Ctrl+Shift) selects the face, not a tessellation triangle. Every segment of one BRep edge carries the original edge ID. F10 shows original vertices or control points, not display subdivisions.
+Selecting a source face (Ctrl+Shift) selects the face, not a tessellation triangle. Every segment of one BRep edge carries the original edge ID. `Controls` shows original vertices or control points, not display subdivisions.
 
 A curved BRep edge is drawn from its own 3D curve, one chord per 4° of turning (`display_chain` in `walk/brep_edges.rs`), not from the face mesh's coarse boundary: the face mesh keeps its 16 steps around a small bore while the edge gets 90, so a circle reads as round at any zoom within reason. The dense samples pass exactly through every mesh vertex of the chain, each display segment is mapped to the chain segment it lies on for its incident-facet normals and its `surface_boundaries` entry, and it carries a sag: how far it rises off the facets, which the hidden-line test takes as slack (below). A straight edge keeps its two vertices. `VIEWER_COARSE_EDGES` draws every edge from the mesh vertices again, for comparison.
 
@@ -159,7 +159,7 @@ Meshes are vertex-pulled: `triangle.wgsl` reads `face_vertices`, `face_objects`,
 
 **Sheets.** A drawing publishes as one `Sheet` message (`Objects.sheets`, field 17): packed fixed-width `coords`, `colors`, `widths` and `source_ids`, so `stream.rs` locates the arrays from the first kilobytes and the loader streams segments by byte range under a segment budget. The whole sheet is one object row and one ribbon draw; every segment carries its entity id through `SegRows.ribbon_ids`. A pick resolves row plus segment to the entity, and `sheet_query.rs` reads its GUID, name and kind from the `.meta` side table in two ranged reads, cached per sheet with the table's ETag. The kernel never decodes a sheet.
 
-**Controls.** F10 → `Controls` collects original vertices or control points of the selected parent → marker rows uploaded with `ControlId` → a control pick returns the original identity, not the marker slot. Streamed clouds query every eligible source page (`state/cloud_query.rs`) independently of display LOD and apply the final visible original ID.
+**Controls.** The `Controls` command → `Controls` collects original vertices or control points of the selected parent → marker rows uploaded with `ControlId` → a control pick returns the original identity, not the marker slot. Streamed clouds query every eligible source page (`state/cloud_query.rs`) independently of display LOD and apply the final visible original ID.
 
 **Text.** String, font, size → `engine/text.rs` shapes glyph runs with the bundled Noto fonts → `TextPlacement` (Screen, Anchor, Nameplate, WorldPlane, WorldBillboard) → `TextLane::prepare` chooses the physical raster size once per DPR → coverage atlas → plate pass and glyph pass; fixed-plane text uses `text_plane.wgsl` with perspective-correct rounded plates that also serve the ID pass.
 

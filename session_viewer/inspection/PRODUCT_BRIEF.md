@@ -18,8 +18,8 @@ Live: https://petrasvestartas.github.io/session/ · Docs: https://petrasvestarta
 
 | Area | State | Evidence |
 |---|---|---|
-| Build | Real tree fails (stale `session_proto` checkout); clean HEAD builds | REPOSITORY_INSPECTION "What was run" |
-| Tests | 612 native pass, 2 fail (arrow tips), 61 GPU-ignored; 52 Playwright tests run by hand only | same |
+| Build | Real tree builds cleanly (wasm + native `--all-targets`; `session_proto` at `edc614e1e`) | REPOSITORY_INSPECTION "What was run" |
+| Tests | 614 native pass, 0 fail, 61 GPU-ignored (`viewer-check.yml` logs GPU-skipped counts); 44 Playwright tests run by hand | same |
 | Architecture | `State` / `Scene` / `Gpu` god objects; every command needs window + GPU; 4 module cycles | [ARCHITECTURE.md §10](ARCHITECTURE.md#10-findings-with-evidence) |
 | Automation | No CLI, no FastMCP, no programmatic API | [INTERFACE_INVENTORY.md §0](INTERFACE_INVENTORY.md) |
 | Rendering | Unlit flat default, opacity 0.95, x-ray instead of wireframe, Arctic view (SSAO + outlines) by command only; no culling of any kind | [FEATURE_INVENTORY.md §4](FEATURE_INVENTORY.md) |

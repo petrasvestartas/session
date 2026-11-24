@@ -21,10 +21,10 @@ Audit of `session/session_viewer` at superproject HEAD `032cd8c0f`, 2026-11-19, 
 
 ## 1. Current application state
 
-- One crate, 319 `.rs` files / 106 k lines, 33 WGSL files; Rust 1.97.1, wgpu/naga 29.0.4, winit 0.30.13, egui 0.34.3. **WebGPU only, no WebGL2 fallback** (`engine/gpu/device.rs:31`).
-- **The real working tree does not build**: `session_proto` sits at an older commit than the superproject records (`edc614e1e` missing locally), and `session_rust/src/proto/session_proto.rs` was regenerated from it at 11:20 today, before this audit started. A pristine copy of HEAD builds (`cargo check` wasm 10.7 s).
-- **Native tests: 614 passed, 2 failed, 61 ignored** (`vectors::tests::arrow_is_exactly_as_long_as_its_line`, `vectors::walk_tests::curve_heads_land_on_their_ends`, both deterministic). CI is green because its runner has no GPU and these tests skip.
-- CI runs only `cargo check` + `cargo xtest`; none of the 52 Playwright tests, 7 Python checks or 8 depth scripts run in CI; 8 Playwright tests import a missing `docs/extensions/browser.cjs`.
+- One crate, 317 `.rs` files, 32 WGSL files; Rust 1.97.1, wgpu/naga 29.0.4, winit 0.30.13, egui 0.34.3. **WebGPU only, no WebGL2 fallback** (`engine/gpu/device.rs:31`).
+- **The real working tree builds cleanly** (`session_proto` at `edc614e1e`; `cargo check` wasm 4.2 s, native `--all-targets` 8.4 s).
+- **Native tests: 614 passed, 0 failed, 61 ignored** (`104.64 s` on RTX 4080). `viewer-check.yml` runs `cargo xtest -- --nocapture` and prints + summarises the count of adapter-dependent GPU tests skipped (`no GPU adapter; skipped`) so a CPU-only CI run is not mistaken for GPU coverage.
+- CI runs `cargo check` + `cargo xtest`; the 44 Playwright `.cjs` tests, 7 Python checks and 8 depth scripts run manually (the 8 obsolete Sept 2026 left-toolbar scripts importing the removed `docs/extensions/browser.cjs` were deleted in M0).
 - Activity: 425 of 1,031 viewer commits in the last 30 days, mostly course docs, screenshots and `app/stage` (slide decks), not the engine.
 
 ## 2. Most important findings
@@ -77,7 +77,7 @@ Strongest unconfirmed lead: the per-fragment ink-visibility tile walk (`ink_visi
 
 ## 6. Recommended implementation order
 
-1. **M0** make the real tree build (fetch `session_proto`), fix the two red arrow tests, make CI GPU tests fail loudly instead of skipping, repair stale key docs and the missing `browser.cjs`.
+1. **M0** (done 2026-11-23) real tree builds, arrow-tip tests fixed (`614 passed / 0 failed`), CI reports GPU-skipped counts, stale key docs corrected, obsolete `browser.cjs` scripts removed.
 2. **M1** instrumentation: browser CPU split, p95, completion latency, redraw causes, ink sub-pass timers; reproducible baseline.
 3. **M2** performance, measured items first: ink visibility walk, opacity default, main-thread walk yielding; then hover redraws, layer list virtualisation, pacing depth, hot-path clones.
 4. **M3** remove the 3D matrix lane (after approval).
@@ -101,6 +101,8 @@ Answered 2026-11-19:
 | D10 | Tutorial diagrams | **Drawn in the session viewer** (stage decks/scenes), no Mermaid | `.claude/rules/viewer-docs.md`, `docs/maintaining.md`, TUTORIAL_ROADMAP updated |
 | D11 | `target/` cleanup | **Remove what is not needed** | `session_viewer/target` 211 → 37 GB (course/scratch caches, incremental dirs, old example binaries); `session_rust/target` incremental + scratch; stale `session/session_view/` (old build only) |
 | — | Dead viewer code and old lessons | **Remove dead code, keep old lessons**, delete Codex work files | Yes: 4 dead mask pipelines + their shader entry points, `PipelineDesc::masks`, `ColorWrite::Max`, the 4 compiler warnings; `.codex/tutorial-integration-20261113/` and the cleanup log deleted (Codex agent config kept) |
+| D6 | Arrow-tip tests (`vectors.rs`) | **Use the `0.30` Force Density Method arrowhead** (`7fff87abd`) | Yes (2026-11-23): synced `vectors.rs` `tip_offset` aspect (`0.55` → `0.30`) and apex-taper margin, and fixed `tuck()` minimum overlap (`FILTER_REACH` → `1.0 px`) in `arrow.wgsl` and `ribbon.wgsl` eliminating a `0.878` base seam at DPR 2; worst tip error `0.010 px`, `614 passed / 0 failed` |
+| — | 8 obsolete `docs/extensions/browser.cjs` Playwright tests & stale key docs | **Delete the 8 scripts, align key docs to `keys.rs`** | Yes (2026-11-23): 8 obsolete toolbar/shortcut `.cjs` scripts removed, `tests/README.md`, `README.md`, `ARCHITECTURE.md`, `docs/ssao.md`, `docs/capstone.md`, `docs/extend-command-line.md` and `src/` comments updated, strict Vue docs build passes |
 
 Still open:
 
@@ -108,7 +110,6 @@ Still open:
 |---|---|---|
 | D3 | Recapture Tutorial 7 (now three objects) | needs a machine whose browser WebGPU renders (`npm --prefix ../session_tests run course -- capture`); this machine renders black |
 | D4 | Historical matrix lesson steps in `docs/journey/96zzzzzzzq-*` and `docs/journey/code/` | leave (historical inputs) |
-| D6 | Arrow-tip tests: geometry or tolerances | find the regressing commit first |
 | D8 | Start the M4 architecture split | only after M0-M2 |
 | D9 | Shrink the protobuf schema (three-kernel change) | defer until M2 numbers |
 | D12 | Element builder verbs removed 2026-11-05: restore, or delete course steps `92*` | delete stale steps |

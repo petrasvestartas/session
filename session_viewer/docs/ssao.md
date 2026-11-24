@@ -1,10 +1,10 @@
 # Ambient occlusion
 
-Type `Arctic`, press Enter, then choose On or Off; `Arctic On` and `Arctic Off` also run directly, and G toggles it when the viewport has keyboard focus. Arctic starts off, and switching it never moves the camera.
+Type `Arctic`, press Enter, then choose On or Off; `Arctic On` and `Arctic Off` also run directly. Arctic starts off, and switching it never moves the camera.
 
 Arctic keeps authored colours under neutral sky and ground lighting, with soft contact shadows on surfaces and on a virtual floor under the lowest visible solid. Hidden objects, sheets, lines and points do not lower that floor. It is a screen-space effect: an object that is hidden or off screen casts nothing.
 
-Turning Arctic on also turns the black surface outlines on. `Outline Off` hides them and keeps the shading, `Outline On` shows them without Arctic, and O toggles them. Turning Arctic off leaves the outline setting as it is. Clipping sections draw their own cut boundaries whatever the outline setting; see [lesson 18b](18b-clipping.md).
+Turning Arctic on also turns the black surface outlines on. `Outline Off` hides them and keeps the shading, and `Outline On` (or `View Outline`) shows them without Arctic. Turning Arctic off leaves the outline setting as it is. Clipping sections draw their own cut boundaries whatever the outline setting; see [lesson 18b](18b-clipping.md).
 
 The code is built in [lesson 32](32-colors-lighting.md) (the pass and its shaders) and [lesson 33](33-contact-shadows.md) (the `Arctic` and `Outline` commands).
 

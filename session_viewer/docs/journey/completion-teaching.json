@@ -2902,7 +2902,7 @@
   {
     "path": "src/engine/gpu/vectors.rs",
     "owner": "geometry",
-    "sourceSha256": "543035d4077f562ed19d538d69dacff12f80e5ed2b3385e2d3f9160eaaf4b935",
+    "sourceSha256": "5a0da2e269b2cf1830ccd5bbe3def7f1e8fb14764b44c941127ad1cac9183b9e",
     "explanation": {
       "page": "journey/completion-geometry.md",
       "heading": "### Step 2. Extrude mitered ribbons, `0.30` arrows, planes, grids and backdrop (`ribbon.wgsl`, `arrow.wgsl`, `vector.wgsl`, `plane.wgsl`, `grid.wgsl`, `background.wgsl`)",
@@ -2912,7 +2912,7 @@
   {
     "path": "src/engine/gpu/view.rs",
     "owner": "geometry",
-    "sourceSha256": "eb0238ffaccef5a505b185d6233fe58233a395c0e24cb44788275a678148543c",
+    "sourceSha256": "80a4835600415bc3431776ed164cfc02f2f99ac6d1e70d201a3b9b187720ac32",
     "explanation": {
       "page": "journey/completion-geometry.md",
       "heading": "### Step 1. Walk meshes, BRep trims and shared `20`-byte arena vertices (`slot_table.wgsl`)",
@@ -3122,7 +3122,7 @@
   {
     "path": "src/shaders/arrow.wgsl",
     "owner": "geometry",
-    "sourceSha256": "a489f84371e4a43d9a2eb383a7d11cd33db12b250a8c0a9f25b3652d5b26e20a",
+    "sourceSha256": "441a8c1fbfa7fcd21bffb45a084cff1fbd296b92022c565bcfe235efacb7cef4",
     "explanation": {
       "page": "journey/completion-geometry.md",
       "heading": "### Step 2. Extrude mitered ribbons, `0.30` arrows, planes, grids and backdrop (`ribbon.wgsl`, `arrow.wgsl`, `vector.wgsl`, `plane.wgsl`, `grid.wgsl`, `background.wgsl`)",
@@ -3252,7 +3252,7 @@
   {
     "path": "src/shaders/ribbon.wgsl",
     "owner": "geometry",
-    "sourceSha256": "b093afe3893219c3173bfa50390fe187099f739c8a0dd9163a7a27b7ccf66f55",
+    "sourceSha256": "9731708100d1d9ea942d7d6b9ed45d0cebc7a75c2f3ca976f95b80aea22b0616",
     "explanation": {
       "page": "journey/completion-geometry.md",
       "heading": "### Step 2. Extrude mitered ribbons, `0.30` arrows, planes, grids and backdrop (`ribbon.wgsl`, `arrow.wgsl`, `vector.wgsl`, `plane.wgsl`, `grid.wgsl`, `background.wgsl`)",
@@ -3412,7 +3412,7 @@
   {
     "path": "src/state.rs",
     "owner": "application",
-    "sourceSha256": "f9a777ae14105a7140f7af5d50a06692eb5b6fb245a24f3ce45cc14a949567e9",
+    "sourceSha256": "10a43d8a2db19114bd5fe33cc605ee11791b94a884f681db71bba8a358a1e3db",
     "explanation": {
       "page": "journey/completion-application.md",
       "heading": "### Step 1: Serialize async updates into one `State` owner",
@@ -3452,7 +3452,7 @@
   {
     "path": "src/state/drag.rs",
     "owner": "application",
-    "sourceSha256": "e94d90344c4cc68710cf5abcb2cdffc31aca7d7a53d0f3f49e093b0380a2e061",
+    "sourceSha256": "3e352b02827b2a6a97691e4d688d81b69b0bbcf061d755d18b8106b73173ff3c",
     "explanation": {
       "page": "journey/completion-modeling.md",
       "heading": "### Step 2: Drafts, tools, delayed drags and in-place subobject deformation",
@@ -3492,7 +3492,7 @@
   {
     "path": "src/state/hydrate.rs",
     "owner": "application",
-    "sourceSha256": "2a91e85f2d8e2ee2665ff145745a6d97e77e23df029b7a2ef9d5d9b83069a29a",
+    "sourceSha256": "f3cd933598c54ff9cd78832230eee4d57b3bc407ad170ff6f994450a37ffc2aa",
     "explanation": {
       "page": "journey/completion-loading.md",
       "heading": "### Step 3: Release display-only RAM and re-hydrate on demand",

@@ -63,7 +63,7 @@ pub struct State {
     selection_order: Vec<u32>,    // selected rows in pick order
     highlighted: Vec<u32>,        // rows highlighted, when several are selected
     pub selection_radius_css: f64, // click tolerance in CSS pixels
-    show_selected_names: bool,    // name label on the selection, T toggles
+    show_selected_names: bool,    // name label on the selection, `View Names` toggles
     pub(crate) features: Features, // what each feature keeps, features.rs
 }
 
@@ -165,7 +165,7 @@ impl State {
         self.features.sheet_query = None; // register:sheets
         self.gpu.arena.source_faces.select(&self.gpu.ctx, None);
         self.controls = Controls::default();
-        self.features.resume.clear(); // a waiting Save or F10 belonged to the old scene; register:editing
+        self.features.resume.clear(); // a waiting Save or Controls belonged to the old scene; register:editing
         self.scene.clear(&mut self.gpu);
         self.place_gizmo(None); // register:editing
         self.refresh_layers(); // register:panel
@@ -262,7 +262,7 @@ impl State {
         self.touch();
     }
 
-    /// P: switch between shaded faces and x-ray.
+    /// Switch between shaded faces and x-ray (`View Xray`).
     pub fn toggle_xray(&mut self) {
         self.gpu.view.opacity = if self.gpu.view.opacity > 0.0 {
             0.0
@@ -621,7 +621,12 @@ impl State {
             view_proj,
             clear: self.mode.as_ref().map_or(CLEAR, |mode| {
                 let c = mode.background();
-                wgpu::Color { r: c[0] as f64, g: c[1] as f64, b: c[2] as f64, a: 1.0 }
+                wgpu::Color {
+                    r: c[0] as f64,
+                    g: c[1] as f64,
+                    b: c[2] as f64,
+                    a: 1.0,
+                }
             }),
             now_ms,
         };
@@ -831,10 +836,10 @@ mod order_tests {
 }
 
 impl State {
-    /// F10: show the control points of the selected object.
+    /// Show the control points of the selected object (`Controls`).
     pub fn enable_controls(&mut self) {
         let Some(parent) = self.scene.selected else {
-            self.status("Select one object before pressing F10");
+            self.status("Select one object before running Controls");
             return;
         };
 

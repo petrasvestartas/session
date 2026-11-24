@@ -43,4 +43,28 @@ jobs:
       - name: Check native, all targets
         run: cd session_viewer && cargo check --target x86_64-unknown-linux-gnu --all-targets
       - name: Test native
-        run: cd session_viewer && cargo xtest
+        shell: bash
+        run: |
+          set -eo pipefail
+          log="$RUNNER_TEMP/viewer-xtest.log"
+          cd session_viewer
+          cargo xtest -- --nocapture 2>&1 | tee "$log"
+          gpu_skipped=$(grep -c "no GPU adapter; skipped" "$log" || true)
+          ignored=$(sed -n 's/.* \([0-9][0-9]*\) ignored.*/\1/p' "$log" | awk '{s += $1} END {print s + 0}')
+          passed=$(sed -n 's/.* \([0-9][0-9]*\) passed;.*/\1/p' "$log" | awk '{s += $1} END {print s + 0}')
+          if [ "$gpu_skipped" -gt 0 ]; then
+            msg="Native xtest: ${passed} passed, ${gpu_skipped} adapter-dependent GPU tests skipped (no GPU adapter on runner), ${ignored} #[ignore] tests not run."
+            echo "::notice::$msg"
+          else
+            msg="Native xtest: ${passed} passed (including adapter-dependent GPU tests), 0 skipped for missing adapter, ${ignored} #[ignore] tests not run."
+            echo "::notice::$msg"
+          fi
+          echo "$msg"
+          if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then
+            {
+              echo "### Viewer native test coverage"
+              echo "- Passed: **${passed}**"
+              echo "- GPU adapter-dependent tests skipped (\`no GPU adapter\`): **${gpu_skipped}**"
+              echo "- \`#[ignore]\` GPU/benchmark tests not run: **${ignored}**"
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi

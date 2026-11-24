@@ -103,7 +103,7 @@ impl Targets {
 impl State {
     /// A plain press dragged past the click slop: ask the GPU what the press landed on.
     pub(crate) fn start_object_drag(&mut self, down: (f64, f64), at: (f64, f64)) -> bool {
-        // F10 control points keep the left button; Shift or Ctrl draws a selection rectangle
+        // Control-point mode keeps the left button; Shift or Ctrl draws a selection rectangle
         if self.shift_held
             || self.ctrl_held
             || matches!(self.selection, SelectionMode::Controls { .. })

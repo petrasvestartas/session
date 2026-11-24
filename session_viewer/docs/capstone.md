@@ -46,7 +46,7 @@ Each is worked through below, then written out in full in the answer key.
 
 ### 1 · Where the plane belongs
 
-`P` (x-ray) and `D` (headlight) are the analogue: no row, `View` state, carried in the block already bound to every lane. A section plane is the same — view state, not scene state — so it survives a reload, as a user expects.
+`View Xray` (x-ray) and `View Lighting` (headlight) are the analogue: no row, `View` state, carried in the block already bound to every lane. A section plane is the same — view state, not scene state — so it survives a reload, as a user expects.
 
 ### 2 · Getting four floats everywhere
 
@@ -92,7 +92,7 @@ What is *not* in this design: no new lane, no new pipeline family, no trait, no 
 - **It compiles at every step.** Add the field and the assertion first, and check. Then the contract function, unused, and check. Then one lane. Then the rest.
 - **It fails visibly when wrong.** Set the plane to cut through the middle of the fixture and orbit. A plane that moves with the camera means you tested in view space instead of world space.
 - **Picking agrees.** Click where the cut removed geometry: nothing should be selected. If something is, your id entry point skipped the test.
-- **Silhouettes agree.** Turn outlines on (`O`) with the plane on. A ring around missing geometry means the mask pass is not clipping.
+- **Silhouettes agree.** Turn outlines on (`Outline On`) with the plane on. A ring around missing geometry means the mask pass is not clipping.
 - **Off is off.** Toggle it off and compare a screenshot with one from before your change. They must be identical, pixel for pixel.
 
 ## If you want more

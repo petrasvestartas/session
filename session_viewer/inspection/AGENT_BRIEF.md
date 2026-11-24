@@ -54,7 +54,7 @@ This machine has crashed from ignoring these.
 - **Caps:** wrap long jobs as `timeout 10m systemd-run --user --scope -p MemoryMax=6G <cmd>`. Anything still running after ten minutes is wedged.
 - **One heavy command at a time.**
 - **Timings:** before trusting any timing, check `scaling_max_freq` equals `cpuinfo_max_freq` in `/sys/devices/system/cpu/cpu0/cpufreq/`.
-- **Viewer builds:** use `REGEN_PROTO=0`. The real tree currently fails to build until the stale `session_proto` checkout is updated (M0 step 1, a user action). Until then, build a clean copy of HEAD as REPOSITORY_INSPECTION "Baseline workaround" describes.
+- **Viewer builds:** the real working tree builds cleanly (`session_proto` is at `edc614e1e`). Set `REGEN_PROTO=0` if you want offline builds that skip `session_rust/build.rs`. Note that `session_viewer/build.rs` watches `src/shaders` directory mtime (`cargo:rerun-if-changed=src/shaders`), so run `touch src/shaders` after editing an existing `.wgsl` file in place.
 - **Browser here renders black.** This machine's browser WebGPU is a software path. Check rendering natively (`Gpu::new_headless` / the `selftest` example) and leave browser checks to a machine with a working GPU.
 
 ## 5. Git rules
@@ -82,7 +82,7 @@ Open decisions are listed in [AUDIT_SUMMARY.md §7](AUDIT_SUMMARY.md#7-decisions
 
 ## 7. How to work
 
-1. **Pick one milestone** from IMPLEMENTATION_ROADMAP, in order: M0 → M1 → M2 → M5/M6 → M7 (M3 is done; M4 only after M0–M2). Tutorials (M7) follow the code, never lead it.
+1. **Pick one milestone** from IMPLEMENTATION_ROADMAP, in order: M1 → M2 → M5/M6 → M7 (M0 and M3 are done; M4 only after M1–M2). Tutorials (M7) follow the code, never lead it.
 2. **Check the baseline first.** Before changing code, record the relevant tests and benchmarks with the exact commands from the milestone.
 3. **Make the smallest change** that meets the milestone's acceptance criteria.
    - Keep the app building after every commit.

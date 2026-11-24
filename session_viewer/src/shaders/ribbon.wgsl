@@ -65,7 +65,7 @@ fn head_px(pens: f32, hw: f32, most: f32) -> f32 {
 
 // How far the shaft runs under a head past its base: a pixel's reach at least, so the seam has no gap.
 fn tuck(head: f32, half: f32, hw: f32) -> f32 {
-    return min(clamp(head * (1.0 - (hw + 1.0) / max(half, 1e-3)) - 1.0, FILTER_REACH, 1.0), head * 0.5);
+    return min(clamp(head * (1.0 - (hw + FILTER_REACH) / max(half, 1e-3)), 1.0, 1.25), head * 0.5);
 }
 
 // Segments a head may span; a longer run of tiny chords is left uncut past this.

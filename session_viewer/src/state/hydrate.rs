@@ -3,7 +3,7 @@ use crate::app::scene::Hydrated;
 
 /// What waits for released documents to come back.
 pub(crate) enum Resume {
-    Controls(u32), // F10 on this row
+    Controls(u32), // `Controls` on this row
     Save,          // the Save command; register:commands
     Rewalk,        // walk the lanes again: a compaction or a features toggle
 }
@@ -44,7 +44,7 @@ impl State {
         reason
     }
 
-// --8<-- [start:loading-hydration]
+    // --8<-- [start:loading-hydration]
     /// A released document's objects came back, or could not.
     pub fn hydrated(&mut self, back: Hydrated) {
         // a fetch for a replaced scene or an older release is dropped quietly
@@ -77,7 +77,7 @@ impl State {
         self.touch();
     }
 
-// --8<-- [end:loading-hydration]
+    // --8<-- [end:loading-hydration]
     /// Idle work between edits: one kernel purge step, frames kept coming until the cycle ends.
     pub(crate) fn purge_idle(&mut self) {
         let gesture = self.features.dragging.is_some() || self.features.control_drag.is_some();
@@ -108,7 +108,7 @@ impl State {
 }
 
 impl State {
-    /// F10 on a released document: fetch it and show the controls once it is back; true while it comes.
+    /// `Controls` on a released document: fetch it and show the controls once it is back; true while it comes.
     pub(super) fn controls_after_hydrate(&mut self, parent: u32) -> bool {
         let Some(doc) = self.scene.released_doc(parent) else {
             return false;

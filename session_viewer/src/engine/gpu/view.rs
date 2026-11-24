@@ -3,18 +3,18 @@ pub struct View {
     pub ssao: bool,               // ambient occlusion on
     pub show_grid: bool,          // floor grid
     pub dark: bool,               // presentation backdrop is the frame's black clear color
-    pub show_points: bool,        // point markers, `Q`
-    pub show_lines: bool,         // lines and curves, `W`
-    pub show_mesh_edges: bool,    // mesh edges and their vertex markers, `E`
-    pub show_outlines: bool,      // black outlines around surfaces, `O`
+    pub show_points: bool,        // point markers, `View Show/Hide Points`
+    pub show_lines: bool,         // lines and curves, `View Show/Hide Lines`
+    pub show_mesh_edges: bool,    // mesh edges and their vertex markers, `View Show/Hide Edges`
+    pub show_outlines: bool,      // black outlines around surfaces, `Outline On/Off`
     pub markers: bool,            // vertex markers on mesh edges
-    pub cloud_size: f32,          // point size scale, `[` and `]`
+    pub cloud_size: f32,          // point size scale, `View Point Size`
     pub edl_strength: f32,        // eye-dome lighting strength; 0 = off
     pub lod_px: f32,              // cloud LOD cutoff, px; 0 = draw every point
     pub thickness_px: f32,        // pen width, CSS px
     pub feather_px: f32,          // edge softness of dots, px
-    pub lit: bool,                // headlight on mesh faces, `D`
-    pub backface: bool,           // back faces painted red, `B`
+    pub lit: bool,                // headlight on mesh faces, `View Lighting`
+    pub backface: bool,           // back faces painted red, `View Backfaces`
     pub opacity: f32,             // face alpha; 0 = x-ray
     pub msaa_forced: Option<u32>, // 4 forces 4x, other values 1x
     pub perf: bool,               // draw every frame and show timing
@@ -113,6 +113,7 @@ pub fn device_pixel_ratio() -> f64 {
 static REDUCED: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
 
 /// Drop to device scale 1 without MSAA until reload.
+#[cfg_attr(not(target_arch = "wasm32"), allow(dead_code))]
 pub fn reduce() {
     REDUCED.store(true, std::sync::atomic::Ordering::Relaxed);
 }

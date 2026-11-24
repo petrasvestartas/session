@@ -21,7 +21,7 @@ The table counts tracked files (`git ls-files`). Lines are text lines. Disk is `
 | `src/command_dock/` | 3 | 774 | | |
 | `src/camera.rs`, `text_quality.rs`, `lib.rs` | 3 | 866 / 363 / 33 | | |
 | `examples/` | 82 | 5,856 `.rs` + 2,087 `.yaml` | 1.2 M | 23 top-level `.rs` (selftest, `mk_*` fixture makers, `check_*`), `course/` (13), `stage/` (8 decks, 37 yaml), `cable_net.py` |
-| `tests/` | 73 | 7,159 (text) | 9.2 M | 52 `.cjs` browser checks, 7 `.py`, `depth/` (8 scripts), `fixtures/` (`timber-floor.pb`, `vault-dome.pb`), `README.md`, `final-review.md` |
+| `tests/` | 65 | 6,750 (text) | 9.2 M | 44 `.cjs` browser checks, 7 `.py`, `depth/` (8 scripts), `fixtures/` (`timber-floor.pb`, `vault-dome.pb`), `README.md`, `final-review.md` |
 | `assets/` | 20 tracked | | 108 M | `text/` (8, fonts), `stage/` (7), `pb/` (1 tracked: `view_mixed_teapot.pb`; plus about 107 MB of untracked `view_local_*.pb`), `view_local.yaml`, `diagnostics.js` (134 lines), `text-quality.html` |
 | `docs/` | 26,321 | 1,520,270 in `.md` | 546 M | `journey/` (10,847 files, 203 M), `lessons/` (7,979, 148 M), `screenshots/` (3,709, 160 M), `illustrations/` (1,349), `diagrams/` (1,236 `.d2`), `typing/` (979), `archived/` (156), plus 30 top-level files |
 | root | | | | `Cargo.toml` (91), `Cargo.lock` (3,610; 368 packages), `build.rs` (61), `Trunk.toml` (23), `index.html` (282), `mkdocs.yml` (75), `README.md`, `ARCHITECTURE.md` (226), `AGENTS.md` |
@@ -80,7 +80,7 @@ The viewer is **WebGPU only**. There is no WebGL2 fallback.
 | File | What it does |
 |---|---|
 | `.cargo/config.toml` | Sets `[build] target = "wasm32-unknown-unknown"`, so plain `cargo check` checks wasm. Adds wasm rustflag `-C link-arg=--max-memory=4294967296`. Defines the alias `xtest = "test --target x86_64-unknown-linux-gnu"`. Sets env `RUST_TEST_THREADS=4` and `VIEWER_ADAPTER=nvidia` (not forced). |
-| `build.rs` | Copies `src/shaders/*.wgsl` into `OUT_DIR/shaders`. It expands `#include "file"` once per shader, strips `//` comments and collapses whitespace. It asserts that there are no `/* */` comments. |
+| `build.rs` | Copies `src/shaders/*.wgsl` into `OUT_DIR/shaders`. It expands `#include "file"` once per shader, strips `//` comments and collapses whitespace. It asserts that there are no `/* */` comments. Note: `cargo:rerun-if-changed=src/shaders` watches directory mtime only, so run `touch src/shaders` after editing an existing `.wgsl` file in place. |
 | `Trunk.toml` | `release = true`, `no_sri = true`, `public_url = "./"`. The pre_build hook runs `node ../session_tests/scripts/build-viewer-docs.cjs`. Custom watch set includes `../session_rust/src` and `docs`. Serves on 127.0.0.1:8770 with `Cache-Control: no-store`. |
 | `index.html` | `<link data-trunk rel="rust" data-target-name="session_viewer" data-wasm-opt="0">`, so Trunk skips wasm-opt and CI runs `wasm-opt -O3` afterwards. Copies `assets/pb` to `pb/`, `assets/text`, `assets/stage`, `examples/stage` to `decks/`, `text-quality.html`, `diagnostics.js`, and `target/docs/vue` to `docs/`. Has 4 inline `<script>` blocks: the error overlay, the docs-link removal for `?stage`, a `message` listener that calls `window.wasmBindings.reload_scene`, and the WebGPU check. |
 | Rust↔JS glue | 10 `#[wasm_bindgen]` sites in `src/`, one of them `inline_js` (`src/app/session_io.rs:335`). |
@@ -96,12 +96,12 @@ No fresh `trunk build` was run.
 
 | Kind | Count | Where | Runs in CI? |
 |---|---|---|---|
-| Native Rust unit tests (`#[test]`) | 677 (cargo reported 614 + 2 + 61 ignored) in 150 `#[cfg(test)]` files | `src/**` | Yes, `cargo xtest` in `viewer-check.yml` |
-| … of which `#[ignore]` | 61: 52 "requires a native GPU adapter", 5 benchmarks, 1 Windows WARP/DXC, 1 local scene files, others | | No (ignored) |
-| … GPU tests that skip without an adapter | several, e.g. `vectors.rs:471` `let Ok(gpu) = Gpu::new_headless(..) else { eprintln!("no GPU adapter; skipped"); return; }` | | They run, but the workflow installs no GPU or Vulkan driver, so in CI they most likely return early and pass without testing anything. Check this in the CI log. |
+| Native Rust unit tests (`#[test]`) | 675 (cargo reported 614 + 0 + 61 ignored) in 149 `#[cfg(test)]` files | `src/**` | Yes, `cargo xtest -- --nocapture` in `viewer-check.yml` |
+| … of which `#[ignore]` | 61: 52 "requires a native GPU adapter", 5 benchmarks, 1 Windows WARP/DXC, 1 local scene files, others | | No (ignored; count reported in `$GITHUB_STEP_SUMMARY`) |
+| … GPU tests that skip without an adapter | 10 (`vectors.rs` ×3, `selftest/oracle.rs` ×6, `walk/frames/application_tests.rs` ×1) print `no GPU adapter; skipped` and return | | `viewer-check.yml` runs with `--nocapture` and emits a notice + step summary counting `no GPU adapter; skipped` so CPU-only CI runs visibly state GPU tests were skipped |
 | Cargo integration tests (`tests/*.rs`) | 0 | | n/a |
 | Examples (compile-checked by `cargo check --all-targets` and `cargo test`) | 23 `.rs` + `examples/course/*.rs` | `examples/` | Compile only |
-| Playwright browser checks (`.cjs`) | 52 (51 `require` playwright) | `tests/*.cjs`; run against `trunk serve` on :8770. See `tests/README.md` | **No** |
+| Playwright browser checks (`.cjs`) | 44 | `tests/*.cjs`; run against `trunk serve` on :8770. See `tests/README.md` | **No** |
 | Python image and format checks | 7 | `tests/*.py` (cad-quality, triangle-visibility, stroke-joins, selection-overlap, publication, format, cad-boundary-plot) | **No** |
 | Depth / ink gate scripts | 8 | `tests/depth/` (`_gate.sh`, `_ink_suite.sh`, `_*.py`) | **No** |
 | WGSL validation | via naga dev-dep inside unit tests | | Yes (part of xtest) |
@@ -129,7 +129,7 @@ These are the workflows in `../.github/workflows/` that touch the viewer:
 
 | Workflow | Trigger | Viewer jobs |
 |---|---|---|
-| `viewer-check.yml` | push to main on `session_viewer/**`, `session_rust`, `session_rust/**` or the workflow file; also PRs, `workflow_call` and dispatch | One `check` job on ubuntu-latest:<br>1. `cargo check --target wasm32-unknown-unknown --lib`<br>2. `cargo check --target x86_64-unknown-linux-gnu --all-targets`<br>3. `cargo xtest`<br>Uses rust-cache. Only the `session_rust` submodule is checked out. |
+| `viewer-check.yml` | push to main on `session_viewer/**`, `session_rust`, `session_rust/**` or the workflow file; also PRs, `workflow_call` and dispatch | One `check` job on ubuntu-latest:<br>1. `cargo check --target wasm32-unknown-unknown --lib`<br>2. `cargo check --target x86_64-unknown-linux-gnu --all-targets`<br>3. `cargo xtest -- --nocapture` + notice and `$GITHUB_STEP_SUMMARY` reporting `no GPU adapter; skipped` and `#[ignore]` counts<br>Uses rust-cache. Only the `session_rust` submodule is checked out. |
 | `viewer-pages.yml` | push to main on `session_viewer/**` or `session_tests/**`; completion of "Session mini tests"; dispatch | 1. `check`, which calls `viewer-check.yml`<br>2. `build`, which runs `trunk build --release` (Trunk 0.21.14) and `wasm-opt -O3` (binaryen 123) on each `*_bg.wasm`, copies `index.html` to `404.html` for short URLs, fetches the kernel test data, and builds the `session_tests` docs into `dist/docs`<br>3. `deploy` to GitHub Pages<br>Scene data is not deployed; it is served from R2. |
 | `session-minitest.yml` | push to main or develop; PR | Kernel tests. `session_viewer` is listed only as a rust-cache workspace, and `minitest.sh` runs with `--no-viewer`. |
 | `session-reviewer.yml` | schedule / dispatch | Prompt text forbids editing `session_viewer`. No viewer job. |
@@ -174,33 +174,17 @@ Most of the recent activity is course and tutorial material, not engine code. Th
 - GPU: NVIDIA GeForce RTX 4080 Laptop, driver 580.178.04. wgpu picked `DiscreteGpu, Vulkan`.
 - Load average was about 2.7 at the start, with VS Code and rust-analyzer running.
 
-**Working-tree problem found first.** `cargo check` in the real tree fails inside `session_rust`. The cause is a chain of three things:
-
-1. The superproject records `session_proto` at `edc614e1e`. That commit is **not present** in the local clone (`git cat-file` fails), so the checkout sits at the older `d536d5b`.
-2. `session_rust/build.rs` regenerated the committed `src/proto/session_proto.rs` from that older proto, removing 18 lines. The file's mtime is 11:20:17 today, which matches rust-analyzer's start time. My first `git status` already showed `m session_rust`, so this happened before any command of mine.
-3. `session_rust/src/matrix.rs` still uses the removed Matrix fields `mincolor`, `maxcolor`, `zerocolor`, `textcolor`, `linecolor` and `cell`.
-
-**Baseline workaround (read-only).** I built a pristine snapshot in the scratchpad:
-- `session_rust` = `git archive HEAD` (the committed proto, verified identical with `diff`)
-- `session_viewer` = copies of `Cargo.toml`, `Cargo.lock` and `.cargo/`, with symlinks to the real `src`, `examples`, `tests`, `assets`, `docs` and `build.rs`. The viewer has no uncommitted changes, so this equals HEAD.
-
-Builds ran with `REGEN_PROTO=0` and `CARGO_TARGET_DIR=session_viewer/target`, so the existing dependency cache was reused. All runs below go through `buildslot.sh audit-agent … timeout 10m systemd-run --user --scope -p MemoryMax=6G …`.
+**Real-tree verification (2026-11-23, after M0 + M3).** `session_proto` is at `edc614e1e` and matches the committed `session_rust/src/proto/session_proto.rs` without needing a snapshot workaround. All commands below ran in the real `session_viewer` working tree under `workspace_storage.py run`, `buildslot.sh`, `timeout 10m` and `systemd-run --user --scope -p MemoryMax=6G` (`scaling_max_freq` = `cpuinfo_max_freq` = `5,200,000` kHz):
 
 | # | Command (inside the wrapper) | Wall | Result |
 |---|---|---|---|
-| 1 | `cargo check -j8` (real tree, wasm) | 6.5 s | **FAIL**: 13 × E0560/E0609 in `session_rust/src/matrix.rs:1125-1184`, e.g. `struct proto::Matrix has no field named mincolor` |
-| 2 | `cargo check -j8` (snapshot, wasm) | 10.7 s | **PASS**. 2 crates rebuilt. 4 warnings: unused imports `hull.rs:4` and `pipelines/geometry.rs:1`, f32 fallback `stage/paint.rs:732`, dead `segments.rs:38 is_silhouette` |
-| 3 | `cargo xtest -j8 --no-run` | 57.6 s | PASS. 14 crates compiled. **Free disk went from 75 G to 64 G.** |
-| 4 | `cargo xtest -j8` (`RUST_TEST_THREADS=4`) | 154.8 s (tests 154.33 s) | **FAIL**: 614 passed, 2 failed, 61 ignored |
-| 5 | `cargo xtest -j8 engine::gpu::vectors` (rerun) | 0.67 s | The same 2 failures, so they are deterministic |
-| 6 | `cargo build -j8 --locked --release --target x86_64-unknown-linux-gnu --example selftest` | 222.1 s | PASS. 247 crates compiled (fat LTO, cgu=1). |
-| 7 | headless `selftest` runs (below), via `buildslot --run` | 0.4–6.4 s each | All exit 0 |
-
-**Failing tests** (both with `perspective true, dpr 1, msaa 1`):
-- `engine::gpu::vectors::tests::arrow_is_exactly_as_long_as_its_line`: `vectors.rs:632`, `thin: tip off by -0.710`. The limit is ±0.25 px.
-- `engine::gpu::vectors::walk_tests::curve_heads_land_on_their_ends`: `vectors.rs:828`, `default, polyline both: tip off by -0.760`. The limit is ±0.5 px.
-
-CI reports green, but its runner has no GPU, so it probably skips these.
+| 1 | `cargo check -j8 --target wasm32-unknown-unknown --lib` | 4.16 s | **PASS** (0 warnings) |
+| 2 | `cargo check -j8 --target x86_64-unknown-linux-gnu --all-targets` | 8.36 s | **PASS** (3 dead-code warnings in wasm-only `command_dock` helpers on native) |
+| 3 | `cargo xtest -j8 engine::gpu::vectors -- --nocapture` | 3.96 s | **PASS**: 5 passed, 0 failed (`worst tip error 0.010`, `center line 0.938`) |
+| 4 | `cargo xtest -j8 -- --nocapture` (`RUST_TEST_THREADS=4`) | 104.64 s | **PASS**: **614 passed, 0 failed, 61 ignored** |
+| 5 | `DOCS_STRICT_LINKS=1 DOCS_BASE=/docs/ npm run build -- --outDir ../session_viewer/target/docs/vue --emptyOutDir` | 41.51 s | **PASS** (all source includes and strict doc links resolved) |
+| 6 | `cargo build -j8 --locked --release --target x86_64-unknown-linux-gnu --example selftest` (2026-11-19) | 222.1 s | PASS. 247 crates compiled (fat LTO, cgu=1). |
+| 7 | headless `selftest` runs (below, 2026-11-19), via `buildslot --run` | 0.4–6.4 s each | All exit 0 |
 
 Two tests reported "has been running for over 60 seconds":
 - `app::scene::sync::commands_tests::edit_cost_does_not_scale_with_the_scene`

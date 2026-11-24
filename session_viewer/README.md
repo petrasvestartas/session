@@ -28,17 +28,16 @@ Open <http://localhost:8770/> in a browser with WebGPU. Tested: Chrome on Linux 
 | Left click | Select an object |
 | Shift + left click | Add to the selection |
 | Ctrl + left click | Select a mesh, BRep or NURBS boundary edge |
-| F10 | Show the vertices or control points of the selected parent |
-| Escape | Clear the sub-selection |
+| Ctrl + Shift + left click | Select an original face |
+| Right drag / middle drag / wheel | Orbit / pan / zoom toward the cursor |
+| F | Fit the selection, or everything |
 | H / S | Hide the selection / show hidden objects |
-| T | Toggle names |
-| D | Toggle the headlight |
-| G | Toggle soft shadows (Arctic) |
-| O | Toggle black silhouettes |
-| P | Toggle x-ray |
-| B | Toggle red back faces |
+| Delete | Delete the selection |
+| Ctrl+Z / Ctrl+Y (or Ctrl+Shift+Z) | Undo / redo |
+| Ctrl+A | Select all |
+| Enter / Escape | Submit or repeat a command / cancel or clear selection |
 
-Commands go in the command area below the viewport. Type a command, press Enter, then pick an option. Examples: `Point`, `Line`, `Polyline`, `Curve`, or a full command such as `Line 0,0,0 100,0,0`. `Snap On|Off`, `Lay On|Off`, `Arctic On|Off` and `Element Interactions|Attributes On|Off` switch settings.
+Other printable keys focus the command area below the viewport. Type a command, press Enter, then pick an option. Examples: `Point`, `Line`, `Polyline`, `Curve`, or a full command such as `Line 0,0,0 100,0,0`. Display and editing modes are typed commands: `Controls`, `View Names`, `View Lighting`, `Arctic On|Off`, `Outline On|Off`, `View Xray`, `View Backfaces`, `Opacity 0..1`, `Snap On|Off`, `Layers On|Off` and `Element Interactions|Attributes On|Off`.
 
 Arctic details: [docs/ssao.md](docs/ssao.md). Command walkthrough: [docs/command-line-walkthrough.md](docs/command-line-walkthrough.md).
 
