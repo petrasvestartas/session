@@ -417,7 +417,7 @@ fn stroke_vertex(vid: u32, layer: u32) -> VsOut {
         return dead_vertex();
     }
 
-    if ((inst.flags & FLAG_HIDDEN) != 0u) {
+    if ((inst.flags & (FLAG_HIDDEN | FLAG_CULLED)) != 0u) {
         return dead_vertex();
     }
 
@@ -505,6 +505,8 @@ fn stroke_vertex(vid: u32, layer: u32) -> VsOut {
 
     if (selected) {
         color = vec4<f32>(SELECT_COLOR, color.a);
+    } else if ((inst.flags & FLAG_HOVERED) != 0u && !contact) {
+        color = vec4<f32>(mix(color.rgb, HOVER_COLOR, 0.7), color.a);
     }
     if (contact) {
         color = vec4<f32>(0.0, 0.0, 0.0, 1.0);

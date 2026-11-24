@@ -90,6 +90,7 @@ const ROW_BYTES: u32 = ((2 * MAX_RADIUS + 1) * 8).div_ceil(256) * 256;
 /// Runs picks: request, draw, copy, map, read.
 pub struct Picker {
     pending: Option<(u32, u32)>,    // cursor position waiting to be picked
+    hover: bool,                    // true when the pending/inflight pick is a hover pre-selection
     inflight: bool,                 // a copy is on the GPU
     window: Window,                 // window of the copy in flight
     copied: bool,                   // a copy was encoded this frame, map it after submit
@@ -170,6 +171,7 @@ impl Picker {
     pub fn new() -> Self {
         Self {
             pending: None,
+            hover: false,
             inflight: false,
             window: Window {
                 x: 0,
@@ -195,8 +197,26 @@ impl Picker {
 
     /// Ask for a pick at canvas pixel (x, y).
     pub fn request(&mut self, x: u32, y: u32) {
+        self.hover = false;
         self.generation = self.generation.wrapping_add(1);
         self.pending = Some((x, y));
+    }
+
+    /// Ask for a hover pre-selection pick unless a click/query pick is active or a hover copy is in flight.
+    pub fn request_hover(&mut self, x: u32, y: u32) -> bool {
+        if self.source_phase != SourcePhase::Inactive {
+            return false;
+        }
+        if (self.inflight || self.pending.is_some()) && !self.hover {
+            return false;
+        }
+        if self.inflight {
+            return false;
+        }
+        self.hover = true;
+        self.generation = self.generation.wrapping_add(1);
+        self.pending = Some((x, y));
+        true
     }
 
     /// Set the mode and the tolerance in CSS pixels.
@@ -210,6 +230,7 @@ impl Picker {
     /// Drop the pending request and ignore any answer in flight.
     pub fn cancel(&mut self) {
         self.source_phase = SourcePhase::Inactive;
+        self.hover = false;
         self.generation = self.generation.wrapping_add(1);
         self.pending = None;
     }
@@ -535,15 +556,22 @@ impl Picker {
 
     /// Result of the last pick: None while in flight, Some(None) for background.
     pub fn poll(&mut self) -> Option<Option<Pick>> {
+        self.poll_tagged().map(|(pick, _)| pick)
+    }
+
+    /// Result of the last pick paired with whether it was a hover pre-selection pick.
+    pub fn poll_tagged(&mut self) -> Option<(Option<Pick>, bool)> {
         let status = self.ready.load(Ordering::Acquire);
 
         if !self.inflight || status == 0 {
             return None;
         }
 
+        let was_hover = self.hover;
         if status == 2 {
             self.ready.store(0, Ordering::Release);
             self.inflight = false;
+            self.hover = false;
             log::warn!("selection readback failed; click again to retry");
             return None;
         }
@@ -557,13 +585,14 @@ impl Picker {
         buf.unmap();
         self.ready.store(0, Ordering::Release);
         self.inflight = false;
+        self.hover = false;
 
         // a newer request made this answer stale
         if self.submitted != self.generation {
             return None;
         }
 
-        Some(best.map(decode_pick))
+        Some((best.map(decode_pick), was_hover))
     }
 
     /// Drop the textures; the next pick remakes them.

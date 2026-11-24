@@ -51,10 +51,15 @@ const FLAG_SHEET: u32 = 32u; // part of a drawing sheet
 const FLAG_SMOOTH: u32 = 64u; // sampled surface: vertices are samples
 const FLAG_SINGLE: u32 = 128u; // single face: stays shaded in x-ray
 const FLAG_COLOR: u32 = 256u; // use the layer color
+const FLAG_HOVERED: u32 = 65536u; // hovered: drawn with pre-selection tint
+const FLAG_CULLED: u32 = 131072u; // outside camera frustum: skipped
+const FLAG_ALPHA: u32 = 262144u; // per-object alpha override in inst.color.a
 
-// layer colour if FLAG_COLOR, else the authored one
+// layer colour if FLAG_COLOR, else the authored one; per-object alpha when FLAG_ALPHA
 fn object_color(authored: vec4<f32>, inst: Instance) -> vec4<f32> {
-    return select(authored * inst.color, vec4<f32>(inst.color.rgb, authored.a), (inst.flags & FLAG_COLOR) != 0u);
+    let rgb = select(authored.rgb * inst.color.rgb, inst.color.rgb, (inst.flags & FLAG_COLOR) != 0u);
+    let a = authored.a * select(1.0, inst.color.a, (inst.flags & FLAG_ALPHA) != 0u);
+    return vec4<f32>(rgb, a);
 }
 
 // Edge color: the layer edge color when set, else the face rule.
@@ -64,12 +69,14 @@ fn edge_color(authored: vec4<f32>, inst: Instance) -> vec4<f32> {
         return object_color(authored, inst);
     }
 
+    let a = authored.a * select(1.0, inst.color.a, (inst.flags & FLAG_ALPHA) != 0u);
+
     // layer edge color set
     if ((inst.flags & 512u) != 0u) {
-        return vec4<f32>(unpack4x8unorm(inst.edge_color).rgb, authored.a);
+        return vec4<f32>(unpack4x8unorm(inst.edge_color).rgb, a);
     }
 
-    return authored;
+    return vec4<f32>(authored.rgb, a);
 }
 
 // No face normals known: always drawn.
@@ -79,6 +86,8 @@ const FACING_UNKNOWN: u32 = 0xffffffffu;
 const DISC_ID_TAG: u32 = 0x40000000u;
 // Selection yellow.
 const SELECT_COLOR: vec3<f32> = vec3<f32>(1.0, 1.0, 0.0);
+// Pre-selection hover cyan.
+const HOVER_COLOR: vec3<f32> = vec3<f32>(0.25, 0.72, 1.0);
 // World millimetres to metres.
 const MM_TO_M: f32 = 0.001;
 // Thinnest lines never fade below this alpha.

@@ -242,7 +242,6 @@ Work through one coherent subject at a time and save partial work at file bounda
 
 - [18.3 · Section-aware outlines and one presentation composite](consolidation/91-include-visible-section-coverage.md)
 
-- [18.4 · Original Wood Elements and portable source records](consolidation/92-link-current-wood-element-builders.md)
 
 - [18.5 · Glass, X-ray and shared visibility rules](consolidation/93-classify-original-solids-independently-of-clipping.md)
 

@@ -1,4 +1,4 @@
-use crate::rows::gizmo::{ARM, BALL_AT, HUB};
+use crate::rows::gizmo::{ARM, BALL_AT, HUB, PLANE_MAX, PLANE_MIN};
 use std::f32::consts::{FRAC_PI_2, PI, TAU};
 
 #[repr(C)]
@@ -36,6 +36,15 @@ pub fn vertices() -> Vec<Vertex> {
         lathe(&mut out, axis, color, axis as u32, &cone);
         // scale ball, handle 6-8
         sphere(&mut out, axis, BALL_AT as f32, 5.0, color, axis as u32 + 6);
+        // planar square in (+u, +v) perpendicular to `axis`, handle 10-12
+        plane_square(
+            &mut out,
+            axis,
+            PLANE_MIN as f32,
+            PLANE_MAX as f32,
+            color,
+            axis as u32 + 10,
+        );
         // rotation ring, handle 3-5
         surface(&mut out, 48, 12, color, axis as u32 + 3, |s, t| {
             let angle = s * FRAC_PI_2;
@@ -87,6 +96,16 @@ fn sphere(out: &mut Vec<Vertex>, axis: usize, at: f32, radius: f32, color: u32, 
     });
 }
 
+/// A thin two-sided square slab in `[lo, hi] × [lo, hi]` perpendicular to `axis`.
+fn plane_square(out: &mut Vec<Vertex>, axis: usize, lo: f32, hi: f32, color: u32, handle: u32) {
+    let h = 0.6_f32;
+    for side in [-h, h] {
+        surface(out, 1, 1, color, handle, |s, t| {
+            orient([side, lo + (hi - lo) * s, lo + (hi - lo) * t], axis)
+        });
+    }
+}
+
 /// Sample a parametric surface into triangles.
 fn surface(
     out: &mut Vec<Vertex>,
@@ -122,7 +141,7 @@ mod tests {
     fn mesh_is_bounded_finite_and_covers_all_handles() {
         let mesh = vertices();
         assert!(mesh.len() < 20_000);
-        let mut handles = [false; 10];
+        let mut handles = [false; 13];
 
         for vertex in mesh {
             handles[vertex.handle as usize] = true;

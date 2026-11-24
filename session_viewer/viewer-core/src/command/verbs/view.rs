@@ -26,6 +26,11 @@ pub const SPEC: Spec = Spec {
         "View Outline Off",
         "View Lighting",
         "View Backfaces",
+        "View Cull Backfaces",
+        "View Wireframe",
+        "View Wireframe On",
+        "View Wireframe Off",
+        "View Shaded",
         "View Xray",
         "View Point Size",
         "View Plane Size",
@@ -49,6 +54,8 @@ enum Setting {
     Outline,
     Lighting,
     Backfaces,
+    Wireframe,
+    CullBackfaces,
 }
 
 #[derive(Debug)]
@@ -85,6 +92,7 @@ fn parse(_: &str, rest: &[&str]) -> Result<Box<dyn Action>, String> {
         "hide lines" => Change::Show(Setting::Lines, Some(false)),
         "show points" => Change::Show(Setting::Points, Some(true)),
         "hide points" => Change::Show(Setting::Points, Some(false)),
+        "shaded" => Change::Show(Setting::Wireframe, Some(false)),
         "names" => Change::Names,
         "hide selected" => Change::HideSelected,
         "show all" => Change::ShowAll,
@@ -104,6 +112,20 @@ fn parse(_: &str, rest: &[&str]) -> Result<Box<dyn Action>, String> {
             Some("backfaces") => Change::Show(
                 Setting::Backfaces,
                 on_off(&rest[1..], "View Backfaces (On Off)")?,
+            ),
+            Some("cull")
+                if rest
+                    .get(1)
+                    .is_some_and(|w| w.eq_ignore_ascii_case("backfaces")) =>
+            {
+                Change::Show(
+                    Setting::CullBackfaces,
+                    on_off(&rest[2..], "View Cull Backfaces (On Off)")?,
+                )
+            }
+            Some("wireframe") => Change::Show(
+                Setting::Wireframe,
+                on_off(&rest[1..], "View Wireframe (On Off)")?,
             ),
             Some("xray") => Change::Xray(on_off(&rest[1..], "View Xray (On Off)")?),
             Some("point") if rest.len() == 3 && rest[1].eq_ignore_ascii_case("size") => {
@@ -165,6 +187,8 @@ impl Action for Change {
                     Setting::Outline => crate::app::command::ViewFlag::Outline,
                     Setting::Lighting => crate::app::command::ViewFlag::Lighting,
                     Setting::Backfaces => crate::app::command::ViewFlag::Backfaces,
+                    Setting::Wireframe => crate::app::command::ViewFlag::Wireframe,
+                    Setting::CullBackfaces => crate::app::command::ViewFlag::CullBackfaces,
                 };
                 let next = value.unwrap_or(!state.view_flag(flag));
                 state.set_view_flag(flag, next);

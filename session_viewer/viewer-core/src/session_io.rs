@@ -19,6 +19,58 @@ struct Archive {
     metadata: Vec<u8>, // `Metadata` as JSON
 }
 
+/// Saved camera pose inside `.session` `Metadata`.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct SavedCamera {
+    pub target: [f64; 3],
+    pub distance: f64,
+    pub orientation: [f64; 4],
+    pub perspective: bool,
+}
+
+impl SavedCamera {
+    pub fn from_camera(camera: &crate::camera::Camera) -> Self {
+        Self {
+            target: camera.target,
+            distance: camera.distance,
+            orientation: camera.orientation_quat(),
+            perspective: camera.perspective,
+        }
+    }
+
+    pub fn apply_to(&self, camera: &mut crate::camera::Camera) {
+        camera.restore_pose(
+            self.target,
+            self.distance,
+            self.orientation,
+            self.perspective,
+        );
+    }
+}
+
+/// Saved display settings inside `.session` `Metadata`.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct SavedView {
+    pub arctic: bool,
+    #[serde(default)]
+    pub wireframe: bool,
+    pub show_outlines: bool,
+    pub lit: bool,
+    pub backface: bool,
+    #[serde(default)]
+    pub cull_backfaces: bool,
+    pub opacity: f32,
+    pub show_grid: bool,
+    pub cloud_size: f32,
+}
+
+/// Decoded `.session` archive including optional saved camera and display settings.
+pub struct OpenedSession {
+    pub scene: Scene,
+    pub camera: Option<SavedCamera>,
+    pub view: Option<SavedView>,
+}
+
 /// Everything about the scene that is not a document.
 #[derive(Serialize, Deserialize)]
 struct Metadata {
@@ -34,9 +86,15 @@ struct Metadata {
     colors: Vec<(usize, String, [u8; 3])>, // face colour overrides
     #[serde(default)]
     edge_colors: Option<Vec<(usize, String, [u8; 3])>>, // edge colour overrides, None in old files
+    #[serde(default)]
+    alphas: Vec<(usize, String, f32)>, // per-object alpha overrides
     texts: Vec<(String, TextLabel, bool)>, // (key, label, active)
     #[serde(default)]
     groups: Vec<(usize, String)>, // (document, tree node guid) of each group
+    #[serde(default)]
+    camera: Option<SavedCamera>, // saved camera pose
+    #[serde(default)]
+    view: Option<SavedView>, // saved display settings
 }
 
 /// One document's name and placement.
@@ -138,6 +196,15 @@ fn stamp_flags(objects: &mut session_rust::proto::Objects, flags: &Flags) {
 
 /// The scene as `.session` file bytes.
 pub fn save(scene: &Scene) -> Result<Vec<u8>, String> {
+    save_with_state(scene, None, None)
+}
+
+/// The scene plus optional camera and display settings as `.session` file bytes.
+pub fn save_with_state(
+    scene: &Scene,
+    camera: Option<SavedCamera>,
+    view: Option<SavedView>,
+) -> Result<Vec<u8>, String> {
     if !scene.streamed.is_empty() || !scene.sheets.is_empty() {
         return Err("This scene contains streamed sources. Open complete source documents before saving an editable session.".into());
     }
@@ -220,12 +287,23 @@ pub fn save(scene: &Scene) -> Result<Vec<u8>, String> {
             colors.sort();
             colors
         }),
+        alphas: {
+            let mut alphas: Vec<_> = scene
+                .alphas
+                .iter()
+                .map(|((doc, id), alpha)| (*doc, id.to_string(), *alpha))
+                .collect();
+            alphas.sort_by(|a, b| (a.0, &a.1).cmp(&(b.0, &b.1)));
+            alphas
+        },
         texts: scene
             .texts
             .iter()
             .map(|t| (t.key.clone(), t.label.clone(), t.active))
             .collect(),
         groups,
+        camera,
+        view,
     };
     let archive = Archive {
         documents,
@@ -243,6 +321,11 @@ pub fn save(scene: &Scene) -> Result<Vec<u8>, String> {
 
 /// A scene from `.session` file bytes.
 pub fn open(bytes: &[u8]) -> Result<Scene, String> {
+    Ok(open_with_state(bytes)?.scene)
+}
+
+/// A scene plus optional saved camera and display settings from `.session` file bytes.
+pub fn open_with_state(bytes: &[u8]) -> Result<OpenedSession, String> {
     if bytes.len() > LIMIT {
         return Err("Session exceeds the 512 MiB file limit".into());
     }
@@ -295,6 +378,14 @@ pub fn open(bytes: &[u8]) -> Result<Scene, String> {
         .into_iter()
         .map(|(doc, id, color)| ((doc, Rc::from(id)), color))
         .collect();
+    scene.alphas = metadata
+        .alphas
+        .into_iter()
+        .filter(|(_, _, a)| a.is_finite())
+        .map(|(doc, id, alpha)| ((doc, Rc::from(id)), alpha.clamp(0.0, 1.0)))
+        .collect();
+    let saved_camera = metadata.camera;
+    let saved_view = metadata.view;
 
     for (meta, bytes) in metadata.documents.into_iter().zip(archive.documents) {
         if !meta.place.into_iter().all(f64::is_finite) || !meta.point_px.is_finite() {
@@ -326,7 +417,144 @@ pub fn open(bytes: &[u8]) -> Result<Scene, String> {
         let _ = scene.set_current_layer(doc, &name);
     }
 
-    Ok(scene)
+    Ok(OpenedSession {
+        scene,
+        camera: saved_camera,
+        view: saved_view,
+    })
+}
+
+/// Export selected rows (or all visible surface/mesh rows when `rows` is `None` or empty) to Wavefront OBJ text
+/// using the kernel's `write_file_obj_to_string` vertex/face layout.
+pub fn export_obj(scene: &Scene, rows: Option<&[u32]>) -> Result<String, String> {
+    let target_rows: Vec<u32> = match rows {
+        Some(list) if !list.is_empty() => list.to_vec(),
+        _ => (0..scene.row_count() as u32)
+            .filter(|&row| {
+                scene
+                    .identity_of(row)
+                    .is_some_and(|id| !scene.hidden.contains(&id))
+            })
+            .collect(),
+    };
+
+    let mut out = String::new();
+    let mut vertex_base = 0usize;
+    let mut exported_objects = 0usize;
+
+    for row in target_rows {
+        let Some(geometry) = scene.geometry(row) else {
+            continue;
+        };
+        let place = scene.placement_of(row).unwrap_or_else(Xform::identity);
+        let name = scene
+            .node_of(row)
+            .map(|(node, _)| node.borrow().name.clone())
+            .filter(|s| !s.is_empty())
+            .unwrap_or_else(|| format!("row_{row}"));
+        let mut meshes = Vec::new();
+        match geometry {
+            session_rust::Geometry::Mesh(m) => meshes.push((**m).clone()),
+            session_rust::Geometry::Element(e) => {
+                if let session_rust::element::ElementGeometry::Mesh(m) = e.geometry() {
+                    meshes.push(m.clone());
+                } else if let session_rust::element::ElementGeometry::BRep(b) = e.geometry() {
+                    meshes.extend(b.face_meshes());
+                }
+            }
+            session_rust::Geometry::BRep(b) => {
+                meshes.extend(b.face_meshes());
+            }
+            session_rust::Geometry::NurbsSurface(s) => {
+                meshes.push(s.mesh());
+            }
+            _ => continue,
+        }
+
+        if meshes.is_empty() {
+            continue;
+        }
+
+        out.push_str(&format!("o {}\n", name.replace('\n', " ")));
+        for mut mesh in meshes {
+            mesh.transform(&place);
+            if vertex_base == 0 {
+                let text = session_rust::file_obj::write_file_obj_to_string(&mesh);
+                let vcount = text.lines().filter(|l| l.starts_with("v ")).count();
+                out.push_str(&text);
+                vertex_base += vcount;
+            } else {
+                let (vertices, faces) = mesh.to_vertices_and_faces();
+                for p in &vertices {
+                    out.push_str(&format!("v {} {} {}\n", p[0], p[1], p[2]));
+                }
+                for face in &faces {
+                    if face.len() < 3 {
+                        continue;
+                    }
+                    out.push('f');
+                    for &idx in face {
+                        out.push_str(&format!(" {}", vertex_base + idx + 1));
+                    }
+                    out.push('\n');
+                }
+                vertex_base += vertices.len();
+            }
+        }
+        exported_objects += 1;
+    }
+
+    if exported_objects == 0 || vertex_base == 0 {
+        return Err("No mesh, BRep, surface or element geometry to export as OBJ".into());
+    }
+
+    Ok(out)
+}
+
+/// Import local `.pb` or `.obj` bytes as a new document in `scene`; returns the new document index.
+pub fn import_bytes(scene: &mut Scene, name: &str, bytes: &[u8]) -> Result<usize, String> {
+    if bytes.len() > LIMIT {
+        return Err("Imported file exceeds the 512 MiB limit".into());
+    }
+    let lower = name.to_ascii_lowercase();
+    let display_name = name.rsplit(['/', '\\']).next().unwrap_or(name).to_string();
+
+    if lower.ends_with(".obj") {
+        let text =
+            std::str::from_utf8(bytes).map_err(|e| format!("Invalid UTF-8 in OBJ file: {e}"))?;
+        let mesh = session_rust::file_obj::read_file_obj_from_str(text);
+        if mesh.number_of_vertices() == 0 || mesh.number_of_faces() == 0 {
+            return Err("OBJ file contains no mesh faces".into());
+        }
+        let mut session = Session::new(&display_name);
+        session.add_mesh(mesh, None);
+        let idx = scene.docs.len();
+        scene.add_file(FileDoc {
+            name: display_name,
+            place: Xform::identity(),
+            session: Rc::new(session),
+            point_px: 0.0,
+            display_only: false,
+        });
+        return Ok(idx);
+    }
+
+    // Default / `.pb`: validate protobuf before constructing kernel objects.
+    let proto = session_rust::proto::Session::decode(bytes)
+        .map_err(|e| format!("Invalid protobuf session: {e}"))?;
+    super::validate::session(&proto)?;
+    drop(proto);
+    let session = Session::pb_loads(bytes).map_err(|e| format!("Invalid session: {e}"))?;
+    super::validate::retained(&session)?;
+    let idx = scene.docs.len();
+    scene.add_file(FileDoc {
+        name: display_name,
+        place: Xform::identity(),
+        session: Rc::new(session),
+        point_px: 0.0,
+        display_only: false,
+    });
+    Ok(idx)
 }
 
 #[cfg(test)]

@@ -64,6 +64,7 @@ All `25` modules compile inside checkpoint `application` (`trunk build productio
 | --- | --- |
 | [src/app/ui/mod.rs](../../src/app/ui/mod.rs) | Runs registered `Panel`s (`fill` -> `draw` -> `apply`) in one `egui` pass, ordering `number_box` ahead of `command_line` for `Escape` priority. |
 | [src/app/ui/layers.rs](../../src/app/ui/layers.rs) | Draws the collapsible layer tree, inline rename field and graph toggle, deferring tree mutations until the `egui` pass finishes. |
+| [src/app/ui/properties.rs](../../src/app/ui/properties.rs) | Displays selection GUID, geometry kind, document/layer, dimensions, editable face/edge RGB, per-object alpha, gumball alignment and viewport display toggles. |
 | [src/app/ui/graph.rs](../../src/app/ui/graph.rs) | Virtualizes bidirectional relationship-graph rows via `show_rows`, returning clicked endpoint pairs for selection without mutating documents. |
 | [src/app/ui/number_box.rs](../../src/app/ui/number_box.rs) | Paints the floating gizmo numeric entry field, retains focus until `Enter` or `Escape`, and closes automatically if the handle projects behind the eye. |
 | [src/state/number_box.rs](../../src/state/number_box.rs) | Projects the active gizmo handle into CSS coordinates and commits valid typed distances, angles or scale factors as one labelled transaction. |
@@ -81,6 +82,7 @@ All `25` modules compile inside checkpoint `application` (`trunk build productio
 | [src/app/session_io.rs](../../viewer-core/src/session_io.rs) | Reads and writes versioned `.session` archives (`<= 512 MiB`) combining stamped document `.pb` payloads with JSON placements, overrides, text and groups. |
 | [src/app/command/verbs/open.rs](../../viewer-core/src/command/verbs/open.rs) | Opens the browser file picker on `wasm32` and posts selected `.pb` or `.session` payloads through the async loader. |
 | [src/app/command/verbs/save.rs](../../viewer-core/src/command/verbs/save.rs) | Hydrates any released documents first, then serializes the `.session` archive and triggers browser download delivery. |
+| [src/app/command/verbs/export.rs](../../viewer-core/src/command/verbs/export.rs), [import.rs](../../viewer-core/src/command/verbs/import.rs) | `export.rs` writes selected or visible surface/mesh geometry to Wavefront OBJ via the kernel writer; `import.rs` imports local `.pb`, `.obj` or `.session` files. |
 | [src/app/command/verbs/add_group.rs](../../viewer-core/src/command/verbs/add_group.rs) | Reparents selected single-document objects under their deepest shared layer while rebasing local transforms so world positions stay fixed. |
 | [src/app/command/verbs/add_edge.rs](../../viewer-core/src/command/verbs/add_edge.rs) | Connects two editable objects in the relationship graph and pairs an `EdgeStep` with a marker transform so `Undo` removes added graph vertices. |
 

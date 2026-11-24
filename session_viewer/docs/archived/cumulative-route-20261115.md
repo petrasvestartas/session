@@ -1169,23 +1169,6 @@ For a maintenance review, use [current viewer behavior](../journey/current-viewe
 | [18.3.8 · Draw all-solid and selected coverage consistently](../journey/91g-draw-all-solid-and-selected-coverage-consistently.md) | Draw all-solid and selected coverage consistently. |
 | [18.3.9 · Connect Outline and Arctic presentation commands](../journey/91h-connect-outline-and-arctic-presentation-commands.md) | Connect Outline and Arctic presentation commands. |
 | [18.3.10 · Prove actual outlines and original ownership](../journey/91i-prove-actual-outlines-and-original-ownership.md) | Prove actual outlines and original ownership. |
-| [18.4.1 · Link current Wood element builders](../journey/92-link-current-wood-element-builders.md) | Link current Wood element builders. |
-| [18.4.2 · Write original beam column and plate builders](../journey/91zza-write-original-beam-column-and-plate-builders.md) | Parse positive finite lengths while retaining omitted defaults. |
-| [18.4.3 · Write original support variable beam and block builders](../journey/92a-retain-current-positive-lengths-and-six-builders.md) | Add the remaining original Support, Beam Variable and Block wrappers. |
-| [18.4.4 · Own original Element geometry](../journey/92b-own-original-element-geometry.md) | Own original Element geometry. |
-| [18.4.5 · Read current Element command defaults](../journey/92c-read-current-element-command-defaults.md) | Read current Element command defaults. |
-| [18.4.6 · Build typed Elements from ordered world picks](../journey/92d-build-typed-elements-from-ordered-world-picks.md) | Build typed Elements from ordered world picks. |
-| [18.4.7 · Capture original picks while the tool runs](../journey/92e-capture-original-picks-while-the-tool-runs.md) | Capture original picks while the tool runs. |
-| [18.4.8 · Teach named and bare Element values](../journey/92f-teach-named-and-bare-element-values.md) | Teach named and bare Element values. |
-| [18.4.9 · Make Element input batches atomic](../journey/92g-make-element-input-batches-atomic.md) | Make Element input batches atomic. |
-| [18.4.10 · Attach readonly Element attributes](../journey/92h-attach-readonly-element-attributes.md) | Attach readonly Element attributes. |
-| [18.4.11 · Adopt Elements and consume sources once](../journey/92i-adopt-elements-and-consume-sources-once.md) | Adopt Elements and consume sources once. |
-| [18.4.12 · Save and open original Element records](../journey/92j-save-and-open-original-element-records.md) | Save and open original Element records. |
-| [18.4.13 · Own independent Element tool state](../journey/92k-own-independent-element-tool-state.md) | Own independent Element tool state. |
-| [18.4.14 · Commit one Element creation and retry errors](../journey/92l-commit-one-element-creation-and-retry-errors.md) | Commit one Element creation and retry errors. |
-| [18.4.15 · Route Element commands and independent visibility](../journey/92m-route-current-element-commands-and-feature-visibility.md) | Toggle Element Attributes and Element Interactions independently. |
-| [18.4.16 · Pick Elements through the real command dock](../journey/92n-pick-elements-through-the-real-command-dock.md) | Pick Elements through the real command dock. |
-| [18.4.17 · Prove Element recipes source history and archives](../journey/92o-prove-element-recipes-source-history-and-archives.md) | Prove Element recipes source history and archives. |
 | [18.5.1 · Classify original solids independently of clipping](../journey/93-classify-original-solids-independently-of-clipping.md) | Classify original solids independently of clipping. |
 | [18.5.2 · Own opacity in the existing surface frame](../journey/93a-own-opacity-in-the-existing-surface-frame.md) | Own opacity in the existing surface frame. |
 | [18.5.3 · Blend closed faces and retain opaque open surfaces](../journey/93b-blend-closed-faces-and-retain-opaque-open-surfaces.md) | Blend closed faces and retain opaque open surfaces. |

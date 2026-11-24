@@ -165,6 +165,8 @@ impl State {
         self.selection.order.clear();
         self.selection.highlighted.clear();
         self.features.sheet_query = None; // register:sheets
+        self.features.hovered_row = None;
+        self.features.gizmo_pivot = None;
         self.gpu.arena.source_faces.select(&self.gpu.ctx, None);
         self.selection.controls = Controls::default();
         self.features.resume.clear(); // a waiting Save or Controls belonged to the old scene; register:editing
@@ -320,6 +322,8 @@ impl State {
         // back to plain object mode, no edge, face or controls
         self.selection.mode = SelectionMode::Object;
         self.features.sheet_query = None; // register:sheets
+        self.features.hovered_row = None;
+        self.features.gizmo_pivot = None;
         self.gpu.arena.source_faces.select(&self.gpu.ctx, None);
         self.selection.controls = Controls::default();
         self.gpu.controls.reset();
@@ -331,7 +335,14 @@ impl State {
             self.gpu.set_selected(old, false);
         }
 
+        if row.is_none() {
+            self.features.gizmo_pivot = None;
+        }
         if let Some(r) = row {
+            if self.features.hovered_row == Some(r) {
+                self.features.hovered_row = None;
+                self.gpu.set_hovered(r, false);
+            }
             self.gpu.set_selected(r, true);
         }
 
@@ -407,39 +418,23 @@ impl State {
 
     /// H: hide the selection.
     pub fn hide_selected(&mut self) {
-        // several rows selected
-        if !self.selection.highlighted.is_empty() {
-            let rows = std::mem::take(&mut self.selection.highlighted);
-
-            for row in &rows {
-                self.gpu.set_selected(*row, false);
-            }
-
-            self.set_rows_hidden(&rows, true); // register:panel
+        let mut rows = self.selected_rows();
+        if rows.is_empty() {
             return;
         }
-
-        let Some(row) = self.scene.selected else {
-            return;
-        };
-        let Some(guid) = self.scene.identity_of(row) else {
-            return;
-        };
+        rows.sort_unstable();
+        rows.dedup();
         self.select(None);
-        self.scene.hidden.insert(guid); // by id, so a new row of it stays hidden
-        self.gpu.set_hidden(row, true);
-        self.refresh_layers(); // register:panel
-        self.update_label(); // register:scene_text
-        self.touch();
+        self.set_rows_hidden(&rows, true); // register:panel
     }
 
     /// S: show everything hidden.
     pub fn show_all(&mut self) {
-        for row in self.scene.hidden_rows() {
+        let shown = self.scene.show_all_identities();
+        self.scene.appearance_rows.clear();
+        for row in shown {
             self.gpu.set_hidden(row, false);
         }
-
-        self.scene.hidden.clear();
         self.features.hierarchy.off.clear(); // every lamp on again
         self.refresh_layers(); // register:panel
         self.update_label(); // register:scene_text
@@ -578,8 +573,12 @@ impl State {
         }
 
         // apply a pick answer first, so this frame shows it
-        if let Some(pick) = self.gpu.pick.poll() {
-            self.apply_pick(pick);
+        if let Some((pick, was_hover)) = self.gpu.pick.poll_tagged() {
+            if was_hover {
+                self.apply_hover_pick(pick);
+            } else {
+                self.apply_pick(pick);
+            }
         } else {
             self.cloud_query_lost(); // register:cloud_query
         }
@@ -1172,5 +1171,113 @@ impl State {
     pub fn set_opacity(&mut self, value: f32) {
         self.gpu.view.opacity = value.clamp(0.0, 1.0);
         self.touch();
+    }
+
+    /// Rate-limited hover pre-selection pick (`>= 50 ms` between ID passes; 0 colour frames unless target changes).
+    pub fn hover_object(&mut self, x: f64, y: f64) {
+        let now = now_ms();
+        if now - self.features.last_hover_pick_ms < 50.0 {
+            return;
+        }
+        if self.scene.row_count() == 0 || self.features.cloud_query.is_some() {
+            return;
+        }
+        let logical = self.logical_size();
+        let scale = f64::from(self.gpu.config.width) / logical[0].max(1.0);
+        if !self.gpu.pick.busy() {
+            self.gpu
+                .pick
+                .configure(PickMode::Object, self.selection_radius_css, scale);
+        }
+        if self.gpu.pick.request_hover(x as u32, y as u32) {
+            self.features.last_hover_pick_ms = now;
+            self.needs_frame = true;
+        }
+    }
+
+    /// Clear any active pre-selection hover tint.
+    pub fn clear_hover(&mut self) {
+        if let Some(old) = self.features.hovered_row.take() {
+            self.gpu.set_hovered(old, false);
+            self.dirty = true;
+            self.needs_frame = true;
+        }
+    }
+
+    fn apply_hover_pick(&mut self, pick: Option<Pick>) {
+        let next = pick
+            .filter(|p| self.scene.selectable(p.row))
+            .and_then(|p| self.scene.resolve(p, &self.gpu))
+            .filter(|hit| hit.entity.is_none())
+            .map(|hit| hit.row)
+            .filter(|&row| {
+                self.scene.selected != Some(row)
+                    && self.selection.highlighted.binary_search(&row).is_err()
+            });
+        if next == self.features.hovered_row {
+            return;
+        }
+        if let Some(old) = self.features.hovered_row.take() {
+            self.gpu.set_hovered(old, false);
+        }
+        if let Some(row) = next {
+            self.gpu.set_hovered(row, true);
+            self.features.hovered_row = Some(row);
+        }
+        self.gpu
+            .performance
+            .note_redraw(crate::engine::performance::RedrawCause::Hover);
+        self.dirty = true;
+        self.needs_frame = true;
+    }
+
+    /// Snapshot camera and display settings for `.session` persistence.
+    pub(crate) fn saved_view_state(
+        &self,
+    ) -> (
+        crate::app::session_io::SavedCamera,
+        crate::app::session_io::SavedView,
+    ) {
+        let cam = crate::app::session_io::SavedCamera::from_camera(&self.camera);
+        let v = &self.gpu.view;
+        let view = crate::app::session_io::SavedView {
+            arctic: v.ssao,
+            wireframe: v.wireframe,
+            show_outlines: v.show_outlines,
+            lit: v.lit,
+            backface: v.backface,
+            cull_backfaces: v.cull_backfaces,
+            opacity: v.opacity,
+            show_grid: v.show_grid,
+            cloud_size: v.cloud_size,
+        };
+        (cam, view)
+    }
+
+    /// Restore camera and display settings read from a `.session` archive.
+    pub(crate) fn apply_saved_view(
+        &mut self,
+        camera: Option<crate::app::session_io::SavedCamera>,
+        view: Option<crate::app::session_io::SavedView>,
+    ) {
+        if let Some(v) = view {
+            self.gpu.view.opacity = v.opacity.clamp(0.0, 1.0);
+            self.gpu.view.lit = v.lit;
+            self.gpu.view.ssao = v.arctic;
+            self.gpu.view.show_outlines = v.show_outlines;
+            self.gpu.view.show_grid = v.show_grid;
+            self.gpu.view.backface = v.backface;
+            self.gpu.view.cull_backfaces = v.cull_backfaces;
+            self.gpu.view.wireframe = v.wireframe;
+            self.gpu.view.cloud_size = v.cloud_size.clamp(0.25, 8.0);
+            self.scene.wireframe = v.wireframe;
+        }
+        match camera {
+            Some(c) => {
+                c.apply_to(&mut self.camera);
+                self.camera.grow_extent(&self.gpu.bounds);
+            }
+            None => self.fit_all(),
+        }
     }
 }

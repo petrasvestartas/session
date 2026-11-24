@@ -22,6 +22,30 @@ pub const SINK: usize = usize::MAX - 2;
 /// Owner of a deleted object's row whose lane rows stay resident, hidden, for an undo.
 pub const TOMB: usize = usize::MAX - 3;
 
+/// Sentinel owner in `undo_steps` / `redo_steps` for visibility, lock, colour and alpha edits.
+pub const APPEARANCE: usize = usize::MAX - 4;
+
+/// Reversible snapshot of appearance state (visibility, lock, face/edge colour, alpha) for one undo step.
+#[derive(Clone, Debug, Default)]
+pub struct AppearanceStep {
+    pub label: String,
+    pub hidden: Vec<((usize, std::rc::Rc<str>), bool, bool)>,
+    pub locked: Vec<((usize, std::rc::Rc<str>), bool, bool)>,
+    pub colors: Vec<((usize, std::rc::Rc<str>), Option<[u8; 3]>, Option<[u8; 3]>)>,
+    pub edge_colors: Vec<((usize, std::rc::Rc<str>), Option<[u8; 3]>, Option<[u8; 3]>)>,
+    pub alphas: Vec<((usize, std::rc::Rc<str>), Option<f32>, Option<f32>)>,
+}
+
+impl AppearanceStep {
+    pub fn is_empty(&self) -> bool {
+        self.hidden.is_empty()
+            && self.locked.is_empty()
+            && self.colors.is_empty()
+            && self.edge_colors.is_empty()
+            && self.alphas.is_empty()
+    }
+}
+
 /// The note bits: what one edit did to one object.
 pub const GEOMETRY: u8 = 1; // walk it again
 pub const PLACE: u8 = 2; // compute its placement again

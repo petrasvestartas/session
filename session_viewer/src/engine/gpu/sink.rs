@@ -68,8 +68,20 @@ impl GpuSink for Gpu {
         Gpu::set_selected(self, row, selected);
     }
 
+    fn set_hovered(&mut self, row: u32, hovered: bool) {
+        Gpu::set_hovered(self, row, hovered);
+    }
+
     fn set_hidden(&mut self, row: u32, hidden: bool) {
         Gpu::set_hidden(self, row, hidden);
+    }
+
+    fn set_object_color(&mut self, row: u32, edge: bool, color: Option<[u8; 3]>) {
+        Gpu::set_object_color(self, row, edge, color);
+    }
+
+    fn set_object_alpha(&mut self, row: u32, alpha: Option<f32>) {
+        Gpu::set_object_alpha(self, row, alpha);
     }
 
     fn retire_many(&mut self, rows: &[u32]) {

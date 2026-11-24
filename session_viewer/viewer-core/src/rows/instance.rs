@@ -66,6 +66,15 @@ impl Instance {
     /// A curve with arrowheads: its ribbons look along the curve for a head to stop under.
     pub const FLAG_HEADS: u32 = 1 << 15;
 
+    /// Hovered under the cursor: drawn with pre-selection tint when not selected.
+    pub const FLAG_HOVERED: u32 = 1 << 16;
+
+    /// Outside the view frustum: skipped by vertex shaders.
+    pub const FLAG_CULLED: u32 = 1 << 17;
+
+    /// Per-object alpha override stored in `color[3]`.
+    pub const FLAG_ALPHA: u32 = 1 << 18;
+
     /// Decorative geometry, such as a reference grid, that must never be picked.
     pub const FLAG_NON_PICKABLE: u32 = 1 << 19;
 

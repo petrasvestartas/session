@@ -7,18 +7,26 @@ impl Gpu {
     /// Write this frame's uniforms and prepare the widget and text.
     pub(crate) fn write_frame_uniforms(&mut self, input: &FrameInput) {
         let size = (self.config.width, self.config.height);
+        let pixel_scale = size.0 as f32 / self.logical_size[0].max(1.0) as f32;
         let cx = FrameCx {
             view: &self.view,
             anchor: self.objects.anchor_f32(),
             size,
             // framebuffer pixels per CSS pixel
-            pixel_scale: size.0 as f32 / self.logical_size[0].max(1.0) as f32,
+            pixel_scale,
         };
         self.frame.write(&self.ctx, input, &cx);
         self.each_pass(|pass, g| pass.write_frame(g, input));
         self.prepare_widget(input, size); // register:gumball
         self.objects
             .update_inside(&self.ctx, self.frame.eye, &self.bounds);
+        let reach_px = 4.0 * self.view.thickness_px.max(self.view.cloud_size) * pixel_scale + 24.0;
+        let ndc_pad = [
+            (2.0 * reach_px / size.0.max(1) as f32).max(0.05),
+            (2.0 * reach_px / size.1.max(1) as f32).max(0.05),
+        ];
+        self.objects
+            .update_frustum_culling(&self.ctx, &self.frame.mvp_f32, ndc_pad);
         self.prepare_text(size); // register:text
     }
 

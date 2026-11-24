@@ -84,9 +84,12 @@ impl Gpu {
     /// Draws of the first pass after the backdrop and caps: faces, clouds.
     fn face_list(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
         let clipped = self.passes.iter().any(|pass| pass.clips());
-        let opaque = self.view.opacity >= 1.0; // at full opacity the blend returns the face color itself
+        // at full global opacity with no per-object translucent overrides, faces write opaque
+        let opaque = self.view.opacity >= 1.0 && !self.objects.has_transparent();
         let mut draws = 0;
-        draws += self.arena.draw_faces(pass, b, opaque, clipped); // register:meshes
+        if !self.view.wireframe {
+            draws += self.arena.draw_faces(pass, b, opaque, clipped); // register:meshes
+        }
         draws += self.splat.draw_resolve(pass, &self.frame.cloud_group); // register:clouds
         draws
     }
@@ -330,7 +333,7 @@ impl Gpu {
 
             if mode == PickMode::Component {
                 self.arena.draw_component_ids(&mut pass, &basic);
-            } else {
+            } else if !self.view.wireframe {
                 self.arena.draw_face_ids(&mut pass, &basic);
             }
 
@@ -424,6 +427,9 @@ impl Gpu {
     /// What reads the triangle tables this frame: (the projection, the tile lists).
     fn tile_readers(&self) -> (bool, bool) {
         let v = &self.view;
+        if v.wireframe {
+            return (false, false);
+        }
         // strokes test visibility against the lists; discs read depth only
         let lists = (v.show_mesh_edges && self.live_pipes() > 0)
             || (v.show_lines && self.live_ribbons() > 0)

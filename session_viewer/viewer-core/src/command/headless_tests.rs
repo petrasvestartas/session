@@ -255,15 +255,54 @@ fn headless_host_executes_every_registered_verb_without_gpu_or_window() {
         r.run("Clipping Plane Off");
         r.run("Clipping Plane On");
 
-        // 12. Session I/O & Report
+        // 12. Session I/O, M5 verbs (Alpha, Lock, Gumball, Properties, Wireframe, Cull, Export, Import) & Report
+        r.run("Properties On");
+        assert!(r.host.display.properties_open);
+        r.run("Properties Off");
+        assert!(!r.host.display.properties_open);
+
+        r.run("View Wireframe On");
+        assert!(r.host.display.wireframe);
+        r.run("View Shaded");
+        assert!(!r.host.display.wireframe);
+        r.run("View Cull Backfaces On");
+        assert!(r.host.display.cull_backfaces);
+        r.run("View Cull Backfaces Off");
+
+        r.run("Box 0,0,0 10 10 10");
+        let m5_box = r.host.scene.selected.unwrap();
+        r.run("Alpha 0.4");
+        r.run("Gumball Object");
+        r.run("Gumball Pivot 5,5,5");
+        r.run("Gumball Reset");
+
+        let exp_msg = r.run("Export");
+        assert!(exp_msg.contains("OBJ"), "{exp_msg}");
+        r.run("Import");
+
+        r.host.select(Some(m5_box));
+        r.run("Lock");
+        assert!(!r.host.scene.selectable(m5_box));
+        r.run("Lock Unlock");
+        assert!(r.host.scene.selectable(m5_box));
+
+        r.host.camera.orbit(25.0, -15.0);
+        r.run("Arctic On");
+        let saved_pose = r.host.camera.pose();
         let save_msg = r.run("Save");
         assert!(save_msg.contains("Saved"), "{save_msg}");
         let bytes = r.host.saved_bytes.clone().expect("saved .session bytes");
-        let reopened = crate::app::session_io::open(&bytes).expect("open saved .session");
-        assert!(!reopened.docs.is_empty());
+        let reopened =
+            crate::app::session_io::open_with_state(&bytes).expect("open saved .session");
+        assert!(!reopened.scene.docs.is_empty());
+        assert_eq!(reopened.view.as_ref().map(|v| v.arctic), Some(true));
+        let mut restored_cam = crate::camera::Camera::new();
+        reopened.camera.unwrap().apply_to(&mut restored_cam);
+        assert_eq!(restored_cam.pose(), saved_pose);
+        r.run("Arctic Off");
 
         r.run("Open");
-        assert_eq!(r.host.open_prompts, 1);
+        assert_eq!(r.host.open_prompts, 2);
         r.run("Report");
         assert_eq!(r.host.reports_requested, 1);
     }

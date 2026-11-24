@@ -12,19 +12,19 @@ use wgpu::{BufferBindingType, ShaderStages, TextureSampleType};
 
 /// Draws the gumball into its own small texture, then over the frame.
 pub struct Widget {
-    vertices: wgpu::Buffer,                 // the gumball mesh
-    count: u32,                             // vertices in it
-    uniform: wgpu::Buffer,                  // matrix, screen box, active handle
-    group: wgpu::BindGroup,                 // binds the uniform
-    layout: wgpu::BindGroupLayout,          // one uniform
-    pipeline: Pipeline,                     // mesh into the tile
-    tile: Option<Tile>,                     // textures the size of the gumball on screen
-    composite: Pipeline,                    // tile over the frame
-    format: wgpu::TextureFormat,            // canvas color format
-    texture_layout: wgpu::BindGroupLayout,  // texture and sampler
-    visible: bool,                          // placed and on screen this frame
-    pub placement: Option<([f64; 3], f64)>, // world position and scale; None = hidden
-    pub active: f32,                        // handle under the cursor, -1 = none
+    vertices: wgpu::Buffer,                        // the gumball mesh
+    count: u32,                                    // vertices in it
+    uniform: wgpu::Buffer,                         // matrix, screen box, active handle
+    group: wgpu::BindGroup,                        // binds the uniform
+    layout: wgpu::BindGroupLayout,                 // one uniform
+    pipeline: Pipeline,                            // mesh into the tile
+    tile: Option<Tile>,                            // textures the size of the gumball on screen
+    composite: Pipeline,                           // tile over the frame
+    format: wgpu::TextureFormat,                   // canvas color format
+    texture_layout: wgpu::BindGroupLayout,         // texture and sampler
+    visible: bool,                                 // placed and on screen this frame
+    pub placement: Option<([f64; 3], f64, Xform)>, // world position, scale, and basis rotation
+    pub active: f32,                               // handle under the cursor, -1 = none
 }
 
 impl Widget {
@@ -110,12 +110,12 @@ impl Widget {
         size: (u32, u32),
     ) {
         self.visible = false;
-        let Some((origin, scale)) = self.placement else {
+        let Some((origin, scale, ref rotation)) = self.placement else {
             return;
         };
         let position = std::array::from_fn::<_, 3, _>(|i| origin[i] - anchor[i]);
         // world matrix of the gumball
-        let model = &Xform::translation(position[0], position[1], position[2])
+        let model = &(&Xform::translation(position[0], position[1], position[2]) * rotation)
             * &Xform::scale_xyz(scale, scale, scale);
         let matrix = mvp * &model;
         // screen box it covers

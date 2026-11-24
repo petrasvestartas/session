@@ -21,6 +21,9 @@ pub trait GpuSink {
     fn forget_anchor(&mut self);
     fn set_selected(&mut self, row: u32, selected: bool);
     fn set_hidden(&mut self, row: u32, hidden: bool);
+    fn set_hovered(&mut self, _row: u32, _hovered: bool) {}
+    fn set_object_color(&mut self, _row: u32, _edge: bool, _color: Option<[u8; 3]>) {}
+    fn set_object_alpha(&mut self, _row: u32, _alpha: Option<f32>) {}
     fn retire_many(&mut self, rows: &[u32]);
     fn bury_many(&mut self, rows: &[u32]);
     fn set_object_row(&mut self, row: u32, object: &ObjectRow);

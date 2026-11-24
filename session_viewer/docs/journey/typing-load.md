@@ -1073,23 +1073,6 @@ Existing intermediate checkpoints remain listed while their implementations are 
 | [18.3.8 · Draw all-solid and selected coverage consistently](91g-draw-all-solid-and-selected-coverage-consistently.md) | 11 | 1666 | 17–34 min | 0.5–1 h | One sitting |
 | [18.3.9 · Connect Outline and Arctic presentation commands](91h-connect-outline-and-arctic-presentation-commands.md) | 10 | 2009 | 21–41 min | 0.5–1 h | One sitting |
 | [18.3.10 · Prove actual outlines and original ownership](91i-prove-actual-outlines-and-original-ownership.md) | 0 | 0 | 0–0 min | 0.5–1 h | One sitting |
-| [18.4.1 · Link current Wood element builders](92-link-current-wood-element-builders.md) | 1 | 64 | 1–2 min | 0.5–1 h | One sitting |
-| [18.4.2 · Write original beam column and plate builders](91zza-write-original-beam-column-and-plate-builders.md) | 88 | 2658 | 27–54 min | 0.5–1 h | One sitting |
-| [18.4.3 · Write original support variable beam and block builders](92a-retain-current-positive-lengths-and-six-builders.md) | 59 | 1850 | 19–37 min | 0.5–1 h | One sitting |
-| [18.4.4 · Own original Element geometry](92b-own-original-element-geometry.md) | 12 | 920 | 10–19 min | 0.5–1 h | One sitting |
-| [18.4.5 · Read current Element command defaults](92c-read-current-element-command-defaults.md) | 25 | 2008 | 21–41 min | 0.5–1 h | One sitting |
-| [18.4.6 · Build typed Elements from ordered world picks](92d-build-typed-elements-from-ordered-world-picks.md) | 14 | 1500 | 15–30 min | 0.5–1 h | One sitting |
-| [18.4.7 · Capture original picks while the tool runs](92e-capture-original-picks-while-the-tool-runs.md) | 17 | 2066 | 21–42 min | 0.5–1 h | One sitting |
-| [18.4.8 · Teach named and bare Element values](92f-teach-named-and-bare-element-values.md) | 40 | 1456 | 15–30 min | 0.5–1 h | One sitting |
-| [18.4.9 · Make Element input batches atomic](92g-make-element-input-batches-atomic.md) | 1 | 238 | 3–5 min | 0.5–1 h | One sitting |
-| [18.4.10 · Attach readonly Element attributes](92h-attach-readonly-element-attributes.md) | 8 | 1404 | 15–29 min | 0.5–1 h | One sitting |
-| [18.4.11 · Adopt Elements and consume sources once](92i-adopt-elements-and-consume-sources-once.md) | 48 | 2362 | 24–48 min | 0.5–1 h | One sitting |
-| [18.4.12 · Save and open original Element records](92j-save-and-open-original-element-records.md) | 6 | 948 | 10–19 min | 0.5–1 h | One sitting |
-| [18.4.13 · Own independent Element tool state](92k-own-independent-element-tool-state.md) | 7 | 2242 | 23–45 min | 0.5–1 h | One sitting |
-| [18.4.14 · Commit one Element creation and retry errors](92l-commit-one-element-creation-and-retry-errors.md) | 13 | 2063 | 21–42 min | 0.5–1 h | One sitting |
-| [18.4.15 · Route Element commands and independent visibility](92m-route-current-element-commands-and-feature-visibility.md) | 27 | 2801 | 29–57 min | 0.5–1 h | One sitting |
-| [18.4.16 · Pick Elements through the real command dock](92n-pick-elements-through-the-real-command-dock.md) | 7 | 2862 | 29–58 min | 0.5–1 h | One sitting |
-| [18.4.17 · Prove Element recipes source history and archives](92o-prove-element-recipes-source-history-and-archives.md) | 0 | 0 | 0–0 min | 0.5–1 h | One sitting |
 | [18.5.1 · Classify original solids independently of clipping](93-classify-original-solids-independently-of-clipping.md) | 9 | 2733 | 28–55 min | 0.5–1 h | One sitting |
 | [18.5.2 · Own opacity in the existing surface frame](93a-own-opacity-in-the-existing-surface-frame.md) | 7 | 1495 | 15–30 min | 0.5–1 h | One sitting |
 | [18.5.3 · Blend closed faces and retain opaque open surfaces](93b-blend-closed-faces-and-retain-opaque-open-surfaces.md) | 7 | 615 | 7–13 min | 0.5–1 h | One sitting |

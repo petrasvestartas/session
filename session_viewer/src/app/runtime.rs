@@ -38,7 +38,8 @@ pub enum Msg {
     CancelPointer,                 // the browser lost the pointer
     #[cfg(target_arch = "wasm32")] // register:phone
     Agent(app::agent::AgentEvent), // a phone keyboard key; register:phone
-    SavedScene(Box<app::scene::Scene>), // a saved session loaded; register:commands
+    SavedScene(Box<app::session_io::OpenedSession>), // a saved session loaded; register:commands
+    ImportedFile(String, Vec<u8>), // a local .pb or .obj file imported; register:commands
     Hydrated(Box<app::scene::Hydrated>), // a released document's objects are back; register:editing
     Fonts(Vec<Vec<u8>>),           // the whole label fonts, main font first; register:loading
     Mode(Box<dyn app::mode::Loaded<State>>),
@@ -178,7 +179,8 @@ impl ApplicationHandler<Msg> for App {
             Msg::Sheet(init) => start_sheet(state, init), // register:sheets
             Msg::SheetChunk(c) => state.extend_sheet(c.idx, c.rows, c.to), // register:sheets
             Msg::SheetEntity(resolved) => state.sheet_entity(resolved), // register:sheets
-            Msg::SavedScene(scene) => open_saved(state, scene), // register:commands
+            Msg::SavedScene(opened) => open_saved(state, opened), // register:commands
+            Msg::ImportedFile(name, bytes) => import_local(state, &name, &bytes), // register:commands
             Msg::CancelPointer => {
                 state.cancel_gesture(); // register:editing
                 self.input.cancel();
@@ -541,16 +543,41 @@ fn repaint_if(state: &mut State, repaint: bool) {
 
 /// Replace the scene with a saved one.
 #[cfg(target_arch = "wasm32")]
-fn open_saved(state: &mut State, scene: Box<app::scene::Scene>) {
+fn open_saved(state: &mut State, opened: Box<app::session_io::OpenedSession>) {
+    let app::session_io::OpenedSession {
+        scene,
+        camera,
+        view,
+    } = *opened;
     state.clear();
-    state.scene = *scene;
+    state.scene = scene;
     state.scene.upload_to(&mut state.gpu);
     state.scene.restore_text_visibility(&mut state.gpu); // register:scene_text
     state.update_label(); // the saved texts reach the GPU; register:scene_text
-    state.fit_all();
+    state.apply_saved_view(camera, view);
     state.refresh_layers(); // register:panel
     state.touch();
     app::feedback::status("Session opened");
+}
+
+/// Append a local `.pb` or `.obj` file into the scene.
+#[cfg(target_arch = "wasm32")]
+fn import_local(state: &mut State, name: &str, bytes: &[u8]) {
+    let empty_before = state.scene.docs.is_empty();
+    match app::session_io::import_bytes(&mut state.scene, name, bytes) {
+        Ok(n) => {
+            state.scene.upload_to(&mut state.gpu);
+            state.camera.grow_extent(&state.gpu.bounds);
+            if empty_before {
+                state.fit_all();
+            }
+            state.refresh_layers(); // register:panel
+            state.update_label(); // register:scene_text
+            state.touch();
+            app::feedback::status(&format!("Imported {n} object(s) from {name}"));
+        }
+        Err(error) => app::feedback::status(&error),
+    }
 }
 
 #[cfg(target_arch = "wasm32")]

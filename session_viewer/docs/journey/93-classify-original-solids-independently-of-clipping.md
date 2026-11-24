@@ -8,7 +8,7 @@ Classify original solids independently of clipping.
 
 ## Type
 
-Continue from [Prove Element recipes source history and archives](92o-prove-element-recipes-source-history-and-archives.md). [Save or recover your work](recovery.md).
+Continue from [Prove actual outlines and original ownership](91i-prove-actual-outlines-and-original-ownership.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/caps_gpu.rs`
 

@@ -110,6 +110,6 @@ Still open:
 |---|---|---|
 | D3 | Recapture Tutorial 7 (now three objects) | needs a machine whose browser WebGPU renders (`npm --prefix ../session_tests run course -- capture`); this machine renders black |
 | D4 | Historical matrix lesson steps in `docs/journey/96zzzzzzzq-*` and `docs/journey/code/` | leave (historical inputs) |
-| D8 | Start the M4 architecture split | only after M0-M2 |
-| D9 | Shrink the protobuf schema (three-kernel change) | defer until M2 numbers |
-| D12 | Element builder verbs removed 2026-11-05: restore, or delete course steps `92*` | delete stale steps |
+| D8 | Start the M4 architecture split | Done 2026-11-24 (`39f718681`): `viewer-core` extracted (`478` core tests, zero UI/GPU deps) |
+| D9 | Shrink the protobuf schema (three-kernel change) | defer until M2 numbers (M2 already hit `< 16.7 ms` rest and `10.50 ms` orbit p95 without breaking the three-kernel schema) |
+| D12 | Element builder verbs removed 2026-11-05: restore, or delete course steps `92*` | Done 2026-11-24 (M5): deleted the 17 stale `92*`/`91zza` Element builder steps and synced links |

@@ -566,7 +566,6 @@ Each chapter shows a recorded result from one linked checkpoint. **Current Chrom
 
 ### 18.4 · Original Wood Elements and portable source records
 
-- [18.4 · Original Wood Elements and portable source records](consolidation/92-link-current-wood-element-builders.md)
 
 ### 18.5 · Glass, X-ray and shared visibility rules
 

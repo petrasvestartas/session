@@ -20,7 +20,6 @@ use segments::SegmentLane; // register:strokes
 use splat::Splat; // register:clouds
 use targets::Targets;
 
-
 /// Everything on the GPU: the device, the frame and one field per lane.
 pub struct Gpu {
     #[cfg(target_arch = "wasm32")]
@@ -30,31 +29,31 @@ pub struct Gpu {
     pub config: wgpu::SurfaceConfiguration,      // canvas size and format
     pub layouts: Layouts,                        // shared bind group layouts
     pub frame: FrameUniforms,                    // per-frame uniform buffers
-    pub targets: Targets,                    // depth and color textures
-    pub view: View,                          // display settings
-    pub objects: InstanceTable,              // one row per object
-    pub backdrop: BackdropLane,              // background and grid
-    pub arena: ArenaLane,                    // meshes; register:meshes
-    pub segments: SegmentLane,               // lines; register:strokes
-    pub glyphs: GlyphLane,                   // markers and dots; register:markers
-    pub controls: GlyphLane,                 // control point dots; register:shell
-    pub control_net: SegmentLane,            // control polygon lines; register:shell
-    pub widget: widget::Widget,              // gumball mesh, own depth; register:gumball
-    pub ui: Option<ui::Ui>,                  // egui overlay; register:egui
-    pub text: text::TextLane,                // labels; register:text
-    pub selection_revision: u64,             // bumps on every selection change
-    pub logical_size: [f64; 2],              // canvas size in CSS pixels
-    pub cloud: CloudLane,                    // point cloud buffers; register:clouds
-    pub(super) registered: Vec<Box<dyn RowLane>>,       // lanes from lane::REGISTRY
-    pub(super) passes: Vec<Box<dyn Pass>>,              // passes from pass::PASSES, in frame order
+    pub targets: Targets,                        // depth and color textures
+    pub view: View,                              // display settings
+    pub objects: InstanceTable,                  // one row per object
+    pub backdrop: BackdropLane,                  // background and grid
+    pub arena: ArenaLane,                        // meshes; register:meshes
+    pub segments: SegmentLane,                   // lines; register:strokes
+    pub glyphs: GlyphLane,                       // markers and dots; register:markers
+    pub controls: GlyphLane,                     // control point dots; register:shell
+    pub control_net: SegmentLane,                // control polygon lines; register:shell
+    pub widget: widget::Widget,                  // gumball mesh, own depth; register:gumball
+    pub ui: Option<ui::Ui>,                      // egui overlay; register:egui
+    pub text: text::TextLane,                    // labels; register:text
+    pub selection_revision: u64,                 // bumps on every selection change
+    pub logical_size: [f64; 2],                  // canvas size in CSS pixels
+    pub cloud: CloudLane,                        // point cloud buffers; register:clouds
+    pub(super) registered: Vec<Box<dyn RowLane>>, // lanes from lane::REGISTRY
+    pub(super) passes: Vec<Box<dyn Pass>>,       // passes from pass::PASSES, in frame order
     pub(super) dead: patch::Counts, // editable rows retired and not yet reclaimed; register:patch
     pub(super) dead_points: u32,    // cloud points retired and not yet reclaimed; register:clouds
-    pub splat: Splat,    // point cloud drawing; register:clouds
-    pub pick: Picker,    // reads object ids under the cursor; register:shell
-    pub performance: Performance, // frame timing
+    pub splat: Splat,               // point cloud drawing; register:clouds
+    pub pick: Picker,               // reads object ids under the cursor; register:shell
+    pub performance: Performance,   // frame timing
     pub timer: Option<timing::PassTimer>, // GPU time per pass, when a bench installs it; register:gtao
     pub bounds: AABB,                     // world box of everything uploaded
-    pub(super) device_type: wgpu::DeviceType,        // discrete, integrated or CPU
+    pub(super) device_type: wgpu::DeviceType, // discrete, integrated or CPU
     pub failure: std::sync::Arc<std::sync::Mutex<Option<String>>>, // first GPU error
 }
 
@@ -154,7 +153,14 @@ impl Gpu {
 
     /// Build the renderer on an already opened device; the caller may own presentation.
     pub fn from_setup(setup: DeviceSetup) -> Self {
-        let DeviceSetup { surface, device, queue, config, device_type, failure } = setup;
+        let DeviceSetup {
+            surface,
+            device,
+            queue,
+            config,
+            device_type,
+            failure,
+        } = setup;
         crate::engine::performance::mark("device ready");
         let started = crate::engine::performance::now_ms();
         let ctx = GpuCtx::new(device, queue);
@@ -459,6 +465,18 @@ impl Gpu {
     /// Set the face or edge color of object `row`; None restores its own.
     pub fn set_object_color(&mut self, row: u32, edge: bool, color: Option<[u8; 3]>) {
         self.objects.set_color(&self.ctx, row, edge, color);
+        self.splat.invalidate(); // register:clouds
+    }
+
+    /// Set or clear per-object alpha override (`0.0..=1.0`) of object `row`.
+    pub fn set_object_alpha(&mut self, row: u32, alpha: Option<f32>) {
+        self.objects.set_alpha(&self.ctx, row, alpha);
+    }
+
+    /// Highlight or clear pre-selection hover on object `row`.
+    pub fn set_hovered(&mut self, row: u32, on: bool) {
+        self.objects
+            .set_flag(&self.ctx, row, Instance::FLAG_HOVERED, on);
         self.splat.invalidate(); // register:clouds
     }
 

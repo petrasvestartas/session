@@ -107,6 +107,38 @@ impl Camera {
         cam
     }
 
+    /// Snapshot `[scalar, x, y, z]` of the camera orientation quaternion.
+    pub fn orientation_quat(&self) -> [f64; 4] {
+        [
+            self.orientation.scalar,
+            self.orientation.vector[0],
+            self.orientation.vector[1],
+            self.orientation.vector[2],
+        ]
+    }
+
+    /// Restore a saved camera pose (`target`, `distance`, `[s, x, y, z]` quaternion, `perspective`).
+    pub fn restore_pose(
+        &mut self,
+        target: [f64; 3],
+        distance: f64,
+        quat: [f64; 4],
+        perspective: bool,
+    ) {
+        if target.into_iter().all(f64::is_finite)
+            && distance.is_finite()
+            && distance > 0.0
+            && quat.into_iter().all(f64::is_finite)
+        {
+            self.target = target;
+            self.distance = distance;
+            self.orientation =
+                Quaternion::new(quat[0], Vector::new(quat[1], quat[2], quat[3])).normalized();
+            self.perspective = perspective;
+            self.update_position();
+        }
+    }
+
     /// Turn the camera around the target by mouse pixels.
     pub fn orbit(&mut self, dx: f32, dy: f32) {
         let wu = Vector::new(self.world_up[0], self.world_up[1], self.world_up[2]);

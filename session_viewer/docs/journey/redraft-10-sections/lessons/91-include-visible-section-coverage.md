@@ -8182,4 +8182,4 @@ npm --prefix ../session_tests run course -- check 18.3
 npm --prefix ../session_tests run course -- save 18.3
 ```
 
-Continue with [18.4 · Original Wood Elements and portable source records](../../consolidation/92-link-current-wood-element-builders.md).
+Continue with [18.5 · Surface transparency, x-ray and hidden ink](../../consolidation/93-classify-original-solids-independently-of-clipping.md).

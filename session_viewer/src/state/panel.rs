@@ -37,31 +37,23 @@ impl State {
                     Some([(rgb >> 16) as u8, (rgb >> 8) as u8, rgb as u8])
                 };
 
-                for row in self.features.hierarchy.targets(index) {
-                    // an edge color needs faces to sit on
-                    if edge
-                        && !self.gpu.objects.row(row).is_some_and(|r| {
-                            r.flags & crate::engine::gpu::Instance::FLAG_HAS_FACES != 0
-                        })
-                    {
-                        continue;
-                    }
-
-                    if let Some(id) = self.scene.identity_of(row) {
-                        let colors = if edge {
-                            &mut self.scene.edge_colors
-                        } else {
-                            &mut self.scene.colors
-                        };
-
-                        if let Some(color) = color {
-                            colors.insert(id, color);
-                        } else {
-                            colors.remove(&id);
-                        }
-
-                        self.gpu.set_object_color(row, edge, color);
-                    }
+                let targets: Vec<u32> = self
+                    .features
+                    .hierarchy
+                    .targets(index)
+                    .into_iter()
+                    .filter(|&row| {
+                        // an edge color needs faces to sit on
+                        !edge
+                            || self.gpu.objects.row(row).is_some_and(|r| {
+                                r.flags & crate::engine::gpu::Instance::FLAG_HAS_FACES != 0
+                            })
+                    })
+                    .collect();
+                let changed = self.scene.set_rows_color(&targets, edge, color);
+                self.scene.appearance_rows.clear();
+                for row in changed {
+                    self.gpu.set_object_color(row, edge, color);
                 }
 
                 self.refresh_layers();
@@ -189,15 +181,7 @@ impl State {
                         self.select(None);
                     }
 
-                    for row in rows {
-                        if let Some(id) = self.scene.identity_of(row) {
-                            if lock {
-                                self.scene.locked.insert(id);
-                            } else {
-                                self.scene.locked.remove(&id);
-                            }
-                        }
-                    }
+                    self.scene.set_rows_locked(&rows, lock);
                 }
                 "current" | "new_layer" | "new_sublayer" | "delete_layer" | "duplicate_layer"
                 | "change_layer" | "copy_layer" => {
@@ -500,19 +484,12 @@ impl State {
             self.select(None);
         }
 
-        for row in rows {
-            let Some(id) = self.scene.identity_of(*row) else {
-                continue;
-            };
-            let changed = if hide {
-                self.scene.hidden.insert(id)
-            } else {
-                self.scene.hidden.remove(&id)
-            };
-
-            if changed {
-                self.gpu.set_hidden(*row, hide);
-            }
+        let changed = self
+            .scene
+            .set_rows_hidden(rows, hide, if hide { "hide" } else { "show" });
+        self.scene.appearance_rows.clear();
+        for row in changed {
+            self.gpu.set_hidden(row, hide);
         }
 
         self.refresh_layers();

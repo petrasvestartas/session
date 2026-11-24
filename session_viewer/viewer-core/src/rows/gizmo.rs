@@ -6,3 +6,9 @@ pub const BALL_AT: f64 = ARM * 0.5;
 
 /// Radius of the centre ball.
 pub const HUB: f64 = 6.0;
+
+/// Inner edge of each 2-axis planar handle square, CSS pixels.
+pub const PLANE_MIN: f64 = 22.0;
+
+/// Outer edge of each 2-axis planar handle square, CSS pixels.
+pub const PLANE_MAX: f64 = 34.0;

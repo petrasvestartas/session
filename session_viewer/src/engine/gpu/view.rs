@@ -15,6 +15,8 @@ pub struct View {
     pub feather_px: f32,          // edge softness of dots, px
     pub lit: bool,                // headlight on mesh faces, `View Lighting`
     pub backface: bool,           // back faces painted red, `View Backfaces`
+    pub cull_backfaces: bool,     // back faces of closed solids culled, `View Cull Backfaces`
+    pub wireframe: bool,          // wireframe mode: skip faces and show all edges, `View Wireframe`
     pub opacity: f32,             // face alpha; 0 = x-ray
     pub msaa_forced: Option<u32>, // 4 forces 4x, other values 1x
     pub perf: bool,               // draw every frame and show timing
@@ -26,19 +28,26 @@ impl View {
         self.ssao = on;
         if on {
             self.show_outlines = true;
+            self.wireframe = false;
         }
     }
 
     /// Read every setting once at start.
     pub fn from_env() -> Self {
+        let flag_on = |env: &str, q: &str| {
+            knob(env, q).is_some_and(|v| {
+                v != "0" && !v.eq_ignore_ascii_case("off") && !v.eq_ignore_ascii_case("false")
+            })
+        };
+        let arctic = flag_on("VIEWER_ARCTIC", "arctic");
         Self {
-            ssao: false,
+            ssao: arctic,
             show_grid: knob("VIEWER_NO_GRID", "nogrid").is_none(),
             dark: false,
             show_points: true,
             show_lines: true,
             show_mesh_edges: true,
-            show_outlines: knob("VIEWER_OUTLINES", "outlines").is_some(),
+            show_outlines: arctic || knob("VIEWER_OUTLINES", "outlines").is_some(),
             markers: knob("BENCH_NO_MARKERS", "nomarkers").is_none(),
             cloud_size: knob_f32("VIEWER_CLOUD_SCALE", "cloud", 1.0),
             edl_strength: knob_f32("VIEWER_EDL", "edl", 0.25),
@@ -47,6 +56,8 @@ impl View {
             feather_px: knob_f32("VIEWER_AA", "aa", 1.0).clamp(0.5, 4.0),
             lit: knob("VIEWER_LIT", "lit").is_some(),
             backface: knob("VIEWER_BACKFACE", "backface").is_some(),
+            cull_backfaces: flag_on("VIEWER_CULL_BACKFACES", "cull"),
+            wireframe: flag_on("VIEWER_WIREFRAME", "wireframe"),
             opacity: knob_f32("VIEWER_OPACITY", "opacity", default_opacity(phone()))
                 .clamp(0.0, 1.0),
             msaa_forced: knob_u32("VIEWER_MSAA", "msaa"),

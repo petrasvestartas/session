@@ -225,19 +225,35 @@ impl CommandHost for State {
             ViewFlag::Outline => self.gpu.view.show_outlines,
             ViewFlag::Lighting => self.gpu.view.lit,
             ViewFlag::Backfaces => self.gpu.view.backface,
+            ViewFlag::Wireframe => self.gpu.view.wireframe,
+            ViewFlag::CullBackfaces => self.gpu.view.cull_backfaces,
         }
     }
 
     fn set_view_flag(&mut self, flag: ViewFlag, on: bool) {
-        let slot = match flag {
-            ViewFlag::Points => &mut self.gpu.view.show_points,
-            ViewFlag::Lines => &mut self.gpu.view.show_lines,
-            ViewFlag::Edges => &mut self.gpu.view.show_mesh_edges,
-            ViewFlag::Outline => &mut self.gpu.view.show_outlines,
-            ViewFlag::Lighting => &mut self.gpu.view.lit,
-            ViewFlag::Backfaces => &mut self.gpu.view.backface,
-        };
-        *slot = on;
+        match flag {
+            ViewFlag::Points => self.gpu.view.show_points = on,
+            ViewFlag::Lines => self.gpu.view.show_lines = on,
+            ViewFlag::Edges => self.gpu.view.show_mesh_edges = on,
+            ViewFlag::Outline => self.gpu.view.show_outlines = on,
+            ViewFlag::Lighting => self.gpu.view.lit = on,
+            ViewFlag::Backfaces => self.gpu.view.backface = on,
+            ViewFlag::CullBackfaces => self.gpu.view.cull_backfaces = on,
+            ViewFlag::Wireframe => {
+                self.gpu.view.wireframe = on;
+                if on {
+                    self.gpu.view.show_mesh_edges = true;
+                }
+                if self.scene.wireframe != on {
+                    self.scene.wireframe = on;
+                    if on && self.scene.has_large_meshes() {
+                        if !self.scene.rewalk_editable(&mut self.gpu) {
+                            self.resume_after(super::hydrate::Resume::Rewalk);
+                        }
+                    }
+                }
+            }
+        }
         self.touch();
     }
 
@@ -354,7 +370,8 @@ impl CommandHost for State {
                 "Loading the display-only documents; the save downloads when they are back".into(),
             );
         }
-        let bytes = crate::app::session_io::save(&self.scene)?;
+        let (cam, view) = self.saved_view_state();
+        let bytes = crate::app::session_io::save_with_state(&self.scene, Some(cam), Some(view))?;
         #[cfg(target_arch = "wasm32")]
         crate::app::session_io::download(&bytes).map_err(|e| format!("Save failed: {e:?}"))?;
         Ok(format!("Saved complete session ({} bytes)", bytes.len()))
@@ -369,6 +386,126 @@ impl CommandHost for State {
     fn download_report(&mut self) -> Result<String, String> {
         crate::app::feedback::download_report();
         Ok("Report downloaded".into())
+    }
+
+    fn lock_selected(&mut self, lock: bool) -> Result<String, String> {
+        if lock {
+            let rows = self.selected_rows();
+            if rows.is_empty() {
+                return Err("Select an object to lock".into());
+            }
+            self.select(None);
+            let n = self.scene.set_rows_locked(&rows, true);
+            self.refresh_layers();
+            self.touch();
+            Ok(format!("Locked {n} object(s)"))
+        } else {
+            let n = self.scene.unlock_all_identities();
+            self.refresh_layers();
+            self.touch();
+            Ok(format!("Unlocked {n} object(s)"))
+        }
+    }
+
+    fn set_object_alpha(&mut self, alpha: Option<f32>) -> Result<String, String> {
+        let rows = self.selected_rows();
+        if rows.is_empty() {
+            return Err("Select an object first".into());
+        }
+        let changed = self.scene.set_rows_alpha(&rows, alpha);
+        self.scene.appearance_rows.clear();
+        for row in changed {
+            self.gpu.set_object_alpha(row, alpha);
+        }
+        self.touch();
+        Ok(match alpha {
+            Some(a) => format!("Object alpha {:.2}", a.clamp(0.0, 1.0)),
+            None => "Object alpha reset".into(),
+        })
+    }
+
+    fn set_gizmo_align(&mut self, align: crate::app::gizmo::GizmoAlign) -> String {
+        self.features.gizmo_align = align;
+        self.place_gizmo(self.scene.selected);
+        self.touch();
+        format!("Gumball aligned to {align:?}")
+    }
+
+    fn set_gizmo_pivot(&mut self, pivot: Option<Point>) -> String {
+        self.features.gizmo_pivot = pivot.clone();
+        self.place_gizmo(self.scene.selected);
+        self.touch();
+        match pivot {
+            Some(p) => format!("Gumball pivot at ({:.2}, {:.2}, {:.2})", p[0], p[1], p[2]),
+            None => "Gumball pivot reset".into(),
+        }
+    }
+
+    fn set_properties_panel(&mut self, open: Option<bool>) -> String {
+        let show = open.unwrap_or(!crate::app::feedback::properties_open());
+        crate::app::feedback::properties_visible(show);
+        self.touch();
+        if show {
+            "Properties panel open".into()
+        } else {
+            "Properties panel closed".into()
+        }
+    }
+
+    fn export_obj(&mut self, path: Option<&str>) -> Result<String, String> {
+        let selected = self.selected_rows();
+        let filter = if selected.is_empty() {
+            None
+        } else {
+            Some(selected.as_slice())
+        };
+        let text = crate::app::session_io::export_obj(&self.scene, filter)?;
+        let count = text.lines().filter(|l| l.starts_with("o ")).count().max(1);
+        #[cfg(target_arch = "wasm32")]
+        {
+            let name = path
+                .filter(|s| !s.trim().is_empty())
+                .unwrap_or("export.obj");
+            crate::app::session_io::download_text(name, &text)
+                .map_err(|e| format!("Export failed: {e:?}"))?;
+        }
+        #[cfg(not(target_arch = "wasm32"))]
+        if let Some(p) = path.filter(|s| !s.trim().is_empty()) {
+            std::fs::write(p, text.as_bytes()).map_err(|e| format!("Cannot write {p}: {e}"))?;
+        }
+        Ok(format!("Exported {count} object(s) ({} bytes)", text.len()))
+    }
+
+    fn import_file(&mut self, path: Option<&str>) -> Result<String, String> {
+        #[cfg(target_arch = "wasm32")]
+        if path.is_none_or(|s| s.trim().is_empty()) {
+            crate::app::session_io::pick_import();
+            return Ok("Choose a .pb, .obj or .session file".into());
+        }
+        #[cfg(not(target_arch = "wasm32"))]
+        if let Some(p) = path.filter(|s| !s.trim().is_empty()) {
+            let bytes = std::fs::read(p).map_err(|e| format!("Cannot read {p}: {e}"))?;
+            if p.to_ascii_lowercase().ends_with(".session") {
+                let opened = crate::app::session_io::open_with_state(&bytes)?;
+                self.clear();
+                self.scene = opened.scene;
+                self.scene.upload_to(&mut self.gpu);
+                self.scene.restore_text_visibility(&mut self.gpu);
+                self.update_label();
+                self.apply_saved_view(opened.camera, opened.view);
+                self.refresh_layers();
+                self.touch();
+                return Ok("Session opened".into());
+            }
+            let n = crate::app::session_io::import_bytes(&mut self.scene, p, &bytes)?;
+            self.scene.upload_to(&mut self.gpu);
+            self.camera.grow_extent(&self.gpu.bounds);
+            self.refresh_layers();
+            self.update_label();
+            self.touch();
+            return Ok(format!("Imported {n} object(s) from {p}"));
+        }
+        Err("Import requires a file path or browser file picker".into())
     }
 
     fn note_status(&mut self, message: &str) {

@@ -142,7 +142,9 @@ impl Scene {
                 attributes: self.attributes,
                 arrowhead_pens: self.arrowhead_pens,
             };
-            let walked = walk_geometry(&mut Walk::of(&mut self.tables), &cx, geometry);
+            let walked = crate::app::walk::mesh::with_wireframe_edges(self.wireframe, || {
+                walk_geometry(&mut Walk::of(&mut self.tables), &cx, geometry)
+            });
             let end = self.uploaded.plus(Counts::of(&self.tables));
             let mut object = ObjectRow::new(place, walked.flags);
             object.bounds = walked.bounds;

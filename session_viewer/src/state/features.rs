@@ -23,7 +23,11 @@ pub(crate) struct Features {
     pub(super) clip_hidden: usize,    // register:clipping
     pub(super) control_drag: Option<edit::ControlDrag>, // register:control_drag
     pub(crate) gizmo: Option<Gizmo>,  // register:gizmo
+    pub(crate) gizmo_align: crate::app::gizmo::GizmoAlign, // register:gizmo
+    pub(crate) gizmo_pivot: Option<session_rust::Point>, // register:gizmo
     pub(super) dragging: Option<edit::GizmoDrag>, // register:gizmo_drag
+    pub(super) hovered_row: Option<u32>, // pre-selection hover row
+    pub(super) last_hover_pick_ms: f64, // rate-limit timestamp for hover picks
     pub(super) object_drag: Option<drag::ObjectDrag>, // register:object_drag
     pub(super) box_select: Option<box_select::BoxSelect>, // register:box_select
     pub(crate) draft: Option<drawing::Draft>, // register:drawing

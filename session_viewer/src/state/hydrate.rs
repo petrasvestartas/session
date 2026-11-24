@@ -143,17 +143,19 @@ impl State {
 
     /// Save the session file now.
     fn save_now(&mut self) {
-        let message = match crate::app::session_io::save(&self.scene) {
-            Ok(bytes) => {
-                #[cfg(target_arch = "wasm32")]
-                if let Err(error) = crate::app::session_io::download(&bytes) {
-                    self.status(&format!("Save failed: {error:?}"));
-                    return;
+        let (cam, view) = self.saved_view_state();
+        let message =
+            match crate::app::session_io::save_with_state(&self.scene, Some(cam), Some(view)) {
+                Ok(bytes) => {
+                    #[cfg(target_arch = "wasm32")]
+                    if let Err(error) = crate::app::session_io::download(&bytes) {
+                        self.status(&format!("Save failed: {error:?}"));
+                        return;
+                    }
+                    format!("Saved complete session ({} bytes)", bytes.len())
                 }
-                format!("Saved complete session ({} bytes)", bytes.len())
-            }
-            Err(error) => error,
-        };
+                Err(error) => error,
+            };
         self.status(&message);
     }
 }

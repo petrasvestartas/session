@@ -1,6 +1,6 @@
 use crate::app::layers::{is_layer_key, newest};
 use crate::app::scene::Scene;
-use crate::app::scene::rows::TEXT;
+use crate::app::scene::rows::{APPEARANCE, AppearanceStep, TEXT};
 use crate::app::scene::sync;
 use session_rust::{Geometry, Point, Xform};
 use std::rc::Rc;
@@ -289,6 +289,7 @@ impl Scene {
     /// A new edit ends the redo branch in every document, so the purge frees what only it reached.
     fn forget_redo(&mut self) {
         self.redo_steps.clear();
+        self.appearance_redo.clear();
 
         for file in &mut self.docs {
             if !file.session.history.can_redo() {
@@ -330,6 +331,7 @@ impl Scene {
                 .iter()
                 .filter(|(doc, label)| {
                     *doc == TEXT
+                        || *doc == APPEARANCE
                         || self
                             .docs
                             .get(*doc)
@@ -357,6 +359,8 @@ impl Scene {
             for (doc, label) in &held {
                 if *doc == TEXT {
                     self.step_text(label, back);
+                } else if *doc == APPEARANCE {
+                    self.step_appearance(back);
                 } else {
                     self.step_document(*doc, back);
                 }
@@ -908,5 +912,325 @@ impl Scene {
         self.redraw(row, &geometry, true);
         self.upload_to(gpu);
         Ok(())
+    }
+
+    /// Push a reversible visibility/lock/colour/alpha edit onto the undo stack.
+    pub fn push_appearance_step(&mut self, step: AppearanceStep) {
+        if step.is_empty() {
+            return;
+        }
+        let label = step.label.clone();
+        self.forget_redo();
+        self.appearance_undo.push(step);
+        self.undo_steps.push(vec![(APPEARANCE, label)]);
+        if self.undo_steps.len() > 2 * MAX_STEPS {
+            self.undo_steps.drain(..MAX_STEPS);
+        }
+    }
+
+    fn step_appearance(&mut self, back: bool) {
+        let Some(step) = (if back {
+            self.appearance_undo.pop()
+        } else {
+            self.appearance_redo.pop()
+        }) else {
+            return;
+        };
+
+        let mut touched_ids: Vec<(usize, Rc<str>)> = Vec::new();
+
+        for (id, before, after) in &step.hidden {
+            let want = if back { *before } else { *after };
+            if want {
+                self.hidden.insert(id.clone());
+            } else {
+                self.hidden.remove(id);
+            }
+            touched_ids.push(id.clone());
+        }
+
+        for (id, before, after) in &step.locked {
+            let want = if back { *before } else { *after };
+            if want {
+                self.locked.insert(id.clone());
+            } else {
+                self.locked.remove(id);
+            }
+            touched_ids.push(id.clone());
+        }
+
+        for (id, before, after) in &step.colors {
+            let want = if back { *before } else { *after };
+            match want {
+                Some(c) => {
+                    self.colors.insert(id.clone(), c);
+                }
+                None => {
+                    self.colors.remove(id);
+                }
+            }
+            touched_ids.push(id.clone());
+        }
+
+        for (id, before, after) in &step.edge_colors {
+            let want = if back { *before } else { *after };
+            match want {
+                Some(c) => {
+                    self.edge_colors.insert(id.clone(), c);
+                }
+                None => {
+                    self.edge_colors.remove(id);
+                }
+            }
+            touched_ids.push(id.clone());
+        }
+
+        for (id, before, after) in &step.alphas {
+            let want = if back { *before } else { *after };
+            match want {
+                Some(a) => {
+                    self.alphas.insert(id.clone(), a);
+                }
+                None => {
+                    self.alphas.remove(id);
+                }
+            }
+            touched_ids.push(id.clone());
+        }
+
+        let mut touched: Vec<u32> = touched_ids
+            .iter()
+            .filter_map(|id| self.row_of(id.0, id.1.as_ref()))
+            .collect();
+        touched.sort_unstable();
+        touched.dedup();
+        self.appearance_rows.extend(touched);
+        self.bounds_stale = true;
+
+        if back {
+            self.appearance_redo.push(step);
+        } else {
+            self.appearance_undo.push(step);
+        }
+    }
+
+    /// Hide or show `rows` as one undoable step; returns changed identity count.
+    pub fn set_rows_hidden(&mut self, rows: &[u32], hidden: bool, label: &str) -> Vec<u32> {
+        let mut step = AppearanceStep {
+            label: label.into(),
+            ..Default::default()
+        };
+        let mut changed_rows = Vec::new();
+        for &row in rows {
+            if let Some(id) = self.identity_of(row) {
+                let before = self.hidden.contains(&id);
+                if before != hidden {
+                    if hidden {
+                        self.hidden.insert(id.clone());
+                    } else {
+                        self.hidden.remove(&id);
+                    }
+                    step.hidden.push((id, before, hidden));
+                    changed_rows.push(row);
+                }
+            }
+        }
+        if !step.is_empty() {
+            self.appearance_rows.extend(changed_rows.iter().copied());
+            self.bounds_stale = true;
+            self.push_appearance_step(step);
+        }
+        changed_rows
+    }
+
+    /// Show every hidden identity as one undoable step; returns unhidden rows.
+    pub fn show_all_identities(&mut self) -> Vec<u32> {
+        if self.hidden.is_empty() {
+            return Vec::new();
+        }
+        let prev: Vec<_> = self.hidden.drain().collect();
+        let mut step = AppearanceStep {
+            label: "show".into(),
+            ..Default::default()
+        };
+        let mut rows = Vec::new();
+        for id in prev {
+            if let Some(row) = self.row_of(id.0, id.1.as_ref()) {
+                rows.push(row);
+            }
+            step.hidden.push((id, true, false));
+        }
+        rows.sort_unstable();
+        rows.dedup();
+        self.appearance_rows.extend(rows.iter().copied());
+        self.bounds_stale = true;
+        self.push_appearance_step(step);
+        rows
+    }
+
+    /// Lock or unlock `rows` as one undoable step; returns changed count.
+    pub fn set_rows_locked(&mut self, rows: &[u32], locked: bool) -> usize {
+        let mut step = AppearanceStep {
+            label: if locked { "lock" } else { "unlock" }.into(),
+            ..Default::default()
+        };
+        for &row in rows {
+            if let Some(id) = self.identity_of(row) {
+                let before = self.locked.contains(&id);
+                if before != locked {
+                    if locked {
+                        self.locked.insert(id.clone());
+                    } else {
+                        self.locked.remove(&id);
+                    }
+                    step.locked.push((id, before, locked));
+                }
+            }
+        }
+        let count = step.locked.len();
+        self.push_appearance_step(step);
+        count
+    }
+
+    /// Unlock every locked identity as one undoable step; returns unlocked count.
+    pub fn unlock_all_identities(&mut self) -> usize {
+        if self.locked.is_empty() {
+            return 0;
+        }
+        let prev: Vec<_> = self.locked.drain().collect();
+        let count = prev.len();
+        let step = AppearanceStep {
+            label: "unlock".into(),
+            locked: prev.into_iter().map(|id| (id, true, false)).collect(),
+            ..Default::default()
+        };
+        self.push_appearance_step(step);
+        count
+    }
+
+    /// Set or clear face/edge colour override on `rows` as one undoable step.
+    pub fn set_rows_color(&mut self, rows: &[u32], edge: bool, color: Option<[u8; 3]>) -> Vec<u32> {
+        let mut step = AppearanceStep {
+            label: "color".into(),
+            ..Default::default()
+        };
+        let mut changed = Vec::new();
+        for &row in rows {
+            if let Some(id) = self.identity_of(row) {
+                let map = if edge {
+                    &mut self.edge_colors
+                } else {
+                    &mut self.colors
+                };
+                let before = map.get(&id).copied();
+                if before != color {
+                    match color {
+                        Some(c) => {
+                            map.insert(id.clone(), c);
+                        }
+                        None => {
+                            map.remove(&id);
+                        }
+                    }
+                    if edge {
+                        step.edge_colors.push((id, before, color));
+                    } else {
+                        step.colors.push((id, before, color));
+                    }
+                    changed.push(row);
+                }
+            }
+        }
+        if !step.is_empty() {
+            self.appearance_rows.extend(changed.iter().copied());
+            self.push_appearance_step(step);
+        }
+        changed
+    }
+
+    /// Set or clear per-object alpha override (`0.0..=1.0`) on `rows` as one undoable step.
+    pub fn set_rows_alpha(&mut self, rows: &[u32], alpha: Option<f32>) -> Vec<u32> {
+        let alpha = alpha.map(|a| a.clamp(0.0, 1.0));
+        let mut step = AppearanceStep {
+            label: "alpha".into(),
+            ..Default::default()
+        };
+        let mut changed = Vec::new();
+        for &row in rows {
+            if let Some(id) = self.identity_of(row) {
+                let before = self.alphas.get(&id).copied();
+                if before != alpha {
+                    match alpha {
+                        Some(a) => {
+                            self.alphas.insert(id.clone(), a);
+                        }
+                        None => {
+                            self.alphas.remove(&id);
+                        }
+                    }
+                    step.alphas.push((id, before, alpha));
+                    changed.push(row);
+                }
+            }
+        }
+        if !step.is_empty() {
+            self.appearance_rows.extend(changed.iter().copied());
+            self.push_appearance_step(step);
+        }
+        changed
+    }
+}
+
+#[cfg(test)]
+mod appearance_history_tests {
+    use super::*;
+    use crate::app::scene::FileDoc;
+    use session_rust::{Mesh, Session};
+
+    #[test]
+    fn hide_show_lock_color_and_alpha_undo_and_redo_cleanly() {
+        let mut session = Session::new("appearance");
+        session.add_mesh(Mesh::create_box(2.0, 2.0, 2.0), None);
+        let mut scene = Scene::new();
+        scene.add_file(FileDoc {
+            name: "appearance".into(),
+            session: Rc::new(session),
+            place: Xform::identity(),
+            point_px: 0.0,
+            display_only: false,
+        });
+        let id = scene.identity_of(0).unwrap();
+
+        assert_eq!(scene.set_rows_hidden(&[0], true, "hide"), vec![0]);
+        assert!(scene.hidden.contains(&id));
+        assert!(scene.undo());
+        assert!(!scene.hidden.contains(&id));
+        assert!(scene.redo());
+        assert!(scene.hidden.contains(&id));
+
+        assert_eq!(scene.show_all_identities(), vec![0]);
+        assert!(!scene.hidden.contains(&id));
+
+        assert_eq!(scene.set_rows_locked(&[0], true), 1);
+        assert!(!scene.selectable(0));
+        assert!(scene.undo());
+        assert!(scene.selectable(0));
+
+        assert_eq!(
+            scene.set_rows_color(&[0], false, Some([240, 20, 40])),
+            vec![0]
+        );
+        assert_eq!(scene.colors.get(&id).copied(), Some([240, 20, 40]));
+        assert_eq!(scene.set_rows_alpha(&[0], Some(0.35)), vec![0]);
+        assert_eq!(scene.alphas.get(&id).copied(), Some(0.35));
+
+        assert!(scene.undo());
+        assert_eq!(scene.alphas.get(&id), None);
+        assert!(scene.undo());
+        assert_eq!(scene.colors.get(&id), None);
+        assert!(scene.redo());
+        assert_eq!(scene.colors.get(&id).copied(), Some([240, 20, 40]));
+        assert!(scene.redo());
+        assert_eq!(scene.alphas.get(&id).copied(), Some(0.35));
     }
 }

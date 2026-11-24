@@ -26,6 +26,7 @@ panels! {
     number_box,   // register:number_box
     command_line, // register:command_line
     layers,       // register:layers
+    properties,   // register:layers
 }
 
 // --8<-- [end:application-panels]
@@ -354,7 +355,12 @@ impl Ui {
         let Some(mut mode) = state.mode.take() else {
             return false;
         };
-        let frame = crate::app::mode::Frame { screen, logical, pixels_per_point: ppp, now };
+        let frame = crate::app::mode::Frame {
+            screen,
+            logical,
+            pixels_per_point: ppp,
+            now,
+        };
         let (mut output, more) = mode.frame(state, &self.context, input, frame);
         state.mode = Some(mode);
         self.input

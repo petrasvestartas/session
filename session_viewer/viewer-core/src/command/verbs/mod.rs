@@ -97,4 +97,10 @@ verbs! {
     volume,                  // register:volume
     add_group,               // register:add_group
     add_edge,                // register:add_edge
+    alpha,
+    lock,
+    gumball,
+    properties,
+    export,
+    import,
 }

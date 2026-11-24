@@ -233,6 +233,28 @@ pub fn layers_open() -> bool {
     false
 }
 
+/// Show or hide the properties panel.
+#[cfg(target_arch = "wasm32")]
+pub fn properties_visible(open: bool) {
+    super::ui::properties::STATE.with_borrow_mut(|model| model.open = open);
+}
+
+/// Whether the properties panel is open.
+#[cfg(target_arch = "wasm32")]
+pub fn properties_open() -> bool {
+    super::ui::properties::STATE.with_borrow(|model| model.open)
+}
+
+/// No panel on native.
+#[cfg(not(target_arch = "wasm32"))]
+pub fn properties_visible(_open: bool) {}
+
+/// No panel on native.
+#[cfg(not(target_arch = "wasm32"))]
+pub fn properties_open() -> bool {
+    false
+}
+
 /// Download the current run, with the previous failed or interrupted one inside.
 pub fn download_report() {
     #[cfg(target_arch = "wasm32")]

@@ -97,19 +97,21 @@ fn anchored(t: [f64; 3], origin: &Point) -> [f32; 4] {
 
 /// The object rows on the GPU and their exact positions on the CPU.
 pub struct InstanceTable {
-    geometry_revision: u64,           // bumps when anything moves or hides
-    rows: Vec<Instance>,              // the rows, as uploaded
-    translation: Vec<[f64; 3]>,       // exact world position per row
-    local_bounds: Vec<AABB>,          // box per row, in the object's own space
-    hulls: Vec<Option<Hull>>,         // extreme points per row; empty until a row has some
-    widget: Option<u32>,              // identity row the gumball draws with
-    bounded: Vec<BoundedRow>,         // rows with faces, for the inside test
-    bounded_at: Vec<u32>,             // index of each row in `bounded`, u32::MAX = none
-    world_bounds: Vec<AABB>,          // box per row in world space
-    clipping: Vec<u32>,               // rows of clipping planes, sorted
-    closed: Vec<u32>,                 // rows of verified closed solids, sorted
-    last_origin: Option<Point>,       // origin the GPU positions are measured from
-    pub(super) buffer: GrowBuf,       // Instance rows on the GPU
+    geometry_revision: u64,     // bumps when anything moves or hides
+    rows: Vec<Instance>,        // the rows, as uploaded
+    translation: Vec<[f64; 3]>, // exact world position per row
+    local_bounds: Vec<AABB>,    // box per row, in the object's own space
+    hulls: Vec<Option<Hull>>,   // extreme points per row; empty until a row has some
+    widget: Option<u32>,        // identity row the gumball draws with
+    bounded: Vec<BoundedRow>,   // rows with faces, for the inside test
+    bounded_at: Vec<u32>,       // index of each row in `bounded`, u32::MAX = none
+    world_bounds: Vec<AABB>,    // box per row in world space
+    clipping: Vec<u32>,         // rows of clipping planes, sorted
+    closed: Vec<u32>,           // rows of verified closed solids, sorted
+    alpha_rows: Vec<u32>,       // rows with per-object alpha < 1, sorted
+    last_cull_key: Option<([u32; 16], [u32; 2], u64)>, // mvp, ndc pad and geometry revision of last frustum cull
+    last_origin: Option<Point>,                        // origin the GPU positions are measured from
+    pub(super) buffer: GrowBuf,                        // Instance rows on the GPU
     pub(super) translations: GrowBuf, // positions minus the scene origin, on the GPU
     last_rebase_ms: f64,              // when the origin last moved
     pub group: wgpu::BindGroup,       // group 2: rows and translations
@@ -167,6 +169,8 @@ impl InstanceTable {
             world_bounds: Vec::new(),
             clipping: Vec::new(),
             closed: Vec::new(),
+            alpha_rows: Vec::new(),
+            last_cull_key: None,
             last_origin: None,
             buffer,
             translations,
@@ -237,7 +241,10 @@ impl InstanceTable {
             self.local_bounds.push(r.bounds);
             self.set_hull(base + i as u32, r.hull.clone());
 
-            if r.flags & (Instance::FLAG_CLIPPING_PLANE | Instance::FLAG_CLOSED) != 0 {
+            if r.flags
+                & (Instance::FLAG_CLIPPING_PLANE | Instance::FLAG_CLOSED | Instance::FLAG_ALPHA)
+                != 0
+            {
                 self.track(base + i as u32, r.flags);
             }
 
@@ -574,9 +581,15 @@ impl InstanceTable {
         self.write_row(ctx, row);
     }
 
-    /// Keep the clipping plane and closed solid rows in step with row `row`'s new flags.
+    /// Keep the clipping plane, closed solid and translucent rows in step with row `row`'s new flags.
     fn track(&mut self, row: u32, flags: u32) {
         let live = flags & Instance::FLAG_DEAD == 0;
+        let translucent = live
+            && flags & Instance::FLAG_ALPHA != 0
+            && self
+                .rows
+                .get(row as usize)
+                .is_some_and(|r| r.color[3] < 1.0);
         track_in(
             &mut self.clipping,
             row,
@@ -587,6 +600,12 @@ impl InstanceTable {
             row,
             live && flags & Instance::FLAG_CLOSED != 0,
         );
+        track_in(&mut self.alpha_rows, row, translucent);
+    }
+
+    /// True when any live object carries a per-object alpha override below 1.0.
+    pub fn has_transparent(&self) -> bool {
+        !self.alpha_rows.is_empty()
     }
 
     /// Rows of clipping planes, hidden ones included.
@@ -617,6 +636,8 @@ impl InstanceTable {
             | Instance::FLAG_INSIDE
             | Instance::FLAG_COLOR
             | Instance::FLAG_EDGE_COLOR
+            | Instance::FLAG_ALPHA
+            | Instance::FLAG_HOVERED
             | Instance::FLAG_DEAD;
         let i = row as usize;
         let (model, translation, world) = placed_row(&r.bounds, r.hull.as_deref(), &r.place);
@@ -715,6 +736,7 @@ impl InstanceTable {
             | Instance::FLAG_HIDDEN
             | Instance::FLAG_COLOR
             | Instance::FLAG_EDGE_COLOR
+            | Instance::FLAG_ALPHA
             | Instance::FLAG_DEAD;
         let i = row as usize;
         let hull = self.hulls.get(i).and_then(|h| h.as_deref());
@@ -803,19 +825,80 @@ impl InstanceTable {
                     .map(|c| u32::from_le_bytes([c[0], c[1], c[2], 255]))
                     .unwrap_or(0);
             } else {
+                let a = r.color[3];
                 r.color = color
                     .map(|c| {
                         [
                             c[0] as f32 / 255.,
                             c[1] as f32 / 255.,
                             c[2] as f32 / 255.,
-                            1.,
+                            a,
                         ]
                     })
-                    .unwrap_or([1.; 4]);
+                    .unwrap_or([1., 1., 1., a]);
             }
 
             self.buffer.write_at(ctx, row, std::slice::from_ref(r));
+        }
+    }
+
+    /// Set or clear a row's per-object alpha override (`0.0..=1.0`).
+    pub fn set_alpha(&mut self, ctx: &GpuCtx, row: u32, alpha: Option<f32>) {
+        let Some(r) = self.rows.get_mut(row as usize) else {
+            return;
+        };
+        match alpha {
+            Some(a) => {
+                r.flags |= Instance::FLAG_ALPHA;
+                r.color[3] = a.clamp(0.0, 1.0);
+            }
+            None => {
+                r.flags &= !Instance::FLAG_ALPHA;
+                r.color[3] = 1.0;
+            }
+        }
+        let flags = r.flags;
+        let copy = *r;
+        self.buffer.write_at(ctx, row, std::slice::from_ref(&copy));
+        self.track(row, flags);
+    }
+
+    /// Cull rows whose world AABB lies strictly outside all 6 clip-space frustum planes.
+    pub fn update_frustum_culling(&mut self, ctx: &GpuCtx, mvp: &[f32; 16], ndc_pad: [f32; 2]) {
+        let key = (
+            mvp.map(f32::to_bits),
+            ndc_pad.map(f32::to_bits),
+            self.geometry_revision,
+        );
+        if self.last_cull_key == Some(key) {
+            return;
+        }
+        let Some(origin) = self.last_origin.clone() else {
+            return;
+        };
+        self.last_cull_key = Some(key);
+        let ox = origin[0];
+        let oy = origin[1];
+        let oz = origin[2];
+
+        for i in 0..self.world_bounds.len() {
+            let Some(row) = self.rows.get_mut(i) else {
+                continue;
+            };
+            if row.flags & (Instance::FLAG_DEAD | Instance::FLAG_HIDDEN) != 0 {
+                continue;
+            }
+            let bounds = &self.world_bounds[i];
+            let culled = if row.flags & Instance::FLAG_CLIPPING_PLANE != 0 || !bounds.is_valid() {
+                false
+            } else {
+                box_outside_frustum(bounds, [ox, oy, oz], mvp, ndc_pad)
+            };
+            if ((row.flags & Instance::FLAG_CULLED) != 0) != culled {
+                row.flags ^= Instance::FLAG_CULLED;
+                self.buffer
+                    .write_at(ctx, i as u32, std::slice::from_ref(row));
+            }
         }
     }
 
@@ -881,6 +964,8 @@ impl InstanceTable {
         self.world_bounds.clear();
         self.clipping.clear();
         self.closed.clear();
+        self.alpha_rows.clear();
+        self.last_cull_key = None;
         self.buffer.reset();
         self.translations.reset();
         self.last_origin = None;
@@ -1026,4 +1111,75 @@ mod tests {
         let second = Point::new(1.0e3, 0.0, 0.0);
         assert_eq!(anchored(base, &second)[0], 9.0e3);
     }
+
+    #[test]
+    fn frustum_outcode_culls_offscreen_boxes_and_keeps_visible_ones() {
+        let mut cam = crate::camera::Camera::new();
+        cam.target = [0.0, 0.0, 0.0];
+        cam.distance = 1.0;
+        cam.update_position();
+        let origin = cam.origin();
+        let mvp = cam.view_proj_anchored(1.0, &origin).to_f32();
+        let visible = AABB::new(0.0, 0.0, 0.0, 50.0, 50.0, 50.0);
+        let far_right = AABB::new(50_000.0, 0.0, 0.0, 50.0, 50.0, 50.0);
+        let org = [origin[0], origin[1], origin[2]];
+        assert!(!box_outside_frustum(&visible, org, &mvp, [0.05, 0.05]));
+        assert!(box_outside_frustum(&far_right, org, &mvp, [0.05, 0.05]));
+    }
+}
+
+/// True when all 8 corners of `bounds` (anchored at `origin`) lie strictly outside one clip plane.
+fn box_outside_frustum(
+    bounds: &AABB,
+    origin: [f64; 3],
+    mvp: &[f32; 16],
+    ndc_pad: [f32; 2],
+) -> bool {
+    let lo = [
+        (bounds.cx - bounds.hx - origin[0]) as f32,
+        (bounds.cy - bounds.hy - origin[1]) as f32,
+        (bounds.cz - bounds.hz - origin[2]) as f32,
+    ];
+    let hi = [
+        (bounds.cx + bounds.hx - origin[0]) as f32,
+        (bounds.cy + bounds.hy - origin[1]) as f32,
+        (bounds.cz + bounds.hz - origin[2]) as f32,
+    ];
+    let mut all_out = 0x3fu8;
+    for corner in 0..8u8 {
+        let x = if corner & 1 == 0 { lo[0] } else { hi[0] };
+        let y = if corner & 2 == 0 { lo[1] } else { hi[1] };
+        let z = if corner & 4 == 0 { lo[2] } else { hi[2] };
+        let cx = mvp[0] * x + mvp[4] * y + mvp[8] * z + mvp[12];
+        let cy = mvp[1] * x + mvp[5] * y + mvp[9] * z + mvp[13];
+        let cz = mvp[2] * x + mvp[6] * y + mvp[10] * z + mvp[14];
+        let cw = mvp[3] * x + mvp[7] * y + mvp[11] * z + mvp[15];
+        let pad_x = ndc_pad[0] * cw.abs();
+        let pad_y = ndc_pad[1] * cw.abs();
+        let zpad = 0.01 * cw.abs();
+        let mut code = 0u8;
+        if cx < -cw - pad_x {
+            code |= 1;
+        }
+        if cx > cw + pad_x {
+            code |= 2;
+        }
+        if cy < -cw - pad_y {
+            code |= 4;
+        }
+        if cy > cw + pad_y {
+            code |= 8;
+        }
+        if cz < -zpad {
+            code |= 16;
+        }
+        if cz > cw + zpad {
+            code |= 32;
+        }
+        all_out &= code;
+        if all_out == 0 {
+            return false;
+        }
+    }
+    true
 }

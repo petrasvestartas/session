@@ -126,8 +126,6 @@ pub mod feature_plan;
 
 ## <a id="checkpoint-96j-group-features-by-original-interaction"></a>2. Group pieces by their interaction
 
-See the [Wood elements and joint loops diagram in Lesson 18.4](92-link-current-wood-element-builders.md).
-
 ### 1. `src/feature_plan.rs`
 
 Claim each feature once in graph order; retain unknown and orphaned interaction features.

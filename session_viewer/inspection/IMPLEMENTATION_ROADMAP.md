@@ -78,23 +78,21 @@ Evidence: REPOSITORY_INSPECTION.md §What was run; FEATURE_INVENTORY.md §8-9.
 | Delivered | 1. Broke all 4 internal dependency cycles (`engine → app` gizmo constants moved to `rows/gizmo.rs`, `modeling ⇄ command`, `layers ⇄ scene`, `stream ⇄ walk`). 2. Consolidated `State`'s 5 scattered selection fields onto one authoritative `SelectionState` (`viewer-core/src/selection.rs`). 3. Introduced `CommandHost` + pure-Rust `HeadlessHost` (`viewer-core/src/command/host.rs`) and `impl CommandHost for State` (`src/state/host.rs`), converting all 80 registered command specs (`REGISTRY`) to `&mut dyn CommandHost`. 4. Added `headless_tests.rs` executing all 80 registered verbs in `REGISTRY` on `HeadlessHost` without window, `egui` or GPU. 5. Introduced `GpuSink` (`viewer-core/src/sink.rs`, `src/engine/gpu/sink.rs`) and `ByteSource` (`viewer-core/src/decode.rs`), extracting 28 core modules into `viewer-core` with zero UI/GPU/DOM crates in `viewer-core/Cargo.toml`. 6. Rewrote `session_viewer/ARCHITECTURE.md` with the workspace module graph and all §12 / `DATA_STRUCTURES §11.4` corrections. |
 | Verified & benchmarked | `cargo tree -p viewer-core --depth 1` → zero `wgpu`/`winit`/`egui`/`web-sys`/`wasm-bindgen`/`glyphon`; `cargo test -p viewer-core` → **478 passed, 0 failed, 2 ignored** in `3.41 s` (including 80-verb `HeadlessHost` suite); `cargo xtest -j8` → **618 passed (`478` core + `140` viewer), 0 failed, 61 ignored**; warm incremental `cargo check -p viewer-core` → **`0.44 s` wasm32 / `0.46 s` native** vs `222 s` fat-LTO release build |
 
-## M5 — Missing functionality (from FEATURE_INVENTORY §9)
+## M5 — Missing functionality (DONE 2026-11-24)
 
-| Item | Current | Proposed scope | Files |
-|---|---|---|---|
-| Hover pre-selection | gizmo / snap / Trim-Extend only | object, edge and face hover highlight via the existing pick pass, rate-limited | `state.rs:703`, `engine/gpu/pick.rs` |
-| Wireframe | x-ray only; meshes > 200 k triangles have no edges | explicit wireframe mode; edges for large meshes on demand | `app/walk/`, `render.rs` |
-| Culling | none (back-face, frustum, object) | per-object frustum culling from bounds; back-face toggle for closed solids | `pipelines/core.rs:561`, scene bounds |
-| Transparency | global alpha, unsorted, closed solids only | per-object alpha; sort or OIT only if a use case needs it | `render.rs`, `triangle.wgsl` |
-| Properties / display-settings panel | missing | read-only properties first, then editable colour/layer | `app/ui/` |
-| Arctic view | `Arctic On/Off` command only | key, `?arctic=1`, saved in `.session` metadata | `verbs/arctic.rs`, `keys.rs`, `session_io` |
-| Camera/display in saved file | missing | add to `.session` `Metadata` | `app/session_io*` |
-| Gumball | world axes only | pivot, planar handles, local frame | `app/gizmo.rs`, `state/edit.rs` |
-| Undo for hide/show/lock/colour | not recorded | history entries | `app/edit.rs` |
-| Export | none | OBJ export via the kernel writer (FILE_FORMATS.md recommendation); local `.pb` import from disk | `session_rust` OBJ writer, `app/loader.rs` |
-| Element builders | removed 2026-11-05 (`66ff54224`) | decide: restore or delete course steps `92*` | docs |
-
-Tests: one native test per item through the M4 headless host plus one Playwright case. Acceptance: FEATURE_INVENTORY §9 rows move to Implemented. Risk: scope creep; each item is its own approval.
+| Item | Delivered | Files |
+|---|---|---|
+| Hover pre-selection | Rate-limited (`>= 50 ms`) non-cancelling hover pick (`Picker::request_hover`, `poll_tagged`) + `FLAG_HOVERED` cyan tint across faces/strokes/markers/arrows (`0` colour frames over background or unchanged object) | `src/engine/gpu/pick.rs`, `src/state.rs`, `src/app/input.rs`, `src/shaders/{scene,triangle,ribbon,glyph,sphere,arrow}.wgsl` |
+| Wireframe | `View Wireframe [On\|Off]`, `View Shaded`, `?wireframe=1` / `VIEWER_WIREFRAME`; skips face draw & tile projection, forces full ink visibility, and rewalks `> 200k`-triangle meshes with `with_wireframe_edges(true, ...)` | `viewer-core/src/walk/mesh.rs`, `viewer-core/src/scene*.rs`, `src/engine/gpu/{view,frame,render}.rs`, `src/state/host.rs` |
+| Culling | Per-object 8-corner clip-space AABB frustum culling (`FLAG_CULLED`, `update_frustum_culling` + unit test), `PipelineDesc::cull`, and `View Cull Backfaces [On\|Off]` (`?cull=1`) | `src/engine/gpu/objects/table.rs`, `src/engine/pipelines/core.rs`, `src/shaders/triangle.wgsl` |
+| Transparency | Per-object `Alpha <0..1\|Reset>` (`FLAG_ALPHA`, `Scene::alphas`, `InstanceTable::has_transparent`) on faces and strokes, persisted in `.session` | `viewer-core/src/command/verbs/alpha.rs`, `src/engine/gpu/objects/table.rs`, `src/shaders/{scene,triangle}.wgsl` |
+| Properties / display-settings panel | `Properties [On\|Off]` (`src/app/ui/properties.rs`): selection GUID, geometry kind, doc/layer, bounds, counts, editable face/edge RGB, per-object alpha, gumball alignment, and display toggles | `src/app/ui/{properties,mod}.rs`, `viewer-core/src/command/verbs/properties.rs` |
+| Arctic view | `A` key (`keys.rs`), `?arctic=1` / `VIEWER_ARCTIC` (`view.rs`), `Properties` toggle, and persisted in `.session` `SavedView` | `src/app/keys.rs`, `src/engine/gpu/view.rs`, `viewer-core/src/session_io.rs` |
+| Camera/display in saved file | `SavedCamera` & `SavedView` persisted in `.session` `Metadata` (`save_with_state`, `open_with_state`) and restored in browser & headless hosts | `viewer-core/src/{camera,session_io}.rs`, `src/state*.rs`, `src/app/{session_io,loader,runtime}.rs` |
+| Gumball | `Gumball <World\|Object\|CPlane\|Pivot x,y,z\|Reset>`, local/CPlane basis rotation (`basis_rotation`), custom pivot, and 3 disjoint planar translation squares (`Handle::TranslatePlane`, `10..=12`) | `viewer-core/src/{rows/gizmo,gizmo}.rs`, `viewer-core/src/command/verbs/gumball.rs`, `src/engine/gpu/{widget,widget_mesh}.rs`, `src/state/edit.rs` |
+| Undo for hide/show/lock/colour/alpha | `APPEARANCE` sentinel + `AppearanceStep` undo/redo stacks in `Scene` + `Lock [On\|Off\|Unlock]` verb + unit tests | `viewer-core/src/{scene_rows,edit}.rs`, `viewer-core/src/command/verbs/lock.rs`, `src/state/{edit,panel}.rs` |
+| Export & local import | `Export [path.obj]` via `session_rust::file_obj::write_file_obj_to_string` + browser download; `Import [path]` (`.pb`, `.obj`, `.session`) via `import_bytes` + browser file picker | `viewer-core/src/session_io.rs`, `viewer-core/src/command/verbs/{export,import}.rs`, `src/app/{session_io,loader,runtime}.rs` |
+| Element builders (D12) | Deleted the 17 stale `92*`/`91zza` Element builder steps from `docs/journey/course.json` and removed their stale `.md` files & broken links | `docs/journey/*`, `docs/archived/cumulative-route-20261115.md` |
 
 ## M6 — Shared Op API, CLI, FastMCP
 

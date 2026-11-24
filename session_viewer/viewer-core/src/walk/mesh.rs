@@ -7,8 +7,28 @@ use crate::rows::Instance;
 use session_rust::AABB;
 use session_rust::Mesh;
 
-/// Above this many triangles a mesh gets no edges or dots.
+/// Above this many triangles a mesh gets no edges or dots unless wireframe mode forces them.
 pub const MESH_RAW_MIN: usize = 200_000;
+
+static FORCE_WIREFRAME_EDGES: std::sync::atomic::AtomicBool =
+    std::sync::atomic::AtomicBool::new(false);
+
+/// Run `f` with wireframe edge generation enabled (`on = true`) even for meshes above `MESH_RAW_MIN`.
+pub fn with_wireframe_edges<R>(on: bool, f: impl FnOnce() -> R) -> R {
+    struct Guard(bool);
+    impl Drop for Guard {
+        fn drop(&mut self) {
+            FORCE_WIREFRAME_EDGES.store(self.0, std::sync::atomic::Ordering::Relaxed);
+        }
+    }
+    let prev = FORCE_WIREFRAME_EDGES.swap(on, std::sync::atomic::Ordering::Relaxed);
+    let _guard = Guard(prev);
+    f()
+}
+
+pub fn force_wireframe_edges() -> bool {
+    FORCE_WIREFRAME_EDGES.load(std::sync::atomic::Ordering::Relaxed)
+}
 
 /// From this many edges the wireframe is black.
 pub const WIREFRAME_BLACK_MIN: usize = 10_000;
@@ -134,7 +154,7 @@ pub fn walk_mesh(arena: &mut ArenaRows, ink: &mut Ink, m: &Mesh, mc: &MeshCx) ->
     lap.mark("to_render");
 
     let print = is_print_fill(m);
-    let decorated = rm.indices.len() / 3 <= MESH_RAW_MIN && !print; // gets edges and dots
+    let decorated = (force_wireframe_edges() || rm.indices.len() / 3 <= MESH_RAW_MIN) && !print; // gets edges and dots
     let keys = if decorated { m.vertices() } else { Vec::new() }; // sorted vertex keys
     let slots = SlotMap::new(&keys);
     let mut vpos64 = Vec::with_capacity(keys.len()); // positions by slot

@@ -183,6 +183,7 @@ impl Input {
 
                 // camera moves in CSS pixels
                 if dragging {
+                    state.clear_hover();
                     let from = started.unwrap_or(self.last_cursor);
                     let dx = ((at.0 - from.0) / device_pixel_ratio()) as f32;
                     let dy = ((at.1 - from.1) / device_pixel_ratio()) as f32;
@@ -198,6 +199,9 @@ impl Input {
                 let mut redraw = dragging;
                 redraw = redraw || state.hover_drawing(at.0, at.1); // register:commands
                 redraw = redraw || state.hover_gizmo(at.0, at.1); // register:gumball
+                if !dragging && self.left_down.is_none() && !self.tool_held && !state.drafting() {
+                    state.hover_object(at.0, at.1);
+                }
                 redraw
             }
             WindowEvent::MouseWheel { delta, .. } => {
@@ -226,6 +230,7 @@ impl Input {
             }
             WindowEvent::Focused(false) => {
                 self.cancel();
+                state.clear_hover();
                 state.cancel_gesture(); // register:editing
                 state.interacting = false;
                 state.gpu.performance.cancel_wheel();

@@ -111,6 +111,7 @@ struct PipelineKey {
     groups: Vec<wgpu::BindGroupLayout>, // bind group layouts, in slot order
     buffers: Vec<(u64, wgpu::VertexStepMode, Vec<wgpu::VertexAttribute>)>, // vertex buffer layouts
     topology: wgpu::PrimitiveTopology,  // triangles or lines
+    cull: Option<wgpu::Face>,           // hardware face culling
     color: ColorWrite,                  // how color is written
     depth: DepthMode,                   // how depth is used
     scene_samples: Option<u32>,         // sets SCENE_MSAA in the shader
@@ -205,6 +206,7 @@ pub struct PipelineDesc<'a> {
     pub groups: &'a [&'a wgpu::BindGroupLayout],            // bind group layouts, in slot order
     pub vertex_buffers: &'a [wgpu::VertexBufferLayout<'a>], // vertex buffer layouts
     pub topology: wgpu::PrimitiveTopology,                  // triangles or lines
+    pub cull: Option<wgpu::Face>,                           // hardware face culling
     pub color: ColorWrite,                                  // how color is written
     pub depth: DepthMode,                                   // how depth is used
     pub scene_samples: Option<u32>,                         // sets SCENE_MSAA in the shader
@@ -227,6 +229,7 @@ impl<'a> PipelineDesc<'a> {
             groups,
             vertex_buffers,
             topology,
+            cull: None,
             color: ColorWrite::Opaque,
             depth: DepthMode::Opaque,
             scene_samples: None,
@@ -269,6 +272,13 @@ impl<'a> PipelineDesc<'a> {
     /// A copy with another depth mode.
     pub fn depth(mut self, depth: DepthMode) -> Self {
         self.depth = depth;
+        self
+    }
+
+    /// A copy with hardware face culling.
+    #[allow(dead_code)]
+    pub fn cull(mut self, cull: Option<wgpu::Face>) -> Self {
+        self.cull = cull;
         self
     }
 }
@@ -419,6 +429,7 @@ pub fn build(ctx: &GpuCtx, target: Target, desc: &PipelineDesc) -> Pipeline {
             .map(|b| (b.array_stride, b.step_mode, b.attributes.to_vec()))
             .collect(),
         topology: desc.topology,
+        cull: desc.cull,
         color: desc.color,
         depth: desc.depth,
         scene_samples: desc.scene_samples,
@@ -515,7 +526,7 @@ fn compile(device: &wgpu::Device, desc: &PipelineKey) -> wgpu::RenderPipeline {
             topology: desc.topology,
             strip_index_format: None,
             front_face: wgpu::FrontFace::Ccw,
-            cull_mode: None,
+            cull_mode: desc.cull,
             polygon_mode: wgpu::PolygonMode::Fill,
             unclipped_depth: false,
             conservative: false,

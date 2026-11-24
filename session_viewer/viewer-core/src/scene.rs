@@ -76,9 +76,11 @@ pub struct Scene {
     pub locked: HashSet<(usize, Rc<str>)>,                    // (document, guid) not selectable
     pub colors: HashMap<(usize, Rc<str>), [u8; 3]>,           // face colour overrides
     pub edge_colors: HashMap<(usize, Rc<str>), [u8; 3]>,      // edge colour overrides
+    pub alphas: HashMap<(usize, Rc<str>), f32>,               // per-object alpha overrides
     pub selected: Option<u32>,                                // selected object row
     pub interactions: bool,  // element interactions drawn, on from the start
     pub attributes: bool, // an element's attributes shown: its attributes group and its own features
+    pub wireframe: bool,  // explicit wireframe mode: forces edges on meshes > 200k triangles
     pub arrowhead_pens: f32, // arrowhead length in pens; 0 uses the renderer default
     order: Vec<Rc<str>>,  // guid of each row, empty when free
     owners: Vec<usize>,   // document of each row, or TEXT, FREE, SINK
@@ -113,6 +115,9 @@ pub struct Scene {
     pub edge_steps: HashMap<(usize, String), rows::EdgeStep>, // edge each (document, step) added; register:editing
     pub groups: HashSet<(usize, Rc<str>)>, // (document, tree node guid) of each group
     pub text_rows: Vec<u32>, // text rows an undo, redo or delete showed or hid, for the GPU
+    pub appearance_undo: Vec<rows::AppearanceStep>, // visibility/lock/colour/alpha undo stack
+    pub appearance_redo: Vec<rows::AppearanceStep>, // visibility/lock/colour/alpha redo stack
+    pub appearance_rows: Vec<u32>, // rows whose appearance an undo/redo updated, for the GPU
     pub released: HashMap<usize, Released>, // documents drawn without their kernel objects; register:release
     asked: RefCell<Vec<usize>>, // released documents a read-only path needs; register:release
     stream_ceiling: u32,        // most streamed points on the page; register:stream
@@ -186,9 +191,11 @@ impl Scene {
             locked: HashSet::new(),
             colors: HashMap::new(),
             edge_colors: HashMap::new(),
+            alphas: HashMap::new(),
             selected: None,
             interactions: true,
             attributes: false,
+            wireframe: false,
             arrowhead_pens: 0.0,
             order: Vec::new(),
             owners: Vec::new(),
@@ -228,6 +235,9 @@ impl Scene {
             edge_steps: HashMap::new(), // register:editing
             groups: HashSet::new(),
             text_rows: Vec::new(),
+            appearance_undo: Vec::new(),
+            appearance_redo: Vec::new(),
+            appearance_rows: Vec::new(),
             released: HashMap::new(),        // register:release
             asked: RefCell::new(Vec::new()), // register:release
             stream_ceiling: 0,               // register:stream
@@ -254,10 +264,14 @@ impl Scene {
         self.doc_state.clear();
         self.texts.clear(); // register:scene_text
         self.text_rows.clear();
+        self.appearance_undo.clear();
+        self.appearance_redo.clear();
+        self.appearance_rows.clear();
         self.hidden.clear();
         self.locked.clear();
         self.colors.clear();
         self.edge_colors.clear();
+        self.alphas.clear();
         self.arrowhead_pens = 0.0;
         self.reset_rows();
         gpu.release();
@@ -277,10 +291,14 @@ impl Scene {
         self.doc_state.clear();
         self.texts.clear();
         self.text_rows.clear();
+        self.appearance_undo.clear();
+        self.appearance_redo.clear();
+        self.appearance_rows.clear();
         self.hidden.clear();
         self.locked.clear();
         self.colors.clear();
         self.edge_colors.clear();
+        self.alphas.clear();
         self.arrowhead_pens = 0.0;
         self.reset_rows();
         ledger.clear();
@@ -293,11 +311,13 @@ impl Scene {
             | Instance::FLAG_INSIDE
             | Instance::FLAG_COLOR
             | Instance::FLAG_EDGE_COLOR
+            | Instance::FLAG_ALPHA
             | Instance::FLAG_DEAD;
         const OWN: u32 = Instance::FLAG_SELECTED
             | Instance::FLAG_HIDDEN
             | Instance::FLAG_COLOR
             | Instance::FLAG_EDGE_COLOR
+            | Instance::FLAG_ALPHA
             | Instance::FLAG_DEAD;
         let staged = std::mem::take(&mut self.staged);
 
@@ -558,6 +578,16 @@ impl Scene {
         }
 
         self.upload_instances(gpu); // register:instancing
+
+        for row in std::mem::take(&mut self.appearance_rows) {
+            if let Some(id) = self.identity_of(row) {
+                gpu.set_hidden(row, self.hidden.contains(&id));
+                gpu.set_object_color(row, false, self.colors.get(&id).copied());
+                gpu.set_object_color(row, true, self.edge_colors.get(&id).copied());
+                gpu.set_object_alpha(row, self.alphas.get(&id).copied());
+            }
+        }
+
         let mut dead = self.dead;
         dead = dead.plus(self.tombed); // register:document
         gpu.set_dead(dead, self.dead_points);
@@ -613,6 +643,11 @@ impl Scene {
         if let Some(color) = self.edge_colors.get(&key) {
             object.edge_color = u32::from_le_bytes([color[0], color[1], color[2], 255]);
             object.flags |= Instance::FLAG_EDGE_COLOR;
+        }
+
+        if let Some(&alpha) = self.alphas.get(&key) {
+            object.color[3] = alpha.clamp(0.0, 1.0);
+            object.flags |= Instance::FLAG_ALPHA;
         }
 
         object
@@ -701,7 +736,9 @@ impl Scene {
                 arrowhead_pens: self.arrowhead_pens,
             };
             let start = self.uploaded.plus(Counts::of(&self.tables));
-            let r = walk_geometry(&mut Walk::of(&mut self.tables), &cx, geom);
+            let r = crate::app::walk::mesh::with_wireframe_edges(self.wireframe, || {
+                walk_geometry(&mut Walk::of(&mut self.tables), &cx, geom)
+            });
             let end = self.uploaded.plus(Counts::of(&self.tables));
             self.feet[row as usize] = if matches!(geom, Geometry::PointCloud(_)) {
                 Footprint::Cloud
@@ -936,6 +973,19 @@ impl Scene {
     /// Row ids handed out so far, live or not; loops over rows run to here.
     pub fn row_count(&self) -> usize {
         self.order.len()
+    }
+
+    /// True when any editable document holds a mesh above `MESH_RAW_MIN` triangles.
+    pub fn has_large_meshes(&self) -> bool {
+        self.docs.iter().any(|file| {
+            !file.display_only
+                && file
+                    .session
+                    .objects
+                    .meshes
+                    .iter()
+                    .any(|m| m.number_of_faces() > crate::app::walk::mesh::MESH_RAW_MIN)
+        })
     }
 
     /// Rows holding an object, a text or a streamed shell.

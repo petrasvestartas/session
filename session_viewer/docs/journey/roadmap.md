@@ -1684,23 +1684,6 @@ Every command implementation is covered, including command errors, previews and 
 - [ ] 18.3.9 · [Connect Outline and Arctic presentation commands](91h-connect-outline-and-arctic-presentation-commands.md) — Connect Outline and Arctic presentation commands.
 - [ ] 18.3.10 · [Prove actual outlines and original ownership](91i-prove-actual-outlines-and-original-ownership.md) — Prove actual outlines and original ownership.
 
-- [ ] 18.4.1 · [Link current Wood element builders](92-link-current-wood-element-builders.md) — Link current Wood element builders.
-- [ ] 18.4.2 · [Write original beam column and plate builders](91zza-write-original-beam-column-and-plate-builders.md) — Parse positive finite lengths while retaining omitted defaults.
-- [ ] 18.4.3 · [Write original support variable beam and block builders](92a-retain-current-positive-lengths-and-six-builders.md) — Add the remaining original Support, Beam Variable and Block wrappers.
-- [ ] 18.4.4 · [Own original Element geometry](92b-own-original-element-geometry.md) — Own original Element geometry.
-- [ ] 18.4.5 · [Read current Element command defaults](92c-read-current-element-command-defaults.md) — Read current Element command defaults.
-- [ ] 18.4.6 · [Build typed Elements from ordered world picks](92d-build-typed-elements-from-ordered-world-picks.md) — Build typed Elements from ordered world picks.
-- [ ] 18.4.7 · [Capture original picks while the tool runs](92e-capture-original-picks-while-the-tool-runs.md) — Capture original picks while the tool runs.
-- [ ] 18.4.8 · [Teach named and bare Element values](92f-teach-named-and-bare-element-values.md) — Teach named and bare Element values.
-- [ ] 18.4.9 · [Make Element input batches atomic](92g-make-element-input-batches-atomic.md) — Make Element input batches atomic.
-- [ ] 18.4.10 · [Attach readonly Element attributes](92h-attach-readonly-element-attributes.md) — Attach readonly Element attributes.
-- [ ] 18.4.11 · [Adopt Elements and consume sources once](92i-adopt-elements-and-consume-sources-once.md) — Adopt Elements and consume sources once.
-- [ ] 18.4.12 · [Save and open original Element records](92j-save-and-open-original-element-records.md) — Save and open original Element records.
-- [ ] 18.4.13 · [Own independent Element tool state](92k-own-independent-element-tool-state.md) — Own independent Element tool state.
-- [ ] 18.4.14 · [Commit one Element creation and retry errors](92l-commit-one-element-creation-and-retry-errors.md) — Commit one Element creation and retry errors.
-- [ ] 18.4.15 · [Route Element commands and independent visibility](92m-route-current-element-commands-and-feature-visibility.md) — Route current Element commands and feature visibility.
-- [ ] 18.4.16 · [Pick Elements through the real command dock](92n-pick-elements-through-the-real-command-dock.md) — Pick Elements through the real command dock.
-- [ ] 18.4.17 · [Prove Element recipes source history and archives](92o-prove-element-recipes-source-history-and-archives.md) — Prove Element recipes source history and archives.
 
 - [ ] 18.5.1 · [Classify original solids independently of clipping](93-classify-original-solids-independently-of-clipping.md) — Classify original solids independently of clipping.
 - [ ] 18.5.2 · [Own opacity in the existing surface frame](93a-own-opacity-in-the-existing-surface-frame.md) — Own opacity in the existing surface frame.

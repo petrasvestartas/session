@@ -112,7 +112,7 @@
   {
     "path": "src/app/feedback.rs",
     "owner": "application",
-    "sourceSha256": "ef3c9a65cc9c6be9299f998ecd71f3b29782ea0dc8c82307741f8a21f7506e4e",
+    "sourceSha256": "5189ecfbf64825d69c9fa1980f4a4942f3edd23e1c008887dbbc4473f1579892",
     "explanation": {
       "page": "journey/completion-debugging.md",
       "heading": "### Step 1: Browser diagnostics, feedback and `?inspect=1` snapshots",
@@ -192,7 +192,7 @@
   {
     "path": "src/app/input.rs",
     "owner": "application",
-    "sourceSha256": "243af7f73eefdaf0f4ea25f2adf251f1a056ee52852a93a794336c1e595dec10",
+    "sourceSha256": "6b203c07c035678239751d5a9f142e411e8d9be146f0921fe1310fabd2e201e1",
     "explanation": {
       "page": "journey/completion-input.md",
       "heading": "### Step 3: Cropped `19\u00d719` GPU pick window and generation-stamped selection",
@@ -222,7 +222,7 @@
   {
     "path": "src/app/keys.rs",
     "owner": "application",
-    "sourceSha256": "28abcbf79f108564e48b4c61ee96b8521b69062d467d2c5c2ad787e6c230289a",
+    "sourceSha256": "3715c251e3f0ea0732380d4fa9a274a8fa180d4046c760a099b3f7ec0d2f23e7",
     "explanation": {
       "page": "journey/completion-input.md",
       "heading": "### Step 1: Isolate UI panels from canvas gestures",
@@ -252,7 +252,7 @@
   {
     "path": "src/app/loader.rs",
     "owner": "application",
-    "sourceSha256": "de21f988a301f176d39bfad74abe9461deb226ad8b6cf7b1827e8a777517458e",
+    "sourceSha256": "dba64c56a23b3114ec152c469c440c81517327857e1f624fa37da3a6aa078a63",
     "explanation": {
       "page": "journey/completion-loading.md",
       "heading": "### Step 2: Guard routes, load generations and `RangeGate` permits",
@@ -292,7 +292,7 @@
   {
     "path": "src/app/runtime.rs",
     "owner": "application",
-    "sourceSha256": "7c7d5cc7a36148fee39364de1ed8348780111cdded73b29b339136f630f86953",
+    "sourceSha256": "cbdfda0df537938452f1a87438d99910517650391f2d22fa9cd2783e4a9c162c",
     "explanation": {
       "page": "journey/completion-application.md",
       "heading": "### Step 1: Serialize async updates into one `State` owner",
@@ -302,7 +302,7 @@
   {
     "path": "src/app/session_io.rs",
     "owner": "application",
-    "sourceSha256": "a47437a51712233e8893fb76b0ad0407b0d014aeaca5d01525309675d3699178",
+    "sourceSha256": "6cfa6d5d54f03382f9ac9e8dae0e6313971be8d10cd06b08bde3b0a3d8b0dc35",
     "explanation": {
       "page": "journey/completion-documents.md",
       "heading": "### Step 5: Instances, idle refinement and `.session` archives",
@@ -642,7 +642,7 @@
   {
     "path": "src/app/ui/mod.rs",
     "owner": "application",
-    "sourceSha256": "c5bb203005cfb26e5ee108986c5465d770e37d077b5b2f69bc39f6a88c2a3d72",
+    "sourceSha256": "8bb7407e9ec810558c7f95d368dc0b0833df55069d1a103bdfd258af1f2e8769",
     "explanation": {
       "page": "journey/completion-documents.md",
       "heading": "### Step 4: Flatten hierarchies, move layers and isolate panel actions",
@@ -687,6 +687,16 @@
       "page": "journey/completion-input.md",
       "heading": "### Step 1: Isolate UI panels from canvas gestures",
       "paragraph": "`src/app/ui/pointer.rs` checks live `egui` panel and popup rectangles on press so panel drags stay inside UI, scene drags released over panels cancel cleanly, and wheel/touch events respect the canvas rect."
+    }
+  },
+  {
+    "path": "src/app/ui/properties.rs",
+    "owner": "application",
+    "sourceSha256": "bccdf422632e59bdfd5c6ff8ee9d2a281cffa574d0404a1184714f8caf061df6",
+    "explanation": {
+      "page": "journey/completion-documents.md",
+      "heading": "### Step 4: Flatten hierarchies, move layers and isolate panel actions",
+      "paragraph": "Displays selection GUID, geometry kind, document/layer, dimensions, editable face/edge RGB, per-object alpha, gumball alignment and viewport display toggles."
     }
   },
   {
@@ -852,7 +862,7 @@
   {
     "path": "src/engine/gpu/context.rs",
     "owner": "geometry",
-    "sourceSha256": "27cddd275b4e70d5fa46f4c2426d752415f5c1fabc2d11d3abedf76132df5499",
+    "sourceSha256": "8220d269ed97fc11f390e993ef71dcd27898127aee8b2a21270ad20415abe1b3",
     "explanation": {
       "page": "journey/completion-geometry.md",
       "heading": "### Step 1. Walk meshes, BRep trims and shared `20`-byte arena vertices (`slot_table.wgsl`)",
@@ -882,7 +892,7 @@
   {
     "path": "src/engine/gpu/frame.rs",
     "owner": "geometry",
-    "sourceSha256": "2141fd5bb5aa179fe7e5af4c6c643b14081f9e4eae190964d3532b0c71bb28fb",
+    "sourceSha256": "bafce630136d1d77fe953bf18d4de7267c8ae64382b2a854ec398a11b21aabb3",
     "explanation": {
       "page": "journey/completion-geometry.md",
       "heading": "### Step 1. Walk meshes, BRep trims and shared `20`-byte arena vertices (`slot_table.wgsl`)",
@@ -1022,7 +1032,7 @@
   {
     "path": "src/engine/gpu/objects/table.rs",
     "owner": "rows",
-    "sourceSha256": "0c1bfa16f9db1280e0c60e927c66782bcc53dcb238398117fc7727824ff4eafd",
+    "sourceSha256": "2f8b6773ab2bccfc38216c5efc34df5fb4f4caa17c1cff7c4a4e04b3234a5511",
     "explanation": {
       "page": "journey/completion-rows.md",
       "heading": "### Step 2. Pin the `112`-byte `Instance` layout and `GrowBuf` table",
@@ -1062,7 +1072,7 @@
   {
     "path": "src/engine/gpu/pick.rs",
     "owner": "geometry",
-    "sourceSha256": "05e23235e25d039fa91f8da5fc41d5af8df79f5f3b5e56982dc89540dd42703e",
+    "sourceSha256": "23dfeb33833a09502f53934ff63e816a5f11249c4ea68facd7a69b18061add02",
     "explanation": {
       "page": "journey/completion-geometry.md",
       "heading": "### Step 2. Extrude mitered ribbons, `0.30` arrows, planes, grids and backdrop (`ribbon.wgsl`, `arrow.wgsl`, `vector.wgsl`, `plane.wgsl`, `grid.wgsl`, `background.wgsl`)",
@@ -1082,7 +1092,7 @@
   {
     "path": "src/engine/gpu/present.rs",
     "owner": "geometry",
-    "sourceSha256": "98e20200ffcd612032d034ff8bf6d87ec81dd7e0cb4b6c35f45192f0ece58c16",
+    "sourceSha256": "dd085b7e143fda9978deb6cf5537d34ea1371cf400fe7421ed1ba59deb0df139",
     "explanation": {
       "page": "journey/completion-geometry.md",
       "heading": "### Step 4. Pace submissions and assemble the `3`-object scene (`present.rs`, `pacing.rs`, `geometry.rs`)",
@@ -1092,7 +1102,7 @@
   {
     "path": "src/engine/gpu/render.rs",
     "owner": "geometry",
-    "sourceSha256": "cf53ae6f0e98ffa777bdbfea290cd42c67350b9eff16e0ac52084b9dd360de2a",
+    "sourceSha256": "fa1dba72ec9439a6013ff1b41f27e15ac72d47690360e9016fac9a4cbfa440df",
     "explanation": {
       "page": "journey/completion-geometry.md",
       "heading": "### Step 2. Extrude mitered ribbons, `0.30` arrows, planes, grids and backdrop (`ribbon.wgsl`, `arrow.wgsl`, `vector.wgsl`, `plane.wgsl`, `grid.wgsl`, `background.wgsl`)",
@@ -1162,7 +1172,7 @@
   {
     "path": "src/engine/gpu/sink.rs",
     "owner": "geometry",
-    "sourceSha256": "6f31903b280e425f58026e0b6a9f01c134c98ae1cebe330b05d4962034023304",
+    "sourceSha256": "2d2a6442ff7da286a6d10c36e997fe02b0da35a973fcc0fef121020c0f9429ba",
     "explanation": {
       "page": "journey/completion-geometry.md",
       "heading": "### Step 1. Walk meshes, BRep trims and shared `20`-byte arena vertices (`slot_table.wgsl`)",
@@ -1192,7 +1202,7 @@
   {
     "path": "src/engine/gpu/splat/cloud_witness.rs",
     "owner": "application",
-    "sourceSha256": "e21b20cf6f512eda92957d41f81aa8b7154fa164884772ede0aa499443f2822a",
+    "sourceSha256": "60e56c787d23220011f29b0917bf45eb9bbdddeecbe5779cfc96824477d01110",
     "explanation": {
       "page": "journey/completion-debugging.md",
       "heading": "### Step 2: Headless `selftest` CPU ray oracle and software witnesses",
@@ -1362,7 +1372,7 @@
   {
     "path": "src/engine/gpu/view.rs",
     "owner": "geometry",
-    "sourceSha256": "689459bb35c0a73ca6b25bc80cd93738c341eb033cc3932a6d1f032f46767431",
+    "sourceSha256": "24df184ef804b29f233da11cd1c3cf7264912c2dc4516870a802c464d597e92c",
     "explanation": {
       "page": "journey/completion-geometry.md",
       "heading": "### Step 1. Walk meshes, BRep trims and shared `20`-byte arena vertices (`slot_table.wgsl`)",
@@ -1372,7 +1382,7 @@
   {
     "path": "src/engine/gpu/widget.rs",
     "owner": "geometry",
-    "sourceSha256": "dcb14f0facff841c1b6c7b7ad7f2e08a924e2e4fc6c6765a37982b7f59ed5edc",
+    "sourceSha256": "4fc88bb4d7fa132396458f12db37f4edd71eb8557bc2b2bff4b40e37b8bcab03",
     "explanation": {
       "page": "journey/completion-geometry.md",
       "heading": "### Step 3. Shade SDF dots, vertex markers, point-cloud splats, scene text and the private gumball (`glyph`, `sphere`, `splat`, `splat_resolve`, `text_*`, `widget`)",
@@ -1382,7 +1392,7 @@
   {
     "path": "src/engine/gpu/widget_mesh.rs",
     "owner": "geometry",
-    "sourceSha256": "5062ba5952ab52729408dcb80de339de5d906461ec5ca7ade7c74a1ffa235e18",
+    "sourceSha256": "d91eb17587e74bd2ffd71c4d26b9c22431ead545862e523cef90ce4587931303",
     "explanation": {
       "page": "journey/completion-geometry.md",
       "heading": "### Step 3. Shade SDF dots, vertex markers, point-cloud splats, scene text and the private gumball (`glyph`, `sphere`, `splat`, `splat_resolve`, `text_*`, `widget`)",
@@ -1422,7 +1432,7 @@
   {
     "path": "src/engine/pipelines/core.rs",
     "owner": "rows",
-    "sourceSha256": "a5335bf3da733819812efb5b073b1f237646c9de6e610046e49ca275ed098177",
+    "sourceSha256": "126f2c5d085b3f75714e556148543b72f550d501adebcb9e7b6f316e1679d009",
     "explanation": {
       "page": "journey/completion-rows.md",
       "heading": "### Step 3. Declare `@group(0..2)` bind layouts and lazy pipeline compilation",
@@ -1532,7 +1542,7 @@
   {
     "path": "src/selftest/stroke_witness.rs",
     "owner": "application",
-    "sourceSha256": "4639c08832244360cdf549e9c2a2da969e043e5ee415d9e9e72949a254580d70",
+    "sourceSha256": "cb4a4758bf25997e658a2de649448376f1e964ea5b78104a57b73f488b399dd7",
     "explanation": {
       "page": "journey/completion-debugging.md",
       "heading": "### Step 2: Headless `selftest` CPU ray oracle and software witnesses",
@@ -1572,7 +1582,7 @@
   {
     "path": "src/shaders/arrow.wgsl",
     "owner": "geometry",
-    "sourceSha256": "441a8c1fbfa7fcd21bffb45a084cff1fbd296b92022c565bcfe235efacb7cef4",
+    "sourceSha256": "666ba12837f579dc0838987ea6312fcc49ceebfbefbecc2ad50fa5cfe234bf86",
     "explanation": {
       "page": "journey/completion-geometry.md",
       "heading": "### Step 2. Extrude mitered ribbons, `0.30` arrows, planes, grids and backdrop (`ribbon.wgsl`, `arrow.wgsl`, `vector.wgsl`, `plane.wgsl`, `grid.wgsl`, `background.wgsl`)",
@@ -1622,7 +1632,7 @@
   {
     "path": "src/shaders/glyph.wgsl",
     "owner": "geometry",
-    "sourceSha256": "f02c43132ae3cd3612262275c3dc71f751c0507e86a3ede948d0fd1fc2314cc4",
+    "sourceSha256": "b727ea377d0079ec96670a19ac1cc0d03438586d262bdc0d709bfda0cab165fe",
     "explanation": {
       "page": "journey/completion-geometry.md",
       "heading": "### Step 3. Shade SDF dots, vertex markers, point-cloud splats, scene text and the private gumball (`glyph`, `sphere`, `splat`, `splat_resolve`, `text_*`, `widget`)",
@@ -1702,7 +1712,7 @@
   {
     "path": "src/shaders/ribbon.wgsl",
     "owner": "geometry",
-    "sourceSha256": "9731708100d1d9ea942d7d6b9ed45d0cebc7a75c2f3ca976f95b80aea22b0616",
+    "sourceSha256": "06f2a11e4cfbdd1dd7e4925d9ec230c46fc15776aea2e9b67a04bd5b226cc54b",
     "explanation": {
       "page": "journey/completion-geometry.md",
       "heading": "### Step 2. Extrude mitered ribbons, `0.30` arrows, planes, grids and backdrop (`ribbon.wgsl`, `arrow.wgsl`, `vector.wgsl`, `plane.wgsl`, `grid.wgsl`, `background.wgsl`)",
@@ -1722,7 +1732,7 @@
   {
     "path": "src/shaders/scene.wgsl",
     "owner": "rows",
-    "sourceSha256": "cd77cd9c125e2fd9cf80e33589d445f684e04cf11f80b9b7f763bad85a898505",
+    "sourceSha256": "baf7b1acb9f1d6c3dd92a48474e5baf167b5e9000de7a61c45cae53785cd95b6",
     "explanation": {
       "page": "journey/completion-rows.md",
       "heading": "### Step 4. Write the `6` shared WGSL headers (`src/shaders/`)",
@@ -1742,7 +1752,7 @@
   {
     "path": "src/shaders/sphere.wgsl",
     "owner": "geometry",
-    "sourceSha256": "4a4bbdb2853a6525beab037611cb9b2135ce42ad881154b8ab1d46c8e2c24a4a",
+    "sourceSha256": "7e31cfc01df2511baf0fa2a6b06d1a406f08a9fc011e609d1cfa4676acf785b3",
     "explanation": {
       "page": "journey/completion-geometry.md",
       "heading": "### Step 3. Shade SDF dots, vertex markers, point-cloud splats, scene text and the private gumball (`glyph`, `sphere`, `splat`, `splat_resolve`, `text_*`, `widget`)",
@@ -1822,7 +1832,7 @@
   {
     "path": "src/shaders/triangle.wgsl",
     "owner": "geometry",
-    "sourceSha256": "a6f217b662f14b7226c0ed390dcb6a0cf1327304488a1a0d331fcb715c80b20c",
+    "sourceSha256": "397b9ef04434d85b9e6d3ea85b6441029b1a12a653529e551acf47f37f2dc733",
     "explanation": {
       "page": "journey/completion-visibility.md",
       "heading": "### Step 3. Shade solid faces, extract MSAA coverage and test ink visibility (`triangle.wgsl`, `face_coverage.wgsl`, `ink_visibility.wgsl`)",
@@ -1862,7 +1872,7 @@
   {
     "path": "src/state.rs",
     "owner": "application",
-    "sourceSha256": "87be84e71bb736d6a6c3be13575ecda9245e7758ecd7d77d1a54d718c1e848ee",
+    "sourceSha256": "709669759777f1ce4bf6f5387fafc4884f4cbe1a77a8b4a8e3d351bc27ab4130",
     "explanation": {
       "page": "journey/completion-application.md",
       "heading": "### Step 1: Serialize async updates into one `State` owner",
@@ -1922,7 +1932,7 @@
   {
     "path": "src/state/edit.rs",
     "owner": "application",
-    "sourceSha256": "da630bbf6d5473709bf646c07c35e2c0f5eccee424aa89160841458ea5eac7d0",
+    "sourceSha256": "16b0d6be80cf48764b992c82a4cdc96dca72cb08d88b85cd0356df3000cd1cb2",
     "explanation": {
       "page": "journey/completion-modeling.md",
       "heading": "### Step 2: Drafts, tools, delayed drags and in-place subobject deformation",
@@ -1932,7 +1942,7 @@
   {
     "path": "src/state/features.rs",
     "owner": "application",
-    "sourceSha256": "ee1c73729eb9c1f04561f0be52fc1050332a0fba5726086bc25c68c1bb18e9f7",
+    "sourceSha256": "143154e0b94fc4d34f6bdf824690fc6fa4fc1067054d12a84c9e05fc634c13b8",
     "explanation": {
       "page": "journey/completion-application.md",
       "heading": "### Step 2: Register ordered pick hooks and cross-frame features",
@@ -1942,7 +1952,7 @@
   {
     "path": "src/state/host.rs",
     "owner": "application",
-    "sourceSha256": "9d5ada08e02319fba574292bcedec4458f23ee9f56cc342386511e595d58a030",
+    "sourceSha256": "b68720b2e0baafb844b7eff1af2d95b467ebf64290d68c6d905ff9fb370c6005",
     "explanation": {
       "page": "journey/completion-commands.md",
       "heading": "### Step 1: Separate declarative `Spec` spelling from `Action` execution",
@@ -1952,7 +1962,7 @@
   {
     "path": "src/state/hydrate.rs",
     "owner": "application",
-    "sourceSha256": "f3cd933598c54ff9cd78832230eee4d57b3bc407ad170ff6f994450a37ffc2aa",
+    "sourceSha256": "4d8c14fafd026c61b2cdaed551d1732f88445fc5debe9ca57888520862bcd8ea",
     "explanation": {
       "page": "journey/completion-loading.md",
       "heading": "### Step 3: Release display-only RAM and re-hydrate on demand",
@@ -1962,7 +1972,7 @@
   {
     "path": "src/state/number_box.rs",
     "owner": "application",
-    "sourceSha256": "c32afcd959720c2010f60127f2be1315f468f502146935d39468e9fa5f88b9c1",
+    "sourceSha256": "8b195563b705cea55fc1d8b4ea6a621b4812eb44fc8729664637d8adc4f19c0f",
     "explanation": {
       "page": "journey/completion-documents.md",
       "heading": "### Step 4: Flatten hierarchies, move layers and isolate panel actions",
@@ -1972,7 +1982,7 @@
   {
     "path": "src/state/panel.rs",
     "owner": "application",
-    "sourceSha256": "36bd41a3ea12fee7946c009744bb5a5cfd624369997b25d4ec7ad4ba2d8bb1e9",
+    "sourceSha256": "c40eeb55cf46dc3c54234734338df4650b9a8de723db14b1f1e88289a72d062b",
     "explanation": {
       "page": "journey/completion-documents.md",
       "heading": "### Step 4: Flatten hierarchies, move layers and isolate panel actions",
@@ -2042,7 +2052,7 @@
   {
     "path": "viewer-core/src/camera.rs",
     "owner": "camera",
-    "sourceSha256": "76793d7e307fdb36a20148fa0e54e143da9af2fd0245186d37148a3ab26544b9",
+    "sourceSha256": "6594af26d2d99a619e1218c742ceb0f88098cd2a6cde2365b230ded6b6acada3",
     "explanation": {
       "page": "journey/completion-camera.md",
       "heading": "### Step 3. Lock the cursor ray in `zoom_at` and frame bounds in `fit_in`",
@@ -2072,7 +2082,7 @@
   {
     "path": "viewer-core/src/command/headless_tests.rs",
     "owner": "application",
-    "sourceSha256": "023ec022fd1ba176d18cb7df086ac4f1fa0f609e90d058b059f31427905c160c",
+    "sourceSha256": "832aa0d8402243acde31b113d9f3dec766d642c4f67283275ac954a96fbcafe3",
     "explanation": {
       "page": "journey/completion-commands.md",
       "heading": "### Step 1: Separate declarative `Spec` spelling from `Action` execution",
@@ -2082,7 +2092,7 @@
   {
     "path": "viewer-core/src/command/host.rs",
     "owner": "application",
-    "sourceSha256": "98b0ea7d237f20abd541996ddf8500ed8c667e67478b50fa81dbeb0436ef1963",
+    "sourceSha256": "6b89c0bba5ffefdb6e207f0033e5bb927c9f31e4705c205a8ece951022b020c5",
     "explanation": {
       "page": "journey/completion-commands.md",
       "heading": "### Step 1: Separate declarative `Spec` spelling from `Action` execution",
@@ -2200,13 +2210,23 @@
     }
   },
   {
+    "path": "viewer-core/src/command/verbs/alpha.rs",
+    "owner": "application",
+    "sourceSha256": "d48f7ae67b439c7f9ebaf04e31fdca4ff45fc613744ba425c2ba910369ae21e5",
+    "explanation": {
+      "page": "journey/completion-commands.md",
+      "heading": "### Step 3: Delegate state, display and selection verbs cleanly",
+      "paragraph": "`arctic.rs` enables ambient clay shading + surface outlines; `outline.rs` toggles borders independently; `opacity.rs` validates finite `[0.0, 1.0]` global face alpha; `alpha.rs` sets or resets per-object transparency overrides on the selection."
+    }
+  },
+  {
     "path": "viewer-core/src/command/verbs/arctic.rs",
     "owner": "application",
     "sourceSha256": "8112c4bd12c60f555758d69fc39e7f178717d06add8dff000f278a1dfeb0ae13",
     "explanation": {
       "page": "journey/completion-commands.md",
       "heading": "### Step 3: Delegate state, display and selection verbs cleanly",
-      "paragraph": "`arctic.rs` enables ambient clay shading + surface outlines; `outline.rs` toggles borders independently; `opacity.rs` validates finite `[0.0, 1.0]` face alpha."
+      "paragraph": "`arctic.rs` enables ambient clay shading + surface outlines; `outline.rs` toggles borders independently; `opacity.rs` validates finite `[0.0, 1.0]` global face alpha; `alpha.rs` sets or resets per-object transparency overrides on the selection."
     }
   },
   {
@@ -2420,6 +2440,16 @@
     }
   },
   {
+    "path": "viewer-core/src/command/verbs/export.rs",
+    "owner": "application",
+    "sourceSha256": "1ef8474807a379e45caf3824d0b5e7d701cbba0d0a340abe7a526637a5c901d3",
+    "explanation": {
+      "page": "journey/completion-documents.md",
+      "heading": "### Step 5: Instances, idle refinement and `.session` archives",
+      "paragraph": "`export.rs` writes selected or visible surface/mesh geometry to Wavefront OBJ via the kernel writer; `import.rs` imports local `.pb`, `.obj` or `.session` files."
+    }
+  },
+  {
     "path": "viewer-core/src/command/verbs/extend.rs",
     "owner": "application",
     "sourceSha256": "8ef3382fa1367313f5b17812fe1811b6e0eb6a3a0bce03356b16c52fbcb0ebb3",
@@ -2490,6 +2520,16 @@
     }
   },
   {
+    "path": "viewer-core/src/command/verbs/gumball.rs",
+    "owner": "application",
+    "sourceSha256": "f5b8552228ad293e7e2887ea4dba3e1aa773137111b450c57b771ef02d04af1b",
+    "explanation": {
+      "page": "journey/completion-commands.md",
+      "heading": "### Step 3: Delegate state, display and selection verbs cleanly",
+      "paragraph": "`lock.rs` locks selected objects or unlocks all as an undoable appearance step; `gumball.rs` aligns the gumball to `World`, `Object` or `CPlane` axes and relocates or resets its pivot; `properties.rs` toggles the object properties and display settings panel."
+    }
+  },
+  {
     "path": "viewer-core/src/command/verbs/hide.rs",
     "owner": "application",
     "sourceSha256": "870efdd037ad5b14277c9a5e39c636779cd754bfe17fb31c06aa083c97f8c38c",
@@ -2507,6 +2547,16 @@
       "page": "journey/completion-modeling.md",
       "heading": "### Step 3: `Recipe` step queues, `17` parametric primitives and `7` NURBS surfaces",
       "paragraph": "Each Platonic verb (`tetrahedron.rs`, `octahedron.rs`, `icosahedron.rs`, `dodecahedron.rs`) scales edge length from unit circumradius, caches `OnceLock` wireframe previews, and rejects `Brep` radii `< 0.001`."
+    }
+  },
+  {
+    "path": "viewer-core/src/command/verbs/import.rs",
+    "owner": "application",
+    "sourceSha256": "6d1cd5b351ee0ea1e80a0b5d0421fe8e72815b42d8412a6c1756bd11b30e90a3",
+    "explanation": {
+      "page": "journey/completion-documents.md",
+      "heading": "### Step 5: Instances, idle refinement and `.session` archives",
+      "paragraph": "`export.rs` writes selected or visible surface/mesh geometry to Wavefront OBJ via the kernel writer; `import.rs` imports local `.pb`, `.obj` or `.session` files."
     }
   },
   {
@@ -2560,6 +2610,16 @@
     }
   },
   {
+    "path": "viewer-core/src/command/verbs/lock.rs",
+    "owner": "application",
+    "sourceSha256": "8def05da0f1383a11491f04e311b69acd0bad4a24cc4f11b5a52cf9b50b1e4a5",
+    "explanation": {
+      "page": "journey/completion-commands.md",
+      "heading": "### Step 3: Delegate state, display and selection verbs cleanly",
+      "paragraph": "`lock.rs` locks selected objects or unlocks all as an undoable appearance step; `gumball.rs` aligns the gumball to `World`, `Object` or `CPlane` axes and relocates or resets its pivot; `properties.rs` toggles the object properties and display settings panel."
+    }
+  },
+  {
     "path": "viewer-core/src/command/verbs/loft.rs",
     "owner": "application",
     "sourceSha256": "0bd5c5e9169fc10b067629df1567ba2abfbae68aba97148b226e2ad16e96f818",
@@ -2592,7 +2652,7 @@
   {
     "path": "viewer-core/src/command/verbs/mod.rs",
     "owner": "application",
-    "sourceSha256": "9a9c55b6f4d0aa08a323a9dddb4d5a2a887114ca298c159f4e1e7815289b6e9f",
+    "sourceSha256": "c511c259990c905be72adf60223222a5f81467f66e048571ad10ebab099daeb3",
     "explanation": {
       "page": "journey/completion-commands.md",
       "heading": "### Step 1: Separate declarative `Spec` spelling from `Action` execution",
@@ -2736,7 +2796,7 @@
     "explanation": {
       "page": "journey/completion-commands.md",
       "heading": "### Step 3: Delegate state, display and selection verbs cleanly",
-      "paragraph": "`arctic.rs` enables ambient clay shading + surface outlines; `outline.rs` toggles borders independently; `opacity.rs` validates finite `[0.0, 1.0]` face alpha."
+      "paragraph": "`arctic.rs` enables ambient clay shading + surface outlines; `outline.rs` toggles borders independently; `opacity.rs` validates finite `[0.0, 1.0]` global face alpha; `alpha.rs` sets or resets per-object transparency overrides on the selection."
     }
   },
   {
@@ -2766,7 +2826,7 @@
     "explanation": {
       "page": "journey/completion-commands.md",
       "heading": "### Step 3: Delegate state, display and selection verbs cleanly",
-      "paragraph": "`arctic.rs` enables ambient clay shading + surface outlines; `outline.rs` toggles borders independently; `opacity.rs` validates finite `[0.0, 1.0]` face alpha."
+      "paragraph": "`arctic.rs` enables ambient clay shading + surface outlines; `outline.rs` toggles borders independently; `opacity.rs` validates finite `[0.0, 1.0]` global face alpha; `alpha.rs` sets or resets per-object transparency overrides on the selection."
     }
   },
   {
@@ -2797,6 +2857,16 @@
       "page": "journey/completion-modeling.md",
       "heading": "### Step 3: `Recipe` step queues, `17` parametric primitives and `7` NURBS surfaces",
       "paragraph": "`project_to_plane.rs` flattens points, curves and meshes via `place^-1 * P_world * place`, clearing invalidated mesh normals and skipping degenerate collapses."
+    }
+  },
+  {
+    "path": "viewer-core/src/command/verbs/properties.rs",
+    "owner": "application",
+    "sourceSha256": "ad122c060a1b2a403541f0553887b44b1fa8027b8650b225bb3ca1278ef057e5",
+    "explanation": {
+      "page": "journey/completion-commands.md",
+      "heading": "### Step 3: Delegate state, display and selection verbs cleanly",
+      "paragraph": "`lock.rs` locks selected objects or unlocks all as an undoable appearance step; `gumball.rs` aligns the gumball to `World`, `Object` or `CPlane` axes and relocates or resets its pivot; `properties.rs` toggles the object properties and display settings panel."
     }
   },
   {
@@ -3022,7 +3092,7 @@
   {
     "path": "viewer-core/src/command/verbs/view.rs",
     "owner": "application",
-    "sourceSha256": "cad1235110dff9420a4c19af3ee3881793532072c51b66f42e21ab9df059a71a",
+    "sourceSha256": "55434c35e17713a19553bc9e53597afa8be5b1289d2be78ac66e197004679234",
     "explanation": {
       "page": "journey/completion-commands.md",
       "heading": "### Step 4: Construction planes, view presets and section-plane cuts",
@@ -3082,7 +3152,7 @@
   {
     "path": "viewer-core/src/edit.rs",
     "owner": "application",
-    "sourceSha256": "95d634ef72922a0d0d055a28c616e2b57c7fda915ba577960949a763b4967de1",
+    "sourceSha256": "c590564d9c65a37deb08788f0b5a0b335e153efa79959d8b1a724398435f8ac1",
     "explanation": {
       "page": "journey/completion-documents.md",
       "heading": "### Step 4: Flatten hierarchies, move layers and isolate panel actions",
@@ -3092,7 +3162,7 @@
   {
     "path": "viewer-core/src/gizmo.rs",
     "owner": "geometry",
-    "sourceSha256": "cbcc5b0002c60ebdbe7fd43d18c940e121dfe0de937277f6d3a7a87f7df76fa0",
+    "sourceSha256": "d4617cac8e31e6040d552198195745ff2170d5bd16e68f2cd2ec7f336c0c369b",
     "explanation": {
       "page": "journey/completion-geometry.md",
       "heading": "### Step 3. Shade SDF dots, vertex markers, point-cloud splats, scene text and the private gumball (`glyph`, `sphere`, `splat`, `splat_resolve`, `text_*`, `widget`)",
@@ -3212,7 +3282,7 @@
   {
     "path": "viewer-core/src/rows/gizmo.rs",
     "owner": "rows",
-    "sourceSha256": "7256b9369d3f36b004098df8e0b47a19daebc25dac0776b710a7e294dbfd17f6",
+    "sourceSha256": "533845faccfaa93057eb3e2cd40322b518aaf08ec37bf606da9aff563b30cede",
     "explanation": {
       "page": "journey/completion-rows.md",
       "heading": "### Step 2. Pin the `112`-byte `Instance` layout and `GrowBuf` table",
@@ -3232,7 +3302,7 @@
   {
     "path": "viewer-core/src/rows/instance.rs",
     "owner": "rows",
-    "sourceSha256": "67aa20d8bee7a4846a3b79e31bf9af395d742a8bfa9a958e7bc1f9adcbab6542",
+    "sourceSha256": "a460893d77243ce218b1251936e5f85a38315005383d74be9faf3f3aebce875f",
     "explanation": {
       "page": "journey/completion-rows.md",
       "heading": "### Step 2. Pin the `112`-byte `Instance` layout and `GrowBuf` table",
@@ -3292,7 +3362,7 @@
   {
     "path": "viewer-core/src/scene.rs",
     "owner": "application",
-    "sourceSha256": "26726e59a051ddda76bfbcabc61a0103106a5d2199c2aa0d8861da1172912b15",
+    "sourceSha256": "a2dd5db088b909c0ef33443410c8b2bd0ab1eea38233baa5daee4a38eaf88d07",
     "explanation": {
       "page": "journey/completion-documents.md",
       "heading": "### Step 1: Map `(doc_idx, GUID)` placements onto GPU rows and `Footprint` spans",
@@ -3332,7 +3402,7 @@
   {
     "path": "viewer-core/src/scene_rows.rs",
     "owner": "application",
-    "sourceSha256": "4cb5967dc097ad76975494b4c5ba533e03580fb9349c9e6c358266a6268dd41d",
+    "sourceSha256": "e175499ff08408ef32eb7893ee257ddca1eb0a0f9a2411fa2174de0e9056db14",
     "explanation": {
       "page": "journey/completion-documents.md",
       "heading": "### Step 3: Stage updates, retain `256 MiB` tombs and compact dead spans",
@@ -3372,7 +3442,7 @@
   {
     "path": "viewer-core/src/scene_sync/compaction.rs",
     "owner": "application",
-    "sourceSha256": "962ff81a12dc2c4c80b169537559c66872030acbafbb49b72a0d39a6a217a152",
+    "sourceSha256": "959615bc0ebea9302a368b98896770236e098bc8ca8a6f3492f6fabe3f6b3237",
     "explanation": {
       "page": "journey/completion-documents.md",
       "heading": "### Step 3: Stage updates, retain `256 MiB` tombs and compact dead spans",
@@ -3492,7 +3562,7 @@
   {
     "path": "viewer-core/src/session_io.rs",
     "owner": "application",
-    "sourceSha256": "c5a7bee82cf45afa2d0b29acdc94a4a65dfec30d23a5855c584eb33e51ddd89d",
+    "sourceSha256": "2a3a4554821fda8b9af304b803962add3a4c502013d38ac3ee9ca980d053eb13",
     "explanation": {
       "page": "journey/completion-documents.md",
       "heading": "### Step 5: Instances, idle refinement and `.session` archives",
@@ -3512,7 +3582,7 @@
   {
     "path": "viewer-core/src/sink.rs",
     "owner": "rows",
-    "sourceSha256": "52ef0a559387e150425fe43e9ec2799249843895038bacfc57c9cd5570a2098a",
+    "sourceSha256": "0492d1c0cae77cd4823b29e7c51c78eada0a99fc47a9a2a05b184053f53f9b57",
     "explanation": {
       "page": "journey/completion-rows.md",
       "heading": "### Step 2. Pin the `112`-byte `Instance` layout and `GrowBuf` table",
@@ -3722,7 +3792,7 @@
   {
     "path": "viewer-core/src/walk/mesh.rs",
     "owner": "geometry",
-    "sourceSha256": "b134908469f17e6fdfcd2edddd7f78b471698c1dcf10e1ccd0d7b7e1bbdb56a5",
+    "sourceSha256": "e948fe0342e82c7a1ca3c25aac8c75fadce3bb2f8c2daff2ca241fe2839d17ea",
     "explanation": {
       "page": "journey/completion-geometry.md",
       "heading": "### Step 1. Walk meshes, BRep trims and shared `20`-byte arena vertices (`slot_table.wgsl`)",

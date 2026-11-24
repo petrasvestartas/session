@@ -52,6 +52,8 @@ pub async fn render(
         feather_px: 1.0,
         lit: false,
         backface: false,
+        cull_backfaces: false,
+        wireframe: false,
         opacity: 1.0,
         msaa_forced: Some(samples),
         perf: false,

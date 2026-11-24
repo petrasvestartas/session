@@ -23,10 +23,12 @@ struct VsOut {
     @location(6) @interpolate(flat) selected: u32, // nonzero when selected
     @location(7) @interpolate(flat) source_face: u32, // source face id, or none
     @location(8) @interpolate(flat) primitive: u32, // triangle index + 1
-    // closed solids take the opacity; open sheets stay opaque
+    // closed solids take the opacity (bit 0 = closed, bit 1 = eye inside); open sheets stay opaque
     @location(9) @interpolate(flat) closed: u32,
     // x-ray drops the faces of multi-face solids only
     @location(10) @interpolate(flat) xray: u32,
+    // per-object alpha override (0..1), or -1 when using global opacity
+    @location(11) @interpolate(flat) obj_alpha: f32,
 }
 
 // A vertex placed off screen, so nothing is drawn.
@@ -34,6 +36,7 @@ fn dead_vertex() -> VsOut {
     var dead: VsOut; // all zero; only the position matters
     dead.pos = vec4<f32>(3.0, 3.0, 0.5, 1.0);
     dead.source_face = 0xffffffffu;
+    dead.obj_alpha = -1.0;
     return dead;
 }
 
@@ -41,7 +44,7 @@ fn dead_vertex() -> VsOut {
 fn transform_vertex(in: VsIn) -> VsOut {
     let inst = instances[in.inst_id];
 
-    if ((inst.flags & FLAG_HIDDEN) != 0u) {
+    if ((inst.flags & (FLAG_HIDDEN | FLAG_CULLED)) != 0u) {
         return dead_vertex();
     }
 
@@ -59,6 +62,8 @@ fn transform_vertex(in: VsIn) -> VsOut {
 
     if ((inst.flags & FLAG_SELECTED) != 0u) {
         color = SELECT_COLOR;
+    } else if ((inst.flags & FLAG_HOVERED) != 0u && !contact) {
+        color = mix(color, HOVER_COLOR, 0.55);
     }
 
     o.color = color;
@@ -75,8 +80,12 @@ fn transform_vertex(in: VsIn) -> VsOut {
     o.inst_id = in.inst_id;
     o.selected = inst.flags & FLAG_SELECTED;
     o.source_face = 0xffffffffu;
-    o.closed = select(1u, 0u, (inst.flags & FLAG_OPEN) != 0u || contact);
-    o.xray = select(0u, 1u, line.opacity <= 0.0 && (inst.flags & (FLAG_PRINT | FLAG_SHEET | FLAG_SINGLE)) == 0u && !contact);
+    let inside = select(0u, 2u, (inst.flags & FLAG_INSIDE) != 0u);
+    o.closed = select(1u | inside, 0u, (inst.flags & FLAG_OPEN) != 0u || contact);
+    let has_alpha = (inst.flags & FLAG_ALPHA) != 0u && !contact;
+    o.obj_alpha = select(-1.0, inst.color.a, has_alpha);
+    let zero_alpha = (has_alpha && inst.color.a <= 0.0) || (!has_alpha && line.opacity <= 0.0);
+    o.xray = select(0u, 1u, zero_alpha && (inst.flags & (FLAG_PRINT | FLAG_SHEET | FLAG_SINGLE)) == 0u && !contact);
     return o;
 }
 
@@ -150,9 +159,12 @@ fn view_dir(world_pos: vec3<f32>) -> vec3<f32> {
 // Face color with lighting, opacity and back-face red.
 fn shade(in: VsOut, raster_front: bool) -> vec4<f32> {
     let front = raster_front != (in.mirrored != 0u);
+    let is_closed = (in.closed & 1u) != 0u;
+    let is_inside = (in.closed & 2u) != 0u;
+    let alpha = select(select(1.0, line.opacity, is_closed), in.obj_alpha, in.obj_alpha >= 0.0);
 
-    // translucent solids drop their back faces
-    if (!front && in.closed != 0u && line.opacity > 0.0 && line.opacity < 1.0) {
+    // translucent solids or explicit cull-backfaces mode drop back faces when the eye is outside
+    if (!front && is_closed && !is_inside && (line.backface < -0.5 || (alpha > 0.0 && alpha < 1.0))) {
         discard;
     }
     // flat normal from screen derivatives, when the mesh has none
@@ -188,7 +200,6 @@ fn shade(in: VsOut, raster_front: bool) -> vec4<f32> {
     let ambient = mix(0.72, 1.0, 0.5 + 0.5 * n.z);
     let lighting = select(lit, ambient, line.lit > 1.5);
     let shaded = select(1.0, lighting, line.lit > 0.5 && in.print <= 0.5);
-    let alpha = select(1.0, line.opacity, in.closed != 0u);
     return vec4<f32>(base * shaded, alpha);
 }
 

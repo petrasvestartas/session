@@ -338,10 +338,20 @@ impl FrameUniforms {
             } else {
                 f32::from(cx.view.lit)
             },
-            backface: f32::from(cx.view.backface),
+            backface: if cx.view.backface {
+                1.0
+            } else if cx.view.cull_backfaces {
+                -1.0
+            } else {
+                0.0
+            },
             origin: [0.0; 2],
             frame: [cx.size.0 as f32, cx.size.1 as f32],
-            opacity: cx.view.opacity,
+            opacity: if cx.view.wireframe {
+                0.0
+            } else {
+                cx.view.opacity
+            },
             plane_size: super::planes::plane_size() as f32,
         };
         ctx.queue

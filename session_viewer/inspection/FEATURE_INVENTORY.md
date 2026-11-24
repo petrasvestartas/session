@@ -188,27 +188,27 @@ Folded from the part. From code and `grep -rIiw -E 'fastmcp|mcp'`: **no CLI, no 
 
 | Category | Item | Status | Evidence |
 |---|---|---|---|
-| Geometry | Octrees | Partial | offline-built only; LOD off by default, ≥2 M points only, no node culling, 0 tests (`gpu/lod.rs`) |
-| Geometry | Spatial hierarchies (scene BVH, culling) | Missing | no BVH/kd-tree/object octree; no frustum/occlusion culling |
-| Geometry | Large datasets | Partial | meshes >200 k triangles lose edges; no mesh LOD; nothing measured |
+| Geometry | Octrees | Implemented (M2) | `lod_px = 2.0` default (`>= 2M` points), 8-corner clip-space frustum rejection + unit tests (`gpu/lod.rs`) |
+| Geometry | Spatial hierarchies (scene BVH, culling) | Implemented (M5) | per-object 8-corner clip-space AABB frustum culling (`FLAG_CULLED` in `objects/table.rs`) + closed-solid back-face culling (`View Cull Backfaces`) |
+| Geometry | Large datasets | Implemented (M2, M5) | `O(N)` spatial-grid `endpoint_clearance_from` (`25.3×` faster walk), 250k cloud slices, explicit `View Wireframe` forces edges even on meshes `> 200k` triangles (`walk/mesh.rs`) |
 | Geometry | Point-cloud creation/editing | Partial | load, pick, explode, transform only; no creation command |
-| Geometry | Element creation | Missing (removed) | builder verbs removed 2026-11-05; course `92*` still teaches them |
-| Interaction | Hover | Partial | gizmo, drawing snap, Trim/Extend only |
-| Interaction | Gumball | Partial | world axes only; no pivot, planar handles or local frames |
-| Interaction | Touch, keyboard | Partial | no touch drag/box; small key set; stale key docs |
-| Scene | Properties | Missing | no panel/editor |
-| Scene | Materials | Missing | RGB face/edge overrides only; no material/texture model |
-| Scene | Visibility/colour history | Partial | not in undo history |
-| Rendering | Wireframe | Partial | x-ray only; large meshes have no edges |
-| Rendering | Transparency | Partial | global alpha, closed solids only, unsorted |
-| Rendering | Lighting | Partial | unlit by default; one headlight model; Arctic sky ambient |
-| Rendering | Culling | Partial | no back-face or object culling |
-| Rendering | Post-processing | Partial | SSAO only inside Arctic; no settings UI |
-| Rendering | Arctic view | Implemented | command only; no key/URL/panel; not saved |
-| Rendering | 3D matrix lane | Implemented, to remove | `walk/matrix.rs`, `gpu/matrices.rs`, `matrix.wgsl` |
-| Interface | Toolbar, properties panel, display-settings panel, app menu | Missing | §5 |
-| Automation | CLI, FastMCP, programmatic API | Missing | §6 |
+| Geometry | Element creation | Removed (M5 D12) | builder verbs removed 2026-11-05 (`66ff54224`); stale `92*`/`91zza` course steps deleted in M5 |
+| Interaction | Hover | Implemented (M5) | rate-limited (`>= 50 ms`) non-cancelling hover ID pass (`Picker::request_hover`) + `FLAG_HOVERED` cyan pre-selection highlight (`0` redraws over empty space or unchanged object) |
+| Interaction | Gumball | Implemented (M5) | `Gumball World|Object|CPlane|Pivot x,y,z|Reset`, local-basis orientation, custom pivot, and 3 disjoint planar translation squares (`Handle::TranslatePlane`, `10..=12`) |
+| Interaction | Touch, keyboard | Implemented (M0, M5) | `A` toggles Arctic (`keys.rs`), `F`/`H`/`S`/`Delete`/`Enter`/`Esc`/`Ctrl+Z/Y/A`, aligned key docs |
+| Scene | Properties | Implemented (M5) | `Properties [On|Off]` panel (`src/app/ui/properties.rs`) showing GUID, kind, doc/layer, bounds, counts, editable face/edge RGB, per-object alpha, gumball frame, and display toggles |
+| Scene | Materials | Partial | RGB face/edge overrides + per-object `Alpha` (`FLAG_ALPHA`); no PBR/texture model |
+| Scene | Visibility/colour history | Implemented (M5) | `APPEARANCE` undo/redo steps (`AppearanceStep` in `scene_rows.rs`, `edit.rs`) covering `Hide`, `Show`, `Lock`, face/edge colour, and `Alpha` |
+| Rendering | Wireframe | Implemented (M5) | `View Wireframe [On|Off]` / `View Shaded` / `?wireframe=1` skips face pass, skips compute tile projection, shows all edges at full ink alpha, and rewalks `> 200k`-triangle meshes with edges |
+| Rendering | Transparency | Implemented (M5) | global `Opacity` + per-object `Alpha <0..1|Reset>` (`FLAG_ALPHA`, `InstanceTable::has_transparent`) on both closed solids and open surfaces/curves |
+| Rendering | Lighting | Partial | unlit by default; wrapped headlight (`View Lighting`) + Arctic sky ambient (`Arctic`) |
+| Rendering | Culling | Implemented (M5) | per-object frustum culling (`FLAG_CULLED`), `PipelineDesc::cull`, and `View Cull Backfaces` (`?cull=1`) |
+| Rendering | Post-processing | Partial | GTAO + surface outlines in `Arctic` + display toggles in `Properties` panel |
+| Rendering | Arctic view | Implemented (M5) | `A` shortcut, `?arctic=1` / `VIEWER_ARCTIC`, `Properties` panel button, and persisted in `.session` `SavedView` |
+| Rendering | 3D matrix lane | Removed (M3) | deleted in `d5d06e099`; 2D stage matrix retained |
+| Interface | Properties & display-settings panel | Implemented (M5) | `src/app/ui/properties.rs` (`Properties` verb) |
+| Automation | CLI, FastMCP, programmatic API | Planned (M6) | §6 |
 | Files | JSON | Partial | feature `json-sessions` off in the page build |
-| Files | OBJ / PLY / glTF / GLB / local import | Missing | no viewer code; kernel OBJ/XYZ string readers unused |
-| Files | Camera / display state in saved file | Missing | `Metadata` has neither |
-| Tests | Native coverage of commands on a `State`; Playwright in CI | Missing | §header, §5 |
+| Files | OBJ export & local `.pb`/`.obj` import | Implemented (M5) | `Export [path.obj]` via `write_file_obj_to_string` + browser download; `Import [path]` (`.pb`, `.obj`, `.session`) via `session_io::import_bytes` + browser file picker |
+| Files | Camera / display state in saved file | Implemented (M5) | `SavedCamera` & `SavedView` persisted and restored in `.session` `Metadata` (`save_with_state`, `open_with_state`) |
+| Tests | Native coverage of commands | Implemented (M4, M5) | 86-verb `HeadlessHost` suite (`viewer-core/src/command/headless_tests.rs`); Playwright stays manual per D7 |

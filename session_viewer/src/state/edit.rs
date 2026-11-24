@@ -15,6 +15,7 @@ pub struct GizmoDrag {
     target: Option<crate::app::deform::Target>, // a face, edge or control point being moved
     source: Option<session_rust::Geometry>, // the geometry before the drag
     origin: Point,            // the gizmo center at the grab
+    basis: [Vector; 3],       // the gizmo axes at the grab
     mesh_preview: Option<crate::app::mesh_preview::Gesture>, // a GPU-side mesh preview
 }
 
@@ -56,9 +57,29 @@ impl State {
             .transformed(&place);
         }
 
+        if let Some(ref custom) = self.features.gizmo_pivot {
+            origin = custom.clone();
+        }
+
+        let world_basis = || [Vector::x_axis(), Vector::y_axis(), Vector::z_axis()];
+        let basis = match self.features.gizmo_align {
+            crate::app::gizmo::GizmoAlign::World => world_basis(),
+            crate::app::gizmo::GizmoAlign::Object => row
+                .and_then(|r| self.scene.placement_of(r))
+                .map(|xf| crate::app::gizmo::basis_from_xform(&xf))
+                .unwrap_or_else(world_basis),
+            crate::app::gizmo::GizmoAlign::CPlane => {
+                let (x, y) = self.facing().axes();
+                crate::app::gizmo::orthonormal_basis(x, y)
+            }
+        };
+
         match self.features.gizmo.as_mut() {
-            Some(gizmo) => gizmo.set_origin(origin),
-            None => self.features.gizmo = Some(Gizmo::new(origin)),
+            Some(gizmo) => {
+                gizmo.set_origin(origin);
+                gizmo.set_basis(basis);
+            }
+            None => self.features.gizmo = Some(Gizmo::with_basis(origin, basis)),
         }
 
         self.upload_gizmo(); // register:gumball
@@ -114,6 +135,7 @@ impl State {
             target: crate::app::deform::Target::selected(&self.selection.mode),
             source: self.scene.geometry(row).cloned(),
             origin: gizmo.origin.clone(),
+            basis: gizmo.basis.clone(),
             mesh_preview,
         });
         true
@@ -128,9 +150,12 @@ impl State {
             return false;
         };
         // the transform the gesture means so far
-        let Some(delta) =
-            Gizmo::new(active.origin.clone()).update(&active.drag, &from, &dir, self.snap_rotation)
-        else {
+        let Some(delta) = Gizmo::with_basis(active.origin.clone(), active.basis.clone()).update(
+            &active.drag,
+            &from,
+            &dir,
+            self.snap_rotation,
+        ) else {
             return false;
         };
 
@@ -218,9 +243,12 @@ impl State {
             return false;
         };
         gizmo.drag = None;
-        let Some(delta) =
-            Gizmo::new(active.origin.clone()).update(&active.drag, &from, &dir, self.snap_rotation)
-        else {
+        let Some(delta) = Gizmo::with_basis(active.origin.clone(), active.basis.clone()).update(
+            &active.drag,
+            &from,
+            &dir,
+            self.snap_rotation,
+        ) else {
             return false;
         };
 
@@ -250,7 +278,7 @@ impl State {
 
         // the undo label
         let label = match active.drag.handle {
-            Handle::Translate(_) => "move",
+            Handle::Translate(_) | Handle::TranslatePlane(_) => "move",
             Handle::Rotate(_) => "rotate",
             Handle::Scale(_) | Handle::ScaleUniform => "scale",
         };
@@ -415,6 +443,17 @@ impl State {
     pub(crate) fn commit_rows(&mut self) {
         self.scene.sync();
         self.scene.upload_to(&mut self.gpu);
+        for row in std::mem::take(&mut self.scene.appearance_rows) {
+            if let Some(id) = self.scene.identity_of(row) {
+                self.gpu.set_hidden(row, self.scene.hidden.contains(&id));
+                self.gpu
+                    .set_object_color(row, false, self.scene.colors.get(&id).copied());
+                self.gpu
+                    .set_object_color(row, true, self.scene.edge_colors.get(&id).copied());
+                self.gpu
+                    .set_object_alpha(row, self.scene.alphas.get(&id).copied());
+            }
+        }
         self.purge_idle();
         let gesture = self.features.dragging.is_some() || self.features.control_drag.is_some();
 
@@ -1004,6 +1043,7 @@ impl State {
         self.gpu.widget.placement = Some((
             [gizmo.origin[0], gizmo.origin[1], gizmo.origin[2]],
             self.world_per_px(), // keeps the widget the same pixel size
+            crate::app::gizmo::basis_rotation(&gizmo.basis),
         ));
         // the dragged handle, else the one being typed for, else the hovered one
         let handle = self
@@ -1013,14 +1053,8 @@ impl State {
             .map(|drag| drag.drag.handle)
             .or(gizmo.typing)
             .or(gizmo.hovered);
-        // handle index for the shader: 0-2 move, 3-5 rotate, 6-8 scale, 9 uniform
-        self.gpu.widget.active = match handle {
-            Some(Handle::Translate(axis)) => axis as u32 as f32,
-            Some(Handle::Rotate(axis)) => axis as u32 as f32 + 3.0,
-            Some(Handle::Scale(axis)) => axis as u32 as f32 + 6.0,
-            Some(Handle::ScaleUniform) => 9.0,
-            None => -1.0,
-        };
+        // handle index for the shader: 0-2 move, 3-5 rotate, 6-8 scale, 9 uniform, 10-12 plane
+        self.gpu.widget.active = handle.map_or(-1.0, |h| h.index() as f32);
     }
 
     /// Light the gizmo handle under the pointer; true when it changed.
@@ -1075,7 +1109,7 @@ mod egui_tests_25 {
         let before = gpu.render_offscreen(&input);
 
         // 96 pixels at 0.5 units per pixel fits the view
-        gpu.widget.placement = Some(([0.0; 3], 0.5));
+        gpu.widget.placement = Some(([0.0; 3], 0.5, Xform::identity()));
         let after = gpu.render_offscreen(&input);
 
         let (mut red, mut green, mut blue, mut changed) = (0, 0, 0, 0);

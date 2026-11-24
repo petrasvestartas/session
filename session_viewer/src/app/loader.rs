@@ -1038,11 +1038,16 @@ pub fn spawn_hydrate(doc: usize, url: String, token: u64) {
 use super::scene::Hydrated;
 
 /// Show a scene opened from a `.session` file.
-pub(super) fn install_saved_scene(scene: super::scene::Scene) {
+pub(super) fn install_saved_scene(opened: super::session_io::OpenedSession) {
     LOAD_GENERATION.set(LOAD_GENERATION.get().wrapping_add(1));
     GENERATION.set(GENERATION.get().wrapping_add(1));
     reset_range_gate(); // register:stream
     RESIDENT.set(0);
     SHEET_RESIDENT.set(0);
-    post(Msg::SavedScene(Box::new(scene)));
+    post(Msg::SavedScene(Box::new(opened)));
+}
+
+/// Append a local `.pb` or `.obj` file chosen in the browser.
+pub(super) fn install_imported_file(name: String, bytes: Vec<u8>) {
+    post(Msg::ImportedFile(name, bytes));
 }

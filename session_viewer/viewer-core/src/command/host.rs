@@ -26,18 +26,22 @@ pub enum ViewFlag {
     Outline,
     Lighting,
     Backfaces,
+    Wireframe,
+    CullBackfaces,
 }
 
 /// Authoritative display settings for headless execution and `.session` persistence.
 #[derive(Clone, Debug)]
 pub struct DisplaySettings {
     pub ssao: bool,
+    pub wireframe: bool,
     pub show_outlines: bool,
     pub show_points: bool,
     pub show_lines: bool,
     pub show_mesh_edges: bool,
     pub lit: bool,
     pub backface: bool,
+    pub cull_backfaces: bool,
     pub opacity: f32,
     pub show_grid: bool,
     pub cloud_size: f32,
@@ -46,18 +50,23 @@ pub struct DisplaySettings {
     pub clipping_solid: bool,
     pub layers_open: bool,
     pub layers_expanded: bool,
+    pub properties_open: bool,
+    pub gizmo_align: crate::app::gizmo::GizmoAlign,
+    pub gizmo_pivot: Option<Point>,
 }
 
 impl Default for DisplaySettings {
     fn default() -> Self {
         Self {
             ssao: false,
+            wireframe: false,
             show_outlines: true,
             show_points: true,
             show_lines: true,
             show_mesh_edges: true,
             lit: true,
             backface: true,
+            cull_backfaces: false,
             opacity: 0.95,
             show_grid: true,
             cloud_size: 2.0,
@@ -66,6 +75,9 @@ impl Default for DisplaySettings {
             clipping_solid: false,
             layers_open: false,
             layers_expanded: false,
+            properties_open: false,
+            gizmo_align: crate::app::gizmo::GizmoAlign::World,
+            gizmo_pivot: None,
         }
     }
 }
@@ -200,6 +212,13 @@ pub trait CommandHost {
     fn expand_layers(&mut self);
     fn reveal_layer(&mut self, doc: usize, name: &str);
     fn set_layers_panel(&mut self, open: Option<bool>, expand_all: bool);
+    fn set_properties_panel(&mut self, open: Option<bool>) -> String;
+    fn set_object_alpha(&mut self, alpha: Option<f32>) -> Result<String, String>;
+    fn lock_selected(&mut self, locked: bool) -> Result<String, String>;
+    fn set_gizmo_align(&mut self, align: crate::app::gizmo::GizmoAlign) -> String;
+    fn set_gizmo_pivot(&mut self, pivot: Option<Point>) -> String;
+    fn export_obj(&mut self, path: Option<&str>) -> Result<String, String>;
+    fn import_file(&mut self, path: Option<&str>) -> Result<String, String>;
     fn fetch_wanted(&mut self);
     fn save_session(&mut self) -> Result<String, String>;
     fn open_session_prompt(&mut self) -> Result<String, String>;
@@ -981,6 +1000,38 @@ impl CommandHost for HeadlessHost {
     fn commit_rows(&mut self) {
         self.scene.sync();
         self.scene.drain_changes(&mut self.rows);
+        for row in std::mem::take(&mut self.scene.appearance_rows) {
+            if let Some(id) = self.scene.identity_of(row)
+                && let Some(obj) = self.rows.get_mut(&row)
+            {
+                if self.scene.hidden.contains(&id) {
+                    obj.flags |= Instance::FLAG_HIDDEN;
+                } else {
+                    obj.flags &= !Instance::FLAG_HIDDEN;
+                }
+                if let Some(c) = self.scene.colors.get(&id) {
+                    obj.color[0] = c[0] as f32 / 255.0;
+                    obj.color[1] = c[1] as f32 / 255.0;
+                    obj.color[2] = c[2] as f32 / 255.0;
+                    obj.flags |= Instance::FLAG_COLOR;
+                } else {
+                    obj.flags &= !Instance::FLAG_COLOR;
+                }
+                if let Some(c) = self.scene.edge_colors.get(&id) {
+                    obj.edge_color = u32::from_le_bytes([c[0], c[1], c[2], 255]);
+                    obj.flags |= Instance::FLAG_EDGE_COLOR;
+                } else {
+                    obj.flags &= !Instance::FLAG_EDGE_COLOR;
+                }
+                if let Some(&a) = self.scene.alphas.get(&id) {
+                    obj.color[3] = a;
+                    obj.flags |= Instance::FLAG_ALPHA;
+                } else {
+                    obj.color[3] = 1.0;
+                    obj.flags &= !Instance::FLAG_ALPHA;
+                }
+            }
+        }
         if self.scene.compaction_due() {
             self.scene.rewalk_editable_cpu(&mut self.rows);
         }
@@ -1079,21 +1130,19 @@ impl CommandHost for HeadlessHost {
             return;
         }
         self.select(None);
-        for row in rows {
-            if let Some(id) = self.scene.identity_of(row) {
-                self.scene.hidden.insert(id);
-                self.set_row_hidden(row, true);
-            }
+        for row in self.scene.set_rows_hidden(&rows, true, "hide") {
+            self.set_row_hidden(row, true);
         }
+        self.scene.appearance_rows.clear();
         self.recompute_bounds();
         self.refresh_layers();
     }
 
     fn show_all(&mut self) {
-        for row in self.scene.hidden_rows() {
+        for row in self.scene.show_all_identities() {
             self.set_row_hidden(row, false);
         }
-        self.scene.hidden.clear();
+        self.scene.appearance_rows.clear();
         self.hierarchy.off.clear();
         self.recompute_bounds();
         self.refresh_layers();
@@ -1289,6 +1338,8 @@ impl CommandHost for HeadlessHost {
             ViewFlag::Outline => self.display.show_outlines,
             ViewFlag::Lighting => self.display.lit,
             ViewFlag::Backfaces => self.display.backface,
+            ViewFlag::Wireframe => self.display.wireframe,
+            ViewFlag::CullBackfaces => self.display.cull_backfaces,
         }
     }
 
@@ -1300,6 +1351,14 @@ impl CommandHost for HeadlessHost {
             ViewFlag::Outline => self.display.show_outlines = on,
             ViewFlag::Lighting => self.display.lit = on,
             ViewFlag::Backfaces => self.display.backface = on,
+            ViewFlag::Wireframe => {
+                self.display.wireframe = on;
+                self.scene.wireframe = on;
+                if on && self.scene.has_large_meshes() {
+                    self.scene.rewalk_editable_cpu(&mut self.rows);
+                }
+            }
+            ViewFlag::CullBackfaces => self.display.cull_backfaces = on,
         }
     }
 
@@ -1528,10 +1587,164 @@ impl CommandHost for HeadlessHost {
         }
     }
 
+    fn set_properties_panel(&mut self, open: Option<bool>) -> String {
+        let next = open.unwrap_or(!self.display.properties_open);
+        self.display.properties_open = next;
+        format!("Properties {}", if next { "On" } else { "Off" })
+    }
+
+    fn set_object_alpha(&mut self, alpha: Option<f32>) -> Result<String, String> {
+        let rows = self.selected_rows();
+        if rows.is_empty() {
+            return Err("Select an object first".into());
+        }
+        let changed = self.scene.set_rows_alpha(&rows, alpha);
+        self.commit_rows();
+        match alpha {
+            Some(a) => Ok(format!(
+                "Alpha {:.2} on {} object(s)",
+                a,
+                changed.len().max(1)
+            )),
+            None => Ok("Alpha reset".into()),
+        }
+    }
+
+    fn lock_selected(&mut self, locked: bool) -> Result<String, String> {
+        if locked {
+            let rows = self.selected_rows();
+            if rows.is_empty() {
+                return Err("Select an object to lock".into());
+            }
+            self.select(None);
+            let n = self.scene.set_rows_locked(&rows, true);
+            self.refresh_layers();
+            Ok(format!("Locked {n} object(s)"))
+        } else {
+            let n = self.scene.unlock_all_identities();
+            self.refresh_layers();
+            Ok(format!("Unlocked {n} object(s)"))
+        }
+    }
+
+    fn set_gizmo_align(&mut self, align: crate::app::gizmo::GizmoAlign) -> String {
+        self.display.gizmo_align = align;
+        if let Some(row) = self.scene.selected {
+            self.place_gizmo(Some(row));
+        }
+        match align {
+            crate::app::gizmo::GizmoAlign::World => "Gumball aligned to World".into(),
+            crate::app::gizmo::GizmoAlign::Object => "Gumball aligned to Object".into(),
+            crate::app::gizmo::GizmoAlign::CPlane => "Gumball aligned to CPlane".into(),
+        }
+    }
+
+    fn set_gizmo_pivot(&mut self, pivot: Option<Point>) -> String {
+        self.display.gizmo_pivot = pivot.clone();
+        if let Some(gizmo) = self.gizmo.as_mut() {
+            gizmo.custom_pivot = pivot.clone();
+            if let Some(p) = &pivot {
+                gizmo.set_origin(p.clone());
+            }
+        }
+        if pivot.is_none()
+            && let Some(row) = self.scene.selected
+        {
+            self.place_gizmo(Some(row));
+        }
+        match pivot {
+            Some(p) => format!("Gumball pivot ({:.2}, {:.2}, {:.2})", p[0], p[1], p[2]),
+            None => "Gumball pivot reset".into(),
+        }
+    }
+
+    fn export_obj(&mut self, path: Option<&str>) -> Result<String, String> {
+        let sel = self.selected_rows();
+        let filter = (!sel.is_empty()).then_some(sel.as_slice());
+        let obj = crate::app::session_io::export_obj(&self.scene, filter)?;
+        let bytes = obj.len();
+        if let Some(path) = path {
+            #[cfg(not(target_arch = "wasm32"))]
+            {
+                std::fs::write(path, &obj).map_err(|e| format!("Cannot write {path}: {e}"))?;
+                return Ok(format!("Exported OBJ to {path} ({bytes} bytes)"));
+            }
+            #[cfg(target_arch = "wasm32")]
+            {
+                let _ = path;
+            }
+        }
+        Ok(format!("Exported OBJ ({bytes} bytes)"))
+    }
+
+    fn import_file(&mut self, path: Option<&str>) -> Result<String, String> {
+        let Some(path) = path else {
+            self.open_prompts += 1;
+            return Ok("Choose a .pb, .obj or .session file to import".into());
+        };
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            let bytes = std::fs::read(path).map_err(|e| format!("Cannot read {path}: {e}"))?;
+            if path.to_ascii_lowercase().ends_with(".session") {
+                let opened = crate::app::session_io::open_with_state(&bytes)?;
+                self.scene = opened.scene;
+                if let Some(cam) = opened.camera {
+                    cam.apply_to(&mut self.camera);
+                }
+                if let Some(v) = opened.view {
+                    self.display.ssao = v.arctic;
+                    self.display.wireframe = v.wireframe;
+                    self.scene.wireframe = v.wireframe;
+                    self.display.show_outlines = v.show_outlines;
+                    self.display.lit = v.lit;
+                    self.display.backface = v.backface;
+                    self.display.cull_backfaces = v.cull_backfaces;
+                    self.display.opacity = v.opacity;
+                    self.display.show_grid = v.show_grid;
+                    self.display.cloud_size = v.cloud_size;
+                }
+                self.rows.clear();
+                self.scene.drain_changes(&mut self.rows);
+                self.recompute_bounds();
+                self.refresh_layers();
+                return Ok(format!("Opened session {path}"));
+            }
+            let doc = crate::app::session_io::import_bytes(&mut self.scene, path, &bytes)?;
+            self.scene.drain_changes(&mut self.rows);
+            self.recompute_bounds();
+            self.refresh_layers();
+            Ok(format!(
+                "Imported {} ({} objects)",
+                self.scene.docs[doc].name,
+                self.scene.docs[doc].session.lookup.len()
+            ))
+        }
+        #[cfg(target_arch = "wasm32")]
+        {
+            let _ = path;
+            Err(
+                "Direct filesystem paths are native-only; run `Import` with no path in the browser"
+                    .into(),
+            )
+        }
+    }
+
     fn fetch_wanted(&mut self) {}
 
     fn save_session(&mut self) -> Result<String, String> {
-        let bytes = crate::app::session_io::save(&self.scene)?;
+        let cam = crate::app::session_io::SavedCamera::from_camera(&self.camera);
+        let view = crate::app::session_io::SavedView {
+            arctic: self.display.ssao,
+            wireframe: self.display.wireframe,
+            show_outlines: self.display.show_outlines,
+            lit: self.display.lit,
+            backface: self.display.backface,
+            cull_backfaces: self.display.cull_backfaces,
+            opacity: self.display.opacity,
+            show_grid: self.display.show_grid,
+            cloud_size: self.display.cloud_size,
+        };
+        let bytes = crate::app::session_io::save_with_state(&self.scene, Some(cam), Some(view))?;
         let len = bytes.len();
         self.saved_bytes = Some(bytes);
         Ok(format!("Saved complete session ({len} bytes)"))

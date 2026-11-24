@@ -94,7 +94,7 @@ fn marker_vertex(tmpl: vec3<f32>, gi: u32, through_faces: bool) -> VsOut {
     let g = glyphs[gi];
     let inst = instances[g.instance_id];
 
-    if ((inst.flags & FLAG_HIDDEN) != 0u) {
+    if ((inst.flags & (FLAG_HIDDEN | FLAG_CULLED)) != 0u) {
         return dead_dot();
     }
 
@@ -154,6 +154,8 @@ fn marker_vertex(tmpl: vec3<f32>, gi: u32, through_faces: bool) -> VsOut {
 
     if ((inst.flags & FLAG_SELECTED) != 0u) {
         color = vec4<f32>(SELECT_COLOR, color.a);
+    } else if ((inst.flags & FLAG_HOVERED) != 0u) {
+        color = vec4<f32>(mix(color.rgb, HOVER_COLOR, 0.7), color.a);
     }
 
     o.color = color;

@@ -67,7 +67,7 @@ impl State {
         };
         let delta = gizmo.typed(handle, value);
         let label = match handle {
-            Handle::Translate(_) => "move",
+            Handle::Translate(_) | Handle::TranslatePlane(_) => "move",
             Handle::Rotate(_) => "rotate",
             Handle::Scale(_) | Handle::ScaleUniform => "scale",
         };
