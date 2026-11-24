@@ -61,6 +61,7 @@ nav:
     - "37 · Self-test: the finished viewer": docs/37-command-dock.md
   - Reference:
     - "Architecture": ARCHITECTURE.md
+    - "Shared Operation API": docs/operations.md
     - "Reading failures": docs/debugging.md
     - "How to benchmark": docs/benchmarking.md
     - "Small code, bounded work": docs/performance-patterns.md

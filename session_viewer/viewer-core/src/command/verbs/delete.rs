@@ -18,7 +18,14 @@ struct Delete;
 impl Action for Delete {
     /// Drop every selected row from its document, one undo step.
     fn run(&self, state: &mut dyn CommandHost) -> Result<String, String> {
-        state.delete_selection()
+        crate::op::execute(
+            state,
+            crate::op::Op::ObjectDelete {
+                targets: crate::op::Targets::Selection,
+            },
+        )
+        .map(|r| r.message)
+        .map_err(|e| e.message)
     }
 
     fn needs_selection(&self) -> bool {

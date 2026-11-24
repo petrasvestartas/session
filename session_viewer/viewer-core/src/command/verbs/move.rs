@@ -28,7 +28,15 @@ struct Move([f64; 3]);
 impl Action for Move {
     /// Translate the selection and record it in history.
     fn run(&self, state: &mut dyn CommandHost) -> Result<String, String> {
-        state.apply(Xform::translation(self.0[0], self.0[1], self.0[2]), "move")
+        crate::op::execute(
+            state,
+            crate::op::Op::ObjectTransform {
+                targets: crate::op::Targets::Selection,
+                xform: crate::op::XformSpec::Translate { delta: self.0 },
+            },
+        )
+        .map(|r| r.message)
+        .map_err(|e| e.message)
     }
 
     fn needs_selection(&self) -> bool {

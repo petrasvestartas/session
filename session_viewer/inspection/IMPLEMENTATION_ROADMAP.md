@@ -94,19 +94,14 @@ Evidence: REPOSITORY_INSPECTION.md §What was run; FEATURE_INVENTORY.md §8-9.
 | Export & local import | `Export [path.obj]` via `session_rust::file_obj::write_file_obj_to_string` + browser download; `Import [path]` (`.pb`, `.obj`, `.session`) via `import_bytes` + browser file picker | `viewer-core/src/session_io.rs`, `viewer-core/src/command/verbs/{export,import}.rs`, `src/app/{session_io,loader,runtime}.rs` |
 | Element builders (D12) | Deleted the 17 stale `92*`/`91zza` Element builder steps from `docs/journey/course.json` and removed their stale `.md` files & broken links | `docs/journey/*`, `docs/archived/cumulative-route-20261115.md` |
 
-## M6 — Shared Op API, CLI, FastMCP
+## M6 — Shared Op API, CLI, FastMCP (DONE 2026-11-24)
 
 | Field | Content |
 |---|---|
-| Objective | One typed operation layer reached by the command line, a native CLI and a FastMCP server; no second geometry engine. |
-| Existing dependencies | M4 `CommandHost`/headless host; kernel `session_rust`; `../session_py` for the Python side |
-| Files affected | new `viewer-core::op` (`Op`, `Reply`, `OpError`, `execute`), new CLI `[[bin]]`, new FastMCP server package next to `../session_py`, wasm `execute(json)` export in `viewer-web` |
-| Required changes | INTERFACE_INVENTORY.md §4: serde `Op` enum addressed by document + guid; `CommandRun{line}` keeps every existing verb reachable; interactive tools finish by emitting an `Op`; CLI reads JSON lines on stdin; FastMCP tools are thin wrappers over the CLI process |
-| Tests | round-trip tests per `Op` on the headless host; golden JSON replies; one FastMCP smoke test |
-| Benchmarks | ops/s for create + transform on the floor fixture (headless) |
-| Documentation | generated operation reference (from the `Op` schema) |
-| Acceptance criteria | Same scene edit via command line, CLI and FastMCP yields identical `.session` output |
-| Risks | Medium: object addressing (today layer actions use unstable tree indexes; Rotate/Scale pivot on the gumball) |
+| Objective | One typed operation layer reached by the command line, a native CLI, browser `execute_op`, and a FastMCP server; no second geometry engine. |
+| Files changed | `viewer-core/src/{lib,op}.rs`, `viewer-core/src/command/{host,verbs/delete,verbs/undo,verbs/redo,verbs/move,verbs/copy}.rs`, `Cargo.toml`, `src/bin/session_viewer_cli.rs`, `src/{lib,selftest}.rs`, `src/app/{mod,runtime}.rs`, `src/state/host.rs`, `index.html`, `docs/operations.md`, `mkdocs.yml`, `../session_mcp/{pyproject.toml,README.md,src/session_mcp/*,tests/test_mcp_parity.py}` |
+| Delivered | 1. Implemented `viewer-core::op` (`49` serde `Op` variants addressed by stable `(doc, guid)` `ObjectRef` and `(doc, name)` `LayerRef`, explicit-pivot `Rotate`/`Scale`, structured `Reply` + `OpError`/`ErrorCode`, `execute_json`, and `op_catalog`/`reference_markdown`). 2. Routed typed `Delete`, `Undo`, `Redo`, `Move` and `Copy` command-line actions through `viewer-core::op::execute`. 3. Added `session-viewer-cli` (`exec`, `serve --stdio`, `schema --markdown`, plus native headless `render_frame` via `selftest::render_headless_host`). 4. Exported `#[wasm_bindgen] pub fn execute_op(json) -> String` and `postMessage` `{type: "session-viewer:op"}` -> `session-viewer:op-reply` in `index.html`. 5. Created `../session_mcp` (`ViewerCliClient` + `FastMCP("session-viewer")` with `31` typed tools, `scene://inspect` / `scene://objects` / `scene://perf` resources, and zero-dependency MCP JSON-RPC 2.0 stdio fallback). 6. Generated `docs/operations.md` directly from `op_catalog()`. |
+| Verified | Round-trip unit tests + headless throughput benchmark in `viewer-core::op` (`4,076 ops/s`, `400` create+transform ops in `98.1 ms`); `pytest` 3-way byte-for-byte `.session` parity (`command_run` == `session-viewer-cli exec` == `session_mcp` tools, including canonicalized `Mesh` map ordering in `session_io::save_with_state`) + `session_py` protobuf round-trip; `cargo xtest -j8`, `wasm32` check, `course -- teaching`, and strict Vue docs build |
 
 ## M7 — Tutorial reconstruction
 

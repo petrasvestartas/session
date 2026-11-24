@@ -26,7 +26,15 @@ struct Copy([f64; 3]);
 impl Action for Copy {
     /// One copy of the selection, moved by the offset.
     fn run(&self, state: &mut dyn CommandHost) -> Result<String, String> {
-        state.copy_selection(&Xform::translation(self.0[0], self.0[1], self.0[2]))
+        crate::op::execute(
+            state,
+            crate::op::Op::ObjectCopy {
+                targets: crate::op::Targets::Selection,
+                xform: crate::op::XformSpec::Translate { delta: self.0 },
+            },
+        )
+        .map(|r| r.message)
+        .map_err(|e| e.message)
     }
 
     fn needs_selection(&self) -> bool {

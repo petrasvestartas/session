@@ -497,15 +497,57 @@ impl CommandHost for State {
                 self.touch();
                 return Ok("Session opened".into());
             }
-            let n = crate::app::session_io::import_bytes(&mut self.scene, p, &bytes)?;
+            let doc = crate::app::session_io::import_bytes(&mut self.scene, p, &bytes)?;
+            let count = self.scene.docs[doc].session.lookup.len();
             self.scene.upload_to(&mut self.gpu);
             self.camera.grow_extent(&self.gpu.bounds);
             self.refresh_layers();
             self.update_label();
             self.touch();
-            return Ok(format!("Imported {n} object(s) from {p}"));
+            return Ok(format!("Imported {count} object(s) from {p}"));
         }
         Err("Import requires a file path or browser file picker".into())
+    }
+
+    fn saved_view(&self) -> crate::app::session_io::SavedView {
+        self.saved_view_state().1
+    }
+
+    fn install_opened_session(&mut self, opened: crate::app::session_io::OpenedSession) {
+        self.clear();
+        self.scene = opened.scene;
+        self.scene.upload_to(&mut self.gpu);
+        self.scene.restore_text_visibility(&mut self.gpu);
+        self.update_label();
+        self.apply_saved_view(opened.camera, opened.view);
+        self.refresh_layers();
+        self.touch();
+    }
+
+    fn clear_scene(&mut self) {
+        self.clear();
+    }
+
+    fn append_file(&mut self, doc: crate::app::scene::FileDoc) {
+        self.append(doc, None);
+    }
+
+    fn perf_stats(&self) -> serde_json::Value {
+        let p = &self.gpu.performance;
+        let [w, h] = self.logical_size();
+        serde_json::json!({
+            "mode": "browser",
+            "frames": p.frames,
+            "draws": p.draws,
+            "interacting": p.interacting,
+            "cpu": p.cpu,
+            "causes": p.causes,
+            "stats": p.stats(),
+            "documents": self.scene.docs.len(),
+            "objects": self.scene.object_count(),
+            "rows": self.scene.row_count(),
+            "viewport": [w, h],
+        })
     }
 
     fn note_status(&mut self, message: &str) {

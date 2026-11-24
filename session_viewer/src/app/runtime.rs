@@ -48,6 +48,8 @@ pub enum Msg {
 #[cfg(target_arch = "wasm32")]
 use {
     crate::app::input::Input,
+    std::cell::RefCell,
+    std::rc::{Rc, Weak},
     std::sync::Arc,
     wasm_bindgen::JsCast,
     winit::application::ApplicationHandler,
@@ -57,15 +59,69 @@ use {
     winit::window::{Window, WindowId},
 };
 
+#[cfg(target_arch = "wasm32")]
+thread_local! {
+    static LIVE_STATE: RefCell<Weak<RefCell<Option<State>>>> = const { RefCell::new(Weak::new()) };
+}
+
+/// Execute one JSON `viewer_core::op::Request` against the live browser `State` and return its JSON `Response`.
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen::prelude::wasm_bindgen]
+pub fn execute_op(request_json: &str) -> String {
+    LIVE_STATE.with(|slot| {
+        let Some(rc) = slot.borrow().upgrade() else {
+            return serde_json::to_string(&viewer_core::op::Response {
+                id: None,
+                ok: false,
+                reply: None,
+                error: Some(viewer_core::op::OpError::new(
+                    viewer_core::op::ErrorCode::Busy,
+                    "viewer is not initialized yet",
+                )),
+            })
+            .unwrap_or_default();
+        };
+        let Ok(mut guard) = rc.try_borrow_mut() else {
+            return serde_json::to_string(&viewer_core::op::Response {
+                id: None,
+                ok: false,
+                reply: None,
+                error: Some(viewer_core::op::OpError::new(
+                    viewer_core::op::ErrorCode::Busy,
+                    "viewer state is currently busy handling an event",
+                )),
+            })
+            .unwrap_or_default();
+        };
+        let Some(state) = guard.as_mut() else {
+            return serde_json::to_string(&viewer_core::op::Response {
+                id: None,
+                ok: false,
+                reply: None,
+                error: Some(viewer_core::op::OpError::new(
+                    viewer_core::op::ErrorCode::Busy,
+                    "WebGPU state is still booting",
+                )),
+            })
+            .unwrap_or_default();
+        };
+        let out = viewer_core::op::execute_json(state, request_json);
+        if state.needs_frame {
+            state.window.request_redraw();
+        }
+        out
+    })
+}
+
 /// The winit application: owns the state and the gestures.
 #[cfg(target_arch = "wasm32")]
 pub struct App {
-    state: Option<State>,               // everything drawn, once the GPU is up
+    state: Rc<RefCell<Option<State>>>, // everything drawn, once the GPU is up
     proxy: Option<EventLoopProxy<Msg>>, // sends messages into the loop
-    input: Input,                       // mouse and key gestures
+    input: Input,                      // mouse and key gestures
     pointer_cancellation: Option<app::input::PointerCancellation>, // browser pointer-lost listener
     agent: Option<app::agent::CommandAgent>, // phone keyboard listener; register:phone
-    ui: Option<app::ui::Ui>,            // the egui panels; register:egui
+    ui: Option<app::ui::Ui>,           // the egui panels; register:egui
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -74,20 +130,24 @@ impl App {
     pub fn run() -> anyhow::Result<()> {
         // log::info! goes to the browser console
         console_log::init_with_level(log::Level::Info).ok();
-        app::launch::run(|proxy| App {
-            proxy: Some(proxy),
-            state: None,
-            input: Input::new(),
-            pointer_cancellation: None,
-            agent: None, // register:phone
-            ui: None,    // register:egui
+        app::launch::run(|proxy| {
+            let state = Rc::new(RefCell::new(None));
+            LIVE_STATE.with(|slot| *slot.borrow_mut() = Rc::downgrade(&state));
+            App {
+                proxy: Some(proxy),
+                state,
+                input: Input::new(),
+                pointer_cancellation: None,
+                agent: None, // register:phone
+                ui: None,    // register:egui
+            }
         })
     }
 
     /// Take the ready state, size it to the canvas, draw.
     fn adopt(&mut self, mut state: State) {
         if state.gpu_failed() {
-            self.state = Some(state);
+            *self.state.borrow_mut() = Some(state);
             return;
         }
 
@@ -98,12 +158,12 @@ impl App {
 
         self.adopt_panels(&mut state); // register:egui
         state.window.request_redraw();
-        self.state = Some(state);
+        *self.state.borrow_mut() = Some(state);
     }
 
     /// Ask for a redraw only when something changed.
     fn request_if_needed(&self) {
-        if let Some(state) = &self.state
+        if let Some(state) = self.state.borrow().as_ref()
             && state.needs_frame
         {
             state.window.request_redraw();
@@ -116,7 +176,7 @@ impl ApplicationHandler<Msg> for App {
     /// Bind the window to the page canvas and start loading.
     fn resumed(&mut self, event_loop: &ActiveEventLoop) {
         // runs once
-        if self.state.is_some() || self.proxy.is_none() {
+        if self.state.borrow().is_some() || self.proxy.is_none() {
             return;
         }
 
@@ -153,41 +213,52 @@ impl ApplicationHandler<Msg> for App {
             Msg::Ready(state) => return self.adopt(*state),
             other => other,
         };
-        let Some(state) = &mut self.state else { return };
-
-        if state.gpu_failed() {
+        if let Msg::Fonts(faces) = msg {
+            self.use_fonts(faces); // register:loading
+            self.request_if_needed();
             return;
         }
+        if let Msg::Agent(event) = msg {
+            self.agent_keys(event); // register:phone
+            self.request_if_needed();
+            return;
+        }
+        {
+            let mut guard = self.state.borrow_mut();
+            let Some(state) = guard.as_mut() else { return };
 
-        match msg {
-            Msg::Ready(_) => {}
-            Msg::Clear => state.clear(),
-            Msg::Fit => state.fit_loaded(),
-            Msg::Open(view, grid) => state.open_scene(view, grid),
-            Msg::File(doc, source) => state.append(doc, source),
-            Msg::Hydrated(back) => state.hydrated(*back), // register:editing
-            Msg::Fonts(faces) => self.use_fonts(faces),   // register:loading
-            Msg::Mode(loaded) => {
-                state.mode = Some(loaded.open(engine::performance::now_ms()));
-                state.request_frame();
+            if state.gpu_failed() {
+                return;
             }
-            Msg::Texts(texts) => state.set_texts(texts), // register:scene_text
-            Msg::StreamedCloud(init) => start_stream(state, init), // register:stream
-            Msg::CloudChunk(c) => state.extend_streamed(c.idx, c.rows, c.to), // register:stream
-            Msg::CloudQueryBatch(batch) => state.cloud_query_batch(batch), // register:cloud_query
-            Msg::CloudQueryResolved(resolved) => state.cloud_query_resolved(resolved), // register:cloud_query
-            Msg::Sheet(init) => start_sheet(state, init), // register:sheets
-            Msg::SheetChunk(c) => state.extend_sheet(c.idx, c.rows, c.to), // register:sheets
-            Msg::SheetEntity(resolved) => state.sheet_entity(resolved), // register:sheets
-            Msg::SavedScene(opened) => open_saved(state, opened), // register:commands
-            Msg::ImportedFile(name, bytes) => import_local(state, &name, &bytes), // register:commands
-            Msg::CancelPointer => {
-                state.cancel_gesture(); // register:editing
-                self.input.cancel();
-                state.gpu.performance.cancel_wheel();
-                state.touch();
+
+            match msg {
+                Msg::Ready(_) | Msg::Fonts(_) | Msg::Agent(_) => {}
+                Msg::Clear => state.clear(),
+                Msg::Fit => state.fit_loaded(),
+                Msg::Open(view, grid) => state.open_scene(view, grid),
+                Msg::File(doc, source) => state.append(doc, source),
+                Msg::Hydrated(back) => state.hydrated(*back), // register:editing
+                Msg::Mode(loaded) => {
+                    state.mode = Some(loaded.open(engine::performance::now_ms()));
+                    state.request_frame();
+                }
+                Msg::Texts(texts) => state.set_texts(texts), // register:scene_text
+                Msg::StreamedCloud(init) => start_stream(state, init), // register:stream
+                Msg::CloudChunk(c) => state.extend_streamed(c.idx, c.rows, c.to), // register:stream
+                Msg::CloudQueryBatch(batch) => state.cloud_query_batch(batch), // register:cloud_query
+                Msg::CloudQueryResolved(resolved) => state.cloud_query_resolved(resolved), // register:cloud_query
+                Msg::Sheet(init) => start_sheet(state, init), // register:sheets
+                Msg::SheetChunk(c) => state.extend_sheet(c.idx, c.rows, c.to), // register:sheets
+                Msg::SheetEntity(resolved) => state.sheet_entity(resolved), // register:sheets
+                Msg::SavedScene(opened) => open_saved(state, opened), // register:commands
+                Msg::ImportedFile(name, bytes) => import_local(state, &name, &bytes), // register:commands
+                Msg::CancelPointer => {
+                    state.cancel_gesture(); // register:editing
+                    self.input.cancel();
+                    state.gpu.performance.cancel_wheel();
+                    state.touch();
+                }
             }
-            Msg::Agent(event) => self.agent_keys(event), // register:phone
         }
 
         self.request_if_needed();
@@ -195,110 +266,124 @@ impl ApplicationHandler<Msg> for App {
 
     /// Handle one window event: redraw, resize, key or mouse.
     fn window_event(&mut self, event_loop: &ActiveEventLoop, _id: WindowId, event: WindowEvent) {
-        if self.state.as_mut().is_some_and(State::gpu_failed) {
+        if self
+            .state
+            .borrow_mut()
+            .as_mut()
+            .is_some_and(State::gpu_failed)
+        {
             return;
         }
 
-        let taken = if self.state.as_ref().is_some_and(|s| s.mode.is_some()) {
+        let is_mode = self
+            .state
+            .borrow()
+            .as_ref()
+            .is_some_and(|s| s.mode.is_some());
+        let taken = if is_mode {
             false
         } else {
             self.panels_take(&event) // the panels get the event first; register:egui
         };
-        let Some(state) = &mut self.state else { return };
+        {
+            let mut guard = self.state.borrow_mut();
+            let Some(state) = guard.as_mut() else { return };
 
-        // true when the scene must be drawn again
-        let changed = match event {
-            _ if taken => false, // register:egui
-            WindowEvent::CloseRequested => {
-                event_loop.exit();
-                false
-            }
-            WindowEvent::RedrawRequested => {
-                if let Some(ms) = state.gpu.pacing.take_completion_ms() {
-                    state.gpu.performance.record_completion(ms);
-                }
-                let t_start = engine::performance::now_ms();
-                if page_hidden() {
-                    return;
-                }
-
-                if !state.gpu.pacing.ready() {
-                    state.needs_frame = false;
-                    return; // GPU completion wakes the latest camera state.
-                }
-
-                let Some(canvas_size) = desired_canvas_size() else {
-                    return;
-                };
-
-                // resize first; a resize not ready yet holds the frame
-                let held = if canvas_size != (state.gpu.config.width, state.gpu.config.height) {
-                    !state.resize(canvas_size.0, canvas_size.1)
-                } else {
+            // true when the scene must be drawn again
+            let changed = match event {
+                _ if taken => false, // register:egui
+                WindowEvent::CloseRequested => {
+                    event_loop.exit();
                     false
-                };
+                }
+                WindowEvent::RedrawRequested => {
+                    if let Some(ms) = state.gpu.pacing.take_completion_ms() {
+                        state.gpu.performance.record_completion(ms);
+                    }
+                    let t_start = engine::performance::now_ms();
+                    if page_hidden() {
+                        return;
+                    }
 
-                if held {
-                    state.needs_frame = true;
-                } else {
-                    let t_ui = engine::performance::now_ms();
-                    // panels lay out, then the scene draws; a deck has only its two DOM arrows
-                    let repaint = if state.mode.is_some() {
-                        self.ui.as_mut().is_some_and(|ui| ui.mode_frame(state))
-                    } else {
-                        self.ui.as_mut().is_some_and(|ui| ui.frame(state)) // register:egui
+                    if !state.gpu.pacing.ready() {
+                        state.needs_frame = false;
+                        return; // GPU completion wakes the latest camera state.
+                    }
+
+                    let Some(canvas_size) = desired_canvas_size() else {
+                        return;
                     };
-                    let t_render = engine::performance::now_ms();
-                    state.render();
-                    let t_done = engine::performance::now_ms();
-                    let encode = state.last_encode_ms.take();
-                    state.gpu.performance.record_cpu(
-                        t_ui - t_start,
-                        t_render - t_ui,
-                        t_done - t_render,
-                        encode,
-                    );
-                    repaint_if(state, repaint); // register:egui
-                    // Include UI uploads and pick work in the same completion fence.
-                    state
-                        .gpu
-                        .pacing
-                        .submitted(&state.gpu.ctx.queue, state.window.clone(), t_done);
-                }
 
-                false
-            }
-            WindowEvent::Resized(_) => true,
-            WindowEvent::KeyboardInput { event, .. } => {
-                if !viewer_focused() || event.state != ElementState::Pressed {
-                    false
-                } else if let Some(mode) = state.mode.as_mut() {
-                    mode.key(event.logical_key.as_ref(), engine::performance::now_ms())
-                } else if event.repeat {
-                    false
-                } else {
-                    self.input.key(state, event.logical_key.as_ref())
-                }
-            }
-            other if state.mode.is_some() => {
-                let scale = state.window.scale_factor();
-                let now = engine::performance::now_ms();
-                let mut mode = state.mode.take();
-                let used = mode
-                    .as_mut()
-                    .is_some_and(|mode| mode.pointer(&other, scale, now, state));
-                state.mode = mode;
-                used
-            }
-            other => self.input.mouse(state, &other),
-        };
+                    // resize first; a resize not ready yet holds the frame
+                    let held = if canvas_size != (state.gpu.config.width, state.gpu.config.height) {
+                        !state.resize(canvas_size.0, canvas_size.1)
+                    } else {
+                        false
+                    };
 
-        if changed {
-            state
-                .gpu
-                .performance
-                .note_redraw(engine::performance::RedrawCause::Input);
-            state.touch();
+                    if held {
+                        state.needs_frame = true;
+                    } else {
+                        let t_ui = engine::performance::now_ms();
+                        // panels lay out, then the scene draws; a deck has only its two DOM arrows
+                        let repaint = if state.mode.is_some() {
+                            self.ui.as_mut().is_some_and(|ui| ui.mode_frame(state))
+                        } else {
+                            self.ui.as_mut().is_some_and(|ui| ui.frame(state)) // register:egui
+                        };
+                        let t_render = engine::performance::now_ms();
+                        state.render();
+                        let t_done = engine::performance::now_ms();
+                        let encode = state.last_encode_ms.take();
+                        state.gpu.performance.record_cpu(
+                            t_ui - t_start,
+                            t_render - t_ui,
+                            t_done - t_render,
+                            encode,
+                        );
+                        repaint_if(state, repaint); // register:egui
+                        // Include UI uploads and pick work in the same completion fence.
+                        state.gpu.pacing.submitted(
+                            &state.gpu.ctx.queue,
+                            state.window.clone(),
+                            t_done,
+                        );
+                    }
+
+                    false
+                }
+                WindowEvent::Resized(_) => true,
+                WindowEvent::KeyboardInput { event, .. } => {
+                    if !viewer_focused() || event.state != ElementState::Pressed {
+                        false
+                    } else if let Some(mode) = state.mode.as_mut() {
+                        mode.key(event.logical_key.as_ref(), engine::performance::now_ms())
+                    } else if event.repeat {
+                        false
+                    } else {
+                        self.input.key(state, event.logical_key.as_ref())
+                    }
+                }
+                other if state.mode.is_some() => {
+                    let scale = state.window.scale_factor();
+                    let now = engine::performance::now_ms();
+                    let mut mode = state.mode.take();
+                    let used = mode
+                        .as_mut()
+                        .is_some_and(|mode| mode.pointer(&other, scale, now, state));
+                    state.mode = mode;
+                    used
+                }
+                other => self.input.mouse(state, &other),
+            };
+
+            if changed {
+                state
+                    .gpu
+                    .performance
+                    .note_redraw(engine::performance::RedrawCause::Input);
+                state.touch();
+            }
         }
 
         self.request_if_needed();
@@ -379,14 +464,18 @@ fn start() {
 impl App {
     /// Keep the whole fonts for the page's life, shared by the labels and the panels.
     fn use_fonts(&mut self, faces: Vec<Vec<u8>>) {
-        let Some(state) = &mut self.state else { return };
+        if self.state.borrow().is_none() {
+            return;
+        }
         let faces: Vec<&'static [u8]> = faces
             .into_iter()
             .map(|face| &*Box::leak(face.into_boxed_slice()))
             .collect();
 
         if let Ok(faces) = <[&'static [u8]; 3]>::try_from(faces) {
-            state.use_fonts(faces); // register:scene_text
+            if let Some(state) = self.state.borrow_mut().as_mut() {
+                state.use_fonts(faces); // register:scene_text
+            }
             self.panel_fonts(faces); // register:egui
         }
     }
@@ -464,7 +553,8 @@ impl App {
 
     /// The panels get the event first; true when they took it.
     fn panels_take(&mut self, event: &WindowEvent) -> bool {
-        let Some(state) = &mut self.state else {
+        let mut guard = self.state.borrow_mut();
+        let Some(state) = guard.as_mut() else {
             return false;
         };
         let Some(ui) = self.ui.as_mut() else {
@@ -565,7 +655,8 @@ fn open_saved(state: &mut State, opened: Box<app::session_io::OpenedSession>) {
 fn import_local(state: &mut State, name: &str, bytes: &[u8]) {
     let empty_before = state.scene.docs.is_empty();
     match app::session_io::import_bytes(&mut state.scene, name, bytes) {
-        Ok(n) => {
+        Ok(doc) => {
+            let count = state.scene.docs[doc].session.lookup.len();
             state.scene.upload_to(&mut state.gpu);
             state.camera.grow_extent(&state.gpu.bounds);
             if empty_before {
@@ -574,7 +665,7 @@ fn import_local(state: &mut State, name: &str, bytes: &[u8]) {
             state.refresh_layers(); // register:panel
             state.update_label(); // register:scene_text
             state.touch();
-            app::feedback::status(&format!("Imported {n} object(s) from {name}"));
+            app::feedback::status(&format!("Imported {count} object(s) from {name}"));
         }
         Err(error) => app::feedback::status(&error),
     }
@@ -592,7 +683,8 @@ impl App {
 
     /// Phone keys become key presses.
     fn agent_keys(&mut self, event: app::agent::AgentEvent) {
-        let Some(state) = &mut self.state else { return };
+        let mut guard = self.state.borrow_mut();
+        let Some(state) = guard.as_mut() else { return };
 
         if let Some(ui) = self.ui.as_mut() {
             for key in ui.agent(event) {

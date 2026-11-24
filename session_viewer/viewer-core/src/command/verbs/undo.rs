@@ -17,11 +17,8 @@ struct Undo;
 impl Action for Undo {
     /// Restore the document as it was before the last edit.
     fn run(&self, state: &mut dyn CommandHost) -> Result<String, String> {
-        if !state.scene_mut().undo() {
-            return Err("nothing to undo".into());
-        }
-
-        state.after_history();
-        Ok("undone".into())
+        crate::op::execute(state, crate::op::Op::HistoryUndo)
+            .map(|r| r.message)
+            .map_err(|e| e.message)
     }
 }

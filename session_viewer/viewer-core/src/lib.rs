@@ -20,6 +20,7 @@ pub mod live_revision;
 pub mod manifest;
 pub mod mesh_preview;
 pub mod modeling;
+pub mod op;
 pub mod range_gate;
 pub mod rows;
 pub mod scene;

@@ -12,7 +12,7 @@
   {
     "path": "Cargo.toml",
     "owner": "frame",
-    "sourceSha256": "07730109b8752a6bb12442c5a3e5acba21922449bcb01d8eaf4ce283933955e2",
+    "sourceSha256": "9c48c9bf62430d51bfa1496cd5bde94066944337ac5becc788316738fd5d0266",
     "explanation": {
       "page": "journey/completion-frame.md",
       "heading": "### Step 1. Create `Cargo.toml`, `Cargo.lock` and module roots",
@@ -72,7 +72,7 @@
   {
     "path": "index.html",
     "owner": "application",
-    "sourceSha256": "b61bf9f8580253e03b9358f7f288ceb10d3fe1d99af37ba9ff6b923ef243163b",
+    "sourceSha256": "2f04333855cfaf6624c1baa36ece710d458b3797695c325b58838719fac6307d",
     "explanation": {
       "page": "journey/completion-application.md",
       "heading": "### Step 3: Package the browser entry, prefetcher and manifests",
@@ -262,7 +262,7 @@
   {
     "path": "src/app/mod.rs",
     "owner": "frame",
-    "sourceSha256": "561e899692607693637473c8948f7df24f98ce1c8f8ea5ab1df5a0fa2cedbdd1",
+    "sourceSha256": "2657cfefab1d5eca13116dd342706534fb9502fa4c2cd4d2b46d16d13f4ff136",
     "explanation": {
       "page": "journey/completion-frame.md",
       "heading": "### Step 1. Create `Cargo.toml`, `Cargo.lock` and module roots",
@@ -292,7 +292,7 @@
   {
     "path": "src/app/runtime.rs",
     "owner": "application",
-    "sourceSha256": "cbdfda0df537938452f1a87438d99910517650391f2d22fa9cd2783e4a9c162c",
+    "sourceSha256": "e6ff954685d2260555342d9a0dd7a8bae323a142774ddc17272f2fe0387ea9e6",
     "explanation": {
       "page": "journey/completion-application.md",
       "heading": "### Step 1: Serialize async updates into one `State` owner",
@@ -717,6 +717,16 @@
       "page": "journey/completion-decoding.md",
       "heading": "### Step 3: Yield to the browser event loop every 25,000 objects",
       "paragraph": "`src/app/yielding.rs` pauses async decoding every `25,000` converted objects by awaiting a zero-millisecond browser timer Promise (`yield_now`), keeping `wasm32` single-threaded without holding any `RefCell` borrow across `.await`."
+    }
+  },
+  {
+    "path": "src/bin/session_viewer_cli.rs",
+    "owner": "application",
+    "sourceSha256": "853a6ec3af97795646171ea02e0fce43455b2af4e2f4f760a0c87bd69d16912d",
+    "explanation": {
+      "page": "journey/completion-commands.md",
+      "heading": "### Step 1: Separate declarative `Spec` spelling from `Action` execution",
+      "paragraph": "`src/bin/session_viewer_cli.rs` builds the native `session-viewer-cli` binary supporting `exec`, persistent `serve --stdio` JSONL dispatch, headless PPM `render_frame` capture and Markdown schema generation."
     }
   },
   {
@@ -1492,7 +1502,7 @@
   {
     "path": "src/lib.rs",
     "owner": "frame",
-    "sourceSha256": "830853d6aeb38442493b8920c3959203f074f5adbdf78d2633b0d3656a902987",
+    "sourceSha256": "dc2a52964c9f473a5301a2a90dba0d9d5405f1ef3f56433859e146ac20bb6d78",
     "explanation": {
       "page": "journey/completion-frame.md",
       "heading": "### Step 1. Create `Cargo.toml`, `Cargo.lock` and module roots",
@@ -1502,7 +1512,7 @@
   {
     "path": "src/selftest.rs",
     "owner": "application",
-    "sourceSha256": "9565df79a9d0bcdb3239a8cd39685a5681aececf1e1224af2f981aa87b2ea471",
+    "sourceSha256": "14f918633a0b8cd885c125886bf587eebd30f2def7cfdeb36073a43669e92ad8",
     "explanation": {
       "page": "journey/completion-debugging.md",
       "heading": "### Step 2: Headless `selftest` CPU ray oracle and software witnesses",
@@ -1952,11 +1962,11 @@
   {
     "path": "src/state/host.rs",
     "owner": "application",
-    "sourceSha256": "b68720b2e0baafb844b7eff1af2d95b467ebf64290d68c6d905ff9fb370c6005",
+    "sourceSha256": "229613f67692a26071649807fc85a2e734336f78c5c481a5fd3df22b21c84202",
     "explanation": {
       "page": "journey/completion-commands.md",
       "heading": "### Step 1: Separate declarative `Spec` spelling from `Action` execution",
-      "paragraph": "- `viewer-core/src/command/host.rs` defines `CommandHost` and the pure-Rust `HeadlessHost`, `src/state/host.rs` implements `CommandHost` for `State` over one authoritative `SelectionState`, and `viewer-core/src/command/headless_tests.rs` executes all `80` registered specs in `REGISTRY` natively without a window, `egui` or GPU."
+      "paragraph": "- `viewer-core/src/command/host.rs` defines `CommandHost` and the pure-Rust `HeadlessHost`, `src/state/host.rs` implements `CommandHost` for `State` over one authoritative `SelectionState`, and `viewer-core/src/command/headless_tests.rs` executes all `86` registered specs in `REGISTRY` natively without a window, `egui` or GPU."
     }
   },
   {
@@ -2086,17 +2096,17 @@
     "explanation": {
       "page": "journey/completion-commands.md",
       "heading": "### Step 1: Separate declarative `Spec` spelling from `Action` execution",
-      "paragraph": "- `viewer-core/src/command/host.rs` defines `CommandHost` and the pure-Rust `HeadlessHost`, `src/state/host.rs` implements `CommandHost` for `State` over one authoritative `SelectionState`, and `viewer-core/src/command/headless_tests.rs` executes all `80` registered specs in `REGISTRY` natively without a window, `egui` or GPU."
+      "paragraph": "- `viewer-core/src/command/host.rs` defines `CommandHost` and the pure-Rust `HeadlessHost`, `src/state/host.rs` implements `CommandHost` for `State` over one authoritative `SelectionState`, and `viewer-core/src/command/headless_tests.rs` executes all `86` registered specs in `REGISTRY` natively without a window, `egui` or GPU."
     }
   },
   {
     "path": "viewer-core/src/command/host.rs",
     "owner": "application",
-    "sourceSha256": "6b89c0bba5ffefdb6e207f0033e5bb927c9f31e4705c205a8ece951022b020c5",
+    "sourceSha256": "24f1827a4047fcdb2086320334b115b6a023218326bdebd0857e2221025fd3f4",
     "explanation": {
       "page": "journey/completion-commands.md",
       "heading": "### Step 1: Separate declarative `Spec` spelling from `Action` execution",
-      "paragraph": "- `viewer-core/src/command/host.rs` defines `CommandHost` and the pure-Rust `HeadlessHost`, `src/state/host.rs` implements `CommandHost` for `State` over one authoritative `SelectionState`, and `viewer-core/src/command/headless_tests.rs` executes all `80` registered specs in `REGISTRY` natively without a window, `egui` or GPU."
+      "paragraph": "- `viewer-core/src/command/host.rs` defines `CommandHost` and the pure-Rust `HeadlessHost`, `src/state/host.rs` implements `CommandHost` for `State` over one authoritative `SelectionState`, and `viewer-core/src/command/headless_tests.rs` executes all `86` registered specs in `REGISTRY` natively without a window, `egui` or GPU."
     }
   },
   {
@@ -2362,7 +2372,7 @@
   {
     "path": "viewer-core/src/command/verbs/copy.rs",
     "owner": "application",
-    "sourceSha256": "579f79d70dd5bcb732070639981dffaa98c2ed31e93a9e5bcb39c41fa812129e",
+    "sourceSha256": "11e771849c0bc08185a793d43bd3138379507584875d97451114a731ee1b4fb5",
     "explanation": {
       "page": "journey/completion-modeling.md",
       "heading": "### Step 3: `Recipe` step queues, `17` parametric primitives and `7` NURBS surfaces",
@@ -2392,7 +2402,7 @@
   {
     "path": "viewer-core/src/command/verbs/delete.rs",
     "owner": "application",
-    "sourceSha256": "1bece9505ab7708541c37e903e111ecbda253d2babaf4ff592c6f543f41d7f27",
+    "sourceSha256": "fef9e57a9eaec7719940d29497e5724deae72b564e46cb4ec3217315ec87f205",
     "explanation": {
       "page": "journey/completion-commands.md",
       "heading": "### Step 3: Delegate state, display and selection verbs cleanly",
@@ -2662,7 +2672,7 @@
   {
     "path": "viewer-core/src/command/verbs/move.rs",
     "owner": "application",
-    "sourceSha256": "0f4d62d39ed2ed2909473276c6f028eb98ee4c3bbb4b1a9d703c3476bd0232fd",
+    "sourceSha256": "8a56666642f6e8a0c5815591ec1f02547b659fb9e42c6a5439c9dabba6f098c4",
     "explanation": {
       "page": "journey/completion-modeling.md",
       "heading": "### Step 3: `Recipe` step queues, `17` parametric primitives and `7` NURBS surfaces",
@@ -2892,7 +2902,7 @@
   {
     "path": "viewer-core/src/command/verbs/redo.rs",
     "owner": "application",
-    "sourceSha256": "e9fe74f661cc4f61117fc7a58659754773e61e1890b010ea607858ef8492d9b2",
+    "sourceSha256": "e6a364954051d32aca6e9d1b9ad9c9b35c8aaaedf9b902c7a5e21ef210b7cd70",
     "explanation": {
       "page": "journey/completion-commands.md",
       "heading": "### Step 3: Delegate state, display and selection verbs cleanly",
@@ -3082,7 +3092,7 @@
   {
     "path": "viewer-core/src/command/verbs/undo.rs",
     "owner": "application",
-    "sourceSha256": "5f644e23f0d161db533a2d9dd382f9a17d740082b5c080c039867ca8215b281c",
+    "sourceSha256": "3e61352d4231b1dcf210d64106d55a6778a3338388301e1fb9af221e0d13c12d",
     "explanation": {
       "page": "journey/completion-commands.md",
       "heading": "### Step 3: Delegate state, display and selection verbs cleanly",
@@ -3212,7 +3222,7 @@
   {
     "path": "viewer-core/src/lib.rs",
     "owner": "frame",
-    "sourceSha256": "2470cae845b7b5bcf005216ecc84313b71226f45f49722a8916749089c555337",
+    "sourceSha256": "f0d3de368276cbb7535b4f1495fb295872274a9d9c099bed2f888ad868aebbd8",
     "explanation": {
       "page": "journey/completion-frame.md",
       "heading": "### Step 1. Create `Cargo.toml`, `Cargo.lock` and module roots",
@@ -3257,6 +3267,16 @@
       "page": "journey/completion-modeling.md",
       "heading": "### Step 2: Drafts, tools, delayed drags and in-place subobject deformation",
       "paragraph": "Inserts constructed `Made` objects into the active editable layer (creating `Created` on demand) and compensates for parent/document transforms."
+    }
+  },
+  {
+    "path": "viewer-core/src/op.rs",
+    "owner": "application",
+    "sourceSha256": "67c4c4529f99b6acf72454478527927862cdd2b4018a04291f8c305cd698082f",
+    "explanation": {
+      "page": "journey/completion-commands.md",
+      "heading": "### Step 1: Separate declarative `Spec` spelling from `Action` execution",
+      "paragraph": "`viewer-core/src/op.rs` defines the serde-serializable `Op` API (`Request`, `Response`, `Reply`, `OpError`, `ObjectRef`, `LayerRef` and `execute`) shared by typed command verbs, browser `execute_op`, the native CLI and the Python FastMCP server."
     }
   },
   {
@@ -3562,7 +3582,7 @@
   {
     "path": "viewer-core/src/session_io.rs",
     "owner": "application",
-    "sourceSha256": "2a3a4554821fda8b9af304b803962add3a4c502013d38ac3ee9ca980d053eb13",
+    "sourceSha256": "91277552bd0141544f107396df58b2581d6b8333c9144c4e9b1f72b60e72e245",
     "explanation": {
       "page": "journey/completion-documents.md",
       "heading": "### Step 5: Instances, idle refinement and `.session` archives",

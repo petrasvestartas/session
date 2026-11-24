@@ -669,6 +669,54 @@ pub fn check_cad_edges(paths: &[String]) {
     }
 }
 
+/// Render a mutated `HeadlessHost` (documents, appearance overrides, camera, and display settings)
+/// into a `.ppm` file via a headless `wgpu` adapter; returns the count of non-background pixels.
+pub fn render_headless_host(
+    host: &viewer_core::command::HeadlessHost,
+    w: u32,
+    h: u32,
+    out: &str,
+) -> Result<usize, String> {
+    if w == 0 || h == 0 {
+        return Err("render_frame width and height must be positive".into());
+    }
+    let mut gpu = pollster::block_on(Gpu::new_headless(w, h))
+        .map_err(|e| format!("headless GPU unavailable: {e}"))?;
+    gpu.view.ssao = host.display.ssao;
+    gpu.view.wireframe = host.display.wireframe;
+    gpu.view.show_outlines = host.display.show_outlines;
+    gpu.view.show_points = host.display.show_points;
+    gpu.view.show_lines = host.display.show_lines;
+    gpu.view.show_mesh_edges = host.display.show_mesh_edges;
+    gpu.view.lit = host.display.lit;
+    gpu.view.backface = host.display.backface;
+    gpu.view.cull_backfaces = host.display.cull_backfaces;
+    gpu.view.opacity = host.display.opacity;
+    gpu.view.show_grid = host.display.show_grid;
+    gpu.view.cloud_size = host.display.cloud_size;
+
+    // Replay the host's retained state via `.session` round-trip so a fresh `Scene` uploads cleanly to `gpu`.
+    let cam = viewer_core::session_io::SavedCamera::from_camera(&host.camera);
+    let bytes = viewer_core::session_io::save_with_state(&host.scene, Some(cam), None)?;
+    let mut opened = viewer_core::session_io::open_with_state(&bytes)?;
+    opened.scene.wireframe = host.display.wireframe;
+    opened.scene.attributes = host.scene.attributes;
+    opened.scene.interactions = host.scene.interactions;
+    opened.scene.upload_to(&mut gpu);
+    opened.scene.restore_text_visibility(&mut gpu);
+    let _ = gpu.text.set_labels(opened.scene.visible_texts());
+
+    let aspect = f64::from(w) / f64::from(h);
+    let input = frame_input(&mut gpu, &host.camera, aspect);
+    let rgba = gpu.render_offscreen(&input);
+    write_ppm(out, &rgba, w, h).map_err(|e| format!("cannot write {out}: {e}"))?;
+    let ink = rgba
+        .chunks_exact(4)
+        .filter(|p| p[0] < 200 || p[1] < 200 || p[2] < 200)
+        .count();
+    Ok(ink)
+}
+
 /// Check one BRep file's edge ids.
 fn check_cad_edge_file(scene: &mut Scene, gpu: &mut Gpu, path: &str) {
     scene.clear(gpu);

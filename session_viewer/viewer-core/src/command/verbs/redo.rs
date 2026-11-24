@@ -17,11 +17,8 @@ struct Redo;
 impl Action for Redo {
     /// Re-apply the edit that was undone.
     fn run(&self, state: &mut dyn CommandHost) -> Result<String, String> {
-        if !state.scene_mut().redo() {
-            return Err("nothing to redo".into());
-        }
-
-        state.after_history();
-        Ok("redone".into())
+        crate::op::execute(state, crate::op::Op::HistoryRedo)
+            .map(|r| r.message)
+            .map_err(|e| e.message)
     }
 }

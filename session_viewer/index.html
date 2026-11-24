@@ -262,12 +262,25 @@
         if (event.source !== window.parent && event.origin !== window.location.origin)
           return;
         var data = event.data;
-
-        if (!data || data.type !== "session-viewer:reload-scene")
+        if (!data)
           return;
 
-        if (window.wasmBindings && window.wasmBindings.reload_scene) {
-          window.wasmBindings.reload_scene(data.scene || undefined);
+        if (data.type === "session-viewer:reload-scene") {
+          if (window.wasmBindings && window.wasmBindings.reload_scene) {
+            window.wasmBindings.reload_scene(data.scene || undefined);
+          }
+          return;
+        }
+
+        if (data.type === "session-viewer:op" && window.wasmBindings && window.wasmBindings.execute_op) {
+          var payload = typeof data.request === "string" ? data.request : JSON.stringify(data.request);
+          var replyJson = window.wasmBindings.execute_op(payload);
+          if (event.source && event.source.postMessage) {
+            event.source.postMessage(
+              { type: "session-viewer:op-reply", id: data.id || null, response: JSON.parse(replyJson) },
+              event.origin === "null" ? "*" : event.origin
+            );
+          }
         }
       }
 

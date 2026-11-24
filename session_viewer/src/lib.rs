@@ -8,6 +8,7 @@ macro_rules! shader {
 mod engine;
 
 pub use viewer_core as core;
+pub use viewer_core::op;
 pub use viewer_core::rows;
 
 pub use viewer_core::camera;
@@ -25,7 +26,7 @@ pub use state::State;
 #[cfg(target_arch = "wasm32")]
 pub(crate) use app::runtime::desired_canvas_size;
 #[cfg(target_arch = "wasm32")]
-pub use app::runtime::{App, run_web};
+pub use app::runtime::{App, execute_op, run_web};
 pub use app::runtime::{CloudChunk, Msg, SheetChunk};
 
 #[cfg(not(target_arch = "wasm32"))]

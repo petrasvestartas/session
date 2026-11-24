@@ -2098,10 +2098,6 @@
           "first": "91-include-visible-section-coverage"
         },
         {
-          "title": "Wood Elements and archives",
-          "first": "92-link-current-wood-element-builders"
-        },
-        {
           "title": "Glass and X-ray",
           "first": "93-classify-original-solids-independently-of-clipping"
         },
@@ -2190,31 +2186,6 @@
             "91i-prove-actual-outlines-and-original-ownership"
           ],
           "checkpoint": "91i-prove-actual-outlines-and-original-ownership"
-        },
-        {
-          "id": "92-link-current-wood-element-builders",
-          "title": "Original Wood Elements and portable source records",
-          "page": "journey/consolidation/92-link-current-wood-element-builders.md",
-          "steps": [
-            "92-link-current-wood-element-builders",
-            "91zza-write-original-beam-column-and-plate-builders",
-            "92a-retain-current-positive-lengths-and-six-builders",
-            "92b-own-original-element-geometry",
-            "92c-read-current-element-command-defaults",
-            "92d-build-typed-elements-from-ordered-world-picks",
-            "92e-capture-original-picks-while-the-tool-runs",
-            "92f-teach-named-and-bare-element-values",
-            "92g-make-element-input-batches-atomic",
-            "92h-attach-readonly-element-attributes",
-            "92i-adopt-elements-and-consume-sources-once",
-            "92j-save-and-open-original-element-records",
-            "92k-own-independent-element-tool-state",
-            "92l-commit-one-element-creation-and-retry-errors",
-            "92m-route-current-element-commands-and-feature-visibility",
-            "92n-pick-elements-through-the-real-command-dock",
-            "92o-prove-element-recipes-source-history-and-archives"
-          ],
-          "checkpoint": "92o-prove-element-recipes-source-history-and-archives"
         },
         {
           "id": "93-classify-original-solids-independently-of-clipping",

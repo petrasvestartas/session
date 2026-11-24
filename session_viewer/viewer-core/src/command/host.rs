@@ -223,6 +223,22 @@ pub trait CommandHost {
     fn save_session(&mut self) -> Result<String, String>;
     fn open_session_prompt(&mut self) -> Result<String, String>;
     fn download_report(&mut self) -> Result<String, String>;
+    fn saved_view(&self) -> crate::app::session_io::SavedView;
+    fn install_opened_session(&mut self, opened: crate::app::session_io::OpenedSession);
+    fn clear_scene(&mut self);
+    fn append_file(&mut self, doc: FileDoc);
+    fn perf_stats(&self) -> serde_json::Value {
+        let scene = self.scene();
+        let (w, h) = self.viewport();
+        serde_json::json!({
+            "mode": "headless",
+            "documents": scene.docs.len(),
+            "objects": scene.object_count(),
+            "rows": scene.row_count(),
+            "viewport": [w, h],
+            "pixel_scale": self.pixel_scale(),
+        })
+    }
     fn note_status(&mut self, _message: &str) {}
     fn ensure_graph_open(&mut self) {}
     fn touch(&mut self);
@@ -1758,6 +1774,52 @@ impl CommandHost for HeadlessHost {
     fn download_report(&mut self) -> Result<String, String> {
         self.reports_requested += 1;
         Ok("Report downloaded".into())
+    }
+
+    fn saved_view(&self) -> crate::app::session_io::SavedView {
+        crate::app::session_io::SavedView {
+            arctic: self.display.ssao,
+            wireframe: self.display.wireframe,
+            show_outlines: self.display.show_outlines,
+            lit: self.display.lit,
+            backface: self.display.backface,
+            cull_backfaces: self.display.cull_backfaces,
+            opacity: self.display.opacity,
+            show_grid: self.display.show_grid,
+            cloud_size: self.display.cloud_size,
+        }
+    }
+
+    fn install_opened_session(&mut self, opened: crate::app::session_io::OpenedSession) {
+        self.clear();
+        self.scene = opened.scene;
+        if let Some(cam) = opened.camera {
+            cam.apply_to(&mut self.camera);
+        }
+        if let Some(v) = opened.view {
+            self.display.ssao = v.arctic;
+            self.display.wireframe = v.wireframe;
+            self.scene.wireframe = v.wireframe;
+            self.display.show_outlines = v.show_outlines;
+            self.display.lit = v.lit;
+            self.display.backface = v.backface;
+            self.display.cull_backfaces = v.cull_backfaces;
+            self.display.opacity = v.opacity;
+            self.display.show_grid = v.show_grid;
+            self.display.cloud_size = v.cloud_size;
+        }
+        self.rows.clear();
+        self.scene.drain_changes(&mut self.rows);
+        self.recompute_bounds();
+        self.refresh_layers();
+    }
+
+    fn clear_scene(&mut self) {
+        self.clear();
+    }
+
+    fn append_file(&mut self, doc: FileDoc) {
+        self.add_file(doc);
     }
 
     fn note_status(&mut self, message: &str) {

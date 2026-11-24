@@ -207,7 +207,7 @@ Folded from the part. From code and `grep -rIiw -E 'fastmcp|mcp'`: **no CLI, no 
 | Rendering | Arctic view | Implemented (M5) | `A` shortcut, `?arctic=1` / `VIEWER_ARCTIC`, `Properties` panel button, and persisted in `.session` `SavedView` |
 | Rendering | 3D matrix lane | Removed (M3) | deleted in `d5d06e099`; 2D stage matrix retained |
 | Interface | Properties & display-settings panel | Implemented (M5) | `src/app/ui/properties.rs` (`Properties` verb) |
-| Automation | CLI, FastMCP, programmatic API | Planned (M6) | §6 |
+| Automation | CLI, FastMCP, programmatic API | Implemented (M6) | `viewer-core/src/op.rs` (`49` typed `Op` variants), `src/bin/session_viewer_cli.rs` (`exec`, `serve --stdio`, `schema`), wasm `execute_op(json)` + `postMessage` (`session-viewer:op`), and `../session_mcp/` (`FastMCP("session-viewer")`, 3-way `.session` byte-parity test) |
 | Files | JSON | Partial | feature `json-sessions` off in the page build |
 | Files | OBJ export & local `.pb`/`.obj` import | Implemented (M5) | `Export [path.obj]` via `write_file_obj_to_string` + browser download; `Import [path]` (`.pb`, `.obj`, `.session`) via `session_io::import_bytes` + browser file picker |
 | Files | Camera / display state in saved file | Implemented (M5) | `SavedCamera` & `SavedView` persisted and restored in `.session` `Metadata` (`save_with_state`, `open_with_state`) |

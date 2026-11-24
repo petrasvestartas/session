@@ -136,6 +136,156 @@ impl Flags<'_> {
     }
 }
 
+/// Read a protobuf base-128 varint from `buf` starting at `pos`.
+fn read_varint(buf: &[u8], pos: &mut usize) -> Option<u64> {
+    let mut val = 0u64;
+    let mut shift = 0u32;
+    while *pos < buf.len() && shift < 64 {
+        let byte = buf[*pos];
+        *pos += 1;
+        val |= u64::from(byte & 0x7f) << shift;
+        if byte & 0x80 == 0 {
+            return Some(val);
+        }
+        shift += 7;
+    }
+    None
+}
+
+/// Append a protobuf base-128 varint to `out`.
+fn write_varint(mut val: u64, out: &mut Vec<u8>) {
+    while val >= 0x80 {
+        out.push(((val as u8) & 0x7f) | 0x80);
+        val >>= 7;
+    }
+    out.push(val as u8);
+}
+
+/// Extract the `uint64 key = 1` field of a protobuf `map<uint64, ...>` entry (0 when omitted by proto3).
+fn map_u64_key(entry: &[u8]) -> u64 {
+    if entry.first() == Some(&0x08) {
+        let mut p = 1usize;
+        read_varint(entry, &mut p).unwrap_or(0)
+    } else {
+        0
+    }
+}
+
+/// Skip or return the payload slice of one protobuf wire field; returns `(tag, wire_type, raw_field_bytes, ld_payload)`.
+fn next_wire_field<'a>(buf: &'a [u8], pos: &mut usize) -> Option<(u32, u8, &'a [u8], &'a [u8])> {
+    let start = *pos;
+    let header = read_varint(buf, pos)?;
+    let tag = (header >> 3) as u32;
+    let wire = (header & 0x07) as u8;
+    match wire {
+        0 => {
+            read_varint(buf, pos)?;
+            Some((tag, wire, &buf[start..*pos], &[]))
+        }
+        1 => {
+            let end = pos.checked_add(8)?;
+            if end > buf.len() {
+                return None;
+            }
+            *pos = end;
+            Some((tag, wire, &buf[start..end], &[]))
+        }
+        2 => {
+            let len = usize::try_from(read_varint(buf, pos)?).ok()?;
+            let payload_start = *pos;
+            let end = payload_start.checked_add(len)?;
+            if end > buf.len() {
+                return None;
+            }
+            *pos = end;
+            Some((tag, wire, &buf[start..end], &buf[payload_start..end]))
+        }
+        5 => {
+            let end = pos.checked_add(4)?;
+            if end > buf.len() {
+                return None;
+            }
+            *pos = end;
+            Some((tag, wire, &buf[start..end], &[]))
+        }
+        _ => None,
+    }
+}
+
+/// Sort `Mesh` protobuf `map<uint64, ...>` entries (`vertices = 3`, `faces = 4`, `triangulation = 17`) by ascending key so saves are deterministic across `HashMap` seeds.
+fn canonicalize_mesh_bytes(raw: &[u8]) -> Vec<u8> {
+    let mut out = Vec::with_capacity(raw.len());
+    let mut pos = 0usize;
+    let mut pending_tag: Option<u32> = None;
+    let mut pending_entries: Vec<(u64, &[u8])> = Vec::new();
+    let flush = |entries: &mut Vec<(u64, &[u8])>, dst: &mut Vec<u8>| {
+        if !entries.is_empty() {
+            entries.sort_by_key(|(k, _)| *k);
+            for (_, field_bytes) in entries.drain(..) {
+                dst.extend_from_slice(field_bytes);
+            }
+        }
+    };
+    while pos < raw.len() {
+        let Some((tag, wire, field_bytes, payload)) = next_wire_field(raw, &mut pos) else {
+            return raw.to_vec();
+        };
+        if wire == 2 && matches!(tag, 3 | 4 | 17) {
+            if pending_tag != Some(tag) {
+                flush(&mut pending_entries, &mut out);
+                pending_tag = Some(tag);
+            }
+            pending_entries.push((map_u64_key(payload), field_bytes));
+        } else {
+            flush(&mut pending_entries, &mut out);
+            pending_tag = None;
+            out.extend_from_slice(field_bytes);
+        }
+    }
+    flush(&mut pending_entries, &mut out);
+    out
+}
+
+/// Rewrite `Objects` (`meshes = 9`) with deterministic `Mesh` map ordering.
+fn canonicalize_objects_bytes(raw: &[u8]) -> Vec<u8> {
+    let mut out = Vec::with_capacity(raw.len());
+    let mut pos = 0usize;
+    while pos < raw.len() {
+        let Some((tag, wire, field_bytes, payload)) = next_wire_field(raw, &mut pos) else {
+            return raw.to_vec();
+        };
+        if wire == 2 && tag == 9 {
+            let fixed = canonicalize_mesh_bytes(payload);
+            write_varint((9 << 3) | 2, &mut out);
+            write_varint(fixed.len() as u64, &mut out);
+            out.extend_from_slice(&fixed);
+        } else {
+            out.extend_from_slice(field_bytes);
+        }
+    }
+    out
+}
+
+/// Rewrite `Session` (`objects = 3`, `definitions = 8`) with deterministic `Mesh` map ordering.
+fn canonicalize_session_bytes(raw: &[u8]) -> Vec<u8> {
+    let mut out = Vec::with_capacity(raw.len());
+    let mut pos = 0usize;
+    while pos < raw.len() {
+        let Some((tag, wire, field_bytes, payload)) = next_wire_field(raw, &mut pos) else {
+            return raw.to_vec();
+        };
+        if wire == 2 && matches!(tag, 3 | 8) {
+            let fixed = canonicalize_objects_bytes(payload);
+            write_varint((u64::from(tag) << 3) | 2, &mut out);
+            write_varint(fixed.len() as u64, &mut out);
+            out.extend_from_slice(&fixed);
+        } else {
+            out.extend_from_slice(field_bytes);
+        }
+    }
+    out
+}
+
 /// Each object's is_visible and is_locked from the lamps and locks, so the saved file opens the way it was left.
 fn stamp_flags(objects: &mut session_rust::proto::Objects, flags: &Flags) {
     for o in &mut objects.points {
@@ -191,6 +341,9 @@ fn stamp_flags(objects: &mut session_rust::proto::Objects, flags: &Flags) {
     for o in &mut objects.elements {
         o.is_visible = flags.visible(&o.guid);
         o.is_locked = flags.locked(&o.guid);
+        if o.geometry_type == "Mesh" && !o.geometry_data.is_empty() {
+            o.geometry_data = canonicalize_mesh_bytes(&o.geometry_data);
+        }
     }
 }
 
@@ -220,6 +373,7 @@ pub fn save_with_state(
         }
 
         let mut proto = file.session.to_proto(); // live entries, history kept, nothing copied
+        proto.interactions.sort_by(|a, b| a.guid.cmp(&b.guid));
 
         if let Some(objects) = proto.objects.as_mut() {
             let flags = Flags {
@@ -228,8 +382,15 @@ pub fn save_with_state(
             };
             stamp_flags(objects, &flags);
         }
+        if let Some(defs) = proto.definitions.as_mut() {
+            for e in &mut defs.elements {
+                if e.geometry_type == "Mesh" && !e.geometry_data.is_empty() {
+                    e.geometry_data = canonicalize_mesh_bytes(&e.geometry_data);
+                }
+            }
+        }
 
-        let bytes = proto.encode_to_vec();
+        let bytes = canonicalize_session_bytes(&proto.encode_to_vec());
         size = size.saturating_add(bytes.len());
 
         if size > LIMIT {

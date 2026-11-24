@@ -34,6 +34,7 @@ pub mod loader; // register:loader
 pub use viewer_core::manifest; // register:manifest
 pub use viewer_core::mesh_preview; // register:mesh_preview
 pub use viewer_core::modeling; // register:modeling
+pub use viewer_core::op;
 pub mod mode; // register:mode
 pub mod stage;
 #[cfg(any(target_arch = "wasm32", test))] // register:range_gate
