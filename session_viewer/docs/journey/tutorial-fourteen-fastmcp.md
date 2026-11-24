@@ -37,7 +37,7 @@ Owned files in build order (`10` files):
 
 ### Step 1 · `viewer-core/src/command/host.rs`
 
-`viewer-core/src/command/host.rs` (1830 lines) defines `enum ViewFlag`, `struct DisplaySettings`, `struct SelectionState`, `selected_rows()`, `ordered_rows()`. It operates purely on CPU data structures and `GpuSink` rows so `viewer-core` stays decoupled from `wgpu` and `egui`.
+`viewer-core/src/command/host.rs` (1830 lines) defines `enum ViewFlag`, `struct DisplaySettings`, `struct SelectionState`, `selected_rows()`, `ordered_rows()`. It implements internal helpers `scene()`, `scene_mut()`, `camera()`.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/command/host.rs"
@@ -45,7 +45,7 @@ Owned files in build order (`10` files):
 
 ### Step 2 · `src/state/host.rs`
 
-`src/state/host.rs` (566 lines) implements internal state and helper routines for `state`. It keeps browser event routing and scene mutations synchronized without redundant redraws.
+`src/state/host.rs` (566 lines) implements `host` helpers (`scene()`, `scene_mut()`, `camera()`) under `state`. It wires `State`, `Mode`, ``, `Tool` without introducing cyclic `state` dependencies.
 
 ```rust
 --8<-- "session_viewer/src/state/host.rs"
@@ -53,7 +53,7 @@ Owned files in build order (`10` files):
 
 ### Step 3 · `viewer-core/src/command/headless_tests.rs`
 
-`viewer-core/src/command/headless_tests.rs` (321 lines) houses regression tests `headless_host_executes_every_registered_verb_without_gpu_or_window`. It verified by `cargo xtest` (`headless_host_executes_every_registered_verb_without_gpu_or_window`).
+`viewer-core/src/command/headless_tests.rs` (321 lines) houses regression tests `headless_host_executes_every_registered_verb_without_gpu_or_window`. It implements internal helpers `run()`, `run_follow()`, `headless_host_executes_every_registered_verb_without_gpu_or_window()`; and verified by `cargo xtest` (`headless_host_executes_every_registered_verb_without_gpu_or_window`).
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/command/headless_tests.rs"
@@ -131,9 +131,10 @@ Predict what happens if an MCP client sends `{"id":"99","op":"object_delete","ta
 
 **Why address objects by `ObjectRef { doc: DocRef, guid: String }` in `Op` instead of passing `u32` GPU row indices across MCP and `postMessage`?**
 
-**How to work it out:** Trace what happens to `u32` row indices after `LayerDelete`, `SceneImport`, `Explode`, or `Scene::rebuild` compacts tombstoned rows.
+??? tip "Think first — click to reveal how to work it out and the answer"
+    **How to work it out:** Trace what happens to `u32` row indices after `LayerDelete`, `SceneImport`, `Explode`, or `Scene::rebuild` compacts tombstoned rows.
 
-**The answer:** `u32` row indices are transient internal GPU table slots that renumber on compaction or rebuild, and raw GUID strings alone can collide when the same `.pb` component is imported into two documents. Addressing every `Op` target by `(DocRef, guid)` resolves unambiguously through `Scene::row_of(doc, &guid)` across undo/redo, `.session` save/open, and multi-document assemblies.
+    **The answer:** `u32` row indices are transient internal GPU table slots that renumber on compaction or rebuild, and raw GUID strings alone can collide when the same `.pb` component is imported into two documents. Addressing every `Op` target by `(DocRef, guid)` resolves unambiguously through `Scene::row_of(doc, &guid)` across undo/redo, `.session` save/open, and multi-document assemblies.
 
 ## Validation
 

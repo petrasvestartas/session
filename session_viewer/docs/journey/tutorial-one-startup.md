@@ -165,9 +165,10 @@ Predict what happens if you run plain `cargo test` instead of `cargo xtest` from
 
 **Why must `EventLoopProxy<Msg>` be created and cloned before `EventLoop::spawn_app` starts, rather than inside `ApplicationHandler::resumed`?**
 
-**How to work it out:** Trace `winit` 0.30's `EventLoop<T>` ownership in `src/app/launch.rs` and `examples/course/frame.rs`: `EventLoop::create_proxy(&self)` borrows the `EventLoop` itself, whereas `spawn_app` consumes `EventLoop` by value on WebAssembly and hands `ApplicationHandler::resumed` only an `&ActiveEventLoop` (which cannot mint typed `EventLoopProxy<Msg>` handles).
+??? tip "Think first — click to reveal how to work it out and the answer"
+    **How to work it out:** Trace `winit` 0.30's `EventLoop<T>` ownership in `src/app/launch.rs` and `examples/course/frame.rs`: `EventLoop::create_proxy(&self)` borrows the `EventLoop` itself, whereas `spawn_app` consumes `EventLoop` by value on WebAssembly and hands `ApplicationHandler::resumed` only an `&ActiveEventLoop` (which cannot mint typed `EventLoopProxy<Msg>` handles).
 
-**The answer:** `wgpu::Instance::request_adapter` and `Adapter::request_device` are `async` Futures on WebGPU (`Promise`-backed in the browser), while `ApplicationHandler::resumed` is synchronous. Cloning `EventLoopProxy<Msg>` before `spawn_app` gives `wasm_bindgen_futures::spawn_local` a channel to send the initialized `(Window, Gpu)` back into `ApplicationHandler::user_event` once the browser resolves the WebGPU promises.
+    **The answer:** `wgpu::Instance::request_adapter` and `Adapter::request_device` are `async` Futures on WebGPU (`Promise`-backed in the browser), while `ApplicationHandler::resumed` is synchronous. Cloning `EventLoopProxy<Msg>` before `spawn_app` gives `wasm_bindgen_futures::spawn_local` a channel to send the initialized `(Window, Gpu)` back into `ApplicationHandler::user_event` once the browser resolves the WebGPU promises.
 
 ## Validation
 

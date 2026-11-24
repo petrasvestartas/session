@@ -66,7 +66,7 @@ Owned files in build order (`23` files):
 
 ### Step 3 · `viewer-core/src/decode.rs`
 
-`viewer-core/src/decode.rs` (1050 lines) defines `trait ByteSource`, `enum Body`, `size()`, `session_from_bytes()`, `session_from_bytes_yielding()`. It verified by `cargo xtest` (`window_decode_keeps_node_colors`, `window_decode_matches_the_source`, `window_decode_keeps_interactions_on_their_edges` (+4 more)).
+`viewer-core/src/decode.rs` (1050 lines) defines `trait ByteSource`, `enum Body`, `size()`, `session_from_bytes()`, `session_from_bytes_yielding()`. It implements internal helpers `len_bytes()`, `copy_range()`, `to_vec_bytes()`, `CHUNK`; and verified by `cargo xtest` (`window_decode_keeps_node_colors`, `window_decode_matches_the_source`, `window_decode_keeps_interactions_on_their_edges` (+4 more)).
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/decode.rs"
@@ -74,7 +74,7 @@ Owned files in build order (`23` files):
 
 ### Step 4 · `src/app/decode.rs`
 
-`src/app/decode.rs` (67 lines) defines `struct JsBytes`, `enum Body`, `size()`, `session_from_bytes()`, `session_from_body()`. It keeps browser event routing and scene mutations synchronized without redundant redraws.
+`src/app/decode.rs` (67 lines) defines `struct JsBytes`, `enum Body`, `size()`, `session_from_bytes()`, `session_from_body()`. It implements internal helpers `len_bytes()`, `copy_range()`, `to_vec_bytes()`.
 
 ```rust
 --8<-- "session_viewer/src/app/decode.rs"
@@ -130,7 +130,7 @@ Overlaps `8 KiB` protobuf probes with GPU setup, tracks separate load and stream
 
 ### Step 11 · `viewer-core/src/stream.rs`
 
-`viewer-core/src/stream.rs` (839 lines) defines `struct CloudFields`, `struct SheetFields`, `struct Field`, `field_at()`, `set()`. It verified by `cargo xtest` (`normals_pack_three_doubles_per_point`, `metadata_window_checks_ranges_without_copying_or_following_large_skips`, `lod_parallel_arrays_bounds_ranges_and_child_graph_are_validated` (+5 more)).
+`viewer-core/src/stream.rs` (839 lines) defines `struct CloudFields`, `struct SheetFields`, `struct Field`, `field_at()`, `set()`. It implements internal helpers `valid_node()`, `valid_children()`, `first_array()`, `SEGMENT_BYTES`; and verified by `cargo xtest` (`normals_pack_three_doubles_per_point`, `metadata_window_checks_ranges_without_copying_or_following_large_skips`, `lod_parallel_arrays_bounds_ranges_and_child_graph_are_validated` (+5 more)).
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/stream.rs"
@@ -138,7 +138,7 @@ Overlaps `8 KiB` protobuf probes with GPU setup, tracks separate load and stream
 
 ### Step 12 · `src/app/stream.rs`
 
-`src/app/stream.rs` (422 lines) defines `reset_range_gate()`, `read_window()`, `start_range()`. It keeps browser event routing and scene mutations synchronized without redundant redraws.
+`src/app/stream.rs` (422 lines) defines `reset_range_gate()`, `read_window()`, `start_range()`, `POINT_BYTES`, `MAX_TABLE_BYTES`. It implements internal helpers `sheet_range()`.
 
 ```rust
 --8<-- "session_viewer/src/app/stream.rs"
@@ -170,7 +170,7 @@ Overlaps `8 KiB` protobuf probes with GPU setup, tracks separate load and stream
 
 ### Step 16 · `viewer-core/src/session_io.rs`
 
-`viewer-core/src/session_io.rs` (967 lines) defines `struct SavedCamera`, `struct SavedView`, `struct OpenedSession`, `from_camera()`, `apply_to()`. It verified by `cargo xtest` (`lamps_load_from_and_save_to_is_visible`, `locks_load_from_and_save_to_is_locked`, `a_created_text_survives_save_and_open` (+3 more)).
+`viewer-core/src/session_io.rs` (967 lines) defines `struct SavedCamera`, `struct SavedView`, `struct OpenedSession`, `from_camera()`, `apply_to()`. It implements internal helpers `in_doc()`, `visible()`, `locked()`, `MAGIC`; and verified by `cargo xtest` (`lamps_load_from_and_save_to_is_visible`, `locks_load_from_and_save_to_is_locked`, `a_created_text_survives_save_and_open` (+3 more)).
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/session_io.rs"
@@ -178,7 +178,7 @@ Overlaps `8 KiB` protobuf probes with GPU setup, tracks separate load and stream
 
 ### Step 17 · `src/app/session_io.rs`
 
-`src/app/session_io.rs` (105 lines) defines `download()`, `download_text()`, `pick()`. It keeps browser event routing and scene mutations synchronized without redundant redraws.
+`src/app/session_io.rs` (105 lines) defines `download()`, `download_text()`, `pick()`, `url`, `a`. It implements internal helpers `choose()`, `choose_import()`.
 
 ```rust
 --8<-- "session_viewer/src/app/session_io.rs"
@@ -186,7 +186,7 @@ Overlaps `8 KiB` protobuf probes with GPU setup, tracks separate load and stream
 
 ### Step 18 · `viewer-core/src/command/verbs/open.rs`
 
-`viewer-core/src/command/verbs/open.rs` implements the `open` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched.
+`viewer-core/src/command/verbs/open.rs` (21 lines) registers the `Open` command (`Open restores a saved .session file`). It validates arguments before mutating `&mut dyn CommandHost` so invalid CLI or interactive input leaves undo history untouched.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/command/verbs/open.rs"
@@ -194,7 +194,7 @@ Overlaps `8 KiB` protobuf probes with GPU setup, tracks separate load and stream
 
 ### Step 19 · `viewer-core/src/command/verbs/save.rs`
 
-`viewer-core/src/command/verbs/save.rs` implements the `save` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched.
+`viewer-core/src/command/verbs/save.rs` (25 lines) registers the `Save` command (`Save downloads the complete editable scene as a .session file`). It validates arguments before mutating `&mut dyn CommandHost` so invalid CLI or interactive input leaves undo history untouched.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/command/verbs/save.rs"
@@ -202,7 +202,7 @@ Overlaps `8 KiB` protobuf probes with GPU setup, tracks separate load and stream
 
 ### Step 20 · `viewer-core/src/command/verbs/import.rs`
 
-`viewer-core/src/command/verbs/import.rs` implements the `import` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched.
+`viewer-core/src/command/verbs/import.rs` (25 lines) registers the `Import` command (`Import [path.pb | path.obj]: import a local .pb or .obj geometry file into the scene`). Its `Action::run` handler dispatches through `host.import_file()` after validating arguments so invalid CLI or interactive input leaves undo history untouched.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/command/verbs/import.rs"
@@ -210,7 +210,7 @@ Overlaps `8 KiB` protobuf probes with GPU setup, tracks separate load and stream
 
 ### Step 21 · `viewer-core/src/command/verbs/export.rs`
 
-`viewer-core/src/command/verbs/export.rs` implements the `export` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched.
+`viewer-core/src/command/verbs/export.rs` (25 lines) registers the `Export` (aliases `Export Obj`) command (`Export [path.obj]: export selected (or all visible) surface/mesh geometry as Wavefront OBJ`). Its `Action::run` handler dispatches through `host.export_obj()` after validating arguments so invalid CLI or interactive input leaves undo history untouched.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/command/verbs/export.rs"
@@ -248,9 +248,10 @@ Predict what happens if two separate processes open the same `Mesh` `.pb` file (
 
 **Why must `scene_release.rs` refuse `Save` on a `display_only: true` document until `state/hydrate.rs` re-fetches its full `.pb` source?**
 
-**How to work it out:** Compare what `Scene` retains after `release_display_only` drops the `Rc<Session>` against what `session_io::save_with_state` writes into `Archive.documents`.
+??? tip "Think first — click to reveal how to work it out and the answer"
+    **How to work it out:** Compare what `Scene` retains after `release_display_only` drops the `Rc<Session>` against what `session_io::save_with_state` writes into `Archive.documents`.
 
-**The answer:** `display_only` releases the heavy `session_rust::Session` source from WASM RAM after uploading `20 B` packed GPU vertices so multi-document scenes stay within the `4 GiB` browser heap. Because GPU display vertices are tessellated and camera-quantized (lacking exact NURBS knots, trim curves, and metadata), saving without first hydrating the original `.pb` bytes via `hydrate.rs` would corrupt source fidelity.
+    **The answer:** `display_only` releases the heavy `session_rust::Session` source from WASM RAM after uploading `20 B` packed GPU vertices so multi-document scenes stay within the `4 GiB` browser heap. Because GPU display vertices are tessellated and camera-quantized (lacking exact NURBS knots, trim curves, and metadata), saving without first hydrating the original `.pb` bytes via `hydrate.rs` would corrupt source fidelity.
 
 ## Validation
 

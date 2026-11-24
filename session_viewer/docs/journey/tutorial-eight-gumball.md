@@ -43,7 +43,7 @@ Computes `3`-axis arrow, quarter-ring arc and scale-ball `Xform` deltas from ray
 
 ### Step 2 · `viewer-core/src/command/verbs/gumball.rs`
 
-`viewer-core/src/command/verbs/gumball.rs` implements the `gumball` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched.
+`viewer-core/src/command/verbs/gumball.rs` (62 lines) registers the `Gumball` command (`Gumball <World | Object | CPlane | Pivot x,y,z | Reset>: align or relocate the gumball`). Its `Action::run` handler exposes option chips `Gumball World`, `Gumball Object`, `Gumball CPlane`, `Gumball Reset` and dispatches through `host.set_gizmo_align()`, `host.set_gizmo_pivot()` after validating arguments so invalid CLI or interactive input leaves undo history untouched.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/command/verbs/gumball.rs"
@@ -51,7 +51,7 @@ Computes `3`-axis arrow, quarter-ring arc and scale-ball `Xform` deltas from ray
 
 ### Step 3 · `src/engine/gpu/widget_mesh.rs`
 
-`src/engine/gpu/widget_mesh.rs` (158 lines) defines `struct Vertex`, `vertices()`. It maintains explicit buffer capacities, bind-group layouts, and frame-submission ordering for WebGPU.
+`src/engine/gpu/widget_mesh.rs` (158 lines) defines `struct Vertex`, `vertices()`, `COLORS`, `SIDES`. It implements internal helpers `orient()`, `lathe()`, `sphere()`.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/widget_mesh.rs"
@@ -67,7 +67,7 @@ Renders the gumball into a private depth-tested tile (`96 B` uniform) and compos
 
 ### Step 5 · `src/shaders/widget.wgsl`
 
-4. **`src/shaders/widget.wgsl`** shades the `10`-handle manipulation gumball inside its own depth-tested tile (`widget.rect`) so handles occlude each other cleanly in `3D` while floating unobstructed above scene solids.
+`src/shaders/widget.wgsl` shades the `13`-handle manipulation gumball inside its own depth-tested tile (`widget.rect`) so handles occlude each other cleanly in `3D` while floating unobstructed above scene solids.
 
 ```wgsl
 --8<-- "session_viewer/src/shaders/widget.wgsl"
@@ -113,9 +113,10 @@ Predict what happens when you view the gumball straight down its `+X` axis (`eye
 
 **Why test gumball handle hits on the CPU in projected CSS pixels instead of drawing the 13 handles into `Pick`'s GPU `Rg32Uint` ID pass?**
 
-**How to work it out:** Compare synchronous press dispatch in `winit` (`MouseInput::Pressed`) against `wgpu` buffer mapping (`Picker::request` -> next frame render -> `map_async` completion).
+??? tip "Think first — click to reveal how to work it out and the answer"
+    **How to work it out:** Compare synchronous press dispatch in `winit` (`MouseInput::Pressed`) against `wgpu` buffer mapping (`Picker::request` -> next frame render -> `map_async` completion).
 
-**The answer:** A drag gesture must decide on the exact `Pressed` event whether the pointer grabbed a gumball handle or began orbiting/box-selecting the scene; waiting for an asynchronous GPU readback would leak the initial drag frames into camera orbit, and `State::touch` during the drag would cancel in-flight GPU picks. Projecting 13 analytic handles on the CPU takes microseconds, obeys an exact `8 CSS px` aperture, and agrees with the always-on-top `widget.wgsl` draw rule.
+    **The answer:** A drag gesture must decide on the exact `Pressed` event whether the pointer grabbed a gumball handle or began orbiting/box-selecting the scene; waiting for an asynchronous GPU readback would leak the initial drag frames into camera orbit, and `State::touch` during the drag would cancel in-flight GPU picks. Projecting 13 analytic handles on the CPU takes microseconds, obeys an exact `8 CSS px` aperture, and agrees with the always-on-top `widget.wgsl` draw rule.
 
 ## Validation
 

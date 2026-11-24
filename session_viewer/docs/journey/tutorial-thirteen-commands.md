@@ -108,7 +108,7 @@ Verifies sorted unique `REGISTRY` completions, readable labels, and identical `A
 
 ### Step 9 · `viewer-core/src/command/verbs/undo.rs`
 
-`viewer-core/src/command/verbs/undo.rs` implements the `undo` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched.
+`viewer-core/src/command/verbs/undo.rs` (24 lines) defines the `undo` command specification (`Spec`). It validates arguments before mutating `&mut dyn CommandHost` so invalid CLI or interactive input leaves undo history untouched.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/command/verbs/undo.rs"
@@ -116,7 +116,7 @@ Verifies sorted unique `REGISTRY` completions, readable labels, and identical `A
 
 ### Step 10 · `viewer-core/src/command/verbs/redo.rs`
 
-`viewer-core/src/command/verbs/redo.rs` implements the `redo` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched.
+`viewer-core/src/command/verbs/redo.rs` (24 lines) defines the `redo` command specification (`Spec`). It validates arguments before mutating `&mut dyn CommandHost` so invalid CLI or interactive input leaves undo history untouched.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/command/verbs/redo.rs"
@@ -124,7 +124,7 @@ Verifies sorted unique `REGISTRY` completions, readable labels, and identical `A
 
 ### Step 11 · `viewer-core/src/command/verbs/escape.rs`
 
-`viewer-core/src/command/verbs/escape.rs` implements the `escape` (aliases `esc`) command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched.
+`viewer-core/src/command/verbs/escape.rs` (33 lines) defines the `escape` command specification (`Spec`). It validates arguments before mutating `&mut dyn CommandHost` so invalid CLI or interactive input leaves undo history untouched.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/command/verbs/escape.rs"
@@ -140,7 +140,7 @@ Preserves the active `Draft` during dispatch and appends the start point via `cl
 
 ### Step 13 · `viewer-core/src/command/verbs/report.rs`
 
-`viewer-core/src/command/verbs/report.rs` implements the `report` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched.
+`viewer-core/src/command/verbs/report.rs` (23 lines) registers the `Report` command (`Report · download the viewer report: this run and the last failed or interrupted one`). It validates arguments before mutating `&mut dyn CommandHost` so invalid CLI or interactive input leaves undo history untouched.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/command/verbs/report.rs"
@@ -148,7 +148,7 @@ Preserves the active `Draft` during dispatch and appends the start point via `cl
 
 ### Step 14 · `viewer-core/src/command/verbs/fit.rs`
 
-`viewer-core/src/command/verbs/fit.rs` implements the `fit` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched.
+`viewer-core/src/command/verbs/fit.rs` (27 lines) registers the `Fit` command (`Fit zooms to the selection, or the whole scene when nothing is selected`). It validates arguments before mutating `&mut dyn CommandHost` so invalid CLI or interactive input leaves undo history untouched.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/command/verbs/fit.rs"
@@ -194,9 +194,10 @@ Predict what happens on a mobile browser when a user taps the `egui` command doc
 
 **Why does `src/command_dock/` define its own `pub trait Commands` instead of calling `viewer_core::command::completions` directly?**
 
-**How to work it out:** Inspect `examples/course/dock.rs` (`?tutorial=dock`), which compiles at checkpoint 4 before `viewer-core`'s 86-verb `command` module and `Scene` exist.
+??? tip "Think first — click to reveal how to work it out and the answer"
+    **How to work it out:** Inspect `examples/course/dock.rs` (`?tutorial=dock`), which compiles at checkpoint 4 before `viewer-core`'s 86-verb `command` module and `Scene` exist.
 
-**The answer:** Inverting the dependency through the 5-method `Commands` trait (`canonical`, `choosing_option`, `accept`, `completions`, `browse`) keeps `command_dock` 100% free of `crate::` and `viewer_core` imports, so the exact production `egui` widget runs unchanged against a 4-verb tutorial table in `dock.rs` and against the 86-verb `REGISTRY` in `app/ui/command_line.rs`.
+    **The answer:** Inverting the dependency through the 5-method `Commands` trait (`canonical`, `choosing_option`, `accept`, `completions`, `browse`) keeps `command_dock` 100% free of `crate::` and `viewer_core` imports, so the exact production `egui` widget runs unchanged against a 4-verb tutorial table in `dock.rs` and against the 86-verb `REGISTRY` in `app/ui/command_line.rs`.
 
 ## Validation
 

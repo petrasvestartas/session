@@ -122,9 +122,10 @@ Predict which error `DeviceError` keeps when an invalid shader compilation is im
 
 **Why does `Targets` clear the `Depth32Float` attachment to `0.0` with `CompareFunction::GreaterEqual` instead of the textbook `1.0` with `LessEqual`?**
 
-**How to work it out:** IEEE-754 `f32` has 24 significand bits whose exponent spacing is finest near `0.0` and coarsest near `1.0`. Under standard `[0, 1]` perspective (`z_near -> 0`, `z_far -> 1`), `1/z` nonlinearity clusters almost the entire scene near `1.0`, wasting exponent precision.
+??? tip "Think first — click to reveal how to work it out and the answer"
+    **How to work it out:** IEEE-754 `f32` has 24 significand bits whose exponent spacing is finest near `0.0` and coarsest near `1.0`. Under standard `[0, 1]` perspective (`z_near -> 0`, `z_far -> 1`), `1/z` nonlinearity clusters almost the entire scene near `1.0`, wasting exponent precision.
 
-**The answer:** Mapping `z_near -> 1.0` and `z_far -> 0.0` (reverse-Z) cancels the `1/z` perspective compression against `f32`'s exponent distribution near `0.0`. That preserves sub-millimetre depth separation across multi-kilometre architectural models without z-fighting on coplanar beams and strokes, provided every depth attachment clears to `0.0` and compares with `Greater` or `GreaterEqual`.
+    **The answer:** Mapping `z_near -> 1.0` and `z_far -> 0.0` (reverse-Z) cancels the `1/z` perspective compression against `f32`'s exponent distribution near `0.0`. That preserves sub-millimetre depth separation across multi-kilometre architectural models without z-fighting on coplanar beams and strokes, provided every depth attachment clears to `0.0` and compares with `Greater` or `GreaterEqual`.
 
 ## Validation
 

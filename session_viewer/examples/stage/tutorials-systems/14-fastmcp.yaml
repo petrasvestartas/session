@@ -1,31 +1,44 @@
 title: '14 · Shared Serde Op Layer and FastMCP Parity'
 split: 0.52
 palette: {accent: '#3057b1'}
-grid: {center: [1.5, 1.5], size: 5, step: 1, z: 0}
-camera: {yaw: -46, pitch: 26, fit: [S0, S1, S2, S3, TOP]}
+grid: {center: [2.0, 1.0], size: 6, step: 1, z: 0}
+camera: {yaw: -44, pitch: 26, fit: [B00, B20, B21, B01, T05, T15]}
 points:
-  S0: [0, 0, 0]
-  S1: [3.0, 0, 0]
-  S2: [3.0, 3.0, 0]
-  S3: [0, 3.0, 0]
-  TOP: [1.5, 1.5, 2.2]
+  B00: [0.0, 0.0, 0.0]
+  B10: [2.0, 0.0, 0.0]
+  B20: [4.0, 0.0, 0.0]
+  B01: [0.0, 2.0, 0.0]
+  B11: [2.0, 2.0, 0.0]
+  B21: [4.0, 2.0, 0.0]
+  T05: [1.0, 1.0, 1.65]
+  T15: [3.0, 1.0, 1.65]
 slides:
   - title: '49-VARIANT OP ENUM AND FASTMCP PARITY'
     steps:
-      - say: 'Agents, scripts, and browser messages address every object by stable $(\mathrm{doc}, \mathrm{guid})$ identity.'
+      - say: 'Agents, CLI scripts, and browser messages address every object by stable $(\mathrm{doc}, \mathrm{guid})$ identity.'
         add:
-          - {id: p0, point: S0, color: '#3057b1', label: 'n_0'}
-          - {id: p1, point: S1, color: '#3057b1', label: 'n_1'}
-          - {id: p2, point: S2, color: '#3057b1', label: 'n_2'}
-          - {id: p3, point: S3, color: '#3057b1', label: 'n_3'}
-          - {id: pT, point: TOP, color: pink, label: 'n_{\mathrm{apex}}'}
-          - {id: e0, line: [S0, TOP], color: '#3057b1', width: 3.0}
-          - {id: e1, line: [S1, TOP], color: '#3057b1', width: 3.0}
-          - {id: e2, line: [S2, TOP], color: '#3057b1', width: 3.0}
-          - {id: e3, line: [S3, TOP], color: '#3057b1', width: 3.0}
-          - {id: ring, polyline: [S0, S1, S2, S3, S0], color: ink, width: 2.2}
+          - {id: bPerim, polyline: [B00, B10, B20, B21, B11, B01, B00], color: ink, width: 2.4}
+          - {id: bMid, line: [B10, B11], color: ink, width: 2.2}
+          - {id: p00, point: B00, color: '#3057b1', label: 'n_0'}
+          - {id: p10, point: B10, color: '#3057b1', label: 'n_1'}
+          - {id: p20, point: B20, color: '#3057b1', label: 'n_2'}
+          - {id: p01, point: B01, color: '#3057b1'}
+          - {id: p11, point: B11, color: '#3057b1'}
+          - {id: p21, point: B21, color: '#3057b1', label: 'n_5'}
         eq: '\mathrm{bytes}_{\mathrm{cmd}} \equiv \mathrm{bytes}_{\mathrm{cli}} \equiv \mathrm{bytes}_{\mathrm{mcp}}'
-      - say: 'Python FastMCP exposes 31 typed tools and 3 scene resources over JSON-line standard I/O.'
+      - say: 'Python FastMCP builds parametric 3D space-trusses over JSONL stdio with zero duplicate geometry math.'
+        add:
+          - {id: tChord, line: [T05, T15], color: '#3057b1', width: 3.6}
+          - {id: w0, line: [B00, T05], color: pink, width: 2.6}
+          - {id: w1, line: [B10, T05], color: pink, width: 2.6}
+          - {id: w2, line: [B11, T05], color: pink, width: 2.6}
+          - {id: w3, line: [B01, T05], color: pink, width: 2.6}
+          - {id: w4, line: [B10, T15], color: pink, width: 2.6}
+          - {id: w5, line: [B20, T15], color: pink, width: 2.6}
+          - {id: w6, line: [B21, T15], color: pink, width: 2.6}
+          - {id: w7, line: [B11, T15], color: pink, width: 2.6}
+          - {id: pT0, point: T05, color: pink, label: 't_0'}
+          - {id: pT1, point: T15, color: pink, label: 't_1'}
         code: |
           viewer_core::op::execute  ->  4,076 ops/s headless
-          session_mcp (FastMCP)     ->  zero duplicate Python geometry math
+          session_mcp (FastMCP)     ->  31 typed tools + 3 scene:// resources

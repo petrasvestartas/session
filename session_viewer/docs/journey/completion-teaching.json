@@ -66,7 +66,7 @@
     "explanation": {
       "page": "journey/tutorial-three-rendering.md",
       "heading": "### Step 1 \u00b7 `build.rs`",
-      "paragraph": "`build.rs` (61 lines) implements internal state and helper routines for `session_viewer`. It keeps browser event routing and scene mutations synchronized without redundant redraws."
+      "paragraph": "`build.rs` (61 lines) implements `build` helpers (`expand()`, `minify()`) under `session_viewer`. It wires `fs`, `Path` without introducing cyclic `session_viewer` dependencies."
     }
   },
   {
@@ -96,7 +96,7 @@
     "explanation": {
       "page": "journey/tutorial-eleven-clouds.md",
       "heading": "### Step 10 \u00b7 `src/app/cloud_query.rs`",
-      "paragraph": "`src/app/cloud_query.rs` (174 lines) defines `fetch_page()`, `resolve_id()`. It keeps browser event routing and scene mutations synchronized without redundant redraws."
+      "paragraph": "`src/app/cloud_query.rs` (174 lines) defines `fetch_page()`, `resolve_id()`. It implements internal helpers `source_request()`, `source_position()`, `page_candidates()`."
     }
   },
   {
@@ -106,7 +106,7 @@
     "explanation": {
       "page": "journey/tutorial-fifteen-formats.md",
       "heading": "### Step 4 \u00b7 `src/app/decode.rs`",
-      "paragraph": "`src/app/decode.rs` (67 lines) defines `struct JsBytes`, `enum Body`, `size()`, `session_from_bytes()`, `session_from_body()`. It keeps browser event routing and scene mutations synchronized without redundant redraws."
+      "paragraph": "`src/app/decode.rs` (67 lines) defines `struct JsBytes`, `enum Body`, `size()`, `session_from_bytes()`, `session_from_body()`. It implements internal helpers `len_bytes()`, `copy_range()`, `to_vec_bytes()`."
     }
   },
   {
@@ -306,7 +306,7 @@
     "explanation": {
       "page": "journey/tutorial-fifteen-formats.md",
       "heading": "### Step 17 \u00b7 `src/app/session_io.rs`",
-      "paragraph": "`src/app/session_io.rs` (105 lines) defines `download()`, `download_text()`, `pick()`. It keeps browser event routing and scene mutations synchronized without redundant redraws."
+      "paragraph": "`src/app/session_io.rs` (105 lines) defines `download()`, `download_text()`, `pick()`, `url`, `a`. It implements internal helpers `choose()`, `choose_import()`."
     }
   },
   {
@@ -316,7 +316,7 @@
     "explanation": {
       "page": "journey/tutorial-eleven-clouds.md",
       "heading": "### Step 14 \u00b7 `src/app/sheet_query.rs`",
-      "paragraph": "`src/app/sheet_query.rs` (96 lines) defines `fetch_entity()`, `read_entity()`. It keeps browser event routing and scene mutations synchronized without redundant redraws."
+      "paragraph": "`src/app/sheet_query.rs` (96 lines) defines `fetch_entity()`, `read_entity()`. It wires ``, `fetch_range`, `post`, `Cell` without introducing cyclic `app` dependencies."
     }
   },
   {
@@ -586,7 +586,7 @@
     "explanation": {
       "page": "journey/tutorial-fifteen-formats.md",
       "heading": "### Step 12 \u00b7 `src/app/stream.rs`",
-      "paragraph": "`src/app/stream.rs` (422 lines) defines `reset_range_gate()`, `read_window()`, `start_range()`. It keeps browser event routing and scene mutations synchronized without redundant redraws."
+      "paragraph": "`src/app/stream.rs` (422 lines) defines `reset_range_gate()`, `read_window()`, `start_range()`, `POINT_BYTES`, `MAX_TABLE_BYTES`. It implements internal helpers `sheet_range()`."
     }
   },
   {
@@ -806,7 +806,7 @@
     "explanation": {
       "page": "journey/tutorial-three-rendering.md",
       "heading": "### Step 17 \u00b7 `src/engine/gpu/backdrop/application_tests.rs`",
-      "paragraph": "`src/engine/gpu/backdrop/application_tests.rs` (165 lines) implements internal state and helper routines for `backdrop`. It maintains explicit buffer capacities, bind-group layouts, and frame-submission ordering for WebGPU."
+      "paragraph": "`src/engine/gpu/backdrop/application_tests.rs` (165 lines) implements `application_tests` helpers (`grey_from_above()`, `actual_grid_pixels_keep_far_fractions_and_return_to_the_same_near_frame()`, `the_grid_lies_on_the_construction_plane()`) under `backdrop`. It wires `CPlane`, ``, ``, `` without introducing cyclic `backdrop` dependencies."
     }
   },
   {
@@ -836,7 +836,7 @@
     "explanation": {
       "page": "journey/tutorial-twelve-visibility.md",
       "heading": "### Step 8 \u00b7 `src/engine/gpu/clip/editing_tests.rs`",
-      "paragraph": "`src/engine/gpu/clip/editing_tests.rs` (1146 lines) implements internal state and helper routines for `clip`. It maintains explicit buffer capacities, bind-group layouts, and frame-submission ordering for WebGPU."
+      "paragraph": "`src/engine/gpu/clip/editing_tests.rs` (1146 lines) defines `SIZE`, `GREY`. It implements internal helpers `block()`, `solids()`, `cut()`."
     }
   },
   {
@@ -846,7 +846,7 @@
     "explanation": {
       "page": "journey/tutorial-twelve-visibility.md",
       "heading": "### Step 6 \u00b7 `src/engine/gpu/clip/pipelines.rs`",
-      "paragraph": "`src/engine/gpu/clip/pipelines.rs` (208 lines) defines `cap_source()`, `pick_pipelines()`, `pick_placed_pipelines()`. It maintains explicit buffer capacities, bind-group layouts, and frame-submission ordering for WebGPU."
+      "paragraph": "`src/engine/gpu/clip/pipelines.rs` (208 lines) defines `cap_source()`, `pick_pipelines()`, `pick_placed_pipelines()`, `SAMPLES`. It implements internal helpers `count_at()`, `primitive_at()`, `cap_texture_entry()`."
     }
   },
   {
@@ -926,7 +926,7 @@
     "explanation": {
       "page": "journey/tutorial-four-geometry.md",
       "heading": "### Step 22 \u00b7 `src/engine/gpu/hull.rs`",
-      "paragraph": "`src/engine/gpu/hull.rs` (2 lines) implements internal state and helper routines for `gpu`. It maintains explicit buffer capacities, bind-group layouts, and frame-submission ordering for WebGPU."
+      "paragraph": "`src/engine/gpu/hull.rs` (2 lines) implements `hull` helpers (internal state) under `gpu`. It keeps `hull` self-contained and deterministic across native and `wasm32` targets."
     }
   },
   {
@@ -936,7 +936,7 @@
     "explanation": {
       "page": "journey/tutorial-four-geometry.md",
       "heading": "### Step 14 \u00b7 `src/engine/gpu/instance.rs`",
-      "paragraph": "`src/engine/gpu/instance.rs` (6 lines) coordinates submodules `layout`, `validation`. It maintains explicit buffer capacities, bind-group layouts, and frame-submission ordering for WebGPU."
+      "paragraph": "`src/engine/gpu/instance.rs` (6 lines) coordinates submodules `layout`, `validation`. It keeps `instance` self-contained and deterministic across native and `wasm32` targets."
     }
   },
   {
@@ -1006,7 +1006,7 @@
     "explanation": {
       "page": "journey/tutorial-four-geometry.md",
       "heading": "### Step 17 \u00b7 `src/engine/gpu/objects.rs`",
-      "paragraph": "`src/engine/gpu/objects.rs` (9 lines) coordinates submodules `gpu_tests`, `ink`, `lane`, `table`. It maintains explicit buffer capacities, bind-group layouts, and frame-submission ordering for WebGPU."
+      "paragraph": "`src/engine/gpu/objects.rs` (9 lines) coordinates submodules `gpu_tests`, `ink`, `lane`, `table`. It keeps `objects` self-contained and deterministic across native and `wasm32` targets."
     }
   },
   {
@@ -1036,7 +1036,7 @@
     "explanation": {
       "page": "journey/tutorial-four-geometry.md",
       "heading": "### Step 19 \u00b7 `src/engine/gpu/objects/lane.rs`",
-      "paragraph": "`src/engine/gpu/objects/lane.rs` (17 lines) implements internal state and helper routines for `objects`. It maintains explicit buffer capacities, bind-group layouts, and frame-submission ordering for WebGPU."
+      "paragraph": "`src/engine/gpu/objects/lane.rs` (17 lines) implements `lane` helpers (`on_reset()`, `on_release()`, `bytes()`) under `objects`. It wires `InstanceTable`, `GpuCtx`, `Layouts` without introducing cyclic `objects` dependencies."
     }
   },
   {
@@ -1126,7 +1126,7 @@
     "explanation": {
       "page": "journey/tutorial-four-geometry.md",
       "heading": "### Step 70 \u00b7 `src/engine/gpu/scene_gpu_tests/contacts.rs`",
-      "paragraph": "`src/engine/gpu/scene_gpu_tests/contacts.rs` (102 lines) implements internal state and helper routines for `scene_gpu_tests`. It maintains explicit buffer capacities, bind-group layouts, and frame-submission ordering for WebGPU."
+      "paragraph": "`src/engine/gpu/scene_gpu_tests/contacts.rs` (102 lines) implements `contacts` helpers (`contacts_on_their_face_draw_in_front_of_it()`) under `scene_gpu_tests`. It wires `ElementFeature`, ``, ``, `Camera` without introducing cyclic `scene_gpu_tests` dependencies."
     }
   },
   {
@@ -1136,7 +1136,7 @@
     "explanation": {
       "page": "journey/tutorial-four-geometry.md",
       "heading": "### Step 71 \u00b7 `src/engine/gpu/scene_gpu_tests/frames.rs`",
-      "paragraph": "`src/engine/gpu/scene_gpu_tests/frames.rs` (222 lines) houses regression tests `authored_line_widths_reach_the_pixels`. It verified by `cargo xtest` (`authored_line_widths_reach_the_pixels`)."
+      "paragraph": "`src/engine/gpu/scene_gpu_tests/frames.rs` (222 lines) houses regression tests `authored_line_widths_reach_the_pixels`. It implements internal helpers `top_view()`, `count()`, `grey()`; and verified by `cargo xtest` (`authored_line_widths_reach_the_pixels`)."
     }
   },
   {
@@ -1146,7 +1146,7 @@
     "explanation": {
       "page": "journey/tutorial-four-geometry.md",
       "heading": "### Step 72 \u00b7 `src/engine/gpu/scene_gpu_tests/instances.rs`",
-      "paragraph": "`src/engine/gpu/scene_gpu_tests/instances.rs` (409 lines) implements internal state and helper routines for `scene_gpu_tests`. It maintains explicit buffer capacities, bind-group layouts, and frame-submission ordering for WebGPU."
+      "paragraph": "`src/engine/gpu/scene_gpu_tests/instances.rs` (409 lines) implements `instances` helpers (`file()`, `placed()`, `turned_grid()`) under `scene_gpu_tests`. It wires ``, `Camera`, ``, `ElementFeature` without introducing cyclic `scene_gpu_tests` dependencies."
     }
   },
   {
@@ -1156,7 +1156,7 @@
     "explanation": {
       "page": "journey/tutorial-four-geometry.md",
       "heading": "### Step 69 \u00b7 `src/engine/gpu/scene_gpu_tests/mod.rs`",
-      "paragraph": "`src/engine/gpu/scene_gpu_tests/mod.rs` (4 lines) coordinates submodules `contacts`, `frames`, `instances`, `split`. It maintains explicit buffer capacities, bind-group layouts, and frame-submission ordering for WebGPU."
+      "paragraph": "`src/engine/gpu/scene_gpu_tests/mod.rs` (4 lines) coordinates submodules `contacts`, `frames`, `instances`, `split`. It keeps `mod` self-contained and deterministic across native and `wasm32` targets."
     }
   },
   {
@@ -1166,7 +1166,7 @@
     "explanation": {
       "page": "journey/tutorial-four-geometry.md",
       "heading": "### Step 73 \u00b7 `src/engine/gpu/scene_gpu_tests/split.rs`",
-      "paragraph": "`src/engine/gpu/scene_gpu_tests/split.rs` (758 lines) implements internal state and helper routines for `scene_gpu_tests`. It maintains explicit buffer capacities, bind-group layouts, and frame-submission ordering for WebGPU."
+      "paragraph": "`src/engine/gpu/scene_gpu_tests/split.rs` (758 lines) implements `split` helpers (`file()`, `p()`, `arc()`) under `scene_gpu_tests`. It wires ``, ``, `Interval`, `` without introducing cyclic `scene_gpu_tests` dependencies."
     }
   },
   {
@@ -1186,7 +1186,7 @@
     "explanation": {
       "page": "journey/tutorial-four-geometry.md",
       "heading": "### Step 11 \u00b7 `src/engine/gpu/sink.rs`",
-      "paragraph": "`src/engine/gpu/sink.rs` (188 lines) implements internal state and helper routines for `gpu`. It maintains explicit buffer capacities, bind-group layouts, and frame-submission ordering for WebGPU."
+      "paragraph": "`src/engine/gpu/sink.rs` (188 lines) implements `sink` helpers (`canvas_size()`, `geometry_revision()`, `object_row()`) under `gpu`. It wires `Gpu`, ``, ``, `GpuSink` without introducing cyclic `gpu` dependencies."
     }
   },
   {
@@ -1336,7 +1336,7 @@
     "explanation": {
       "page": "journey/tutorial-sixteen-performance.md",
       "heading": "### Step 2 \u00b7 `src/engine/gpu/timing.rs`",
-      "paragraph": "`src/engine/gpu/timing.rs` (127 lines) defines `struct PassTimer`, `mark()`, `resolve()`, `collect()`. It maintains explicit buffer capacities, bind-group layouts, and frame-submission ordering for WebGPU."
+      "paragraph": "`src/engine/gpu/timing.rs` (127 lines) defines `struct PassTimer`, `mark()`, `resolve()`, `collect()`, `MARKS`. It wires `GpuCtx` without introducing cyclic `gpu` dependencies."
     }
   },
   {
@@ -1406,7 +1406,7 @@
     "explanation": {
       "page": "journey/tutorial-eight-gumball.md",
       "heading": "### Step 3 \u00b7 `src/engine/gpu/widget_mesh.rs`",
-      "paragraph": "`src/engine/gpu/widget_mesh.rs` (158 lines) defines `struct Vertex`, `vertices()`. It maintains explicit buffer capacities, bind-group layouts, and frame-submission ordering for WebGPU."
+      "paragraph": "`src/engine/gpu/widget_mesh.rs` (158 lines) defines `struct Vertex`, `vertices()`, `COLORS`, `SIDES`. It implements internal helpers `orient()`, `lathe()`, `sphere()`."
     }
   },
   {
@@ -1456,7 +1456,7 @@
     "explanation": {
       "page": "journey/tutorial-three-rendering.md",
       "heading": "### Step 6 \u00b7 `src/engine/pipelines/geometry.rs`",
-      "paragraph": "`src/engine/pipelines/geometry.rs` (71 lines) defines `vertex_layout()`. It keeps browser event routing and scene mutations synchronized without redundant redraws."
+      "paragraph": "`src/engine/pipelines/geometry.rs` (71 lines) defines `vertex_layout()`. It implements internal helpers `pipelines_compile_on_first_use_and_once_per_target()`."
     }
   },
   {
@@ -1476,7 +1476,7 @@
     "explanation": {
       "page": "journey/tutorial-three-rendering.md",
       "heading": "### Step 2 \u00b7 `src/engine/pipelines/mod.rs`",
-      "paragraph": "`src/engine/pipelines/mod.rs` (7 lines) coordinates submodules `bindings`, `layouts`, `core`, `geometry`. It keeps browser event routing and scene mutations synchronized without redundant redraws."
+      "paragraph": "`src/engine/pipelines/mod.rs` (7 lines) coordinates submodules `bindings`, `layouts`, `core`, `geometry`. It keeps `mod` self-contained and deterministic across native and `wasm32` targets."
     }
   },
   {
@@ -1496,7 +1496,7 @@
     "explanation": {
       "page": "journey/tutorial-ten-display.md",
       "heading": "### Step 18 \u00b7 `src/engine/text/application_tests.rs`",
-      "paragraph": "`src/engine/text/application_tests.rs` (34 lines) houses regression tests `bundled_subsets_cover_the_viewer_and_whole_fonts_the_rest`. It verified by `cargo xtest` (`bundled_subsets_cover_the_viewer_and_whole_fonts_the_rest`)."
+      "paragraph": "`src/engine/text/application_tests.rs` (34 lines) houses regression tests `bundled_subsets_cover_the_viewer_and_whole_fonts_the_rest`. It implements internal helpers `bundled_subsets_cover_the_viewer_and_whole_fonts_the_rest()`; and verified by `cargo xtest` (`bundled_subsets_cover_the_viewer_and_whole_fonts_the_rest`)."
     }
   },
   {
@@ -1566,7 +1566,7 @@
     "explanation": {
       "page": "journey/tutorial-ten-display.md",
       "heading": "### Step 12 \u00b7 `src/shaders/ambient_composite.wgsl`",
-      "paragraph": "5. **`src/shaders/ambient_composite.wgsl`** darkens interior pixels in one fullscreen pass (`fs_main`) and refines `16\u00d716` MSAA silhouette tiles per sample (`vs_edges` / `fs_edges`)."
+      "paragraph": "`src/shaders/ambient_composite.wgsl` darkens interior pixels in one fullscreen pass (`fs_main`) and refines `16\u00d716` MSAA silhouette tiles per sample (`vs_edges` / `fs_edges`)."
     }
   },
   {
@@ -1576,7 +1576,7 @@
     "explanation": {
       "page": "journey/tutorial-ten-display.md",
       "heading": "### Step 9 \u00b7 `src/shaders/ambient_depth.wgsl`",
-      "paragraph": "2. **`src/shaders/ambient_depth.wgsl`** reduces `2\u00d72` linear depth + `ao_radius` (`fs_reduce`) and marks `5\u00d75` active occupancy tiles (`fs_occupancy`)."
+      "paragraph": "`src/shaders/ambient_depth.wgsl` reduces `2\u00d72` linear depth + `ao_radius` (`fs_reduce`) and marks `5\u00d75` active occupancy tiles (`fs_occupancy`)."
     }
   },
   {
@@ -1586,7 +1586,7 @@
     "explanation": {
       "page": "journey/tutorial-ten-display.md",
       "heading": "### Step 10 \u00b7 `src/shaders/ambient_geometry.wgsl`",
-      "paragraph": "3. **`src/shaders/ambient_geometry.wgsl`** resolves each pixel's `2\u00d7u16` primitive ID through `placed_triangle` to reconstruct exact world-space triangle cross-product normals (falling back to discontinuity-aware neighbour depth differences on non-triangle pixels)."
+      "paragraph": "`src/shaders/ambient_geometry.wgsl` resolves each pixel's `2\u00d7u16` primitive ID through `placed_triangle` to reconstruct exact world-space triangle cross-product normals (falling back to discontinuity-aware neighbour depth differences on non-triangle pixels)."
     }
   },
   {
@@ -1616,7 +1616,7 @@
     "explanation": {
       "page": "journey/tutorial-twelve-visibility.md",
       "heading": "### Step 9 \u00b7 `src/shaders/cap.wgsl`",
-      "paragraph": "1. **`src/shaders/cap.wgsl`** evaluates plane depth `clip_plane_depth`, trims against every other active section plane sample-by-sample, tests whether back-minus-front crossings behind the plane exceed `0.5` (`count_at`), and outputs `45\u00b0` `box_cdf`-filtered hatches plus `CAP_PRIMITIVE`."
+      "paragraph": "`src/shaders/cap.wgsl` evaluates plane depth `clip_plane_depth`, trims against every other active section plane sample-by-sample, tests whether back-minus-front crossings behind the plane exceed `0.5` (`count_at`), and outputs `45\u00b0` `box_cdf`-filtered hatches plus `CAP_PRIMITIVE`."
     }
   },
   {
@@ -1626,7 +1626,7 @@
     "explanation": {
       "page": "journey/tutorial-three-rendering.md",
       "heading": "### Step 8 \u00b7 `src/shaders/clip.wgsl`",
-      "paragraph": "5. **`src/shaders/clip.wgsl`** declares the `448 B` `ClipUniform` (`6` world/screen section planes, hatch numerators/denominators, `CLIP_OFFSETS` for `4\u00d7` MSAA, scale-aware `CLIP_SLACK = 2^-17` for faces, `8`-epsilon dot-product rounding for on-plane ink, and `override CLIPPING: bool`)."
+      "paragraph": "`src/shaders/clip.wgsl` declares the `448 B` `ClipUniform` (`6` world/screen section planes, hatch numerators/denominators, `CLIP_OFFSETS` for `4\u00d7` MSAA, scale-aware `CLIP_SLACK = 2^-17` for faces, `8`-epsilon dot-product rounding for on-plane ink, and `override CLIPPING: bool`)."
     }
   },
   {
@@ -1636,7 +1636,7 @@
     "explanation": {
       "page": "journey/tutorial-ten-display.md",
       "heading": "### Step 3 \u00b7 `src/shaders/face_coverage.wgsl`",
-      "paragraph": "2. **`src/shaders/face_coverage.wgsl`** inspects the `2\u00d7u16` `physical` attachment across all `SAMPLES` to emit fractional solid coverage (`fs_fraction`)."
+      "paragraph": "`src/shaders/face_coverage.wgsl` inspects the `2\u00d7u16` `physical` attachment across all `SAMPLES` to emit fractional solid coverage (`fs_fraction`)."
     }
   },
   {
@@ -1666,7 +1666,7 @@
     "explanation": {
       "page": "journey/tutorial-three-rendering.md",
       "heading": "### Step 12 \u00b7 `src/shaders/ink_visibility.wgsl`",
-      "paragraph": "3. **`src/shaders/ink_visibility.wgsl`** carries neighbour depth along verified planar surfaces (`ink_pair_planar`) and adds `ink_sag_slack(sag, gradient)` when testing tile triangles so curved BRep edges rising above grazing facets stay unbroken while rear edges disappear cleanly."
+      "paragraph": "`src/shaders/ink_visibility.wgsl` carries neighbour depth along verified planar surfaces (`ink_pair_planar`) and adds `ink_sag_slack(sag, gradient)` when testing tile triangles so curved BRep edges rising above grazing facets stay unbroken while rear edges disappear cleanly."
     }
   },
   {
@@ -1676,7 +1676,7 @@
     "explanation": {
       "page": "journey/tutorial-three-rendering.md",
       "heading": "### Step 10 \u00b7 `src/shaders/normals.wgsl`",
-      "paragraph": "2. **`src/shaders/normals.wgsl`** transforms normals by the cofactor inverse-transpose matrix (preserving perpendicularity under non-uniform scale and flipping sign when `det(M) < 0`) and decodes octahedral `16`-bit and `32`-bit normals while reserving `0x80008000` for absent normals."
+      "paragraph": "`src/shaders/normals.wgsl` transforms normals by the cofactor inverse-transpose matrix (preserving perpendicularity under non-uniform scale and flipping sign when `det(M) < 0`) and decodes octahedral `16`-bit and `32`-bit normals while reserving `0x80008000` for absent normals."
     }
   },
   {
@@ -1686,7 +1686,7 @@
     "explanation": {
       "page": "journey/tutorial-three-rendering.md",
       "heading": "### Step 9 \u00b7 `src/shaders/physical.wgsl`",
-      "paragraph": "3. **`src/shaders/physical.wgsl`** splits `32`-bit triangle IDs across two `16`-bit halves (`rg16uint`) alongside colour and `(object, subobject)` pick outputs because WebGPU forbids `4\u00d7` MSAA on `r32uint` attachments."
+      "paragraph": "`src/shaders/physical.wgsl` splits `32`-bit triangle IDs across two `16`-bit halves (`rg16uint`) alongside colour and `(object, subobject)` pick outputs because WebGPU forbids `4\u00d7` MSAA on `r32uint` attachments."
     }
   },
   {
@@ -1696,7 +1696,7 @@
     "explanation": {
       "page": "journey/tutorial-four-geometry.md",
       "heading": "### Step 38 \u00b7 `src/shaders/plane.wgsl`",
-      "paragraph": "3. **`src/shaders/plane.wgsl`** synthesizes `22` grid segments (`132` vertices) plus `3` RGB `XYZ` arrows (`54` vertices) per `48 B` `PlaneRow` by calling `arrow_corner`."
+      "paragraph": "`src/shaders/plane.wgsl` synthesizes `22` grid segments (`132` vertices) plus `3` RGB `XYZ` arrows (`54` vertices) per `48 B` `PlaneRow` by calling `arrow_corner`."
     }
   },
   {
@@ -1706,7 +1706,7 @@
     "explanation": {
       "page": "journey/tutorial-twelve-visibility.md",
       "heading": "### Step 2 \u00b7 `src/shaders/project_triangles.wgsl`",
-      "paragraph": "1. **`src/shaders/project_triangles.wgsl`** runs a `64`-thread compute pass (`PROJECT_ROW_GROUPS` `2D` dispatch above `65,535` groups) that resolves each triangle via `placed_triangle`, clips against the near plane, fits inward edge equations `equations[0..3]`, and chooses a local corner reference on small far triangles so homogeneous depth extrapolation never suffers cancellation."
+      "paragraph": "`src/shaders/project_triangles.wgsl` runs a `64`-thread compute pass (`PROJECT_ROW_GROUPS` `2D` dispatch above `65,535` groups) that resolves each triangle via `placed_triangle`, clips against the near plane, fits inward edge equations `equations[0..3]`, and chooses a local corner reference on small far triangles so homogeneous depth extrapolation never suffers cancellation."
     }
   },
   {
@@ -1716,7 +1716,7 @@
     "explanation": {
       "page": "journey/tutorial-three-rendering.md",
       "heading": "### Step 11 \u00b7 `src/shaders/projected_triangle.wgsl`",
-      "paragraph": "4. **`src/shaders/projected_triangle.wgsl`** defines the `96 B` `ProjectedTriangle` screen-space record (`edge0..3` inward line equations, reference point, linear depth gradient and pixel bounds) and evaluates exact point-in-triangle depth across at most `262,144` adaptive screen tiles."
+      "paragraph": "`src/shaders/projected_triangle.wgsl` defines the `96 B` `ProjectedTriangle` screen-space record (`edge0..3` inward line equations, reference point, linear depth gradient and pixel bounds) and evaluates exact point-in-triangle depth across at most `262,144` adaptive screen tiles."
     }
   },
   {
@@ -1726,7 +1726,7 @@
     "explanation": {
       "page": "journey/tutorial-four-geometry.md",
       "heading": "### Step 30 \u00b7 `src/shaders/ribbon.wgsl`",
-      "paragraph": "1. **`src/shaders/ribbon.wgsl`** reads each `72 B` `StrokeSegment`, tests adjacent face normals (`edge_faces_camera`), and bisects consecutive screen directions in `join_plane` so chained curve segments meet at clean mitered corners without overlapping alpha."
+      "paragraph": "`src/shaders/ribbon.wgsl` reads each `72 B` `StrokeSegment`, tests adjacent face normals (`edge_faces_camera`), and bisects consecutive screen directions in `join_plane` so chained curve segments meet at clean mitered corners without overlapping alpha."
     }
   },
   {
@@ -1736,7 +1736,7 @@
     "explanation": {
       "page": "journey/tutorial-twelve-visibility.md",
       "heading": "### Step 4 \u00b7 `src/shaders/scan_triangle_tiles.wgsl`",
-      "paragraph": "3. **`src/shaders/scan_triangle_tiles.wgsl`** executes a `256`-lane Hillis-Steele / Blelloch workgroup prefix sum (`scan_tiles` -> `scan_blocks` -> `finish_offsets`) between `fs_count` and `fs_fill`, saturating at buffer capacity instead of wrapping on overflow."
+      "paragraph": "`src/shaders/scan_triangle_tiles.wgsl` executes a `256`-lane Hillis-Steele / Blelloch workgroup prefix sum (`scan_tiles` -> `scan_blocks` -> `finish_offsets`) between `fs_count` and `fs_fill`, saturating at buffer capacity instead of wrapping on overflow."
     }
   },
   {
@@ -1746,7 +1746,7 @@
     "explanation": {
       "page": "journey/tutorial-three-rendering.md",
       "heading": "### Step 7 \u00b7 `src/shaders/scene.wgsl`",
-      "paragraph": "1. **`src/shaders/scene.wgsl`** mirrors the `112 B` `Instance` and `80 B` `LineUniform` structs, resolves selection/tint/edge colours, offsets coplanar contact layers along the view ray (`depth_layer`), and places vertices via `place(i, p) = (instances[i].model * vec4(p, 1.0)).xyz + translations[i].xyz`."
+      "paragraph": "`src/shaders/scene.wgsl` mirrors the `112 B` `Instance` and `80 B` `LineUniform` structs, resolves selection/tint/edge colours, offsets coplanar contact layers along the view ray (`depth_layer`), and places vertices via `place(i, p) = (instances[i].model * vec4(p, 1.0)).xyz + translations[i].xyz`."
     }
   },
   {
@@ -1796,7 +1796,7 @@
     "explanation": {
       "page": "journey/tutorial-ten-display.md",
       "heading": "### Step 11 \u00b7 `src/shaders/ssao.wgsl`",
-      "paragraph": "4. **`src/shaders/ssao.wgsl`** integrates cosine-weighted GTAO horizon arcs `arc(h, n)` across `6` quadratic screen-space steps per side with mip-level selection, spatial-temporal noise phase, bilateral `X`/`Y` denoising and depth-clamped temporal history."
+      "paragraph": "`src/shaders/ssao.wgsl` integrates cosine-weighted GTAO horizon arcs `arc(h, n)` across `6` quadratic screen-space steps per side with mip-level selection, spatial-temporal noise phase, bilateral `X`/`Y` denoising and depth-clamped temporal history."
     }
   },
   {
@@ -1846,7 +1846,7 @@
     "explanation": {
       "page": "journey/tutorial-four-geometry.md",
       "heading": "### Step 28 \u00b7 `src/shaders/triangle.wgsl`",
-      "paragraph": "1. **`src/shaders/triangle.wgsl`** transforms arena and slot-instanced vertices (`slot_row`), preserves unlit opaque contact fills pulled forward via `depth_layer`, detects mirrored transforms (`det(model) < 0`), and writes `PhysicalColor` (`color` + `2\u00d7u16` `primitive`)."
+      "paragraph": "`src/shaders/triangle.wgsl` transforms arena and slot-instanced vertices (`slot_row`), preserves unlit opaque contact fills pulled forward via `depth_layer`, detects mirrored transforms (`det(model) < 0`), and writes `PhysicalColor` (`color` + `2\u00d7u16` `primitive`)."
     }
   },
   {
@@ -1856,7 +1856,7 @@
     "explanation": {
       "page": "journey/tutorial-twelve-visibility.md",
       "heading": "### Step 3 \u00b7 `src/shaders/triangle_tiles.wgsl`",
-      "paragraph": "2. **`src/shaders/triangle_tiles.wgsl`** rasterizes one quad over each projected triangle's tile bounding box, discards uncovered tiles via `covered_tile`, atomically counts hits in `fs_count`, and packs `(primitive, nearest_depth_bound)` pairs in `fs_fill`."
+      "paragraph": "`src/shaders/triangle_tiles.wgsl` rasterizes one quad over each projected triangle's tile bounding box, discards uncovered tiles via `covered_tile`, atomically counts hits in `fs_count`, and packs `(primitive, nearest_depth_bound)` pairs in `fs_fill`."
     }
   },
   {
@@ -1876,7 +1876,7 @@
     "explanation": {
       "page": "journey/tutorial-eight-gumball.md",
       "heading": "### Step 5 \u00b7 `src/shaders/widget.wgsl`",
-      "paragraph": "4. **`src/shaders/widget.wgsl`** shades the `10`-handle manipulation gumball inside its own depth-tested tile (`widget.rect`) so handles occlude each other cleanly in `3D` while floating unobstructed above scene solids."
+      "paragraph": "`src/shaders/widget.wgsl` shades the `13`-handle manipulation gumball inside its own depth-tested tile (`widget.rect`) so handles occlude each other cleanly in `3D` while floating unobstructed above scene solids."
     }
   },
   {
@@ -1966,7 +1966,7 @@
     "explanation": {
       "page": "journey/tutorial-fourteen-fastmcp.md",
       "heading": "### Step 2 \u00b7 `src/state/host.rs`",
-      "paragraph": "`src/state/host.rs` (566 lines) implements internal state and helper routines for `state`. It keeps browser event routing and scene mutations synchronized without redundant redraws."
+      "paragraph": "`src/state/host.rs` (566 lines) implements `host` helpers (`scene()`, `scene_mut()`, `camera()`) under `state`. It wires `State`, `Mode`, ``, `Tool` without introducing cyclic `state` dependencies."
     }
   },
   {
@@ -2016,7 +2016,7 @@
     "explanation": {
       "page": "journey/tutorial-six-modeling.md",
       "heading": "### Step 14 \u00b7 `src/state/splitting.rs`",
-      "paragraph": "`src/state/splitting.rs` (193 lines) defines `struct Pending`, `split_status()`, `split_command()`, `cancel_split()`. It keeps browser event routing and scene mutations synchronized without redundant redraws."
+      "paragraph": "`src/state/splitting.rs` (193 lines) defines `struct Pending`, `split_status()`, `split_command()`, `cancel_split()`. It implements internal helpers `finish_split()`."
     }
   },
   {
@@ -2086,7 +2086,7 @@
     "explanation": {
       "page": "journey/tutorial-eleven-clouds.md",
       "heading": "### Step 9 \u00b7 `viewer-core/src/cloud_query.rs`",
-      "paragraph": "`viewer-core/src/cloud_query.rs` (503 lines) defines `struct QueryView`, `struct Candidate`, `struct Query`, `original_id()`, `project()`. It verified by `cargo xtest` (`original_fixed32_ids_preserve_all_bits_and_reject_partial_ranges`, `nodes_after_six_million_remain_eligible_and_uncovered_rows_are_scanned`, `cube_eligibility_uses_the_same_pixel_center_as_candidate_projection` (+3 more))."
+      "paragraph": "`viewer-core/src/cloud_query.rs` (503 lines) defines `struct QueryView`, `struct Candidate`, `struct Query`, `original_id()`, `project()`. It implements internal helpers `clip()`, `intersects()`, `invalid_clip()`, `PAGE_POINTS`; and verified by `cargo xtest` (`original_fixed32_ids_preserve_all_bits_and_reject_partial_ranges`, `nodes_after_six_million_remain_eligible_and_uncovered_rows_are_scanned`, `cube_eligibility_uses_the_same_pixel_center_as_candidate_projection` (+3 more))."
     }
   },
   {
@@ -2096,7 +2096,7 @@
     "explanation": {
       "page": "journey/tutorial-fourteen-fastmcp.md",
       "heading": "### Step 3 \u00b7 `viewer-core/src/command/headless_tests.rs`",
-      "paragraph": "`viewer-core/src/command/headless_tests.rs` (321 lines) houses regression tests `headless_host_executes_every_registered_verb_without_gpu_or_window`. It verified by `cargo xtest` (`headless_host_executes_every_registered_verb_without_gpu_or_window`)."
+      "paragraph": "`viewer-core/src/command/headless_tests.rs` (321 lines) houses regression tests `headless_host_executes_every_registered_verb_without_gpu_or_window`. It implements internal helpers `run()`, `run_follow()`, `headless_host_executes_every_registered_verb_without_gpu_or_window()`; and verified by `cargo xtest` (`headless_host_executes_every_registered_verb_without_gpu_or_window`)."
     }
   },
   {
@@ -2106,7 +2106,7 @@
     "explanation": {
       "page": "journey/tutorial-fourteen-fastmcp.md",
       "heading": "### Step 1 \u00b7 `viewer-core/src/command/host.rs`",
-      "paragraph": "`viewer-core/src/command/host.rs` (1830 lines) defines `enum ViewFlag`, `struct DisplaySettings`, `struct SelectionState`, `selected_rows()`, `ordered_rows()`. It operates purely on CPU data structures and `GpuSink` rows so `viewer-core` stays decoupled from `wgpu` and `egui`."
+      "paragraph": "`viewer-core/src/command/host.rs` (1830 lines) defines `enum ViewFlag`, `struct DisplaySettings`, `struct SelectionState`, `selected_rows()`, `ordered_rows()`. It implements internal helpers `scene()`, `scene_mut()`, `camera()`."
     }
   },
   {
@@ -2226,7 +2226,7 @@
     "explanation": {
       "page": "journey/tutorial-twelve-visibility.md",
       "heading": "### Step 14 \u00b7 `viewer-core/src/command/verbs/alpha.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/alpha.rs` implements the `alpha` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/alpha.rs` (35 lines) registers the `Alpha` (aliases `Object Alpha`) command (`Alpha <0..1 | Reset>: set or reset per-object transparency on the selection`). Its `Action::run` handler exposes option chips `Alpha 0.5`, `Alpha 1.0`, `Alpha Reset` and dispatches through `host.set_object_alpha()` after validating arguments so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -2236,7 +2236,7 @@
     "explanation": {
       "page": "journey/tutorial-ten-display.md",
       "heading": "### Step 13 \u00b7 `viewer-core/src/command/verbs/arctic.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/arctic.rs` implements the `arctic` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/arctic.rs` (31 lines) registers the `Arctic` command (`Arctic (On Off): soft contact shading, studio lighting and outlines`). Its `Action::run` handler exposes option chips `Arctic On`, `Arctic Off` after validating arguments so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -2246,7 +2246,7 @@
     "explanation": {
       "page": "journey/tutorial-six-modeling.md",
       "heading": "### Step 74 \u00b7 `viewer-core/src/command/verbs/area.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/area.rs` implements the `area` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/area.rs` (243 lines) registers the `Area` command (`Area \u00b7 surface area of the selected meshes, BReps, NURBS surfaces and elements, or of one selected face`). It validates arguments before mutating `&mut dyn CommandHost` so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -2256,7 +2256,7 @@
     "explanation": {
       "page": "journey/tutorial-six-modeling.md",
       "heading": "### Step 34 \u00b7 `viewer-core/src/command/verbs/arrow.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/arrow.rs` implements the `arrow` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/arrow.rs` (28 lines) registers the `Arrow` command (`Arrow \u00b7 Enter then click or type start and tip \u00b7 Example: Arrow 0,0,0 100,0,0`). It validates arguments before mutating `&mut dyn CommandHost` so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -2266,7 +2266,7 @@
     "explanation": {
       "page": "journey/tutorial-six-modeling.md",
       "heading": "### Step 79 \u00b7 `viewer-core/src/command/verbs/arrowhead.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/arrowhead.rs` implements the `test` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/arrowhead.rs` (205 lines) registers the `Arrowhead` command (`Arrowhead: heads on the selected lines, polylines and curves \u00b7 None, Start, End or Both \u00b7 Example: Arrowhead End`). Its `Action::run` handler exposes option chips `Arrowhead None`, `Arrowhead Start`, `Arrowhead End`, `Arrowhead Both` after validating arguments so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -2276,7 +2276,7 @@
     "explanation": {
       "page": "journey/tutorial-ten-display.md",
       "heading": "### Step 15 \u00b7 `viewer-core/src/command/verbs/attributes.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/attributes.rs` implements the `attributes` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/attributes.rs` (34 lines) registers the `Element Attributes` command (`Element Attributes (On Off): show or hide the objects hung under each element, such as its base plane`). Its `Action::run` handler exposes option chips `Element Attributes On`, `Element Attributes Off` after validating arguments so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -2286,7 +2286,7 @@
     "explanation": {
       "page": "journey/tutorial-six-modeling.md",
       "heading": "### Step 47 \u00b7 `viewer-core/src/command/verbs/block_with_hole.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/block_with_hole.rs` implements the `Block With Hole` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/block_with_hole.rs` (121 lines) registers the `Block With Hole` command (`Block With Hole (Brep Mesh): base center, corner or length and width, height, hole radius \u00b7 Example: Block With Hole 0,0,0 40 30 20 5`). Its `Action::run` handler exposes option chips `Block With Hole Brep`, `Block With Hole Mesh` after validating arguments so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -2296,7 +2296,7 @@
     "explanation": {
       "page": "journey/tutorial-six-modeling.md",
       "heading": "### Step 48 \u00b7 `viewer-core/src/command/verbs/bounding_box.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/bounding_box.rs` implements the `bounding_box` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/bounding_box.rs` (115 lines) registers the `BoundingBox` command (`BoundingBox \u00b7 create a world axis aligned box around the selection`). It validates arguments before mutating `&mut dyn CommandHost` so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -2306,7 +2306,7 @@
     "explanation": {
       "page": "journey/tutorial-six-modeling.md",
       "heading": "### Step 35 \u00b7 `viewer-core/src/command/verbs/box.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/box.rs` implements the `Box` (aliases `bo`) command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/box.rs` (217 lines) registers the `Box` command (`Box (Brep Mesh): base center, corner or length and width, height \u00b7 Example: Box 0,0,0 100 50 30`). Its `Action::run` handler exposes option chips `Box Brep`, `Box Mesh` after validating arguments so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -2316,7 +2316,7 @@
     "explanation": {
       "page": "journey/tutorial-six-modeling.md",
       "heading": "### Step 39 \u00b7 `viewer-core/src/command/verbs/capsule.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/capsule.rs` implements the `Capsule` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/capsule.rs` (111 lines) registers the `Capsule` command (`Capsule (Mesh): base center, radius, total height \u00b7 Example: Capsule 0,0,0 5 30`). Its `Action::run` handler exposes option chips `Capsule Mesh` after validating arguments so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -2346,7 +2346,7 @@
     "explanation": {
       "page": "journey/tutorial-six-modeling.md",
       "heading": "### Step 37 \u00b7 `viewer-core/src/command/verbs/cone.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/cone.rs` implements the `Cone` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/cone.rs` (90 lines) registers the `Cone` command (`Cone (Brep Mesh): base center, radius, height to the apex \u00b7 Example: Cone 0,0,0 5 20`). Its `Action::run` handler exposes option chips `Cone Brep`, `Cone Mesh` after validating arguments so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -2356,7 +2356,7 @@
     "explanation": {
       "page": "journey/tutorial-six-modeling.md",
       "heading": "### Step 27 \u00b7 `viewer-core/src/command/verbs/construction_plane.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/construction_plane.rs` implements the `construction_plane` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/construction_plane.rs` (230 lines) registers the `NAME` command (`Construction Plane XY / XZ / YZ fixes the plane points land on and the grid lies on \u00b7 3 Point picks its origin, a point on its x axis and one on its y side \u00b7 View follows the view again \u00b7 Example: Construction Plane 3 Point 0,0,0 1000,0,1000 0,1000,0`). Its `Action::run` handler exposes option chips `Construction Plane XY`, `Construction Plane XZ`, `Construction Plane YZ`, `Construction Plane 3 Point` after validating arguments so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -2366,7 +2366,7 @@
     "explanation": {
       "page": "journey/tutorial-seven-picking.md",
       "heading": "### Step 14 \u00b7 `viewer-core/src/command/verbs/controls.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/controls.rs` implements the `controls` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/controls.rs` (24 lines) defines the `controls` command specification (`Spec`). It validates arguments before mutating `&mut dyn CommandHost` so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -2376,7 +2376,7 @@
     "explanation": {
       "page": "journey/tutorial-six-modeling.md",
       "heading": "### Step 57 \u00b7 `viewer-core/src/command/verbs/copy.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/copy.rs` implements the `placed` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/copy.rs` (371 lines) registers the `Copy` command (`Copy \u00b7 pick a base point, then as many target points as copies \u00b7 Enter finishes \u00b7 Copy 10,0,0 copies once`). It validates arguments before mutating `&mut dyn CommandHost` so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -2396,7 +2396,7 @@
     "explanation": {
       "page": "journey/tutorial-six-modeling.md",
       "heading": "### Step 38 \u00b7 `viewer-core/src/command/verbs/cylinder.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/cylinder.rs` implements the `Cylinder` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/cylinder.rs` (129 lines) registers the `Cylinder` command (`Cylinder (Brep Mesh): base center, radius, height \u00b7 Example: Cylinder 0,0,0 5 20`). Its `Action::run` handler exposes option chips `Cylinder Brep`, `Cylinder Mesh` after validating arguments so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -2406,7 +2406,7 @@
     "explanation": {
       "page": "journey/tutorial-nine-layers.md",
       "heading": "### Step 21 \u00b7 `viewer-core/src/command/verbs/delete.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/delete.rs` implements the `delete` (aliases `del`) command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/delete.rs` (34 lines) defines the `delete` command specification (`Spec`). It validates arguments before mutating `&mut dyn CommandHost` so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -2416,7 +2416,7 @@
     "explanation": {
       "page": "journey/tutorial-six-modeling.md",
       "heading": "### Step 45 \u00b7 `viewer-core/src/command/verbs/dodecahedron.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/dodecahedron.rs` implements the `Dodecahedron` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/dodecahedron.rs` (72 lines) registers the `Dodecahedron` command (`Dodecahedron (Brep Mesh): center, radius to the corners \u00b7 Example: Dodecahedron 0,0,0 10`). Its `Action::run` handler exposes option chips `Dodecahedron Brep`, `Dodecahedron Mesh` after validating arguments so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -2426,7 +2426,7 @@
     "explanation": {
       "page": "journey/tutorial-seven-picking.md",
       "heading": "### Step 12 \u00b7 `viewer-core/src/command/verbs/edge.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/edge.rs` implements the `edge` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/edge.rs` (26 lines) defines the `edge` command specification (`Spec`). It validates arguments before mutating `&mut dyn CommandHost` so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -2436,7 +2436,7 @@
     "explanation": {
       "page": "journey/tutorial-thirteen-commands.md",
       "heading": "### Step 11 \u00b7 `viewer-core/src/command/verbs/escape.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/escape.rs` implements the `escape` (aliases `esc`) command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/escape.rs` (33 lines) defines the `escape` command specification (`Spec`). It validates arguments before mutating `&mut dyn CommandHost` so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -2446,7 +2446,7 @@
     "explanation": {
       "page": "journey/tutorial-six-modeling.md",
       "heading": "### Step 73 \u00b7 `viewer-core/src/command/verbs/explode.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/explode.rs` implements the `test` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/explode.rs` (540 lines) registers the `Explode` command (`Explode \u00b7 a polyline into lines, a BRep into faces, a mesh into faces, a point cloud into points`). It validates arguments before mutating `&mut dyn CommandHost` so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -2456,7 +2456,7 @@
     "explanation": {
       "page": "journey/tutorial-fifteen-formats.md",
       "heading": "### Step 21 \u00b7 `viewer-core/src/command/verbs/export.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/export.rs` implements the `export` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/export.rs` (25 lines) registers the `Export` (aliases `Export Obj`) command (`Export [path.obj]: export selected (or all visible) surface/mesh geometry as Wavefront OBJ`). Its `Action::run` handler dispatches through `host.export_obj()` after validating arguments so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -2466,7 +2466,7 @@
     "explanation": {
       "page": "journey/tutorial-six-modeling.md",
       "heading": "### Step 70 \u00b7 `viewer-core/src/command/verbs/extend.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/extend.rs` implements the `extend` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/extend.rs` (781 lines) registers the `Extend` command (`Extend \u00b7 pick boundaries, Enter, click near curve ends \u00b7 Extend Distance 5 grows ends by a length \u00b7 Extend -0.2 1.2 extends a curve's domain`). Its `Action::run` handler exposes option chips `Extend Distance` after validating arguments so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -2476,7 +2476,7 @@
     "explanation": {
       "page": "journey/tutorial-six-modeling.md",
       "heading": "### Step 71 \u00b7 `viewer-core/src/command/verbs/extend/reach.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/extend/reach.rs` implements the `reach` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/extend/reach.rs` (500 lines) defines the `reach` command specification (`Spec`). It validates arguments before mutating `&mut dyn CommandHost` so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -2486,7 +2486,7 @@
     "explanation": {
       "page": "journey/tutorial-six-modeling.md",
       "heading": "### Step 60 \u00b7 `viewer-core/src/command/verbs/extrude.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/extrude.rs` implements the `Extrude` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/extrude.rs` (521 lines) registers the `Extrude` command (`Extrude (Cap On Cap Off): curves, Enter, then a distance or x,y,z \u00b7 Example: select curves, then Extrude 25`). Its `Action::run` handler exposes option chips `Extrude Cap On`, `Extrude Cap Off` after validating arguments so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -2496,7 +2496,7 @@
     "explanation": {
       "page": "journey/tutorial-seven-picking.md",
       "heading": "### Step 13 \u00b7 `viewer-core/src/command/verbs/face.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/face.rs` implements the `face` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/face.rs` (26 lines) defines the `face` command specification (`Spec`). It validates arguments before mutating `&mut dyn CommandHost` so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -2506,7 +2506,7 @@
     "explanation": {
       "page": "journey/tutorial-thirteen-commands.md",
       "heading": "### Step 14 \u00b7 `viewer-core/src/command/verbs/fit.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/fit.rs` implements the `fit` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/fit.rs` (27 lines) registers the `Fit` command (`Fit zooms to the selection, or the whole scene when nothing is selected`). It validates arguments before mutating `&mut dyn CommandHost` so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -2526,7 +2526,7 @@
     "explanation": {
       "page": "journey/tutorial-six-modeling.md",
       "heading": "### Step 28 \u00b7 `viewer-core/src/command/verbs/grid_snap.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/grid_snap.rs` implements the `grid_snap` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/grid_snap.rs` (93 lines) registers the `Grid Snap` command (`Grid Snap (On Off) or a spacing: a point off every object lands on the grid of the construction plane, 1000 apart at start like the ground grid's cells \u00b7 Example: Grid Snap 50`). Its `Action::run` handler exposes option chips `Grid Snap On`, `Grid Snap Off` after validating arguments so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -2536,7 +2536,7 @@
     "explanation": {
       "page": "journey/tutorial-eight-gumball.md",
       "heading": "### Step 2 \u00b7 `viewer-core/src/command/verbs/gumball.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/gumball.rs` implements the `gumball` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/gumball.rs` (62 lines) registers the `Gumball` command (`Gumball <World | Object | CPlane | Pivot x,y,z | Reset>: align or relocate the gumball`). Its `Action::run` handler exposes option chips `Gumball World`, `Gumball Object`, `Gumball CPlane`, `Gumball Reset` and dispatches through `host.set_gizmo_align()`, `host.set_gizmo_pivot()` after validating arguments so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -2546,7 +2546,7 @@
     "explanation": {
       "page": "journey/tutorial-nine-layers.md",
       "heading": "### Step 19 \u00b7 `viewer-core/src/command/verbs/hide.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/hide.rs` implements the `hide` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/hide.rs` (23 lines) defines the `hide` command specification (`Spec`). It validates arguments before mutating `&mut dyn CommandHost` so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -2556,7 +2556,7 @@
     "explanation": {
       "page": "journey/tutorial-six-modeling.md",
       "heading": "### Step 46 \u00b7 `viewer-core/src/command/verbs/icosahedron.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/icosahedron.rs` implements the `Icosahedron` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/icosahedron.rs` (72 lines) registers the `Icosahedron` command (`Icosahedron (Brep Mesh): center, radius to the corners \u00b7 Example: Icosahedron 0,0,0 10`). Its `Action::run` handler exposes option chips `Icosahedron Brep`, `Icosahedron Mesh` after validating arguments so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -2566,7 +2566,7 @@
     "explanation": {
       "page": "journey/tutorial-fifteen-formats.md",
       "heading": "### Step 20 \u00b7 `viewer-core/src/command/verbs/import.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/import.rs` implements the `import` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/import.rs` (25 lines) registers the `Import` command (`Import [path.pb | path.obj]: import a local .pb or .obj geometry file into the scene`). Its `Action::run` handler dispatches through `host.import_file()` after validating arguments so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -2576,7 +2576,7 @@
     "explanation": {
       "page": "journey/tutorial-nine-layers.md",
       "heading": "### Step 24 \u00b7 `viewer-core/src/command/verbs/interactions.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/interactions.rs` implements the `interactions` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/interactions.rs` (34 lines) registers the `Element Interactions` command (`Element Interactions (On Off): draw or remove what other elements do to each element, its contacts, joints and cuts`). Its `Action::run` handler exposes option chips `Element Interactions On`, `Element Interactions Off` after validating arguments so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -2586,7 +2586,7 @@
     "explanation": {
       "page": "journey/tutorial-nine-layers.md",
       "heading": "### Step 16 \u00b7 `viewer-core/src/command/verbs/layers.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/layers.rs` implements the `layers` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/layers.rs` (44 lines) registers the `Layers` command (`Layers (On Off All): show or hide the layer panel; All shows it with every row expanded`). Its `Action::run` handler exposes option chips `Layers On`, `Layers Off`, `Layers All` after validating arguments so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -2596,7 +2596,7 @@
     "explanation": {
       "page": "journey/tutorial-six-modeling.md",
       "heading": "### Step 75 \u00b7 `viewer-core/src/command/verbs/length.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/length.rs` implements the `length` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/length.rs` (100 lines) registers the `Length` command (`Length \u00b7 total length of the selected lines, polylines and NURBS curves`). It validates arguments before mutating `&mut dyn CommandHost` so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -2606,7 +2606,7 @@
     "explanation": {
       "page": "journey/tutorial-six-modeling.md",
       "heading": "### Step 49 \u00b7 `viewer-core/src/command/verbs/length_bounding_box.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/length_bounding_box.rs` implements the `length_bounding_box` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/length_bounding_box.rs` (39 lines) registers the `Length BoundingBox` command (`Length BoundingBox \u00b7 world X, Y and Z extents of the selection`). It validates arguments before mutating `&mut dyn CommandHost` so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -2626,7 +2626,7 @@
     "explanation": {
       "page": "journey/tutorial-nine-layers.md",
       "heading": "### Step 22 \u00b7 `viewer-core/src/command/verbs/lock.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/lock.rs` implements the `lock` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/lock.rs` (30 lines) registers the `Lock` command (`Lock [Off | Unlock]: lock selected objects against selection/edits, or unlock all`). Its `Action::run` handler exposes option chips `Lock`, `Lock Off`, `Lock Unlock` and dispatches through `host.lock_selected()` after validating arguments so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -2636,7 +2636,7 @@
     "explanation": {
       "page": "journey/tutorial-six-modeling.md",
       "heading": "### Step 61 \u00b7 `viewer-core/src/command/verbs/loft.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/loft.rs` implements the `Loft` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/loft.rs` (111 lines) registers the `Loft` command (`Loft (Open Closed): click curves in section order, Enter lofts \u00b7 Example: select curves, then Loft Closed`). Its `Action::run` handler exposes option chips `Loft Open`, `Loft Closed` after validating arguments so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -2646,7 +2646,7 @@
     "explanation": {
       "page": "journey/tutorial-six-modeling.md",
       "heading": "### Step 76 \u00b7 `viewer-core/src/command/verbs/measure.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/measure.rs` implements the `measure` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/measure.rs` (301 lines) defines the `measure` command specification (`Spec`). It validates arguments before mutating `&mut dyn CommandHost` so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -2656,7 +2656,7 @@
     "explanation": {
       "page": "journey/tutorial-six-modeling.md",
       "heading": "### Step 77 \u00b7 `viewer-core/src/command/verbs/measure_distance.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/measure_distance.rs` implements the `measure_distance` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/measure_distance.rs` (191 lines) registers the `Measure Distance` command (`Measure Distance \u00b7 pick two points, snaps on \u00b7 or type Measure Distance 0,0,0 100,0,0`). It validates arguments before mutating `&mut dyn CommandHost` so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -2676,7 +2676,7 @@
     "explanation": {
       "page": "journey/tutorial-six-modeling.md",
       "heading": "### Step 54 \u00b7 `viewer-core/src/command/verbs/move.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/move.rs` implements the `move` (aliases `m`) command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/move.rs` (125 lines) registers the `Move` command (`Move \u00b7 pick a base point, then the target point \u00b7 Move 10,0,0 moves by a typed offset`). It validates arguments before mutating `&mut dyn CommandHost` so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -2686,7 +2686,7 @@
     "explanation": {
       "page": "journey/tutorial-six-modeling.md",
       "heading": "### Step 50 \u00b7 `viewer-core/src/command/verbs/nurbs_curve_arc.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/nurbs_curve_arc.rs` implements the `Nurbs Curve Arc` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/nurbs_curve_arc.rs` (330 lines) registers the `Nurbs Curve Arc` command (`Nurbs Curve Arc (Center 3 Points): center, start or radius, end or angle \u00b7 Example: Nurbs Curve Arc 0,0,0 10 90`). Its `Action::run` handler exposes option chips `Nurbs Curve Arc Center`, `Nurbs Curve Arc 3 Points` after validating arguments so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -2696,7 +2696,7 @@
     "explanation": {
       "page": "journey/tutorial-six-modeling.md",
       "heading": "### Step 51 \u00b7 `viewer-core/src/command/verbs/nurbs_curve_circle.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/nurbs_curve_circle.rs` implements the `Nurbs Curve Circle` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/nurbs_curve_circle.rs` (91 lines) registers the `Nurbs Curve Circle` command (`Nurbs Curve Circle: center, radius \u00b7 Example: Nurbs Curve Circle 0,0,0 10`). It validates arguments before mutating `&mut dyn CommandHost` so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -2706,7 +2706,7 @@
     "explanation": {
       "page": "journey/tutorial-six-modeling.md",
       "heading": "### Step 52 \u00b7 `viewer-core/src/command/verbs/nurbs_curve_ellipse.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/nurbs_curve_ellipse.rs` implements the `Nurbs Curve Ellipse` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/nurbs_curve_ellipse.rs` (114 lines) registers the `Nurbs Curve Ellipse` command (`Nurbs Curve Ellipse: center, end of the first axis or its radius, second radius \u00b7 Example: Nurbs Curve Ellipse 0,0,0 20 10`). It validates arguments before mutating `&mut dyn CommandHost` so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -2716,7 +2716,7 @@
     "explanation": {
       "page": "journey/tutorial-six-modeling.md",
       "heading": "### Step 53 \u00b7 `viewer-core/src/command/verbs/nurbs_curve_parabola.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/nurbs_curve_parabola.rs` implements the `Nurbs Curve Parabola` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/nurbs_curve_parabola.rs` (152 lines) registers the `Nurbs Curve Parabola` command (`Nurbs Curve Parabola: start, end or length, apex or height \u00b7 Example: Nurbs Curve Parabola 0,0,0 100 40`). It validates arguments before mutating `&mut dyn CommandHost` so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -2726,7 +2726,7 @@
     "explanation": {
       "page": "journey/tutorial-six-modeling.md",
       "heading": "### Step 62 \u00b7 `viewer-core/src/command/verbs/nurbs_surface_4_points.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/nurbs_surface_4_points.rs` implements the `Nurbs Surface 4 Points` (aliases `nurbssurface_4_points`) command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/nurbs_surface_4_points.rs` (95 lines) registers the `Nurbs Surface 4 Points` command (`Nurbs Surface 4 Points: four corners in order \u00b7 Example: Nurbs Surface 4 Points 0,0,0 10,0,0 10,10,3 0,10,0`). It validates arguments before mutating `&mut dyn CommandHost` so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -2736,7 +2736,7 @@
     "explanation": {
       "page": "journey/tutorial-six-modeling.md",
       "heading": "### Step 63 \u00b7 `viewer-core/src/command/verbs/nurbs_surface_loft.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/nurbs_surface_loft.rs` implements the `Nurbs Surface Loft` (aliases `nurbssurface_loft`) command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/nurbs_surface_loft.rs` (49 lines) registers the `Nurbs Surface Loft` command (`Nurbs Surface Loft (Smooth Straight): click curves in section order, Enter lofts`). Its `Action::run` handler exposes option chips `Nurbs Surface Loft Smooth`, `Nurbs Surface Loft Straight` after validating arguments so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -2746,7 +2746,7 @@
     "explanation": {
       "page": "journey/tutorial-six-modeling.md",
       "heading": "### Step 64 \u00b7 `viewer-core/src/command/verbs/nurbs_surface_network.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/nurbs_surface_network.rs` implements the `Nurbs Surface Network` (aliases `nurbssurface_network`, `nurbsnurbs_network`, `Nurbs Nurbs Network`) command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/nurbs_surface_network.rs` (425 lines) registers the `Nurbs Surface Network` command (`Nurbs Surface Network: click curves of both directions in any order, Enter builds the surface through them`). It validates arguments before mutating `&mut dyn CommandHost` so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -2756,7 +2756,7 @@
     "explanation": {
       "page": "journey/tutorial-six-modeling.md",
       "heading": "### Step 65 \u00b7 `viewer-core/src/command/verbs/nurbs_surface_revolve.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/nurbs_surface_revolve.rs` implements the `Nurbs Surface Revolve` (aliases `nurbssurface_revolve`) command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/nurbs_surface_revolve.rs` (116 lines) registers the `Nurbs Surface Revolve` command (`Nurbs Surface Revolve: profile curves, Enter, axis start, axis end, angle \u00b7 Example: Nurbs Surface Revolve 0,0,0 0,0,1 90`). It validates arguments before mutating `&mut dyn CommandHost` so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -2766,7 +2766,7 @@
     "explanation": {
       "page": "journey/tutorial-six-modeling.md",
       "heading": "### Step 66 \u00b7 `viewer-core/src/command/verbs/nurbs_surface_sweep1.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/nurbs_surface_sweep1.rs` implements the `Nurbs Surface Sweep1` (aliases `nurbssurface_sweep1`) command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/nurbs_surface_sweep1.rs` (224 lines) registers the `Nurbs Surface Sweep1` command (`Nurbs Surface Sweep1: the rail, then profile curves, Enter sweeps`). It validates arguments before mutating `&mut dyn CommandHost` so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -2776,7 +2776,7 @@
     "explanation": {
       "page": "journey/tutorial-six-modeling.md",
       "heading": "### Step 67 \u00b7 `viewer-core/src/command/verbs/nurbs_surface_sweep2.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/nurbs_surface_sweep2.rs` implements the `Nurbs Surface Sweep2` (aliases `nurbssurface_sweep2`) command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/nurbs_surface_sweep2.rs` (135 lines) registers the `Nurbs Surface Sweep2` command (`Nurbs Surface Sweep2: first rail, second rail, shape curves, Enter sweeps`). It validates arguments before mutating `&mut dyn CommandHost` so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -2786,7 +2786,7 @@
     "explanation": {
       "page": "journey/tutorial-seven-picking.md",
       "heading": "### Step 11 \u00b7 `viewer-core/src/command/verbs/object.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/object.rs` implements the `object` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/object.rs` (26 lines) defines the `object` command specification (`Spec`). It validates arguments before mutating `&mut dyn CommandHost` so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -2796,7 +2796,7 @@
     "explanation": {
       "page": "journey/tutorial-six-modeling.md",
       "heading": "### Step 44 \u00b7 `viewer-core/src/command/verbs/octahedron.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/octahedron.rs` implements the `Octahedron` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/octahedron.rs` (72 lines) registers the `Octahedron` command (`Octahedron (Brep Mesh): center, radius to the corners \u00b7 Example: Octahedron 0,0,0 10`). Its `Action::run` handler exposes option chips `Octahedron Brep`, `Octahedron Mesh` after validating arguments so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -2806,7 +2806,7 @@
     "explanation": {
       "page": "journey/tutorial-twelve-visibility.md",
       "heading": "### Step 13 \u00b7 `viewer-core/src/command/verbs/opacity.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/opacity.rs` implements the `opacity` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/opacity.rs` (32 lines) registers the `Opacity` command (`Opacity 0..1: how solid the faces are \u00b7 0 is x-ray, 1 solid \u00b7 Example: Opacity 0.5`). Its `Action::run` handler exposes option chips `Opacity 1`, `Opacity 0.7`, `Opacity 0.4`, `Opacity 0` after validating arguments so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -2816,7 +2816,7 @@
     "explanation": {
       "page": "journey/tutorial-fifteen-formats.md",
       "heading": "### Step 18 \u00b7 `viewer-core/src/command/verbs/open.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/open.rs` implements the `open` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/open.rs` (21 lines) registers the `Open` command (`Open restores a saved .session file`). It validates arguments before mutating `&mut dyn CommandHost` so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -2826,7 +2826,7 @@
     "explanation": {
       "page": "journey/tutorial-six-modeling.md",
       "heading": "### Step 58 \u00b7 `viewer-core/src/command/verbs/orient_3_points.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/orient_3_points.rs` implements the `orient_3_points` (aliases `orient3pt`) command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/orient_3_points.rs` (274 lines) registers the `Orient 3 Points` command (`Orient 3 Points \u00b7 pick three reference points, then three target points \u00b7 the selection moves rigidly`). It validates arguments before mutating `&mut dyn CommandHost` so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -2836,7 +2836,7 @@
     "explanation": {
       "page": "journey/tutorial-ten-display.md",
       "heading": "### Step 14 \u00b7 `viewer-core/src/command/verbs/outline.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/outline.rs` implements the `outline` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/outline.rs` (30 lines) registers the `Outline` command (`Outline (On Off): black silhouette around solids`). Its `Action::run` handler exposes option chips `Outline On`, `Outline Off` after validating arguments so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -2846,7 +2846,7 @@
     "explanation": {
       "page": "journey/tutorial-six-modeling.md",
       "heading": "### Step 30 \u00b7 `viewer-core/src/command/verbs/point.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/point.rs` implements the `point` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/point.rs` (22 lines) registers the `Point` command (`Point \u00b7 Enter then click or type x,y,z`). It validates arguments before mutating `&mut dyn CommandHost` so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -2876,7 +2876,7 @@
     "explanation": {
       "page": "journey/tutorial-nine-layers.md",
       "heading": "### Step 23 \u00b7 `viewer-core/src/command/verbs/properties.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/properties.rs` implements the `properties` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/properties.rs` (33 lines) registers the `Properties` command (`Properties [On | Off]: toggle the object properties and display settings panel`). Its `Action::run` handler exposes option chips `Properties On`, `Properties Off` and dispatches through `host.set_properties_panel()` after validating arguments so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -2886,7 +2886,7 @@
     "explanation": {
       "page": "journey/tutorial-six-modeling.md",
       "heading": "### Step 41 \u00b7 `viewer-core/src/command/verbs/pyramid.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/pyramid.rs` implements the `Pyramid` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/pyramid.rs` (148 lines) registers the `Pyramid` command (`Pyramid (Brep Mesh): base center, corner or edge length, height \u00b7 Example: Pyramid 0,0,0 10 15`). Its `Action::run` handler exposes option chips `Pyramid Brep`, `Pyramid Mesh` after validating arguments so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -2896,7 +2896,7 @@
     "explanation": {
       "page": "journey/tutorial-six-modeling.md",
       "heading": "### Step 42 \u00b7 `viewer-core/src/command/verbs/quad_sphere.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/quad_sphere.rs` implements the `Quad Sphere` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/quad_sphere.rs` (71 lines) registers the `Quad Sphere` command (`Quad Sphere (Mesh): center, radius \u00b7 six patches of 8 \u00d7 8 quads \u00b7 Example: Quad Sphere 0,0,0 10`). Its `Action::run` handler exposes option chips `Quad Sphere Mesh` after validating arguments so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -2906,7 +2906,7 @@
     "explanation": {
       "page": "journey/tutorial-thirteen-commands.md",
       "heading": "### Step 10 \u00b7 `viewer-core/src/command/verbs/redo.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/redo.rs` implements the `redo` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/redo.rs` (24 lines) defines the `redo` command specification (`Spec`). It validates arguments before mutating `&mut dyn CommandHost` so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -2916,7 +2916,7 @@
     "explanation": {
       "page": "journey/tutorial-thirteen-commands.md",
       "heading": "### Step 13 \u00b7 `viewer-core/src/command/verbs/report.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/report.rs` implements the `report` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/report.rs` (23 lines) registers the `Report` command (`Report \u00b7 download the viewer report: this run and the last failed or interrupted one`). It validates arguments before mutating `&mut dyn CommandHost` so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -2926,7 +2926,7 @@
     "explanation": {
       "page": "journey/tutorial-six-modeling.md",
       "heading": "### Step 55 \u00b7 `viewer-core/src/command/verbs/rotate.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/rotate.rs` implements the `rotate` (aliases `rot`) command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/rotate.rs` (242 lines) registers the `Rotate` command (`Rotate \u00b7 pick the center, then type an angle or pick two reference points \u00b7 Rotate z 45 turns about a world axis`). Its `Action::run` handler exposes option chips `Rotate x`, `Rotate y`, `Rotate z` after validating arguments so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -2936,7 +2936,7 @@
     "explanation": {
       "page": "journey/tutorial-fifteen-formats.md",
       "heading": "### Step 19 \u00b7 `viewer-core/src/command/verbs/save.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/save.rs` implements the `save` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/save.rs` (25 lines) registers the `Save` command (`Save downloads the complete editable scene as a .session file`). It validates arguments before mutating `&mut dyn CommandHost` so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -2946,7 +2946,7 @@
     "explanation": {
       "page": "journey/tutorial-six-modeling.md",
       "heading": "### Step 56 \u00b7 `viewer-core/src/command/verbs/scale.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/scale.rs` implements the `scale` (aliases `s`) command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/scale.rs` (323 lines) registers the `Scale` command (`Scale \u00b7 pick the origin, then type a factor or pick two reference points \u00b7 1D, 2D or 3D \u00b7 Scale 2 scales at once`). It validates arguments before mutating `&mut dyn CommandHost` so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -2956,7 +2956,7 @@
     "explanation": {
       "page": "journey/tutorial-seven-picking.md",
       "heading": "### Step 7 \u00b7 `viewer-core/src/command/verbs/select_all.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/select_all.rs` implements the `select_all` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/select_all.rs` (41 lines) registers the `Select All` command (`Select All \u00b7 selects every visible object that is not locked; an element's attributes stay out \u00b7 Ctrl+A`). It validates arguments before mutating `&mut dyn CommandHost` so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -2966,7 +2966,7 @@
     "explanation": {
       "page": "journey/tutorial-seven-picking.md",
       "heading": "### Step 8 \u00b7 `viewer-core/src/command/verbs/select_by_name.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/select_by_name.rs` implements the `select_by_name` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/select_by_name.rs` (95 lines) registers the `Select By Name` command (`Select By Name text \u00b7 selects visible objects whose name contains the text, any case \u00b7 Example: Select By Name beam`). It validates arguments before mutating `&mut dyn CommandHost` so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -2976,7 +2976,7 @@
     "explanation": {
       "page": "journey/tutorial-seven-picking.md",
       "heading": "### Step 9 \u00b7 `viewer-core/src/command/verbs/select_lasso.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/select_lasso.rs` implements the `select_lasso` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/select_lasso.rs` (411 lines) registers the `Select Lasso` command (`Select Lasso \u00b7 drag a loop around objects \u00b7 Shift adds \u00b7 Ctrl removes \u00b7 Esc cancels`). It validates arguments before mutating `&mut dyn CommandHost` so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -2986,7 +2986,7 @@
     "explanation": {
       "page": "journey/tutorial-seven-picking.md",
       "heading": "### Step 10 \u00b7 `viewer-core/src/command/verbs/select_small.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/select_small.rs` implements the `select_small` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/select_small.rs` (96 lines) registers the `Select Small` command (`Select Small length \u00b7 selects visible objects whose bounding-box diagonal is shorter, in scene units \u00b7 Example: Select Small 10`). It validates arguments before mutating `&mut dyn CommandHost` so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -3006,7 +3006,7 @@
     "explanation": {
       "page": "journey/tutorial-nine-layers.md",
       "heading": "### Step 20 \u00b7 `viewer-core/src/command/verbs/show.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/show.rs` implements the `show` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/show.rs` (23 lines) defines the `show` command specification (`Spec`). It validates arguments before mutating `&mut dyn CommandHost` so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -3016,7 +3016,7 @@
     "explanation": {
       "page": "journey/tutorial-six-modeling.md",
       "heading": "### Step 29 \u00b7 `viewer-core/src/command/verbs/snap.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/snap.rs` implements the `snap` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/snap.rs` (68 lines) registers the `Snap` command (`Snap (On Off): snapping \u00b7 Snap End / Near / Mid / Center / Perp toggles one kind`). Its `Action::run` handler exposes option chips `Snap On`, `Snap Off`, `Snap End`, `Snap Near` after validating arguments so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -3026,7 +3026,7 @@
     "explanation": {
       "page": "journey/tutorial-six-modeling.md",
       "heading": "### Step 36 \u00b7 `viewer-core/src/command/verbs/sphere.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/sphere.rs` implements the `Sphere` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/sphere.rs` (79 lines) registers the `Sphere` command (`Sphere (Brep Mesh): center, radius \u00b7 Example: Sphere 0,0,0 10`). Its `Action::run` handler exposes option chips `Sphere Brep`, `Sphere Mesh` after validating arguments so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -3036,7 +3036,7 @@
     "explanation": {
       "page": "journey/tutorial-six-modeling.md",
       "heading": "### Step 72 \u00b7 `viewer-core/src/command/verbs/split.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/split.rs` implements the `split` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/split.rs` (31 lines) registers the `Split` command (`Select a curve or face \u00b7 Split \u00b7 choose cutter curves \u00b7 Enter confirms \u00b7 Esc cancels`). It validates arguments before mutating `&mut dyn CommandHost` so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -3046,7 +3046,7 @@
     "explanation": {
       "page": "journey/tutorial-six-modeling.md",
       "heading": "### Step 43 \u00b7 `viewer-core/src/command/verbs/tetrahedron.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/tetrahedron.rs` implements the `Tetrahedron` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/tetrahedron.rs` (72 lines) registers the `Tetrahedron` command (`Tetrahedron (Brep Mesh): center, radius to the corners \u00b7 Example: Tetrahedron 0,0,0 10`). Its `Action::run` handler exposes option chips `Tetrahedron Brep`, `Tetrahedron Mesh` after validating arguments so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -3066,7 +3066,7 @@
     "explanation": {
       "page": "journey/tutorial-six-modeling.md",
       "heading": "### Step 40 \u00b7 `viewer-core/src/command/verbs/torus.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/torus.rs` implements the `Torus` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/torus.rs` (130 lines) registers the `Torus` command (`Torus (Brep Mesh): center, major radius, minor radius \u00b7 Example: Torus 0,0,0 20 5`). Its `Action::run` handler exposes option chips `Torus Brep`, `Torus Mesh` after validating arguments so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -3076,7 +3076,7 @@
     "explanation": {
       "page": "journey/tutorial-six-modeling.md",
       "heading": "### Step 68 \u00b7 `viewer-core/src/command/verbs/trim.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/trim.rs` implements the `trim` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/trim.rs` (721 lines) registers the `Trim` command (`Trim \u00b7 pick objects, Enter, pick cutters, Enter, click the parts to remove \u00b7 Esc cancels \u00b7 Trim 0.2 0.8 keeps that part of a curve`). It validates arguments before mutating `&mut dyn CommandHost` so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -3086,7 +3086,7 @@
     "explanation": {
       "page": "journey/tutorial-six-modeling.md",
       "heading": "### Step 69 \u00b7 `viewer-core/src/command/verbs/trim/parts.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/trim/parts.rs` implements the `doc` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/trim/parts.rs` (1475 lines) defines the `parts` command specification (`Spec`). It validates arguments before mutating `&mut dyn CommandHost` so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -3096,7 +3096,7 @@
     "explanation": {
       "page": "journey/tutorial-thirteen-commands.md",
       "heading": "### Step 9 \u00b7 `viewer-core/src/command/verbs/undo.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/undo.rs` implements the `undo` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/undo.rs` (24 lines) defines the `undo` command specification (`Spec`). It validates arguments before mutating `&mut dyn CommandHost` so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -3116,7 +3116,7 @@
     "explanation": {
       "page": "journey/tutorial-six-modeling.md",
       "heading": "### Step 78 \u00b7 `viewer-core/src/command/verbs/volume.rs`",
-      "paragraph": "`viewer-core/src/command/verbs/volume.rs` implements the `volume` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched."
+      "paragraph": "`viewer-core/src/command/verbs/volume.rs` (222 lines) registers the `Volume` command (`Volume \u00b7 volume of the selected closed meshes, solid BReps and elements; open ones are refused`). It validates arguments before mutating `&mut dyn CommandHost` so invalid CLI or interactive input leaves undo history untouched."
     }
   },
   {
@@ -3146,7 +3146,7 @@
     "explanation": {
       "page": "journey/tutorial-fifteen-formats.md",
       "heading": "### Step 3 \u00b7 `viewer-core/src/decode.rs`",
-      "paragraph": "`viewer-core/src/decode.rs` (1050 lines) defines `trait ByteSource`, `enum Body`, `size()`, `session_from_bytes()`, `session_from_bytes_yielding()`. It verified by `cargo xtest` (`window_decode_keeps_node_colors`, `window_decode_matches_the_source`, `window_decode_keeps_interactions_on_their_edges` (+4 more))."
+      "paragraph": "`viewer-core/src/decode.rs` (1050 lines) defines `trait ByteSource`, `enum Body`, `size()`, `session_from_bytes()`, `session_from_bytes_yielding()`. It implements internal helpers `len_bytes()`, `copy_range()`, `to_vec_bytes()`, `CHUNK`; and verified by `cargo xtest` (`window_decode_keeps_node_colors`, `window_decode_matches_the_source`, `window_decode_keeps_interactions_on_their_edges` (+4 more))."
     }
   },
   {
@@ -3256,7 +3256,7 @@
     "explanation": {
       "page": "journey/tutorial-six-modeling.md",
       "heading": "### Step 21 \u00b7 `viewer-core/src/mesh_preview.rs`",
-      "paragraph": "`viewer-core/src/mesh_preview.rs` (325 lines) defines `struct MeshPreview`, `struct Gesture`, `mesh()`, `capture()`, `begin()`. It verified by `cargo xtest` (`large_mesh_gesture_only_patches_local_neighborhood`)."
+      "paragraph": "`viewer-core/src/mesh_preview.rs` (325 lines) defines `struct MeshPreview`, `struct Gesture`, `mesh()`, `capture()`, `begin()`. It implements internal helpers `large_mesh_gesture_only_patches_local_neighborhood()`; and verified by `cargo xtest` (`large_mesh_gesture_only_patches_local_neighborhood`)."
     }
   },
   {
@@ -3296,7 +3296,7 @@
     "explanation": {
       "page": "journey/tutorial-four-geometry.md",
       "heading": "### Step 3 \u00b7 `viewer-core/src/rows/encode.rs`",
-      "paragraph": "`viewer-core/src/rows/encode.rs` (78 lines) defines `struct Pen`, `encode_width()`, `pack_rgba()`, `oct16()`, `BLACK`. It operates purely on CPU data structures and `GpuSink` rows so `viewer-core` stays decoupled from `wgpu` and `egui`."
+      "paragraph": "`viewer-core/src/rows/encode.rs` (78 lines) defines `struct Pen`, `encode_width()`, `pack_rgba()`, `oct16()`, `BLACK`. It implements internal helpers `quant8()`, `sign_not_zero()`, `quant_snorm8()`, `FACING_UNKNOWN`."
     }
   },
   {
@@ -3306,7 +3306,7 @@
     "explanation": {
       "page": "journey/tutorial-four-geometry.md",
       "heading": "### Step 4 \u00b7 `viewer-core/src/rows/gizmo.rs`",
-      "paragraph": "`viewer-core/src/rows/gizmo.rs` (14 lines) defines `ARM`, `BALL_AT`. It operates purely on CPU data structures and `GpuSink` rows so `viewer-core` stays decoupled from `wgpu` and `egui`."
+      "paragraph": "`viewer-core/src/rows/gizmo.rs` (14 lines) defines `ARM`, `BALL_AT`. It keeps `gizmo` self-contained and deterministic across native and `wasm32` targets."
     }
   },
   {
@@ -3316,7 +3316,7 @@
     "explanation": {
       "page": "journey/tutorial-four-geometry.md",
       "heading": "### Step 5 \u00b7 `viewer-core/src/rows/hull.rs`",
-      "paragraph": "`viewer-core/src/rows/hull.rs` (392 lines) defines `type Hull`, `struct Points`, `of()`, `extreme_points()`, `placed_box()`. It verified by `cargo xtest` (`a_turned_beam_is_boxed_by_its_extreme_points`, `every_direction_peaks_on_a_kept_point`, `a_round_set_gives_up` (+1 more))."
+      "paragraph": "`viewer-core/src/rows/hull.rs` (392 lines) defines `type Hull`, `struct Points`, `of()`, `extreme_points()`, `placed_box()`. It implements internal helpers `volume()`, `sub()`, `dot()`, `ABOVE`; and verified by `cargo xtest` (`a_turned_beam_is_boxed_by_its_extreme_points`, `every_direction_peaks_on_a_kept_point`, `a_round_set_gives_up` (+1 more))."
     }
   },
   {
@@ -3326,7 +3326,7 @@
     "explanation": {
       "page": "journey/tutorial-four-geometry.md",
       "heading": "### Step 6 \u00b7 `viewer-core/src/rows/instance.rs`",
-      "paragraph": "`viewer-core/src/rows/instance.rs` (93 lines) defines `struct Instance`, `placeholder()`, `FLAG_SELECTED`, `FLAG_HIDDEN`. It operates purely on CPU data structures and `GpuSink` rows so `viewer-core` stays decoupled from `wgpu` and `egui`."
+      "paragraph": "`viewer-core/src/rows/instance.rs` (93 lines) defines `struct Instance`, `placeholder()`, `FLAG_SELECTED`, `FLAG_HIDDEN`. It wires `Xform` without introducing cyclic `rows` dependencies."
     }
   },
   {
@@ -3336,7 +3336,7 @@
     "explanation": {
       "page": "journey/tutorial-four-geometry.md",
       "heading": "### Step 7 \u00b7 `viewer-core/src/rows/lanes.rs`",
-      "paragraph": "`viewer-core/src/rows/lanes.rs` (557 lines) defines `struct Pick`, `enum PickMode`, `struct FaceSource`, `drop_rows()`, `is_silhouette()`. It verified by `cargo xtest` (`lane_rows_by_type`)."
+      "paragraph": "`viewer-core/src/rows/lanes.rs` (557 lines) defines `struct Pick`, `enum PickMode`, `struct FaceSource`, `drop_rows()`, `is_silhouette()`. It implements internal helpers `plated()`, `lane_rows_by_type()`, `FACE_TAG`, `SILHOUETTE_SAG`; and verified by `cargo xtest` (`lane_rows_by_type`)."
     }
   },
   {
@@ -3346,7 +3346,7 @@
     "explanation": {
       "page": "journey/tutorial-four-geometry.md",
       "heading": "### Step 2 \u00b7 `viewer-core/src/rows/mod.rs`",
-      "paragraph": "`viewer-core/src/rows/mod.rs` (20 lines) coordinates submodules `encode`, `gizmo`, `hull`, `instance`, `lanes`, `objects`. It operates purely on CPU data structures and `GpuSink` rows so `viewer-core` stays decoupled from `wgpu` and `egui`."
+      "paragraph": "`viewer-core/src/rows/mod.rs` (20 lines) coordinates submodules `encode`, `gizmo`, `hull`, `instance`, `lanes`, `objects`. It keeps `mod` self-contained and deterministic across native and `wasm32` targets."
     }
   },
   {
@@ -3356,7 +3356,7 @@
     "explanation": {
       "page": "journey/tutorial-four-geometry.md",
       "heading": "### Step 8 \u00b7 `viewer-core/src/rows/objects.rs`",
-      "paragraph": "`viewer-core/src/rows/objects.rs` (50 lines) defines `struct ObjectRow`, `struct ObjectRows`, `world_box()`, `placed_bounds()`. It operates purely on CPU data structures and `GpuSink` rows so `viewer-core` stays decoupled from `wgpu` and `egui`."
+      "paragraph": "`viewer-core/src/rows/objects.rs` (50 lines) defines `struct ObjectRow`, `struct ObjectRows`, `world_box()`, `placed_bounds()`. It wires ``, `` without introducing cyclic `rows` dependencies."
     }
   },
   {
@@ -3366,7 +3366,7 @@
     "explanation": {
       "page": "journey/tutorial-four-geometry.md",
       "heading": "### Step 9 \u00b7 `viewer-core/src/rows/patch.rs`",
-      "paragraph": "`viewer-core/src/rows/patch.rs` (224 lines) defines `struct RowSpec`, `enum LaneId`, `struct Counts`, `all()`, `stride()`. It uses additive registration seams `register:markers`, `register:meshes`, `register:strokes`."
+      "paragraph": "`viewer-core/src/rows/patch.rs` (224 lines) defines `struct RowSpec`, `enum LaneId`, `struct Counts`, `all()`, `stride()`. It implements internal helpers `vector_rows_in()`, `vector_merge()`, `plane_rows_in()`, `ROW_REGISTRY`; and uses additive registration seams `register:markers`, `register:meshes`, `register:strokes`."
     }
   },
   {
@@ -3376,7 +3376,7 @@
     "explanation": {
       "page": "journey/tutorial-four-geometry.md",
       "heading": "### Step 10 \u00b7 `viewer-core/src/rows/upload.rs`",
-      "paragraph": "`viewer-core/src/rows/upload.rs` (173 lines) defines `struct Upload`, `drop_uploaded()`, `merge()`, `shift_vertices()`. It uses additive registration seams `register:clouds`, `register:markers`, `register:meshes`, `register:strokes`."
+      "paragraph": "`viewer-core/src/rows/upload.rs` (173 lines) defines `struct Upload`, `drop_uploaded()`, `merge()`, `shift_vertices()`. It implements internal helpers `merge_arena()`; and uses additive registration seams `register:clouds`, `register:markers`, `register:meshes`, `register:strokes`."
     }
   },
   {
@@ -3506,7 +3506,7 @@
     "explanation": {
       "page": "journey/tutorial-nine-layers.md",
       "heading": "### Step 25 \u00b7 `viewer-core/src/scene_sync/panel_tests.rs`",
-      "paragraph": "`viewer-core/src/scene_sync/panel_tests.rs` (38 lines) houses regression tests `hierarchy_follows_edits`. It verified by `cargo xtest` (`hierarchy_follows_edits`)."
+      "paragraph": "`viewer-core/src/scene_sync/panel_tests.rs` (38 lines) houses regression tests `hierarchy_follows_edits`. It implements internal helpers `hierarchy_follows_edits()`; and verified by `cargo xtest` (`hierarchy_follows_edits`)."
     }
   },
   {
@@ -3526,7 +3526,7 @@
     "explanation": {
       "page": "journey/tutorial-six-modeling.md",
       "heading": "### Step 26 \u00b7 `viewer-core/src/scene_sync/split_tests.rs`",
-      "paragraph": "`viewer-core/src/scene_sync/split_tests.rs` (454 lines) houses regression tests `incremental_matches_fresh_oracle`, `tombs_under_a_small_cap_match_fresh_oracle`, `hints_and_node_cache_are_only_a_cache`, `touch_all_keeps_a_synced_scene`. It verified by `cargo xtest` (`incremental_matches_fresh_oracle`, `tombs_under_a_small_cap_match_fresh_oracle`, `hints_and_node_cache_are_only_a_cache` (+6 more))."
+      "paragraph": "`viewer-core/src/scene_sync/split_tests.rs` (454 lines) houses regression tests `incremental_matches_fresh_oracle`, `tombs_under_a_small_cap_match_fresh_oracle`, `hints_and_node_cache_are_only_a_cache`, `touch_all_keeps_a_synced_scene`. It implements internal helpers `edit()`, `incremental_matches_fresh_oracle()`, `tombs_under_a_small_cap_match_fresh_oracle()`; and verified by `cargo xtest` (`incremental_matches_fresh_oracle`, `tombs_under_a_small_cap_match_fresh_oracle`, `hints_and_node_cache_are_only_a_cache` (+6 more))."
     }
   },
   {
@@ -3586,7 +3586,7 @@
     "explanation": {
       "page": "journey/tutorial-fifteen-formats.md",
       "heading": "### Step 16 \u00b7 `viewer-core/src/session_io.rs`",
-      "paragraph": "`viewer-core/src/session_io.rs` (967 lines) defines `struct SavedCamera`, `struct SavedView`, `struct OpenedSession`, `from_camera()`, `apply_to()`. It verified by `cargo xtest` (`lamps_load_from_and_save_to_is_visible`, `locks_load_from_and_save_to_is_locked`, `a_created_text_survives_save_and_open` (+3 more))."
+      "paragraph": "`viewer-core/src/session_io.rs` (967 lines) defines `struct SavedCamera`, `struct SavedView`, `struct OpenedSession`, `from_camera()`, `apply_to()`. It implements internal helpers `in_doc()`, `visible()`, `locked()`, `MAGIC`; and verified by `cargo xtest` (`lamps_load_from_and_save_to_is_visible`, `locks_load_from_and_save_to_is_locked`, `a_created_text_survives_save_and_open` (+3 more))."
     }
   },
   {
@@ -3596,7 +3596,7 @@
     "explanation": {
       "page": "journey/tutorial-eleven-clouds.md",
       "heading": "### Step 13 \u00b7 `viewer-core/src/sheet_query.rs`",
-      "paragraph": "`viewer-core/src/sheet_query.rs` (161 lines) defines `struct EntityMeta`, `struct SheetTable`, `struct Query`, `table_count()`, `record()`. It verified by `cargo xtest` (`side_table_head_records_and_blobs_parse_from_a_hand_built_buffer`, `dropping_a_query_cancels_its_token`)."
+      "paragraph": "`viewer-core/src/sheet_query.rs` (161 lines) defines `struct EntityMeta`, `struct SheetTable`, `struct Query`, `table_count()`, `record()`. It implements internal helpers `drop()`, `table()`, `side_table_head_records_and_blobs_parse_from_a_hand_built_buffer()`, `HEAD_BYTES`; and verified by `cargo xtest` (`side_table_head_records_and_blobs_parse_from_a_hand_built_buffer`, `dropping_a_query_cancels_its_token`)."
     }
   },
   {
@@ -3606,7 +3606,7 @@
     "explanation": {
       "page": "journey/tutorial-four-geometry.md",
       "heading": "### Step 1 \u00b7 `viewer-core/src/sink.rs`",
-      "paragraph": "`viewer-core/src/sink.rs` (51 lines) defines `trait GpuSink`. It operates purely on CPU data structures and `GpuSink` rows so `viewer-core` stays decoupled from `wgpu` and `egui`."
+      "paragraph": "`viewer-core/src/sink.rs` (51 lines) defines `trait GpuSink`. It implements internal helpers `canvas_size()`, `geometry_revision()`, `object_row()`."
     }
   },
   {
@@ -3626,7 +3626,7 @@
     "explanation": {
       "page": "journey/tutorial-six-modeling.md",
       "heading": "### Step 20 \u00b7 `viewer-core/src/splitting.rs`",
-      "paragraph": "`viewer-core/src/splitting.rs` (405 lines) defines `is_cutter()`, `face_index()`, `split_rows()`. It verified by `cargo xtest` (`split_preserves_tree_placement_and_other_shared_documents_and_undo`, `split_face_keeps_solid_joined_and_invalid_cut_preserves_source`)."
+      "paragraph": "`viewer-core/src/splitting.rs` (405 lines) defines `is_cutter()`, `face_index()`, `split_rows()`. It implements internal helpers `brep_face()`, `curve()`, `top()`; and verified by `cargo xtest` (`split_preserves_tree_placement_and_other_shared_documents_and_undo`, `split_face_keeps_solid_joined_and_invalid_cut_preserves_source`)."
     }
   },
   {
@@ -3636,7 +3636,7 @@
     "explanation": {
       "page": "journey/tutorial-fifteen-formats.md",
       "heading": "### Step 11 \u00b7 `viewer-core/src/stream.rs`",
-      "paragraph": "`viewer-core/src/stream.rs` (839 lines) defines `struct CloudFields`, `struct SheetFields`, `struct Field`, `field_at()`, `set()`. It verified by `cargo xtest` (`normals_pack_three_doubles_per_point`, `metadata_window_checks_ranges_without_copying_or_following_large_skips`, `lod_parallel_arrays_bounds_ranges_and_child_graph_are_validated` (+5 more))."
+      "paragraph": "`viewer-core/src/stream.rs` (839 lines) defines `struct CloudFields`, `struct SheetFields`, `struct Field`, `field_at()`, `set()`. It implements internal helpers `valid_node()`, `valid_children()`, `first_array()`, `SEGMENT_BYTES`; and verified by `cargo xtest` (`normals_pack_three_doubles_per_point`, `metadata_window_checks_ranges_without_copying_or_following_large_skips`, `lod_parallel_arrays_bounds_ranges_and_child_graph_are_validated` (+5 more))."
     }
   },
   {

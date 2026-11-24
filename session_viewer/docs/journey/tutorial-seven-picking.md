@@ -89,7 +89,7 @@ Filters ascending selectable, unhidden rows and runs budgeted even-odd scanline 
 
 ### Step 7 · `viewer-core/src/command/verbs/select_all.rs`
 
-`viewer-core/src/command/verbs/select_all.rs` implements the `select_all` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched.
+`viewer-core/src/command/verbs/select_all.rs` (41 lines) registers the `Select All` command (`Select All · selects every visible object that is not locked; an element's attributes stay out · Ctrl+A`). It validates arguments before mutating `&mut dyn CommandHost` so invalid CLI or interactive input leaves undo history untouched.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/command/verbs/select_all.rs"
@@ -97,7 +97,7 @@ Filters ascending selectable, unhidden rows and runs budgeted even-odd scanline 
 
 ### Step 8 · `viewer-core/src/command/verbs/select_by_name.rs`
 
-`viewer-core/src/command/verbs/select_by_name.rs` implements the `select_by_name` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched.
+`viewer-core/src/command/verbs/select_by_name.rs` (95 lines) registers the `Select By Name` command (`Select By Name text · selects visible objects whose name contains the text, any case · Example: Select By Name beam`). It validates arguments before mutating `&mut dyn CommandHost` so invalid CLI or interactive input leaves undo history untouched.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/command/verbs/select_by_name.rs"
@@ -105,7 +105,7 @@ Filters ascending selectable, unhidden rows and runs budgeted even-odd scanline 
 
 ### Step 9 · `viewer-core/src/command/verbs/select_lasso.rs`
 
-`viewer-core/src/command/verbs/select_lasso.rs` implements the `select_lasso` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched.
+`viewer-core/src/command/verbs/select_lasso.rs` (411 lines) registers the `Select Lasso` command (`Select Lasso · drag a loop around objects · Shift adds · Ctrl removes · Esc cancels`). It validates arguments before mutating `&mut dyn CommandHost` so invalid CLI or interactive input leaves undo history untouched.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/command/verbs/select_lasso.rs"
@@ -113,7 +113,7 @@ Filters ascending selectable, unhidden rows and runs budgeted even-odd scanline 
 
 ### Step 10 · `viewer-core/src/command/verbs/select_small.rs`
 
-`viewer-core/src/command/verbs/select_small.rs` implements the `select_small` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched.
+`viewer-core/src/command/verbs/select_small.rs` (96 lines) registers the `Select Small` command (`Select Small length · selects visible objects whose bounding-box diagonal is shorter, in scene units · Example: Select Small 10`). It validates arguments before mutating `&mut dyn CommandHost` so invalid CLI or interactive input leaves undo history untouched.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/command/verbs/select_small.rs"
@@ -121,7 +121,7 @@ Filters ascending selectable, unhidden rows and runs budgeted even-odd scanline 
 
 ### Step 11 · `viewer-core/src/command/verbs/object.rs`
 
-`viewer-core/src/command/verbs/object.rs` implements the `object` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched.
+`viewer-core/src/command/verbs/object.rs` (26 lines) defines the `object` command specification (`Spec`). It validates arguments before mutating `&mut dyn CommandHost` so invalid CLI or interactive input leaves undo history untouched.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/command/verbs/object.rs"
@@ -129,7 +129,7 @@ Filters ascending selectable, unhidden rows and runs budgeted even-odd scanline 
 
 ### Step 12 · `viewer-core/src/command/verbs/edge.rs`
 
-`viewer-core/src/command/verbs/edge.rs` implements the `edge` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched.
+`viewer-core/src/command/verbs/edge.rs` (26 lines) defines the `edge` command specification (`Spec`). It validates arguments before mutating `&mut dyn CommandHost` so invalid CLI or interactive input leaves undo history untouched.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/command/verbs/edge.rs"
@@ -137,7 +137,7 @@ Filters ascending selectable, unhidden rows and runs budgeted even-odd scanline 
 
 ### Step 13 · `viewer-core/src/command/verbs/face.rs`
 
-`viewer-core/src/command/verbs/face.rs` implements the `face` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched.
+`viewer-core/src/command/verbs/face.rs` (26 lines) defines the `face` command specification (`Spec`). It validates arguments before mutating `&mut dyn CommandHost` so invalid CLI or interactive input leaves undo history untouched.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/command/verbs/face.rs"
@@ -145,7 +145,7 @@ Filters ascending selectable, unhidden rows and runs budgeted even-odd scanline 
 
 ### Step 14 · `viewer-core/src/command/verbs/controls.rs`
 
-`viewer-core/src/command/verbs/controls.rs` implements the `controls` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched.
+`viewer-core/src/command/verbs/controls.rs` (24 lines) defines the `controls` command specification (`Spec`). It validates arguments before mutating `&mut dyn CommandHost` so invalid CLI or interactive input leaves undo history untouched.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/command/verbs/controls.rs"
@@ -167,9 +167,10 @@ Predict what happens if you click a complex scene and immediately orbit the came
 
 **Why separate `Picker::request_hover` from `Picker::request` (click pick) instead of sharing one pending request slot?**
 
-**How to work it out:** Consider a user moving the mouse (`CursorMoved` schedules a hover pick) and clicking `20 ms` later while the hover `map_async` buffer is still mapped in flight.
+??? tip "Think first — click to reveal how to work it out and the answer"
+    **How to work it out:** Consider a user moving the mouse (`CursorMoved` schedules a hover pick) and clicking `20 ms` later while the hover `map_async` buffer is still mapped in flight.
 
-**The answer:** A click pick is authoritative user intent and must never be dropped because a speculative hover readback owns the staging buffer, nor should pointer hover cancel an in-flight click pick. `request_hover` yields immediately if a click pick is pending, while `request` preempts any in-flight hover request and tags completions with `PickKind::Click` vs `PickKind::Hover`.
+    **The answer:** A click pick is authoritative user intent and must never be dropped because a speculative hover readback owns the staging buffer, nor should pointer hover cancel an in-flight click pick. `request_hover` yields immediately if a click pick is pending, while `request` preempts any in-flight hover request and tags completions with `PickKind::Click` vs `PickKind::Hover`.
 
 ## Validation
 

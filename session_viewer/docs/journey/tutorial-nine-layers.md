@@ -172,7 +172,7 @@ Projects the active gizmo handle into CSS coordinates and commits valid typed di
 
 ### Step 16 · `viewer-core/src/command/verbs/layers.rs`
 
-`viewer-core/src/command/verbs/layers.rs` implements the `layers` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched.
+`viewer-core/src/command/verbs/layers.rs` (44 lines) registers the `Layers` command (`Layers (On Off All): show or hide the layer panel; All shows it with every row expanded`). Its `Action::run` handler exposes option chips `Layers On`, `Layers Off`, `Layers All` after validating arguments so invalid CLI or interactive input leaves undo history untouched.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/command/verbs/layers.rs"
@@ -196,7 +196,7 @@ Connects two editable objects in the relationship graph and pairs an `EdgeStep` 
 
 ### Step 19 · `viewer-core/src/command/verbs/hide.rs`
 
-`viewer-core/src/command/verbs/hide.rs` implements the `hide` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched.
+`viewer-core/src/command/verbs/hide.rs` (23 lines) defines the `hide` command specification (`Spec`). It validates arguments before mutating `&mut dyn CommandHost` so invalid CLI or interactive input leaves undo history untouched.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/command/verbs/hide.rs"
@@ -204,7 +204,7 @@ Connects two editable objects in the relationship graph and pairs an `EdgeStep` 
 
 ### Step 20 · `viewer-core/src/command/verbs/show.rs`
 
-`viewer-core/src/command/verbs/show.rs` implements the `show` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched.
+`viewer-core/src/command/verbs/show.rs` (23 lines) defines the `show` command specification (`Spec`). It validates arguments before mutating `&mut dyn CommandHost` so invalid CLI or interactive input leaves undo history untouched.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/command/verbs/show.rs"
@@ -212,7 +212,7 @@ Connects two editable objects in the relationship graph and pairs an `EdgeStep` 
 
 ### Step 21 · `viewer-core/src/command/verbs/delete.rs`
 
-`viewer-core/src/command/verbs/delete.rs` implements the `delete` (aliases `del`) command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched.
+`viewer-core/src/command/verbs/delete.rs` (34 lines) defines the `delete` command specification (`Spec`). It validates arguments before mutating `&mut dyn CommandHost` so invalid CLI or interactive input leaves undo history untouched.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/command/verbs/delete.rs"
@@ -220,7 +220,7 @@ Connects two editable objects in the relationship graph and pairs an `EdgeStep` 
 
 ### Step 22 · `viewer-core/src/command/verbs/lock.rs`
 
-`viewer-core/src/command/verbs/lock.rs` implements the `lock` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched.
+`viewer-core/src/command/verbs/lock.rs` (30 lines) registers the `Lock` command (`Lock [Off | Unlock]: lock selected objects against selection/edits, or unlock all`). Its `Action::run` handler exposes option chips `Lock`, `Lock Off`, `Lock Unlock` and dispatches through `host.lock_selected()` after validating arguments so invalid CLI or interactive input leaves undo history untouched.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/command/verbs/lock.rs"
@@ -228,7 +228,7 @@ Connects two editable objects in the relationship graph and pairs an `EdgeStep` 
 
 ### Step 23 · `viewer-core/src/command/verbs/properties.rs`
 
-`viewer-core/src/command/verbs/properties.rs` implements the `properties` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched.
+`viewer-core/src/command/verbs/properties.rs` (33 lines) registers the `Properties` command (`Properties [On | Off]: toggle the object properties and display settings panel`). Its `Action::run` handler exposes option chips `Properties On`, `Properties Off` and dispatches through `host.set_properties_panel()` after validating arguments so invalid CLI or interactive input leaves undo history untouched.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/command/verbs/properties.rs"
@@ -236,7 +236,7 @@ Connects two editable objects in the relationship graph and pairs an `EdgeStep` 
 
 ### Step 24 · `viewer-core/src/command/verbs/interactions.rs`
 
-`viewer-core/src/command/verbs/interactions.rs` implements the `interactions` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched.
+`viewer-core/src/command/verbs/interactions.rs` (34 lines) registers the `Element Interactions` command (`Element Interactions (On Off): draw or remove what other elements do to each element, its contacts, joints and cuts`). Its `Action::run` handler exposes option chips `Element Interactions On`, `Element Interactions Off` after validating arguments so invalid CLI or interactive input leaves undo history untouched.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/command/verbs/interactions.rs"
@@ -244,7 +244,7 @@ Connects two editable objects in the relationship graph and pairs an `EdgeStep` 
 
 ### Step 25 · `viewer-core/src/scene_sync/panel_tests.rs`
 
-`viewer-core/src/scene_sync/panel_tests.rs` (38 lines) houses regression tests `hierarchy_follows_edits`. It verified by `cargo xtest` (`hierarchy_follows_edits`).
+`viewer-core/src/scene_sync/panel_tests.rs` (38 lines) houses regression tests `hierarchy_follows_edits`. It implements internal helpers `hierarchy_follows_edits()`; and verified by `cargo xtest` (`hierarchy_follows_edits`).
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/scene_sync/panel_tests.rs"
@@ -266,9 +266,10 @@ Predict what happens if `Scene.hidden` stored `u32` GPU row indices instead of `
 
 **How does `scene_instances.rs` render `1,000` placed fasteners (`InstanceRef`) without walking or uploading `1,000` copies of the fastener's `BRep` mesh?**
 
-**How to work it out:** Follow `Session.definitions` into `scene_instances.rs` and `engine/gpu/instanced.rs`: compare definition-space vertices against per-instance world transforms and feature cuts.
+??? tip "Think first — click to reveal how to work it out and the answer"
+    **How to work it out:** Follow `Session.definitions` into `scene_instances.rs` and `engine/gpu/instanced.rs`: compare definition-space vertices against per-instance world transforms and feature cuts.
 
-**The answer:** Each unfeatured `InstanceRef` shares the single `Arena` vertex/triangle/segment range walked once from `Session.definitions`, allocating only its own `112`-byte `Instance` row (model matrix, colour, flags) and `16`-byte anchored translation; only instances carrying per-instance `ElementFeature` outlines replay their own feature strokes.
+    **The answer:** Each unfeatured `InstanceRef` shares the single `Arena` vertex/triangle/segment range walked once from `Session.definitions`, allocating only its own `112`-byte `Instance` row (model matrix, colour, flags) and `16`-byte anchored translation; only instances carrying per-instance `ElementFeature` outlines replay their own feature strokes.
 
 ## Validation
 

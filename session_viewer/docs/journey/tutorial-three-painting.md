@@ -59,9 +59,10 @@ Predict what happens if `ui.rs` calls `renderer.free_texture(id)` *before* `rend
 
 **Why does `Ui::draw` attach `depth_stencil_attachment: None` and `LoadOp::Load` on the resolved single-sample colour view rather than the 4x MSAA target?**
 
-**How to work it out:** Compare 2D UI primitives against 3D scene triangles: `egui` already analytically antialiases feathered polygon fringes and subpixel font coverage in screen pixels, and UI panels always sit above the 3D viewport.
+??? tip "Think first — click to reveal how to work it out and the answer"
+    **How to work it out:** Compare 2D UI primitives against 3D scene triangles: `egui` already analytically antialiases feathered polygon fringes and subpixel font coverage in screen pixels, and UI panels always sit above the 3D viewport.
 
-**The answer:** Drawing `egui` after MSAA resolve with `LoadOp::Load` and `depth_stencil_attachment: None` preserves the finished 3D frame beneath translucent panels, avoids 4x fragment bandwidth on crisp 2D text atlases, and prevents 3D depth values from occluding HUD labels or panels.
+    **The answer:** Drawing `egui` after MSAA resolve with `LoadOp::Load` and `depth_stencil_attachment: None` preserves the finished 3D frame beneath translucent panels, avoids 4x fragment bandwidth on crisp 2D text atlases, and prevents 3D depth values from occluding HUD labels or panels.
 
 ## Validation
 

@@ -1,29 +1,39 @@
 title: '13 · Shared Command Grammar Across Browser Dock and Native CLI'
 split: 0.52
 palette: {accent: '#3057b1'}
-grid: {center: [1.2, 1.0], size: 5, step: 1, z: 0}
-camera: {yaw: -48, pitch: 26, fit: [A0, A1, B0, B1]}
+grid: {center: [1.8, 1.0], size: 6, step: 1, z: 0}
+camera: {yaw: -46, pitch: 26, fit: [O, A1, B1, C2]}
 points:
-  A0: [0, 0, 0]
-  A1: [1.6, 1.2, 1.1]
-  AC: [0.8, 0.6, 0.55]
-  B0: [2.2, 0.4, 0]
-  B1: [3.8, 1.6, 1.1]
-  BC: [3.0, 1.0, 0.55]
+  O: [0, 0, 0]
+  EX: [1.1, 0, 0]
+  EY: [0, 1.1, 0]
+  EZ: [0, 0, 1.1]
+  A0: [0.3, 0.2, 0]
+  A1: [1.7, 1.2, 1.05]
+  AC: [1.0, 0.7, 0.52]
+  B0: [2.5, 0.7, 0]
+  B1: [3.9, 1.7, 1.05]
+  BC: [3.2, 1.2, 0.52]
+  C2: [3.2, 1.2, 1.75]
 slides:
   - title: 'COMMAND DOCK AND HEADLESS CLI PARITY'
     steps:
-      - say: 'Typing a command in the browser dock or passing flags to the CLI invokes the exact same Spec.'
+      - say: 'Every verb parses CPlane coordinates and options against the shared CommandHost trait.'
         add:
+          - {id: ux, arrow: [O, EX], color: pink, width: 2.4}
+          - {id: uy, arrow: [O, EY], color: green, width: 2.4}
+          - {id: uz, arrow: [O, EZ], color: '#3057b1', width: 2.4, label: '\mathrm{CPlane}'}
           - {id: boxA, cuboid: [A0, A1], color: '#3057b1', width: 2.4}
+          - {id: diag, line: [A0, A1], color: '#3057b1', width: 1.8, dash: true}
           - {id: pA0, point: A0, color: '#3057b1', label: 'p_0'}
           - {id: pA1, point: A1, color: '#3057b1', label: 'p_1'}
         code: |
           session-viewer-cli exec --cmd "Box 0,0,0 160,120,110" \
                                   --cmd "Move 220,40,0" --save out.session
-      - say: 'Every verb mutates the abstract CommandHost trait, running identically in WASM and native CLI.'
+      - say: 'Chaining Move and Rotate mutates identical undoable state in browser WASM and headless CLI.'
         add:
           - {id: mv, arrow: [AC, BC], color: pink, width: 3.2, label: '\mathrm{Move}'}
           - {id: boxB, cuboid: [B0, B1], color: pink, width: 2.6}
+          - {id: rotZ, arrow: [BC, C2], color: green, width: 2.8, label: '\mathrm{Undo\;\#2}'}
           - {id: pBC, point: BC, color: pink}
         text: 'The command dock crate links only egui; a hidden 16 px input bridges mobile keyboard IME events.'

@@ -4,12 +4,25 @@ declare module 'virtual:course' {
   export const groups: { title: string; slugs: string[]; sections?: { title: string; slugs: string[] }[] }[];
   export const pages: Record<string, { title: string; prev?: string; next?: string }>;
   export const loaders: Record<string, () => Promise<{ default: CoursePage }>>;
+  export interface CourseChapter {
+    number: string;
+    title: string;
+    slug: string;
+    heroImg?: string;
+    summary?: string;
+    fileCount?: number;
+    stageQuery?: string;
+  }
   export interface CourseTutorial {
     number: string;
     id: string;
     title: string;
     slug: string;
-    chapters: { number: string; title: string; slug: string }[];
+    heroImg?: string;
+    summary?: string;
+    fileCount?: number;
+    stageQuery?: string;
+    chapters: CourseChapter[];
   }
   export interface CoursePage {
     redirect?: string;

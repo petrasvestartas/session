@@ -1,32 +1,38 @@
 title: '1 · CSS Viewport to Physical Framebuffer'
 split: 0.52
 palette: {accent: '#3057b1'}
-camera: {view: top, fit: [LO, HI]}
+grid: {center: [2.2, 1.4], size: 7, step: 1, z: -0.4}
+camera: {yaw: -44, pitch: 26, fit: [O0, C2, P1, P2, P3, MSG1]}
 points:
-  LO: [-0.9, -0.9, 0]
-  HI: [7.1, 4.7, 0]
-  O: [0, 0, 0]
-  CX: [3.2, 0, 0]
-  CY: [0, 2.0, 0]
-  CC: [3.2, 2.0, 0]
-  PX: [6.0, 0, 0]
-  PY: [0, 3.75, 0]
-  PC: [6.0, 3.75, 0]
+  O0: [0, 0, 1.5]
+  C1: [2.6, 0, 1.5]
+  C2: [2.6, 1.65, 1.5]
+  C3: [0, 1.65, 1.5]
+  P0: [0, 0, 0]
+  P1: [4.6, 0, 0]
+  P2: [4.6, 2.9, 0]
+  P3: [0, 2.9, 0]
+  MSG0: [4.6, 1.45, 0]
+  MSG1: [2.6, 0.82, 1.5]
 slides:
   - title: 'VIEWPORT SCALING AND WORKSPACE SPLIT'
     steps:
       - say: 'The browser reports the canvas element in CSS layout pixels $(W_{\mathrm{css}}, H_{\mathrm{css}})$.'
         add:
-          - {id: css, polyline: [O, CX, CC, CY, O], color: '#3057b1', width: 2.8}
-          - {id: pO, point: O, color: ink, label: 'O'}
-          - {id: pCC, point: CC, color: '#3057b1', label: 'W_{\mathrm{css}}\times H_{\mathrm{css}}'}
+          - {id: cssQuad, polyline: [O0, C1, C2, C3, O0], color: '#3057b1', width: 3.0}
+          - {id: pCss, point: C2, color: '#3057b1', label: 'W_{\mathrm{css}}\times H_{\mathrm{css}}'}
         eq: 'W_{\mathrm{px}} = \mathrm{round}(W_{\mathrm{css}} \cdot \mathrm{dpr}), \qquad H_{\mathrm{px}} = \mathrm{round}(H_{\mathrm{css}} \cdot \mathrm{dpr})'
-      - say: 'Multiplying by $\mathrm{dpr}$ expands the WebGPU backing texture without stretching CSS layout.'
+      - say: 'Multiplying by $\mathrm{dpr}$ expands the physical WebGPU backing surface beneath the CSS layout plane.'
         add:
-          - {id: phys, polyline: [CX, PX, PC, PY, CY], color: pink, width: 3.2}
-          - {id: physBase, polyline: [CY, O, CX], color: '#3057b1', width: 2.8}
-          - {id: scaleRay, arrow: [CC, PC], color: pink, width: 3.0, label: '\times\,\mathrm{dpr}'}
-          - {id: pPC, point: PC, color: pink, label: 'W_{\mathrm{px}}\times H_{\mathrm{px}}'}
+          - {id: physQuad, polyline: [P0, P1, P2, P3, P0], color: pink, width: 3.2}
+          - {id: r0, line: [O0, P0], color: grey, width: 1.5, dash: true}
+          - {id: r1, line: [C1, P1], color: grey, width: 1.5, dash: true}
+          - {id: r3, line: [C3, P3], color: grey, width: 1.5, dash: true}
+          - {id: scaleRay, arrow: [C2, P2], color: pink, width: 3.0, label: '\times\,\mathrm{dpr}'}
+          - {id: pPhys, point: P2, color: pink, label: 'W_{\mathrm{px}}\times H_{\mathrm{px}}'}
+      - say: 'Cloning EventLoopProxy before spawn_app lets async WebGPU device creation wake the synchronous winit loop.'
+        add:
+          - {id: wake, arrow: [MSG0, MSG1], color: green, width: 2.8, label: '\mathrm{Proxy}'}
         code: |
           viewer-core     # pure Rust: scene, camera, walk, command, op
           session_viewer  # winit + wgpu + egui + wasm_bindgen shell

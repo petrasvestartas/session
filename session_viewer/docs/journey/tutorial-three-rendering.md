@@ -46,7 +46,7 @@ Owned files in build order (`19` files):
 
 ### Step 1 · `build.rs`
 
-`build.rs` (61 lines) implements internal state and helper routines for `session_viewer`. It keeps browser event routing and scene mutations synchronized without redundant redraws.
+`build.rs` (61 lines) implements `build` helpers (`expand()`, `minify()`) under `session_viewer`. It wires `fs`, `Path` without introducing cyclic `session_viewer` dependencies.
 
 ```rust
 --8<-- "session_viewer/build.rs"
@@ -54,7 +54,7 @@ Owned files in build order (`19` files):
 
 ### Step 2 · `src/engine/pipelines/mod.rs`
 
-`src/engine/pipelines/mod.rs` (7 lines) coordinates submodules `bindings`, `layouts`, `core`, `geometry`. It keeps browser event routing and scene mutations synchronized without redundant redraws.
+`src/engine/pipelines/mod.rs` (7 lines) coordinates submodules `bindings`, `layouts`, `core`, `geometry`. It keeps `mod` self-contained and deterministic across native and `wasm32` targets.
 
 ```rust
 --8<-- "session_viewer/src/engine/pipelines/mod.rs"
@@ -86,7 +86,7 @@ Owned files in build order (`19` files):
 
 ### Step 6 · `src/engine/pipelines/geometry.rs`
 
-`src/engine/pipelines/geometry.rs` (71 lines) defines `vertex_layout()`. It keeps browser event routing and scene mutations synchronized without redundant redraws.
+`src/engine/pipelines/geometry.rs` (71 lines) defines `vertex_layout()`. It implements internal helpers `pipelines_compile_on_first_use_and_once_per_target()`.
 
 ```rust
 --8<-- "session_viewer/src/engine/pipelines/geometry.rs"
@@ -94,7 +94,7 @@ Owned files in build order (`19` files):
 
 ### Step 7 · `src/shaders/scene.wgsl`
 
-1. **`src/shaders/scene.wgsl`** mirrors the `112 B` `Instance` and `80 B` `LineUniform` structs, resolves selection/tint/edge colours, offsets coplanar contact layers along the view ray (`depth_layer`), and places vertices via `place(i, p) = (instances[i].model * vec4(p, 1.0)).xyz + translations[i].xyz`.
+`src/shaders/scene.wgsl` mirrors the `112 B` `Instance` and `80 B` `LineUniform` structs, resolves selection/tint/edge colours, offsets coplanar contact layers along the view ray (`depth_layer`), and places vertices via `place(i, p) = (instances[i].model * vec4(p, 1.0)).xyz + translations[i].xyz`.
 
 ```wgsl
 --8<-- "session_viewer/src/shaders/scene.wgsl"
@@ -102,7 +102,7 @@ Owned files in build order (`19` files):
 
 ### Step 8 · `src/shaders/clip.wgsl`
 
-5. **`src/shaders/clip.wgsl`** declares the `448 B` `ClipUniform` (`6` world/screen section planes, hatch numerators/denominators, `CLIP_OFFSETS` for `4×` MSAA, scale-aware `CLIP_SLACK = 2^-17` for faces, `8`-epsilon dot-product rounding for on-plane ink, and `override CLIPPING: bool`).
+`src/shaders/clip.wgsl` declares the `448 B` `ClipUniform` (`6` world/screen section planes, hatch numerators/denominators, `CLIP_OFFSETS` for `4×` MSAA, scale-aware `CLIP_SLACK = 2^-17` for faces, `8`-epsilon dot-product rounding for on-plane ink, and `override CLIPPING: bool`).
 
 ```wgsl
 --8<-- "session_viewer/src/shaders/clip.wgsl"
@@ -110,7 +110,7 @@ Owned files in build order (`19` files):
 
 ### Step 9 · `src/shaders/physical.wgsl`
 
-3. **`src/shaders/physical.wgsl`** splits `32`-bit triangle IDs across two `16`-bit halves (`rg16uint`) alongside colour and `(object, subobject)` pick outputs because WebGPU forbids `4×` MSAA on `r32uint` attachments.
+`src/shaders/physical.wgsl` splits `32`-bit triangle IDs across two `16`-bit halves (`rg16uint`) alongside colour and `(object, subobject)` pick outputs because WebGPU forbids `4×` MSAA on `r32uint` attachments.
 
 ```wgsl
 --8<-- "session_viewer/src/shaders/physical.wgsl"
@@ -118,7 +118,7 @@ Owned files in build order (`19` files):
 
 ### Step 10 · `src/shaders/normals.wgsl`
 
-2. **`src/shaders/normals.wgsl`** transforms normals by the cofactor inverse-transpose matrix (preserving perpendicularity under non-uniform scale and flipping sign when `det(M) < 0`) and decodes octahedral `16`-bit and `32`-bit normals while reserving `0x80008000` for absent normals.
+`src/shaders/normals.wgsl` transforms normals by the cofactor inverse-transpose matrix (preserving perpendicularity under non-uniform scale and flipping sign when `det(M) < 0`) and decodes octahedral `16`-bit and `32`-bit normals while reserving `0x80008000` for absent normals.
 
 ```wgsl
 --8<-- "session_viewer/src/shaders/normals.wgsl"
@@ -126,7 +126,7 @@ Owned files in build order (`19` files):
 
 ### Step 11 · `src/shaders/projected_triangle.wgsl`
 
-4. **`src/shaders/projected_triangle.wgsl`** defines the `96 B` `ProjectedTriangle` screen-space record (`edge0..3` inward line equations, reference point, linear depth gradient and pixel bounds) and evaluates exact point-in-triangle depth across at most `262,144` adaptive screen tiles.
+`src/shaders/projected_triangle.wgsl` defines the `96 B` `ProjectedTriangle` screen-space record (`edge0..3` inward line equations, reference point, linear depth gradient and pixel bounds) and evaluates exact point-in-triangle depth across at most `262,144` adaptive screen tiles.
 
 ```wgsl
 --8<-- "session_viewer/src/shaders/projected_triangle.wgsl"
@@ -134,7 +134,7 @@ Owned files in build order (`19` files):
 
 ### Step 12 · `src/shaders/ink_visibility.wgsl`
 
-3. **`src/shaders/ink_visibility.wgsl`** carries neighbour depth along verified planar surfaces (`ink_pair_planar`) and adds `ink_sag_slack(sag, gradient)` when testing tile triangles so curved BRep edges rising above grazing facets stay unbroken while rear edges disappear cleanly.
+`src/shaders/ink_visibility.wgsl` carries neighbour depth along verified planar surfaces (`ink_pair_planar`) and adds `ink_sag_slack(sag, gradient)` when testing tile triangles so curved BRep edges rising above grazing facets stay unbroken while rear edges disappear cleanly.
 
 ```wgsl
 --8<-- "session_viewer/src/shaders/ink_visibility.wgsl"
@@ -174,7 +174,7 @@ Renders the fullscreen background triangle and anchor-rebased `f64` construction
 
 ### Step 17 · `src/engine/gpu/backdrop/application_tests.rs`
 
-`src/engine/gpu/backdrop/application_tests.rs` (165 lines) implements internal state and helper routines for `backdrop`. It maintains explicit buffer capacities, bind-group layouts, and frame-submission ordering for WebGPU.
+`src/engine/gpu/backdrop/application_tests.rs` (165 lines) implements `application_tests` helpers (`grey_from_above()`, `actual_grid_pixels_keep_far_fractions_and_return_to_the_same_near_frame()`, `the_grid_lies_on_the_construction_plane()`) under `backdrop`. It wires `CPlane`, ``, ``, `` without introducing cyclic `backdrop` dependencies.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/backdrop/application_tests.rs"
@@ -212,9 +212,10 @@ Predict what happens if you edit a `.wgsl` header (`src/shaders/clip.wgsl`) with
 
 **Why compile `scene.wgsl` and `clip.wgsl` into every lane through `PRELUDE` instead of giving each shader its own camera and clipping uniforms?**
 
-**How to work it out:** Count the stages that must agree on world-to-clip projection and section-plane discarding: solid faces, ribbons, vector arrowheads, marker spheres/discs, point-cloud splats, world-plane text, silhouette coverage masks, and the GPU ID picking pass.
+??? tip "Think first — click to reveal how to work it out and the answer"
+    **How to work it out:** Count the stages that must agree on world-to-clip projection and section-plane discarding: solid faces, ribbons, vector arrowheads, marker spheres/discs, point-cloud splats, world-plane text, silhouette coverage masks, and the GPU ID picking pass.
 
-**The answer:** Sharing one `PRELUDE` and fixed bind groups (`group(0)` frame camera, `group(1)` line/clip uniform, `group(2)` `Instance` + anchored `translations`) makes divergence impossible: `place(i, p)` rebases every vertex identically, and `clip_discard(world)` cuts faces, strokes, masks, and ID picks on the exact same fragment boundary.
+    **The answer:** Sharing one `PRELUDE` and fixed bind groups (`group(0)` frame camera, `group(1)` line/clip uniform, `group(2)` `Instance` + anchored `translations`) makes divergence impossible: `place(i, p)` rebases every vertex identically, and `clip_discard(world)` cuts faces, strokes, masks, and ID picks on the exact same fragment boundary.
 
 ## Validation
 

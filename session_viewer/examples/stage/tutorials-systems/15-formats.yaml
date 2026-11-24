@@ -1,23 +1,32 @@
 title: '15 · Bounded Wire Validation and Canonical .session Archives'
 split: 0.52
 palette: {accent: '#3057b1'}
-grid: {center: [1.8, 0.8], size: 6, step: 1, z: 0}
-camera: {yaw: -48, pitch: 26, fit: [A0, A1, B0, B1, C0, C1]}
+grid: {center: [2.2, 0.8], size: 6, step: 1, z: 0}
+camera: {yaw: -48, pitch: 26, fit: [O, A1, B1, C1, S2]}
 points:
+  O: [-0.5, -0.6, 0]
   A0: [0.0, 0.0, 0]
   A1: [1.1, 1.1, 1.1]
   B0: [1.8, 0.0, 0]
-  B1: [2.9, 1.1, 1.5]
+  B1: [2.9, 1.1, 1.55]
   C0: [3.6, 0.0, 0]
-  C1: [4.7, 1.1, 0.9]
+  C1: [4.7, 1.1, 0.95]
   CA: [0.55, 0.55, 1.1]
-  CB: [2.35, 0.55, 1.5]
-  CC: [4.15, 0.55, 0.9]
+  CB: [2.35, 0.55, 1.55]
+  CC: [4.15, 0.55, 0.95]
+  S0: [-0.2, -0.25, 0.65]
+  S1: [4.9, -0.25, 0.65]
+  S2: [4.9, 1.35, 0.65]
+  S3: [-0.2, 1.35, 0.65]
 slides:
   - title: '512 MIB WIRE VALIDATOR AND CANONICAL SAVE'
     steps:
-      - say: 'Wire validation checks protobuf field lengths and finite coordinates before allocating kernel structs.'
+      - say: 'Wire validation checks protobuf field lengths and finite coordinates before placing multi-file manifests.'
         add:
+          - {id: pO, point: O, color: ink, label: 'O'}
+          - {id: m0, arrow: [O, A0], color: '#3057b1', width: 2.0}
+          - {id: m1, arrow: [O, B0], color: pink, width: 2.0}
+          - {id: m2, arrow: [O, C0], color: green, width: 2.0}
           - {id: doc0, cuboid: [A0, A1], color: '#3057b1', width: 2.4}
           - {id: doc1, cuboid: [B0, B1], color: pink, width: 2.4}
           - {id: doc2, cuboid: [C0, C1], color: green, width: 2.4}
@@ -25,8 +34,10 @@ slides:
           - {id: l1, label: CB, tex: '\mathrm{doc}_1', color: pink}
           - {id: l2, label: CC, tex: '\mathrm{doc}_2', color: green}
         eq: '\mathrm{len}(\mathrm{pb}) \le 512\,\mathrm{MiB}, \qquad \forall x_i \;(|x_i| < \infty)'
-      - say: 'Sorting mesh protobuf map entries (tags $3, 4, 17$) makes saved archives byte-identical across runs.'
+      - say: 'Saved .session archives preserve placed geometry alongside camera, colours, and active section planes.'
+        add:
+          - {id: secPl, polyline: [S0, S1, S2, S3, S0], color: ink, width: 1.8, dash: true}
         code: |
           .pb / .json    ->  validate.rs + 25k-object browser yield
           .session       ->  SavedCamera + SavedView + Appearance + Undo
-          .obj           ->  Import & Export mesh interoperability
+          .obj / .stl    ->  Import & Export mesh interoperability

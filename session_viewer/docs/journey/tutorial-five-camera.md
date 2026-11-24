@@ -131,9 +131,10 @@ Predict what happens if a CAD survey model sits at Swiss national coordinates `(
 
 **Why does `input.rs` suppress `repaint` on bare `CursorMoved` over the 3D canvas unless a panel edge is crossed, a drag is active, or the `>= 50 ms` hover-pick timer elapses?**
 
-**How to work it out:** High-polling gaming mice and trackpads emit `120–1,000` `CursorMoved` events per second even when the user is merely moving the pointer across the screen without orbiting or dragging.
+??? tip "Think first — click to reveal how to work it out and the answer"
+    **How to work it out:** High-polling gaming mice and trackpads emit `120–1,000` `CursorMoved` events per second even when the user is merely moving the pointer across the screen without orbiting or dragging.
 
-**The answer:** Re-rendering a million-triangle scene on every raw pointer event wastes GPU power and competes with UI responsiveness. Checking `!over_panel && !was_over_panel && !ui_drag && !egui_is_using_pointer()` keeps idle canvas motion at `0` scene redraws while firing non-cancelling hover picks at most once every `50 ms`.
+    **The answer:** Re-rendering a million-triangle scene on every raw pointer event wastes GPU power and competes with UI responsiveness. Checking `!over_panel && !was_over_panel && !ui_drag && !egui_is_using_pointer()` keeps idle canvas motion at `0` scene redraws while firing non-cancelling hover picks at most once every `50 ms`.
 
 ## Validation
 

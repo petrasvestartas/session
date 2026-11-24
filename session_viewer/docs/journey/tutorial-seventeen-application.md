@@ -113,9 +113,10 @@ Predict why `spatial::Scene3` renders stage node/vector labels (`P_0`, `\mathbf{
 
 **Why must `StageApp::frame` (`src/app/stage/mode.rs`) compute `Scene3::camera` and `Scene3::lens` *before* `context.run_ui` paints the 2D slide, and run `Scene3::sync` immediately *after*?**
 
-**How to work it out:** Follow one step transition (`ArrowRight` or `solve: true`) where a cable-net node animates to a new 3D equilibrium coordinate while carrying an attached TeX label.
+??? tip "Think first — click to reveal how to work it out and the answer"
+    **How to work it out:** Follow one step transition (`ArrowRight` or `solve: true`) where a cable-net node animates to a new 3D equilibrium coordinate while carrying an attached TeX label.
 
-**The answer:** `stage.tick(now)` updates animated 3D node positions first; updating `state.camera` and capturing `Scene3::lens` *before* `paint()` ensures 2D TeX labels project through the exact current frame's camera matrix (zero 1-frame label lag), and running `Scene3::sync` before `State::render` encodes GPU passes uploads the matching 3D cable/arrow row positions for the very same WebGPU submission.
+    **The answer:** `stage.tick(now)` updates animated 3D node positions first; updating `state.camera` and capturing `Scene3::lens` *before* `paint()` ensures 2D TeX labels project through the exact current frame's camera matrix (zero 1-frame label lag), and running `Scene3::sync` before `State::render` encodes GPU passes uploads the matching 3D cable/arrow row positions for the very same WebGPU submission.
 
 ## Validation
 

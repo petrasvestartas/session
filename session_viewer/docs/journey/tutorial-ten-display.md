@@ -73,7 +73,7 @@ Verifies that yellow selected CAD edges never paint over black curved silhouette
 
 ### Step 3 · `src/shaders/face_coverage.wgsl`
 
-2. **`src/shaders/face_coverage.wgsl`** inspects the `2×u16` `physical` attachment across all `SAMPLES` to emit fractional solid coverage (`fs_fraction`).
+`src/shaders/face_coverage.wgsl` inspects the `2×u16` `physical` attachment across all `SAMPLES` to emit fractional solid coverage (`fs_fraction`).
 
 ```wgsl
 --8<-- "session_viewer/src/shaders/face_coverage.wgsl"
@@ -121,7 +121,7 @@ Schedules `1×` and `4×` SSAO pipeline compilation inside browser `requestIdleC
 
 ### Step 9 · `src/shaders/ambient_depth.wgsl`
 
-2. **`src/shaders/ambient_depth.wgsl`** reduces `2×2` linear depth + `ao_radius` (`fs_reduce`) and marks `5×5` active occupancy tiles (`fs_occupancy`).
+`src/shaders/ambient_depth.wgsl` reduces `2×2` linear depth + `ao_radius` (`fs_reduce`) and marks `5×5` active occupancy tiles (`fs_occupancy`).
 
 ```wgsl
 --8<-- "session_viewer/src/shaders/ambient_depth.wgsl"
@@ -129,7 +129,7 @@ Schedules `1×` and `4×` SSAO pipeline compilation inside browser `requestIdleC
 
 ### Step 10 · `src/shaders/ambient_geometry.wgsl`
 
-3. **`src/shaders/ambient_geometry.wgsl`** resolves each pixel's `2×u16` primitive ID through `placed_triangle` to reconstruct exact world-space triangle cross-product normals (falling back to discontinuity-aware neighbour depth differences on non-triangle pixels).
+`src/shaders/ambient_geometry.wgsl` resolves each pixel's `2×u16` primitive ID through `placed_triangle` to reconstruct exact world-space triangle cross-product normals (falling back to discontinuity-aware neighbour depth differences on non-triangle pixels).
 
 ```wgsl
 --8<-- "session_viewer/src/shaders/ambient_geometry.wgsl"
@@ -137,7 +137,7 @@ Schedules `1×` and `4×` SSAO pipeline compilation inside browser `requestIdleC
 
 ### Step 11 · `src/shaders/ssao.wgsl`
 
-4. **`src/shaders/ssao.wgsl`** integrates cosine-weighted GTAO horizon arcs `arc(h, n)` across `6` quadratic screen-space steps per side with mip-level selection, spatial-temporal noise phase, bilateral `X`/`Y` denoising and depth-clamped temporal history.
+`src/shaders/ssao.wgsl` integrates cosine-weighted GTAO horizon arcs `arc(h, n)` across `6` quadratic screen-space steps per side with mip-level selection, spatial-temporal noise phase, bilateral `X`/`Y` denoising and depth-clamped temporal history.
 
 ```wgsl
 --8<-- "session_viewer/src/shaders/ssao.wgsl"
@@ -145,7 +145,7 @@ Schedules `1×` and `4×` SSAO pipeline compilation inside browser `requestIdleC
 
 ### Step 12 · `src/shaders/ambient_composite.wgsl`
 
-5. **`src/shaders/ambient_composite.wgsl`** darkens interior pixels in one fullscreen pass (`fs_main`) and refines `16×16` MSAA silhouette tiles per sample (`vs_edges` / `fs_edges`).
+`src/shaders/ambient_composite.wgsl` darkens interior pixels in one fullscreen pass (`fs_main`) and refines `16×16` MSAA silhouette tiles per sample (`vs_edges` / `fs_edges`).
 
 ```wgsl
 --8<-- "session_viewer/src/shaders/ambient_composite.wgsl"
@@ -153,7 +153,7 @@ Schedules `1×` and `4×` SSAO pipeline compilation inside browser `requestIdleC
 
 ### Step 13 · `viewer-core/src/command/verbs/arctic.rs`
 
-`viewer-core/src/command/verbs/arctic.rs` implements the `arctic` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched.
+`viewer-core/src/command/verbs/arctic.rs` (31 lines) registers the `Arctic` command (`Arctic (On Off): soft contact shading, studio lighting and outlines`). Its `Action::run` handler exposes option chips `Arctic On`, `Arctic Off` after validating arguments so invalid CLI or interactive input leaves undo history untouched.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/command/verbs/arctic.rs"
@@ -161,7 +161,7 @@ Schedules `1×` and `4×` SSAO pipeline compilation inside browser `requestIdleC
 
 ### Step 14 · `viewer-core/src/command/verbs/outline.rs`
 
-`viewer-core/src/command/verbs/outline.rs` implements the `outline` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched.
+`viewer-core/src/command/verbs/outline.rs` (30 lines) registers the `Outline` command (`Outline (On Off): black silhouette around solids`). Its `Action::run` handler exposes option chips `Outline On`, `Outline Off` after validating arguments so invalid CLI or interactive input leaves undo history untouched.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/command/verbs/outline.rs"
@@ -169,7 +169,7 @@ Schedules `1×` and `4×` SSAO pipeline compilation inside browser `requestIdleC
 
 ### Step 15 · `viewer-core/src/command/verbs/attributes.rs`
 
-`viewer-core/src/command/verbs/attributes.rs` implements the `attributes` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched.
+`viewer-core/src/command/verbs/attributes.rs` (34 lines) registers the `Element Attributes` command (`Element Attributes (On Off): show or hide the objects hung under each element, such as its base plane`). Its `Action::run` handler exposes option chips `Element Attributes On`, `Element Attributes Off` after validating arguments so invalid CLI or interactive input leaves undo history untouched.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/command/verbs/attributes.rs"
@@ -193,7 +193,7 @@ Checks bundled `Subset` glyph coverage (`need` / `need_names`) and triggers one 
 
 ### Step 18 · `src/engine/text/application_tests.rs`
 
-`src/engine/text/application_tests.rs` (34 lines) houses regression tests `bundled_subsets_cover_the_viewer_and_whole_fonts_the_rest`. It verified by `cargo xtest` (`bundled_subsets_cover_the_viewer_and_whole_fonts_the_rest`).
+`src/engine/text/application_tests.rs` (34 lines) houses regression tests `bundled_subsets_cover_the_viewer_and_whole_fonts_the_rest`. It implements internal helpers `bundled_subsets_cover_the_viewer_and_whole_fonts_the_rest()`; and verified by `cargo xtest` (`bundled_subsets_cover_the_viewer_and_whole_fonts_the_rest`).
 
 ```rust
 --8<-- "session_viewer/src/engine/text/application_tests.rs"
@@ -311,9 +311,10 @@ Predict what happens if `face_coverage.wgsl` (the silhouette mask pass) forgets 
 
 **Why draw selection and `Outline` silhouettes by dilating a 2D coverage mask (`face_coverage.wgsl` -> `surface_outline.wgsl`) instead of extruding inverted back-face hulls along vertex normals?**
 
-**How to work it out:** Test inverted-hull extrusion on CAD boxes with sharp `90-degree` hard-edge normals and on two overlapping beams whose union should share one outer contour.
+??? tip "Think first — click to reveal how to work it out and the answer"
+    **How to work it out:** Test inverted-hull extrusion on CAD boxes with sharp `90-degree` hard-edge normals and on two overlapping beams whose union should share one outer contour.
 
-**The answer:** Unwelded CAD face normals split apart at sharp cube corners (leaving triangular gaps at every vertex) and draw internal outlines where two selected solids touch. Rendering all selected/outlined faces into one binary coverage mask and dilating in screen space produces a watertight, constant-pixel-width outer contour across curved, sharp, and overlapping solids alike.
+    **The answer:** Unwelded CAD face normals split apart at sharp cube corners (leaving triangular gaps at every vertex) and draw internal outlines where two selected solids touch. Rendering all selected/outlined faces into one binary coverage mask and dilating in screen space produces a watertight, constant-pixel-width outer contour across curved, sharp, and overlapping solids alike.
 
 ## Validation
 

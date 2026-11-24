@@ -102,7 +102,7 @@ Owned files in build order (`75` files):
 
 ### Step 1 · `viewer-core/src/sink.rs`
 
-`viewer-core/src/sink.rs` (51 lines) defines `trait GpuSink`. It operates purely on CPU data structures and `GpuSink` rows so `viewer-core` stays decoupled from `wgpu` and `egui`.
+`viewer-core/src/sink.rs` (51 lines) defines `trait GpuSink`. It implements internal helpers `canvas_size()`, `geometry_revision()`, `object_row()`.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/sink.rs"
@@ -110,7 +110,7 @@ Owned files in build order (`75` files):
 
 ### Step 2 · `viewer-core/src/rows/mod.rs`
 
-`viewer-core/src/rows/mod.rs` (20 lines) coordinates submodules `encode`, `gizmo`, `hull`, `instance`, `lanes`, `objects`. It operates purely on CPU data structures and `GpuSink` rows so `viewer-core` stays decoupled from `wgpu` and `egui`.
+`viewer-core/src/rows/mod.rs` (20 lines) coordinates submodules `encode`, `gizmo`, `hull`, `instance`, `lanes`, `objects`. It keeps `mod` self-contained and deterministic across native and `wasm32` targets.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/rows/mod.rs"
@@ -118,7 +118,7 @@ Owned files in build order (`75` files):
 
 ### Step 3 · `viewer-core/src/rows/encode.rs`
 
-`viewer-core/src/rows/encode.rs` (78 lines) defines `struct Pen`, `encode_width()`, `pack_rgba()`, `oct16()`, `BLACK`. It operates purely on CPU data structures and `GpuSink` rows so `viewer-core` stays decoupled from `wgpu` and `egui`.
+`viewer-core/src/rows/encode.rs` (78 lines) defines `struct Pen`, `encode_width()`, `pack_rgba()`, `oct16()`, `BLACK`. It implements internal helpers `quant8()`, `sign_not_zero()`, `quant_snorm8()`, `FACING_UNKNOWN`.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/rows/encode.rs"
@@ -126,7 +126,7 @@ Owned files in build order (`75` files):
 
 ### Step 4 · `viewer-core/src/rows/gizmo.rs`
 
-`viewer-core/src/rows/gizmo.rs` (14 lines) defines `ARM`, `BALL_AT`. It operates purely on CPU data structures and `GpuSink` rows so `viewer-core` stays decoupled from `wgpu` and `egui`.
+`viewer-core/src/rows/gizmo.rs` (14 lines) defines `ARM`, `BALL_AT`. It keeps `gizmo` self-contained and deterministic across native and `wasm32` targets.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/rows/gizmo.rs"
@@ -134,7 +134,7 @@ Owned files in build order (`75` files):
 
 ### Step 5 · `viewer-core/src/rows/hull.rs`
 
-`viewer-core/src/rows/hull.rs` (392 lines) defines `type Hull`, `struct Points`, `of()`, `extreme_points()`, `placed_box()`. It verified by `cargo xtest` (`a_turned_beam_is_boxed_by_its_extreme_points`, `every_direction_peaks_on_a_kept_point`, `a_round_set_gives_up` (+1 more)).
+`viewer-core/src/rows/hull.rs` (392 lines) defines `type Hull`, `struct Points`, `of()`, `extreme_points()`, `placed_box()`. It implements internal helpers `volume()`, `sub()`, `dot()`, `ABOVE`; and verified by `cargo xtest` (`a_turned_beam_is_boxed_by_its_extreme_points`, `every_direction_peaks_on_a_kept_point`, `a_round_set_gives_up` (+1 more)).
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/rows/hull.rs"
@@ -142,7 +142,7 @@ Owned files in build order (`75` files):
 
 ### Step 6 · `viewer-core/src/rows/instance.rs`
 
-`viewer-core/src/rows/instance.rs` (93 lines) defines `struct Instance`, `placeholder()`, `FLAG_SELECTED`, `FLAG_HIDDEN`. It operates purely on CPU data structures and `GpuSink` rows so `viewer-core` stays decoupled from `wgpu` and `egui`.
+`viewer-core/src/rows/instance.rs` (93 lines) defines `struct Instance`, `placeholder()`, `FLAG_SELECTED`, `FLAG_HIDDEN`. It wires `Xform` without introducing cyclic `rows` dependencies.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/rows/instance.rs"
@@ -150,7 +150,7 @@ Owned files in build order (`75` files):
 
 ### Step 7 · `viewer-core/src/rows/lanes.rs`
 
-`viewer-core/src/rows/lanes.rs` (557 lines) defines `struct Pick`, `enum PickMode`, `struct FaceSource`, `drop_rows()`, `is_silhouette()`. It verified by `cargo xtest` (`lane_rows_by_type`).
+`viewer-core/src/rows/lanes.rs` (557 lines) defines `struct Pick`, `enum PickMode`, `struct FaceSource`, `drop_rows()`, `is_silhouette()`. It implements internal helpers `plated()`, `lane_rows_by_type()`, `FACE_TAG`, `SILHOUETTE_SAG`; and verified by `cargo xtest` (`lane_rows_by_type`).
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/rows/lanes.rs"
@@ -158,7 +158,7 @@ Owned files in build order (`75` files):
 
 ### Step 8 · `viewer-core/src/rows/objects.rs`
 
-`viewer-core/src/rows/objects.rs` (50 lines) defines `struct ObjectRow`, `struct ObjectRows`, `world_box()`, `placed_bounds()`. It operates purely on CPU data structures and `GpuSink` rows so `viewer-core` stays decoupled from `wgpu` and `egui`.
+`viewer-core/src/rows/objects.rs` (50 lines) defines `struct ObjectRow`, `struct ObjectRows`, `world_box()`, `placed_bounds()`. It wires ``, `` without introducing cyclic `rows` dependencies.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/rows/objects.rs"
@@ -166,7 +166,7 @@ Owned files in build order (`75` files):
 
 ### Step 9 · `viewer-core/src/rows/patch.rs`
 
-`viewer-core/src/rows/patch.rs` (224 lines) defines `struct RowSpec`, `enum LaneId`, `struct Counts`, `all()`, `stride()`. It uses additive registration seams `register:markers`, `register:meshes`, `register:strokes`.
+`viewer-core/src/rows/patch.rs` (224 lines) defines `struct RowSpec`, `enum LaneId`, `struct Counts`, `all()`, `stride()`. It implements internal helpers `vector_rows_in()`, `vector_merge()`, `plane_rows_in()`, `ROW_REGISTRY`; and uses additive registration seams `register:markers`, `register:meshes`, `register:strokes`.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/rows/patch.rs"
@@ -174,7 +174,7 @@ Owned files in build order (`75` files):
 
 ### Step 10 · `viewer-core/src/rows/upload.rs`
 
-`viewer-core/src/rows/upload.rs` (173 lines) defines `struct Upload`, `drop_uploaded()`, `merge()`, `shift_vertices()`. It uses additive registration seams `register:clouds`, `register:markers`, `register:meshes`, `register:strokes`.
+`viewer-core/src/rows/upload.rs` (173 lines) defines `struct Upload`, `drop_uploaded()`, `merge()`, `shift_vertices()`. It implements internal helpers `merge_arena()`; and uses additive registration seams `register:clouds`, `register:markers`, `register:meshes`, `register:strokes`.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/rows/upload.rs"
@@ -182,7 +182,7 @@ Owned files in build order (`75` files):
 
 ### Step 11 · `src/engine/gpu/sink.rs`
 
-`src/engine/gpu/sink.rs` (188 lines) implements internal state and helper routines for `gpu`. It maintains explicit buffer capacities, bind-group layouts, and frame-submission ordering for WebGPU.
+`src/engine/gpu/sink.rs` (188 lines) implements `sink` helpers (`canvas_size()`, `geometry_revision()`, `object_row()`) under `gpu`. It wires `Gpu`, ``, ``, `GpuSink` without introducing cyclic `gpu` dependencies.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/sink.rs"
@@ -206,7 +206,7 @@ Stages CPU lane vectors, rebases vertex indices and valid face IDs on merge, and
 
 ### Step 14 · `src/engine/gpu/instance.rs`
 
-`src/engine/gpu/instance.rs` (6 lines) coordinates submodules `layout`, `validation`. It maintains explicit buffer capacities, bind-group layouts, and frame-submission ordering for WebGPU.
+`src/engine/gpu/instance.rs` (6 lines) coordinates submodules `layout`, `validation`. It keeps `instance` self-contained and deterministic across native and `wasm32` targets.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/instance.rs"
@@ -230,7 +230,7 @@ Parses WGSL struct declarations and verifies exact field order and `112 B` / `80
 
 ### Step 17 · `src/engine/gpu/objects.rs`
 
-`src/engine/gpu/objects.rs` (9 lines) coordinates submodules `gpu_tests`, `ink`, `lane`, `table`. It maintains explicit buffer capacities, bind-group layouts, and frame-submission ordering for WebGPU.
+`src/engine/gpu/objects.rs` (9 lines) coordinates submodules `gpu_tests`, `ink`, `lane`, `table`. It keeps `objects` self-contained and deterministic across native and `wasm32` targets.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/objects.rs"
@@ -246,7 +246,7 @@ Parses WGSL struct declarations and verifies exact field order and `112 B` / `80
 
 ### Step 19 · `src/engine/gpu/objects/lane.rs`
 
-`src/engine/gpu/objects/lane.rs` (17 lines) implements internal state and helper routines for `objects`. It maintains explicit buffer capacities, bind-group layouts, and frame-submission ordering for WebGPU.
+`src/engine/gpu/objects/lane.rs` (17 lines) implements `lane` helpers (`on_reset()`, `on_release()`, `bytes()`) under `objects`. It wires `InstanceTable`, `GpuCtx`, `Layouts` without introducing cyclic `objects` dependencies.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/objects/lane.rs"
@@ -270,7 +270,7 @@ Adapter-gated headless GPU test verifying neighbour row isolation, scale-updated
 
 ### Step 22 · `src/engine/gpu/hull.rs`
 
-`src/engine/gpu/hull.rs` (2 lines) implements internal state and helper routines for `gpu`. It maintains explicit buffer capacities, bind-group layouts, and frame-submission ordering for WebGPU.
+`src/engine/gpu/hull.rs` (2 lines) implements `hull` helpers (internal state) under `gpu`. It keeps `hull` self-contained and deterministic across native and `wasm32` targets.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/hull.rs"
@@ -318,7 +318,7 @@ Maps drawn triangles to source faces and binds physical, opaque, clipped, object
 
 ### Step 28 · `src/shaders/triangle.wgsl`
 
-1. **`src/shaders/triangle.wgsl`** transforms arena and slot-instanced vertices (`slot_row`), preserves unlit opaque contact fills pulled forward via `depth_layer`, detects mirrored transforms (`det(model) < 0`), and writes `PhysicalColor` (`color` + `2×u16` `primitive`).
+`src/shaders/triangle.wgsl` transforms arena and slot-instanced vertices (`slot_row`), preserves unlit opaque contact fills pulled forward via `depth_layer`, detects mirrored transforms (`det(model) < 0`), and writes `PhysicalColor` (`color` + `2×u16` `primitive`).
 
 ```wgsl
 --8<-- "session_viewer/src/shaders/triangle.wgsl"
@@ -334,7 +334,7 @@ Expands `40 B` CPU segments into `72 B` `StrokeSegment` records across pipe, rib
 
 ### Step 30 · `src/shaders/ribbon.wgsl`
 
-1. **`src/shaders/ribbon.wgsl`** reads each `72 B` `StrokeSegment`, tests adjacent face normals (`edge_faces_camera`), and bisects consecutive screen directions in `join_plane` so chained curve segments meet at clean mitered corners without overlapping alpha.
+`src/shaders/ribbon.wgsl` reads each `72 B` `StrokeSegment`, tests adjacent face normals (`edge_faces_camera`), and bisects consecutive screen directions in `join_plane` so chained curve segments meet at clean mitered corners without overlapping alpha.
 
 ```wgsl
 --8<-- "session_viewer/src/shaders/ribbon.wgsl"
@@ -398,7 +398,7 @@ Registers `PlaneLane` (`48 B` stride, `1` instanced draw -> `22` grid lines + `3
 
 ### Step 38 · `src/shaders/plane.wgsl`
 
-3. **`src/shaders/plane.wgsl`** synthesizes `22` grid segments (`132` vertices) plus `3` RGB `XYZ` arrows (`54` vertices) per `48 B` `PlaneRow` by calling `arrow_corner`.
+`src/shaders/plane.wgsl` synthesizes `22` grid segments (`132` vertices) plus `3` RGB `XYZ` arrows (`54` vertices) per `48 B` `PlaneRow` by calling `arrow_corner`.
 
 ```wgsl
 --8<-- "session_viewer/src/shaders/plane.wgsl"
@@ -646,7 +646,7 @@ Runs `150`-step seeded random edit sequences (including a `4,096 B` tomb cap and
 
 ### Step 69 · `src/engine/gpu/scene_gpu_tests/mod.rs`
 
-`src/engine/gpu/scene_gpu_tests/mod.rs` (4 lines) coordinates submodules `contacts`, `frames`, `instances`, `split`. It maintains explicit buffer capacities, bind-group layouts, and frame-submission ordering for WebGPU.
+`src/engine/gpu/scene_gpu_tests/mod.rs` (4 lines) coordinates submodules `contacts`, `frames`, `instances`, `split`. It keeps `mod` self-contained and deterministic across native and `wasm32` targets.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/scene_gpu_tests/mod.rs"
@@ -654,7 +654,7 @@ Runs `150`-step seeded random edit sequences (including a `4,096 B` tomb cap and
 
 ### Step 70 · `src/engine/gpu/scene_gpu_tests/contacts.rs`
 
-`src/engine/gpu/scene_gpu_tests/contacts.rs` (102 lines) implements internal state and helper routines for `scene_gpu_tests`. It maintains explicit buffer capacities, bind-group layouts, and frame-submission ordering for WebGPU.
+`src/engine/gpu/scene_gpu_tests/contacts.rs` (102 lines) implements `contacts` helpers (`contacts_on_their_face_draw_in_front_of_it()`) under `scene_gpu_tests`. It wires `ElementFeature`, ``, ``, `Camera` without introducing cyclic `scene_gpu_tests` dependencies.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/scene_gpu_tests/contacts.rs"
@@ -662,7 +662,7 @@ Runs `150`-step seeded random edit sequences (including a `4,096 B` tomb cap and
 
 ### Step 71 · `src/engine/gpu/scene_gpu_tests/frames.rs`
 
-`src/engine/gpu/scene_gpu_tests/frames.rs` (222 lines) houses regression tests `authored_line_widths_reach_the_pixels`. It verified by `cargo xtest` (`authored_line_widths_reach_the_pixels`).
+`src/engine/gpu/scene_gpu_tests/frames.rs` (222 lines) houses regression tests `authored_line_widths_reach_the_pixels`. It implements internal helpers `top_view()`, `count()`, `grey()`; and verified by `cargo xtest` (`authored_line_widths_reach_the_pixels`).
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/scene_gpu_tests/frames.rs"
@@ -670,7 +670,7 @@ Runs `150`-step seeded random edit sequences (including a `4,096 B` tomb cap and
 
 ### Step 72 · `src/engine/gpu/scene_gpu_tests/instances.rs`
 
-`src/engine/gpu/scene_gpu_tests/instances.rs` (409 lines) implements internal state and helper routines for `scene_gpu_tests`. It maintains explicit buffer capacities, bind-group layouts, and frame-submission ordering for WebGPU.
+`src/engine/gpu/scene_gpu_tests/instances.rs` (409 lines) implements `instances` helpers (`file()`, `placed()`, `turned_grid()`) under `scene_gpu_tests`. It wires ``, `Camera`, ``, `ElementFeature` without introducing cyclic `scene_gpu_tests` dependencies.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/scene_gpu_tests/instances.rs"
@@ -678,7 +678,7 @@ Runs `150`-step seeded random edit sequences (including a `4,096 B` tomb cap and
 
 ### Step 73 · `src/engine/gpu/scene_gpu_tests/split.rs`
 
-`src/engine/gpu/scene_gpu_tests/split.rs` (758 lines) implements internal state and helper routines for `scene_gpu_tests`. It maintains explicit buffer capacities, bind-group layouts, and frame-submission ordering for WebGPU.
+`src/engine/gpu/scene_gpu_tests/split.rs` (758 lines) implements `split` helpers (`file()`, `p()`, `arc()`) under `scene_gpu_tests`. It wires ``, ``, `Interval`, `` without introducing cyclic `scene_gpu_tests` dependencies.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/scene_gpu_tests/split.rs"
@@ -716,9 +716,10 @@ Predict how many bytes upload to the GPU when you translate one `50,000`-triangl
 
 **Why does deleting an object park its GPU slots in `tombs.rs` instead of immediately compacting `Arena` and `SegTable`?**
 
-**How to work it out:** Consider pressing `Delete` on a `200,000`-triangle solid and immediately pressing `Ctrl+Z` (`Undo`): immediate compaction would shift every subsequent object's buffer range and discard the uploaded triangles.
+??? tip "Think first — click to reveal how to work it out and the answer"
+    **How to work it out:** Consider pressing `Delete` on a `200,000`-triangle solid and immediately pressing `Ctrl+Z` (`Undo`): immediate compaction would shift every subsequent object's buffer range and discard the uploaded triangles.
 
-**The answer:** Parking deleted ranges in `tombs.rs` (`MAX_TOMBS` cap) hides the row in `O(1)` via `FLAG_HIDDEN` so `Undo` restores the exact row ID and GPU vertices with zero re-walk or upload; `compaction.rs` reclaims dead arena space only when tomb bytes cross the high-water budget or redo history drops unreachable graves.
+    **The answer:** Parking deleted ranges in `tombs.rs` (`MAX_TOMBS` cap) hides the row in `O(1)` via `FLAG_HIDDEN` so `Undo` restores the exact row ID and GPU vertices with zero re-walk or upload; `compaction.rs` reclaims dead arena space only when tomb bytes cross the high-water budget or redo history drops unreachable graves.
 
 ## Validation
 

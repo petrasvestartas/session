@@ -108,7 +108,7 @@ Packs kernel `PointCloud` positions, colours and complete normal arrays (`NO_NOR
 
 ### Step 9 · `viewer-core/src/cloud_query.rs`
 
-`viewer-core/src/cloud_query.rs` (503 lines) defines `struct QueryView`, `struct Candidate`, `struct Query`, `original_id()`, `project()`. It verified by `cargo xtest` (`original_fixed32_ids_preserve_all_bits_and_reject_partial_ranges`, `nodes_after_six_million_remain_eligible_and_uncovered_rows_are_scanned`, `cube_eligibility_uses_the_same_pixel_center_as_candidate_projection` (+3 more)).
+`viewer-core/src/cloud_query.rs` (503 lines) defines `struct QueryView`, `struct Candidate`, `struct Query`, `original_id()`, `project()`. It implements internal helpers `clip()`, `intersects()`, `invalid_clip()`, `PAGE_POINTS`; and verified by `cargo xtest` (`original_fixed32_ids_preserve_all_bits_and_reject_partial_ranges`, `nodes_after_six_million_remain_eligible_and_uncovered_rows_are_scanned`, `cube_eligibility_uses_the_same_pixel_center_as_candidate_projection` (+3 more)).
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/cloud_query.rs"
@@ -116,7 +116,7 @@ Packs kernel `PointCloud` positions, colours and complete normal arrays (`NO_NOR
 
 ### Step 10 · `src/app/cloud_query.rs`
 
-`src/app/cloud_query.rs` (174 lines) defines `fetch_page()`, `resolve_id()`. It keeps browser event routing and scene mutations synchronized without redundant redraws.
+`src/app/cloud_query.rs` (174 lines) defines `fetch_page()`, `resolve_id()`. It implements internal helpers `source_request()`, `source_position()`, `page_candidates()`.
 
 ```rust
 --8<-- "session_viewer/src/app/cloud_query.rs"
@@ -140,7 +140,7 @@ Walks flat `6`-float segment slices into the dedicated sheet lane with scene-uni
 
 ### Step 13 · `viewer-core/src/sheet_query.rs`
 
-`viewer-core/src/sheet_query.rs` (161 lines) defines `struct EntityMeta`, `struct SheetTable`, `struct Query`, `table_count()`, `record()`. It verified by `cargo xtest` (`side_table_head_records_and_blobs_parse_from_a_hand_built_buffer`, `dropping_a_query_cancels_its_token`).
+`viewer-core/src/sheet_query.rs` (161 lines) defines `struct EntityMeta`, `struct SheetTable`, `struct Query`, `table_count()`, `record()`. It implements internal helpers `drop()`, `table()`, `side_table_head_records_and_blobs_parse_from_a_hand_built_buffer()`, `HEAD_BYTES`; and verified by `cargo xtest` (`side_table_head_records_and_blobs_parse_from_a_hand_built_buffer`, `dropping_a_query_cancels_its_token`).
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/sheet_query.rs"
@@ -148,7 +148,7 @@ Walks flat `6`-float segment slices into the dedicated sheet lane with scene-uni
 
 ### Step 14 · `src/app/sheet_query.rs`
 
-`src/app/sheet_query.rs` (96 lines) defines `fetch_entity()`, `read_entity()`. It keeps browser event routing and scene mutations synchronized without redundant redraws.
+`src/app/sheet_query.rs` (96 lines) defines `fetch_entity()`, `read_entity()`. It wires ``, `fetch_range`, `post`, `Cell` without introducing cyclic `app` dependencies.
 
 ```rust
 --8<-- "session_viewer/src/app/sheet_query.rs"
@@ -194,9 +194,10 @@ Predict what happens when you zoom out on a `20,000,000`-point lidar scan with `
 
 **How does `splat_resolve.wgsl` give depth cues and surface relief on uncoloured or normal-free lidar point clouds without computing k-nearest-neighbour normals?**
 
-**How to work it out:** Examine the inputs available in `splat_resolve.wgsl` after `splat.wgsl` rasterizes camera-facing point discs into the colour and linear/reverse-Z depth buffers.
+??? tip "Think first — click to reveal how to work it out and the answer"
+    **How to work it out:** Examine the inputs available in `splat_resolve.wgsl` after `splat.wgsl` rasterizes camera-facing point discs into the colour and linear/reverse-Z depth buffers.
 
-**The answer:** Eye-Dome Lighting (EDL) samples neighboring texels' log-depths around each splat pixel and darkens silhouettes where depth jumps abruptly toward the background, synthesizing crisp ambient-like contour shading in a single screen-space pass with zero normal vectors stored per point.
+    **The answer:** Eye-Dome Lighting (EDL) samples neighboring texels' log-depths around each splat pixel and darkens silhouettes where depth jumps abruptly toward the background, synthesizing crisp ambient-like contour shading in a single screen-space pass with zero normal vectors stored per point.
 
 ## Validation
 

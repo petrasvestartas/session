@@ -1,33 +1,47 @@
-title: '16 · GPU Pass Timing, Hysteresis Tiers and Edge-Continuity Oracle'
+title: '16 · Tile Front-Depth Culling, Hysteresis Tiers and Edge Oracle'
 split: 0.52
 palette: {accent: '#3057b1'}
-camera: {view: top, fit: [LO, HI]}
+grid: {center: [1.6, 0.0], size: 6, step: 1, z: -1.1}
+camera: {yaw: -40, pitch: 24, fit: [EYE, T0, T2, OCC2, HID1, VIS1]}
 points:
-  LO: [-0.6, -0.8, 0]
-  HI: [6.4, 4.2, 0]
-  O: [0, 0, 0]
-  XMAX: [5.8, 0, 0]
-  YMAX: [0, 3.5, 0]
-  T14_0: [3.9, 0, 0]
-  T14_1: [3.9, 3.3, 0]
-  M1_A: [0.4, 2.55, 0]
-  M1_B: [5.2, 2.55, 0]
-  M2_A: [0.4, 1.25, 0]
-  M2_B: [2.35, 1.25, 0]
+  EYE: [-1.6, 0.0, 0.6]
+  T0: [0.3, -1.1, -0.2]
+  T1: [0.3, 1.1, -0.2]
+  T2: [0.3, 1.1, 1.4]
+  T3: [0.3, -1.1, 1.4]
+  TM0: [0.3, 0.0, -0.2]
+  TM1: [0.3, 0.0, 1.4]
+  TN0: [0.3, -1.1, 0.6]
+  TN1: [0.3, 1.1, 0.6]
+  VIS0: [1.25, -0.75, 0.25]
+  VIS1: [1.25, 0.85, 1.15]
+  OCC0: [1.85, -0.95, -0.35]
+  OCC1: [1.85, 0.95, -0.35]
+  OCC2: [1.85, 0.95, 1.25]
+  OCC3: [1.85, -0.95, 1.25]
+  HID0: [3.1, -0.8, 0.1]
+  HID1: [3.1, 0.85, 1.05]
+  RAY_HIT: [1.85, 0.25, 0.55]
 slides:
-  - title: 'MEASURED M1 TO M2 INK SPEEDUP AND HYSTERESIS'
+  - title: '16X16 TILE DEPTH CULLING AND TIER 0 BUDGET'
     steps:
-      - say: 'GPU timestamp queries isolated $99.4\%$ of frame time inside ink strokes ($17.40\,\mathrm{ms}$ before tile depth bounds).'
+      - say: 'Projected triangles bin into $16\times 16$ screen tiles, recording conservative front depth $z_{\mathrm{front}}$ via atomicMax.'
         add:
-          - {id: axX, arrow: [O, XMAX], color: ink, width: 2.2, label: '\mathrm{ms}'}
-          - {id: axY, line: [O, YMAX], color: grey, width: 1.8}
-          - {id: budget, line: [T14_0, T14_1], color: pink, width: 1.8, dash: true}
-          - {id: lBud, label: T14_1, tex: '14\,\mathrm{ms}', color: pink}
-          - {id: barBefore, arrow: [M1_A, M1_B], color: grey, width: 4.2, label: '17.40\,\mathrm{ms}\;(\mathrm{M1})'}
+          - {id: pEye, point: EYE, color: ink, label: '\mathbf{e}'}
+          - {id: tileQuad, polyline: [T0, T1, T2, T3, T0], color: '#3057b1', width: 2.6}
+          - {id: tv, line: [TM0, TM1], color: '#3057b1', width: 1.6, dash: true}
+          - {id: th, line: [TN0, TN1], color: '#3057b1', width: 1.6, dash: true}
+          - {id: occQuad, polyline: [OCC0, OCC1, OCC2, OCC3, OCC0], color: pink, width: 2.8}
+          - {id: lTile, label: T2, tex: '16\times 16\;\mathrm{tile}', color: '#3057b1'}
+          - {id: lOcc, label: OCC2, tex: 'z_{\mathrm{front}}', color: pink}
         eq: 't_{\mathrm{ink}}:\; 17.40\,\mathrm{ms} \longrightarrow 7.06\,\mathrm{ms}\;(-59.4\%), \qquad p_{95}^{\mathrm{orbit}}:\; 29.2 \longrightarrow 10.5\,\mathrm{ms}'
-      - say: 'Per-tile atomic front-depth culling cut ink cost by $60\%$, keeping orbit smoothly inside full-quality Tier 0.'
+      - say: 'Foreground strokes ($z \ge z_{\mathrm{front}}$) draw crisply while buried strokes behind $z_{\mathrm{front}}$ reject early.'
         add:
-          - {id: barAfter, arrow: [M2_A, M2_B], color: '#3057b1', width: 4.6, label: '7.06\,\mathrm{ms}\;(\mathrm{M2})'}
+          - {id: visSeg, line: [VIS0, VIS1], color: green, width: 3.8}
+          - {id: hidSeg, line: [HID0, HID1], color: grey, width: 2.4, dash: true}
+          - {id: ray, arrow: [EYE, RAY_HIT], color: '#3057b1', width: 2.6}
+          - {id: lVis, label: VIS1, tex: '\mathrm{kept}', color: green}
+          - {id: lHid, label: HID1, tex: '\mathrm{culled}', color: grey}
         code: |
           FrameStats:        600-frame [p50, p95, p99] + AtomicU64 submit->done
           selftest::oracle:  100.0000% visible CAD edge continuity (phone + desktop)

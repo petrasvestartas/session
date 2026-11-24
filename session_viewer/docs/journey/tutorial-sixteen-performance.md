@@ -46,7 +46,7 @@ Separates wheel/drag interaction bursts from resting frames using median frame t
 
 ### Step 2 · `src/engine/gpu/timing.rs`
 
-`src/engine/gpu/timing.rs` (127 lines) defines `struct PassTimer`, `mark()`, `resolve()`, `collect()`. It maintains explicit buffer capacities, bind-group layouts, and frame-submission ordering for WebGPU.
+`src/engine/gpu/timing.rs` (127 lines) defines `struct PassTimer`, `mark()`, `resolve()`, `collect()`, `MARKS`. It wires `GpuCtx` without introducing cyclic `gpu` dependencies.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/timing.rs"
@@ -140,9 +140,10 @@ Predict why measuring `performance.now()` around `queue.submit(...)` alone misre
 
 **Why does `NavigationQuality` require a consecutive run of slow top-tier drag frames before stepping down quality, and refuse to step back up mid-drag just because the cheaper tier rendered fast?**
 
-**How to work it out:** Trace the feedback loop if Tier 1 (`10 ms`) immediately promoted back to Tier 0 (`28 ms`) on the very next frame of an orbit drag.
+??? tip "Think first — click to reveal how to work it out and the answer"
+    **How to work it out:** Trace the feedback loop if Tier 1 (`10 ms`) immediately promoted back to Tier 0 (`28 ms`) on the very next frame of an orbit drag.
 
-**The answer:** Promoting immediately when a lower tier renders under `16.7 ms` causes `Tier 0 <-> Tier 1` oscillation every second frame (visible flashing and `28 ms` frame spikes). Holding the demoted tier until interaction ends—then settling one crisp Tier 0 resting frame (`rough_settle`)—keeps orbit smooth and eliminates oscillation (`cheaper_frames_do_not_immediately_retry_expensive_navigation`).
+    **The answer:** Promoting immediately when a lower tier renders under `16.7 ms` causes `Tier 0 <-> Tier 1` oscillation every second frame (visible flashing and `28 ms` frame spikes). Holding the demoted tier until interaction ends—then settling one crisp Tier 0 resting frame (`rough_settle`)—keeps orbit smooth and eliminates oscillation (`cheaper_frames_do_not_immediately_retry_expensive_navigation`).
 
 ## Validation
 

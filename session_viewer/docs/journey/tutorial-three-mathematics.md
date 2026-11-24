@@ -248,9 +248,10 @@ Predict what happens when you add an unknown TeX macro like `\lfloor` or two ove
 
 **Why keep `src/app/stage/matrix.rs` (2D rounded cells on slides) while removing the old 3D `Matrix` GPU lane (`walk/matrix.rs`, `matrices.rs`, `matrix.wgsl`)?**
 
-**How to work it out:** Contrast how numerical matrices are read in Force Density Method and Thrust Network Analysis lectures (`D_N x_N = p - D_F x_F`) against 3D world geometry (`Mesh`, `BRep`, `NurbsCurve`).
+??? tip "Think first — click to reveal how to work it out and the answer"
+    **How to work it out:** Contrast how numerical matrices are read in Force Density Method and Thrust Network Analysis lectures (`D_N x_N = p - D_F x_F`) against 3D world geometry (`Mesh`, `BRep`, `NurbsCurve`).
 
-**The answer:** A numerical matrix is 2D algebraic notation, not a 3D spatial solid: rendering `7`-segment digits on a 3D quad with black `1 px` borders cluttered the 3D scene and duplicated shader pipelines, whereas `stage/matrix.rs` typesets true OpenType MATH entries inside sign-tinted rounded cells (pink positive, blue negative, yellow active highlight) synchronized with 3D cable-net highlights.
+    **The answer:** A numerical matrix is 2D algebraic notation, not a 3D spatial solid: rendering `7`-segment digits on a 3D quad with black `1 px` borders cluttered the 3D scene and duplicated shader pipelines, whereas `stage/matrix.rs` typesets true OpenType MATH entries inside sign-tinted rounded cells (pink positive, blue negative, yellow active highlight) synchronized with 3D cable-net highlights.
 
 ## Validation
 

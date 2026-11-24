@@ -485,6 +485,32 @@ export default function coursePlugin(): Plugin {
         ...(book.comparison ? [pageSlug(path.join(DOCS, book.comparison.page))] : [])]);
     }
     const shortTitle = (raw: string) => raw.replace(/^Tutorial [\d.]+\s*·\s*/, '');
+    const extractMeta = (slug: string, relMd: string) => {
+      const p = pages.get(slug);
+      const html = p?.html || '';
+      const heroImg = html.match(/<img\s+src="([^"]+)"/)?.[1];
+      const goalMatch = html.match(/<h2 id="goal">[\s\S]*?<\/h2>\s*<p>([\s\S]*?)<\/p>/);
+      const summary = goalMatch ? stripTags(goalMatch[1]) : undefined;
+      const fileCount = p ? p.toc.filter(t => /^Step \d+\b/.test(t.text)).length : 0;
+      let stageQuery: string | undefined;
+      const mdPath = path.join(DOCS, relMd);
+      if (fs.existsSync(mdPath)) {
+        const mdRaw = fs.readFileSync(mdPath, 'utf8');
+        const st = mdRaw.match(/examples\/stage\/([\w-]+)\/([\w.-]+\.yaml)/);
+        if (st) {
+          const [, deckName, chFile] = st;
+          const idxFile = path.join(VIEWER, 'examples/stage', deckName, 'index.yaml');
+          let chNum = 1;
+          if (fs.existsSync(idxFile)) {
+            const chList = [...fs.readFileSync(idxFile, 'utf8').matchAll(/^\s*-\s*(\S+\.yaml)\s*$/gm)].map(m => m[1]);
+            const pos = chList.indexOf(chFile);
+            if (pos >= 0) chNum = pos + 1;
+          }
+          stageQuery = `stage=decks/${deckName}/index.yaml&chapter=${chNum}&data=off`;
+        }
+      }
+      return { heroImg, summary, fileCount, stageQuery };
+    };
     const tutorialSequence = active().tutorials ?? active().subjects;
     const tutorials = tutorialSequence.map((item, index) => {
       const number = String(index + 1);
@@ -495,12 +521,14 @@ export default function coursePlugin(): Plugin {
         id: item.id,
         title: shortTitle(pages.get(slug)?.title || fallback),
         slug,
+        ...extractMeta(slug, item.page),
         chapters: item.chapters.map((chapter, cIndex) => {
           const cSlug = pageSlug(path.join(DOCS, chapter));
           return {
             number: `${number}.${cIndex + 1}`,
             title: shortTitle(pages.get(cSlug)?.title || cSlug),
             slug: cSlug,
+            ...extractMeta(cSlug, chapter),
           };
         }),
       };

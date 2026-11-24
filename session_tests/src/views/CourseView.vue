@@ -1,20 +1,46 @@
 <template>
-  <div class="course-page">
+  <div class="course-page" :style="{ '--c': chapterColor }">
     <p v-if="missing" class="missing">
       There is no course page named "{{ slug }}". <router-link to="/course">All lessons</router-link>
     </p>
     <template v-else-if="page">
+      <div v-if="activeMeta" class="tut-banner">
+        <div class="tut-banner-left">
+          <span class="tut-eyebrow">ETH Zürich · Block Research Group · Tutorial {{ activeMeta.number }} of 17</span>
+          <span v-if="activeMeta.fileCount" class="tut-count">{{ activeMeta.fileCount }} source files</span>
+        </div>
+        <div class="tut-actions">
+          <a
+            v-if="stageHref"
+            :href="stageHref"
+            target="_blank"
+            rel="noopener"
+            class="cas-btn primary">
+            ▶ Interactive 3D Stage ↗
+          </a>
+          <button
+            v-if="longCodeCount > 0"
+            type="button"
+            class="cas-btn"
+            @click="toggleAllCode">
+            {{ allExpanded ? 'Collapse long files' : `Expand all ${longCodeCount} long files` }}
+          </button>
+        </div>
+      </div>
+
       <details v-if="page.toc.length" class="toc-inline">
         <summary>On this page</summary>
         <a v-for="t in page.toc" :key="t.id" :href="'#/course/' + slug + '#' + t.id" :class="'l' + t.level" @click.prevent="go(t.id)">{{ t.text }}</a>
       </details>
+
       <div class="columns">
-        <article class="doc" v-html="page.html" @click="onClick"></article>
+        <article ref="articleEl" class="doc" v-html="page.html" @click="onClick"></article>
         <aside v-if="page.toc.length" class="toc" aria-label="On this page">
           <p class="toc-title">On this page</p>
           <a v-for="t in page.toc" :key="t.id" :href="'#/course/' + slug + '#' + t.id" :class="'l' + t.level" @click.prevent="go(t.id)">{{ t.text }}</a>
         </aside>
       </div>
+
       <nav class="pager" aria-label="Previous and next lesson">
         <router-link v-if="meta?.prev" :to="'/course/' + meta.prev" class="prev">
           <span>Previous</span>{{ pages[meta.prev].title }}
@@ -23,6 +49,20 @@
           <span>Next</span>{{ pages[meta.next].title }}
         </router-link>
       </nav>
+
+      <dialog ref="plateDialog" class="presentation-dialog" @click.self="closePlateModal">
+        <header class="presentation-header">
+          <span class="presentation-kicker">{{ lightboxAlt || `Tutorial ${activeMeta?.number} · Visual Plate` }}</span>
+          <div class="presentation-controls">
+            <a v-if="stageHref" :href="stageHref" target="_blank" rel="noopener" class="cas-btn primary modal-stage-btn">▶ Launch Live 3D Stage ↗</a>
+            <a v-if="lightboxSrc" :href="lightboxSrc" target="_blank" rel="noopener" class="presentation-ext">Raw PNG ↗</a>
+            <button type="button" class="presentation-close" aria-label="Close figure preview" @click="closePlateModal">×</button>
+          </div>
+        </header>
+        <div class="presentation-stage" @click.self="closePlateModal">
+          <img v-if="lightboxSrc" :src="lightboxSrc" :alt="lightboxAlt" class="presentation-img" />
+        </div>
+      </dialog>
     </template>
   </div>
 </template>
@@ -30,14 +70,136 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { loaders, pages, type CoursePage } from 'virtual:course';
+import { loaders, pages, tutorials, type CoursePage } from 'virtual:course';
 
 const route = useRoute();
 const router = useRouter();
 const page = ref<CoursePage | null>(null);
 const missing = ref(false);
+const articleEl = ref<HTMLElement | null>(null);
+const plateDialog = ref<HTMLDialogElement | null>(null);
+const lightboxSrc = ref('');
+const lightboxAlt = ref('');
+const longCodeCount = ref(0);
+const allExpanded = ref(false);
+
 const slug = computed(() => String(route.params.slug || ''));
 const meta = computed(() => pages[slug.value]);
+
+const base = import.meta.env.BASE_URL;
+const viewerHref = new URL('../', window.location.origin + base).href;
+
+const CAS_RAMP = ['#3057b1', '#5552bb', '#7750c1', '#934abd', '#ae4bb2', '#c54b9f', '#dc4b8d'];
+const rampColor = (idx: number, total: number): string => {
+  if (total <= 1) return CAS_RAMP[0];
+  const pos = (idx / (total - 1)) * (CAS_RAMP.length - 1);
+  return CAS_RAMP[Math.round(pos)] ?? CAS_RAMP[0];
+};
+
+const activeLookup = computed(() => {
+  for (let i = 0; i < tutorials.length; i++) {
+    const t = tutorials[i];
+    if (t.slug === slug.value) return { item: t, idx: i };
+    const ch = t.chapters.find((c) => c.slug === slug.value);
+    if (ch) return { item: ch, idx: i };
+  }
+  return null;
+});
+
+const activeMeta = computed(() => activeLookup.value?.item ?? null);
+const chapterColor = computed(() =>
+  activeLookup.value ? rampColor(activeLookup.value.idx, tutorials.length) : '#3057b1',
+);
+const stageHref = computed(() =>
+  activeMeta.value?.stageQuery ? `${viewerHref}?${activeMeta.value.stageQuery}` : '',
+);
+
+const openPlateModal = (src: string, alt: string) => {
+  lightboxSrc.value = src;
+  lightboxAlt.value = alt;
+  plateDialog.value?.showModal();
+};
+
+const closePlateModal = () => {
+  if (plateDialog.value?.open) plateDialog.value.close();
+  lightboxSrc.value = '';
+};
+
+const enhanceArticle = () => {
+  const el = articleEl.value;
+  if (!el) return;
+  allExpanded.value = false;
+  let longCount = 0;
+  const codeBlocks = el.querySelectorAll<HTMLElement>('.code');
+  codeBlocks.forEach((box) => {
+    if (box.dataset.enhanced === '1') return;
+    box.dataset.enhanced = '1';
+    const pre = box.querySelector('pre');
+    const text = pre?.textContent ?? '';
+    const lines = text ? text.split('\n').length : 0;
+    const isLong = lines > 42;
+    if (isLong) {
+      longCount++;
+      box.classList.add('is-long', 'is-collapsed');
+    }
+    const bar = document.createElement('div');
+    bar.className = 'code-bar';
+    const info = document.createElement('span');
+    info.className = 'code-lines';
+    info.textContent = `${lines} ${lines === 1 ? 'line' : 'lines'}`;
+    bar.appendChild(info);
+
+    const actions = document.createElement('div');
+    actions.className = 'code-bar-actions';
+    if (isLong) {
+      const toggle = document.createElement('button');
+      toggle.type = 'button';
+      toggle.className = 'code-toggle';
+      toggle.textContent = `Show all ${lines} lines`;
+      toggle.dataset.lines = String(lines);
+      actions.appendChild(toggle);
+    }
+    const copyBtn = box.querySelector<HTMLButtonElement>('button.copy');
+    if (copyBtn) {
+      actions.appendChild(copyBtn);
+    }
+    bar.appendChild(actions);
+    box.insertBefore(bar, box.firstChild);
+  });
+  longCodeCount.value = longCount;
+
+  // Add an inline "▶ Open interactive 3D stage ↗" link beside the stage YAML source link
+  if (stageHref.value) {
+    el.querySelectorAll<HTMLParagraphElement>('p').forEach((p) => {
+      if (p.dataset.stageBtn === '1') return;
+      if (p.textContent?.trim().startsWith('Interactive stage source:')) {
+        p.dataset.stageBtn = '1';
+        p.classList.add('stage-source-row');
+        const link = document.createElement('a');
+        link.href = stageHref.value;
+        link.target = '_blank';
+        link.rel = 'noopener';
+        link.className = 'inline-stage-btn';
+        link.textContent = '▶ Open interactive 3D stage ↗';
+        p.insertBefore(link, p.firstChild);
+      }
+    });
+  }
+};
+
+const toggleAllCode = () => {
+  const el = articleEl.value;
+  if (!el) return;
+  const nextExpanded = !allExpanded.value;
+  allExpanded.value = nextExpanded;
+  el.querySelectorAll<HTMLElement>('.code.is-long').forEach((box) => {
+    box.classList.toggle('is-collapsed', !nextExpanded);
+    const btn = box.querySelector<HTMLButtonElement>('button.code-toggle');
+    if (btn) {
+      btn.textContent = nextExpanded ? 'Collapse' : `Show all ${btn.dataset.lines} lines`;
+    }
+  });
+};
 
 const scrollToHash = () => {
   const id = decodeURIComponent(route.hash.slice(1));
@@ -54,10 +216,12 @@ const go = (id: string) => {
 watch(
   slug,
   async (s) => {
+    closePlateModal();
     const load = loaders[s];
     missing.value = !load;
     if (!load) {
       page.value = null;
+      longCodeCount.value = 0;
       return;
     }
     const mod = await load();
@@ -69,6 +233,7 @@ watch(
     page.value = mod.default;
     document.title = `${mod.default.title} · Session docs`;
     await nextTick();
+    enhanceArticle();
     scrollToHash();
   },
   { immediate: true },
@@ -76,17 +241,36 @@ watch(
 
 watch(() => route.hash, () => nextTick(scrollToHash));
 
-// Delegated clicks inside the rendered page: the copy buttons and in-app links.
+// Delegated clicks inside the rendered page: figure lightbox, code expand/collapse, copy, and in-app links.
 const onClick = (e: MouseEvent) => {
   const target = e.target as HTMLElement;
+  const codeToggle = target.closest<HTMLButtonElement>('button.code-toggle');
+  if (codeToggle) {
+    const box = codeToggle.closest<HTMLElement>('.code.is-long');
+    if (box) {
+      const collapsed = box.classList.toggle('is-collapsed');
+      codeToggle.textContent = collapsed ? `Show all ${codeToggle.dataset.lines} lines` : 'Collapse';
+    }
+    return;
+  }
   const copy = target.closest<HTMLButtonElement>('button.copy');
   if (copy) {
-    const text = copy.parentElement?.querySelector('pre')?.textContent ?? '';
+    const box = copy.closest('.code');
+    const text = box?.querySelector('pre')?.textContent ?? '';
     navigator.clipboard?.writeText(text).then(() => {
       copy.textContent = 'Copied';
       setTimeout(() => (copy.textContent = 'Copy'), 1200);
     });
     return;
+  }
+  const img = target.closest<HTMLImageElement>('img');
+  if (img && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
+    const parentLink = img.closest<HTMLAnchorElement>('a');
+    if (parentLink && /\.(png|webp|jpg|jpeg)(\?|$)/i.test(parentLink.getAttribute('href') || '')) {
+      e.preventDefault();
+      openPlateModal(img.src, img.alt || '');
+      return;
+    }
   }
   const a = target.closest<HTMLAnchorElement>('a[href^="#/"]');
   if (!a || e.ctrlKey || e.metaKey || e.shiftKey) return;
@@ -99,11 +283,86 @@ const onClick = (e: MouseEvent) => {
 
 <style scoped>
 .course-page {
-  padding: 1.75rem 0.5rem 3.5rem;
+  padding: 1.5rem 0.5rem 3.5rem;
 }
 
 .missing {
   color: var(--fg);
+}
+
+.tut-banner {
+  max-width: 1320px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.55rem 0 0.75rem;
+  margin-bottom: 1.15rem;
+  border-top: 4px solid var(--c, var(--accent));
+  border-bottom: 1px solid var(--rule);
+}
+
+.tut-banner-left {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.tut-eyebrow {
+  font-size: 12.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--c, var(--accent));
+}
+
+.tut-count {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  background: var(--wash);
+  padding: 0.1rem 0.5rem;
+  border: 1px solid var(--rule);
+}
+
+.tut-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.cas-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.34rem 0.75rem;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 700;
+  border: 1.5px solid var(--c, var(--accent));
+  background: #ffffff;
+  color: var(--c, var(--accent));
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.cas-btn:hover {
+  background: color-mix(in srgb, var(--c, var(--accent)) 10%, #ffffff);
+  color: var(--c, var(--accent));
+  text-decoration: none;
+}
+
+.cas-btn.primary {
+  background: var(--c, var(--accent));
+  color: #ffffff;
+}
+
+.cas-btn.primary:hover {
+  background: var(--fg);
+  border-color: var(--fg);
+  color: #ffffff;
 }
 
 .columns {
@@ -130,13 +389,13 @@ const onClick = (e: MouseEvent) => {
   font-size: 12.5px;
   line-height: 1.38;
   padding: 0.65rem 0.75rem;
-  border-left: 2px solid var(--rule);
+  border-left: 2px solid var(--c, var(--rule));
   scrollbar-width: thin;
 }
 
 .toc-title {
   margin: 0 0 0.5rem;
-  color: var(--accent);
+  color: var(--c, var(--accent));
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -153,7 +412,7 @@ const onClick = (e: MouseEvent) => {
 
 .toc a:hover,
 .toc-inline a:hover {
-  color: var(--accent);
+  color: var(--c, var(--accent));
 }
 
 .toc a.l3,
@@ -172,6 +431,7 @@ const onClick = (e: MouseEvent) => {
 .toc-inline summary {
   cursor: pointer;
   color: var(--fg);
+  font-weight: 600;
 }
 
 @media (max-width: 1100px) {
@@ -213,12 +473,12 @@ const onClick = (e: MouseEvent) => {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--accent);
+  color: var(--c, var(--accent));
 }
 
 .pager a:hover {
-  border-color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 6%, #ffffff);
+  border-color: var(--c, var(--accent));
+  background: color-mix(in srgb, var(--c, var(--accent)) 6%, #ffffff);
   text-decoration: none;
 }
 
@@ -227,12 +487,117 @@ const onClick = (e: MouseEvent) => {
   text-align: right;
 }
 
+/* Fullscreen BRG CAS Plate Lightbox Dialog */
+.presentation-dialog {
+  inset: 0;
+  width: min(96vw, 1680px);
+  height: min(92vh, 980px);
+  margin: auto;
+  padding: 0;
+  border: 2px solid var(--c, var(--accent));
+  background: #ffffff;
+  color: var(--fg);
+  box-shadow: 0 24px 64px rgba(20, 27, 61, 0.35);
+}
+
+.presentation-dialog[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+.presentation-dialog::backdrop {
+  background: rgba(20, 27, 61, 0.8);
+  backdrop-filter: blur(4px);
+}
+
+.presentation-header {
+  flex: none;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.55rem 1rem;
+  border-bottom: 2px solid var(--c, var(--accent));
+  background: #ffffff;
+}
+
+.presentation-kicker {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--fg);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 58vw;
+}
+
+.presentation-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.modal-stage-btn {
+  padding: 0.25rem 0.65rem;
+  font-size: 12px;
+}
+
+.presentation-ext {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--c, var(--accent));
+  text-decoration: none;
+}
+
+.presentation-ext:hover {
+  text-decoration: underline;
+}
+
+.presentation-close {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1.5px solid var(--rule);
+  background: #ffffff;
+  color: var(--fg);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.presentation-close:hover {
+  border-color: var(--fg);
+  background: var(--wash);
+}
+
+.presentation-stage {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.presentation-img {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  display: block;
+}
+
 /* Rendered markdown (v-html): reach in with :deep. */
 .doc :deep(h1) {
-  font-size: clamp(26px, 3vw, 34px);
+  font-size: clamp(26px, 3vw, 35px);
   font-weight: 800;
   letter-spacing: -0.022em;
-  line-height: 1.18;
+  line-height: 1.16;
   color: var(--fg);
   margin: 0 0 1.1rem;
 }
@@ -242,7 +607,7 @@ const onClick = (e: MouseEvent) => {
   font-weight: 700;
   letter-spacing: -0.012em;
   color: var(--fg);
-  margin: 2.3rem 0 0.65rem;
+  margin: 2.35rem 0 0.7rem;
   padding-bottom: 0.32rem;
   border-bottom: 2px solid var(--rule);
 }
@@ -250,8 +615,8 @@ const onClick = (e: MouseEvent) => {
 .doc :deep(h3) {
   font-size: 16px;
   font-weight: 700;
-  color: var(--accent);
-  margin: 1.8rem 0 0.45rem;
+  color: var(--c, var(--accent));
+  margin: 1.85rem 0 0.45rem;
 }
 
 .doc :deep(h4) {
@@ -295,10 +660,10 @@ const onClick = (e: MouseEvent) => {
 }
 
 .doc :deep(a) {
-  color: var(--accent);
+  color: var(--c, var(--accent));
   font-weight: 600;
   text-decoration: underline;
-  text-decoration-color: color-mix(in srgb, var(--accent) 45%, transparent);
+  text-decoration-color: color-mix(in srgb, var(--c, var(--accent)) 45%, transparent);
   text-decoration-thickness: 1.5px;
   text-underline-offset: 3px;
 }
@@ -317,6 +682,13 @@ const onClick = (e: MouseEvent) => {
   border: 1.5px solid var(--rule);
   background: #ffffff;
   box-shadow: 0 4px 16px rgba(20, 27, 61, 0.06);
+  cursor: zoom-in;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.doc :deep(img:hover) {
+  border-color: var(--c, var(--accent));
+  box-shadow: 0 6px 20px rgba(20, 27, 61, 0.1);
 }
 
 .doc :deep(img[src*=".svg"]) {
@@ -342,6 +714,35 @@ const onClick = (e: MouseEvent) => {
   }
 }
 
+.doc :deep(.stage-source-row) {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 13.5px;
+  color: var(--muted);
+}
+
+.doc :deep(.inline-stage-btn) {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.28rem 0.7rem;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 700;
+  border: 1.5px solid var(--c, var(--accent));
+  background: color-mix(in srgb, var(--c, var(--accent)) 8%, #ffffff);
+  color: var(--c, var(--accent));
+  text-decoration: none;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.doc :deep(.inline-stage-btn:hover) {
+  background: var(--c, var(--accent));
+  color: #ffffff;
+  text-decoration: none;
+}
+
 .doc :deep(:not(pre) > code) {
   font-size: 0.88em;
   background: var(--code-bg);
@@ -352,45 +753,80 @@ const onClick = (e: MouseEvent) => {
 
 .doc :deep(.code) {
   position: relative;
-  margin: 0.8rem 0 1.1rem;
+  margin: 0.75rem 0 1.25rem;
+  border: 1px solid var(--rule);
+  background: var(--code-bg);
+}
+
+.doc :deep(.code-bar) {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.28rem 0.65rem;
+  background: color-mix(in srgb, var(--wash) 80%, #ffffff);
+  border-bottom: 1px solid var(--rule);
+  font-size: 11.5px;
+  color: var(--muted);
+}
+
+.doc :deep(.code-lines) {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.doc :deep(.code-bar-actions) {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.doc :deep(.code-toggle),
+.doc :deep(.copy) {
+  position: static;
+  padding: 0.12rem 0.5rem;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--fg);
+  background: #ffffff;
+  border: 1px solid var(--rule);
+  cursor: pointer;
+  opacity: 1;
+}
+
+.doc :deep(.code-toggle:hover),
+.doc :deep(.copy:hover) {
+  border-color: var(--c, var(--accent));
+  color: var(--c, var(--accent));
+}
+
+.doc :deep(.code.is-collapsed pre) {
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.doc :deep(.code.is-collapsed::after) {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 36px;
+  background: linear-gradient(to bottom, rgba(244, 245, 249, 0), rgba(244, 245, 249, 0.95));
+  pointer-events: none;
 }
 
 .doc :deep(pre) {
   margin: 0;
   padding: 0.8rem 1rem;
   background: var(--code-bg);
-  border-radius: 4px;
   overflow-x: auto;
   font-size: 13px;
   line-height: 1.5;
   color: #1a1a1a;
 }
 
-.doc :deep(.copy) {
-  position: absolute;
-  top: 0.35rem;
-  right: 0.35rem;
-  padding: 0.1rem 0.45rem;
-  font-size: 11px;
-  color: var(--fg);
-  background: #ffffff;
-  border: 1px solid var(--rule);
-  border-radius: 3px;
-  cursor: pointer;
-  opacity: 0;
-  transition: opacity 0.15s;
-}
-
-.doc :deep(.code:hover .copy),
-.doc :deep(.copy:focus) {
-  opacity: 1;
-}
-
 @media (hover: none) {
-  .doc :deep(.copy) {
-    opacity: 1;
-  }
-
   .doc :deep(.anchor) {
     display: none;
   }
@@ -399,24 +835,34 @@ const onClick = (e: MouseEvent) => {
 .doc :deep(blockquote) {
   margin: 1rem 0;
   padding: 0.1rem 1rem;
-  border-left: 3px solid var(--rule);
+  border-left: 3px solid var(--c, var(--accent));
   color: var(--fg);
 }
 
 .doc :deep(.note) {
-  margin: 1rem 0;
-  padding: 0.2rem 1rem;
-  border-left: 3px solid var(--rule);
+  margin: 0.9rem 0 1.2rem;
+  padding: 0.65rem 1rem;
+  border: 1.5px solid color-mix(in srgb, var(--c, var(--accent)) 45%, var(--rule));
+  border-left: 4px solid var(--c, var(--accent));
+  background: color-mix(in srgb, var(--c, var(--accent)) 4%, #ffffff);
 }
 
 .doc :deep(.note-title),
 .doc :deep(details.note summary) {
-  font-weight: 600;
-  margin: 0.4rem 0;
+  font-weight: 700;
+  color: var(--c, var(--accent));
+  margin: 0.15rem 0;
 }
 
 .doc :deep(details.note summary) {
   cursor: pointer;
+  user-select: none;
+}
+
+.doc :deep(details.note[open] summary) {
+  margin-bottom: 0.55rem;
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid var(--rule);
 }
 
 .doc :deep(table) {

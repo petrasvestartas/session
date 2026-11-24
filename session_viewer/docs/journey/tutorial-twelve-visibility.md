@@ -49,7 +49,7 @@ Manages projected-triangle buffers, tile headers and the shared reference pool, 
 
 ### Step 2 · `src/shaders/project_triangles.wgsl`
 
-1. **`src/shaders/project_triangles.wgsl`** runs a `64`-thread compute pass (`PROJECT_ROW_GROUPS` `2D` dispatch above `65,535` groups) that resolves each triangle via `placed_triangle`, clips against the near plane, fits inward edge equations `equations[0..3]`, and chooses a local corner reference on small far triangles so homogeneous depth extrapolation never suffers cancellation.
+`src/shaders/project_triangles.wgsl` runs a `64`-thread compute pass (`PROJECT_ROW_GROUPS` `2D` dispatch above `65,535` groups) that resolves each triangle via `placed_triangle`, clips against the near plane, fits inward edge equations `equations[0..3]`, and chooses a local corner reference on small far triangles so homogeneous depth extrapolation never suffers cancellation.
 
 ```wgsl
 --8<-- "session_viewer/src/shaders/project_triangles.wgsl"
@@ -57,7 +57,7 @@ Manages projected-triangle buffers, tile headers and the shared reference pool, 
 
 ### Step 3 · `src/shaders/triangle_tiles.wgsl`
 
-2. **`src/shaders/triangle_tiles.wgsl`** rasterizes one quad over each projected triangle's tile bounding box, discards uncovered tiles via `covered_tile`, atomically counts hits in `fs_count`, and packs `(primitive, nearest_depth_bound)` pairs in `fs_fill`.
+`src/shaders/triangle_tiles.wgsl` rasterizes one quad over each projected triangle's tile bounding box, discards uncovered tiles via `covered_tile`, atomically counts hits in `fs_count`, and packs `(primitive, nearest_depth_bound)` pairs in `fs_fill`.
 
 ```wgsl
 --8<-- "session_viewer/src/shaders/triangle_tiles.wgsl"
@@ -65,7 +65,7 @@ Manages projected-triangle buffers, tile headers and the shared reference pool, 
 
 ### Step 4 · `src/shaders/scan_triangle_tiles.wgsl`
 
-3. **`src/shaders/scan_triangle_tiles.wgsl`** executes a `256`-lane Hillis-Steele / Blelloch workgroup prefix sum (`scan_tiles` -> `scan_blocks` -> `finish_offsets`) between `fs_count` and `fs_fill`, saturating at buffer capacity instead of wrapping on overflow.
+`src/shaders/scan_triangle_tiles.wgsl` executes a `256`-lane Hillis-Steele / Blelloch workgroup prefix sum (`scan_tiles` -> `scan_blocks` -> `finish_offsets`) between `fs_count` and `fs_fill`, saturating at buffer capacity instead of wrapping on overflow.
 
 ```wgsl
 --8<-- "session_viewer/src/shaders/scan_triangle_tiles.wgsl"
@@ -81,7 +81,7 @@ Tests placed object bounds against active half-spaces with precision slack and b
 
 ### Step 6 · `src/engine/gpu/clip/pipelines.rs`
 
-`src/engine/gpu/clip/pipelines.rs` (208 lines) defines `cap_source()`, `pick_pipelines()`, `pick_placed_pipelines()`. It maintains explicit buffer capacities, bind-group layouts, and frame-submission ordering for WebGPU.
+`src/engine/gpu/clip/pipelines.rs` (208 lines) defines `cap_source()`, `pick_pipelines()`, `pick_placed_pipelines()`, `SAMPLES`. It implements internal helpers `count_at()`, `primitive_at()`, `cap_texture_entry()`.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/clip/pipelines.rs"
@@ -97,7 +97,7 @@ Parses WGSL via `naga` to verify `ClipUniform` byte offsets against `offset_of!`
 
 ### Step 8 · `src/engine/gpu/clip/editing_tests.rs`
 
-`src/engine/gpu/clip/editing_tests.rs` (1146 lines) implements internal state and helper routines for `clip`. It maintains explicit buffer capacities, bind-group layouts, and frame-submission ordering for WebGPU.
+`src/engine/gpu/clip/editing_tests.rs` (1146 lines) defines `SIZE`, `GREY`. It implements internal helpers `block()`, `solids()`, `cut()`.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/clip/editing_tests.rs"
@@ -105,7 +105,7 @@ Parses WGSL via `naga` to verify `ClipUniform` byte offsets against `offset_of!`
 
 ### Step 9 · `src/shaders/cap.wgsl`
 
-1. **`src/shaders/cap.wgsl`** evaluates plane depth `clip_plane_depth`, trims against every other active section plane sample-by-sample, tests whether back-minus-front crossings behind the plane exceed `0.5` (`count_at`), and outputs `45°` `box_cdf`-filtered hatches plus `CAP_PRIMITIVE`.
+`src/shaders/cap.wgsl` evaluates plane depth `clip_plane_depth`, trims against every other active section plane sample-by-sample, tests whether back-minus-front crossings behind the plane exceed `0.5` (`count_at`), and outputs `45°` `box_cdf`-filtered hatches plus `CAP_PRIMITIVE`.
 
 ```wgsl
 --8<-- "session_viewer/src/shaders/cap.wgsl"
@@ -137,7 +137,7 @@ Creates scene-sized section planes or toggles `On`/`Off`, `Flip` and `Hatch`/`So
 
 ### Step 13 · `viewer-core/src/command/verbs/opacity.rs`
 
-`viewer-core/src/command/verbs/opacity.rs` implements the `opacity` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched.
+`viewer-core/src/command/verbs/opacity.rs` (32 lines) registers the `Opacity` command (`Opacity 0..1: how solid the faces are · 0 is x-ray, 1 solid · Example: Opacity 0.5`). Its `Action::run` handler exposes option chips `Opacity 1`, `Opacity 0.7`, `Opacity 0.4`, `Opacity 0` after validating arguments so invalid CLI or interactive input leaves undo history untouched.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/command/verbs/opacity.rs"
@@ -145,7 +145,7 @@ Creates scene-sized section planes or toggles `On`/`Off`, `Flip` and `Hatch`/`So
 
 ### Step 14 · `viewer-core/src/command/verbs/alpha.rs`
 
-`viewer-core/src/command/verbs/alpha.rs` implements the `alpha` command verb: executes its typed command specification Validates arguments against `&mut dyn CommandHost` before mutating scene or view state so invalid interactive or CLI input leaves undo history untouched.
+`viewer-core/src/command/verbs/alpha.rs` (35 lines) registers the `Alpha` (aliases `Object Alpha`) command (`Alpha <0..1 | Reset>: set or reset per-object transparency on the selection`). Its `Action::run` handler exposes option chips `Alpha 0.5`, `Alpha 1.0`, `Alpha Reset` and dispatches through `host.set_object_alpha()` after validating arguments so invalid CLI or interactive input leaves undo history untouched.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/command/verbs/alpha.rs"
@@ -167,9 +167,10 @@ Predict how much GPU frame time drops on `assets/view_local.yaml` (`127k` triang
 
 **Why isn't reading the hardware `Depth32Float` buffer sufficient to decide whether a thick CAD edge stroke is visible or occluded?**
 
-**How to work it out:** Consider a `4 px`-wide silhouette edge along the front corner of a beam: half of the ribbon quad's fragments overhang empty background pixels beside the beam, while the other half step onto the beam's own sloping face.
+??? tip "Think first — click to reveal how to work it out and the answer"
+    **How to work it out:** Consider a `4 px`-wide silhouette edge along the front corner of a beam: half of the ribbon quad's fragments overhang empty background pixels beside the beam, while the other half step onto the beam's own sloping face.
 
-**The answer:** Sampling `Depth32Float` at an overhanging stroke fragment reads background depth (`0.0`) even when another solid sits directly in front of the stroke's centerline, or self-occludes against the beam's own sloped face. Testing the stroke's projected axis point against finite binned triangles in `ink_visibility.wgsl` (short-circuited by `atomicMax` tile depth when the stroke is strictly in front of the entire tile) keeps silhouette strokes crisp without hidden-edge leaks.
+    **The answer:** Sampling `Depth32Float` at an overhanging stroke fragment reads background depth (`0.0`) even when another solid sits directly in front of the stroke's centerline, or self-occludes against the beam's own sloped face. Testing the stroke's projected axis point against finite binned triangles in `ink_visibility.wgsl` (short-circuited by `atomicMax` tile depth when the stroke is strictly in front of the entire tile) keeps silhouette strokes crisp without hidden-edge leaks.
 
 ## Validation
 
