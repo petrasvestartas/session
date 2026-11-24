@@ -296,44 +296,102 @@ pub fn walk_nurbscurve_quality(
 // --8<-- [start:endpoint-clearance]
 /// Give arrows and strokes the display radii of visible kernel points at their endpoints.
 pub fn endpoint_clearance(up: &mut Upload, session: &Session) {
-    let radius = |position: [f32; 3]| {
-        session.objects.points.iter().find_map(|point| {
-            if !point.is_visible {
-                return None;
-            }
-            let distance = ((point[0] as f32 - position[0]).powi(2)
-                + (point[1] as f32 - position[1]).powi(2)
-                + (point[2] as f32 - position[2]).powi(2))
-            .sqrt();
-            if distance > 1.0e-5 {
-                return None;
-            }
-            let radius = encode_width(point.width);
-            Some(if radius == 0.0 { -3.0 } else { radius })
+    endpoint_clearance_from(up, session, 0, 0, 0);
+}
+
+/// Apply visible point endpoint clearance to rows appended from the given offsets.
+pub fn endpoint_clearance_from(
+    up: &mut Upload,
+    session: &Session,
+    from_ribbons: usize,
+    from_chains: usize,
+    from_vectors: usize,
+) {
+    let visible: Vec<([f32; 3], f32)> = session
+        .objects
+        .points
+        .iter()
+        .filter(|point| point.is_visible)
+        .map(|point| {
+            let r = encode_width(point.width);
+            (
+                [point[0] as f32, point[1] as f32, point[2] as f32],
+                if r == 0.0 { -3.0 } else { r },
+            )
         })
+        .collect();
+
+    if visible.is_empty() {
+        up.seg.ribbon_trims.resize(up.seg.ribbons.len(), [0.0; 2]);
+        return;
+    }
+
+    const CELL: f32 = 1.0e-3;
+    let cell_of = |p: [f32; 3]| -> [i64; 3] {
+        [
+            (p[0] / CELL).floor() as i64,
+            (p[1] / CELL).floor() as i64,
+            (p[2] / CELL).floor() as i64,
+        ]
     };
+    let grid: Option<std::collections::HashMap<[i64; 3], Vec<usize>>> =
+        (visible.len() > 32).then(|| {
+            let mut map: std::collections::HashMap<[i64; 3], Vec<usize>> =
+                std::collections::HashMap::with_capacity(visible.len());
+            for (idx, &(pos, _)) in visible.iter().enumerate() {
+                map.entry(cell_of(pos)).or_default().push(idx);
+            }
+            map
+        });
+
+    let radius = |position: [f32; 3]| -> Option<f32> {
+        let matches = |&(pt, rad): &([f32; 3], f32)| -> Option<f32> {
+            let d2 = (pt[0] - position[0]).powi(2)
+                + (pt[1] - position[1]).powi(2)
+                + (pt[2] - position[2]).powi(2);
+            (d2 <= 1.0e-10).then_some(rad)
+        };
+        if let Some(map) = &grid {
+            let c = cell_of(position);
+            for dx in -1..=1 {
+                for dy in -1..=1 {
+                    for dz in -1..=1 {
+                        if let Some(bucket) = map.get(&[c[0] + dx, c[1] + dy, c[2] + dz]) {
+                            for &idx in bucket {
+                                if let Some(rad) = matches(&visible[idx]) {
+                                    return Some(rad);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            None
+        } else {
+            visible.iter().find_map(matches)
+        }
+    };
+
     let rows = up.lanes.get_mut::<VectorRows>();
-    for row in &mut rows.rows {
+    for row in rows.rows.iter_mut().skip(from_vectors) {
         row.start_trim = radius(row.start).unwrap_or(0.0);
         row.end_trim = radius(row.end).unwrap_or(0.0);
     }
-    let mut trims: Vec<[f32; 2]> = up
-        .seg
-        .ribbons
+    up.seg.ribbon_trims.resize(up.seg.ribbons.len(), [0.0; 2]);
+    for (segment, trim) in up.seg.ribbons[from_ribbons..]
         .iter()
-        .map(|segment| {
-            [
-                radius(segment.p0).unwrap_or(0.0),
-                radius(segment.p1).unwrap_or(0.0),
-            ]
-        })
-        .collect();
-    for chain in &up.seg.ribbon_chains {
+        .zip(&mut up.seg.ribbon_trims[from_ribbons..])
+    {
+        *trim = [
+            radius(segment.p0).unwrap_or(0.0),
+            radius(segment.p1).unwrap_or(0.0),
+        ];
+    }
+    for chain in up.seg.ribbon_chains.iter().skip(from_chains) {
         for index in chain.start + 1..chain.end.saturating_sub(1) {
-            trims[index as usize] = [0.0; 2];
+            up.seg.ribbon_trims[index as usize] = [0.0; 2];
         }
     }
-    up.seg.ribbon_trims = trims;
 }
 // --8<-- [end:endpoint-clearance]
 

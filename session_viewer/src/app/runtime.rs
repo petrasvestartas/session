@@ -219,14 +219,15 @@ impl ApplicationHandler<Msg> for App {
                 if page_hidden() {
                     return;
                 }
-                let Some(canvas_size) = desired_canvas_size() else {
-                    return;
-                };
 
                 if !state.gpu.pacing.ready() {
                     state.needs_frame = false;
                     return; // GPU completion wakes the latest camera state.
                 }
+
+                let Some(canvas_size) = desired_canvas_size() else {
+                    return;
+                };
 
                 // resize first; a resize not ready yet holds the frame
                 let held = if canvas_size != (state.gpu.config.width, state.gpu.config.height) {

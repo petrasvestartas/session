@@ -54,16 +54,20 @@ VIEWER_FRAMES_ORBIT=2 VIEWER_INTERACT=1 \
 
 > **Reading native wall times vs GPU spans:** `selftest` renders offscreen and performs a blocking `render_offscreen` texture readback each frame so pixel tests can inspect the output. Always treat the `gpu ms, median per pass:` hardware timestamps as the primary GPU metric and `Wall p50` as secondary.
 
-### Recorded Milestone M1 baseline (NVIDIA RTX 4080 Laptop, Vulkan, 900×700, 5.20 GHz)
+### Recorded Milestone M1 → M2 GPU progression (NVIDIA RTX 4080 Laptop, Vulkan, 900×700, 5.20 GHz)
 
-5 runs × 60 frames, median of medians (`ms`):
+5 runs × 60 frames, median of medians (`ms`). Milestone M1 established the unoptimized baseline; Milestone M2 optimized the ink tile-list walk, `endpoint_clearance` load complexity, pipeline prewarming, and state binding:
 
-| Scenario | Wall p50 | Drag p95 | `tiles` | `points` | `faces` | `ink.strokes` | `ink.outlines` | `ink.lanes` | `ink.markers` | `ink.text` | `ink_total` |
-|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| `timber-floor.pb`, rest | 8.40 | — | 0.002 | 0.002 | 0.049 | 7.339 | 0.003 | 0.003 | 0.024 | 0.008 | **7.377** |
-| `timber-floor.pb`, orbit drag | 8.60 | 10.00 | 0.422 | 0.002 | 0.050 | 7.134 | 0.003 | 0.003 | 0.023 | 0.008 | **7.171** |
-| `assets/view_local.yaml`, rest | 18.50 | — | 0.003 | 0.002 | 0.050 | 17.297 | 0.003 | 0.003 | 0.085 | 0.009 | **17.398** |
-| `assets/view_local.yaml`, orbit drag | 24.00 | 29.20 | 0.329 | 0.810 | 0.055 | 21.531 | 0.003 | 0.003 | 0.099 | 0.009 | **21.647** |
+| Scenario | Stage | Wall p50 | Drag p95 | `tiles` | `points` | `faces` | `ink.strokes` | `ink.outlines` | `ink.lanes` | `ink.markers` | `ink.text` | `ink_total` |
+|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| `timber-floor.pb`, rest | M1 | 8.40 | — | 0.002 | 0.002 | 0.049 | 7.339 | 0.003 | 0.003 | 0.024 | 0.008 | **7.377** |
+| `timber-floor.pb`, rest | **M2** | **3.40** | — | 0.002 | 0.002 | 0.049 | **2.456** | 0.003 | 0.003 | 0.024 | 0.008 | **2.493** |
+| `timber-floor.pb`, orbit drag | M1 | 8.60 | 10.00 | 0.422 | 0.002 | 0.050 | 7.134 | 0.003 | 0.003 | 0.023 | 0.008 | **7.171** |
+| `timber-floor.pb`, orbit drag | **M2** | **3.90** | **4.10** | 0.424 | 0.002 | 0.051 | **2.519** | 0.003 | 0.003 | 0.023 | 0.008 | **2.556** |
+| `assets/view_local.yaml`, rest | M1 | 18.50 | — | 0.003 | 0.002 | 0.050 | 17.297 | 0.003 | 0.003 | 0.085 | 0.009 | **17.398** |
+| `assets/view_local.yaml`, rest | **M2** | **8.00** | — | 0.003 | 0.002 | 0.050 | **6.957** | 0.003 | 0.003 | 0.085 | 0.008 | **7.056** |
+| `assets/view_local.yaml`, orbit drag | M1 | 24.00 | 29.20 | 0.329 | 0.810 | 0.055 | 21.531 | 0.003 | 0.003 | 0.099 | 0.009 | **21.647** |
+| `assets/view_local.yaml`, orbit drag | **M2** | **9.70** | **10.50** | 0.295 | 0.810 | 0.055 | **7.487** | 0.003 | 0.003 | 0.096 | 0.008 | **7.598** |
 
 ## 3. Browser instrumentation and query parameters
 

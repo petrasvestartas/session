@@ -145,22 +145,22 @@ fn anchored(t: [f64; 3], origin: &Point) -> [f32; 4] {
 
 /// The object rows on the GPU and their exact positions on the CPU.
 pub struct InstanceTable {
-    geometry_revision: u64,             // bumps when anything moves or hides
-    rows: Vec<Instance>,                // the rows, as uploaded
-    translation: Vec<[f64; 3]>,         // exact world position per row
-    local_bounds: Vec<AABB>,            // box per row, in the object's own space
-    hulls: Vec<Option<Hull>>,           // extreme points per row; empty until a row has some
-    widget: Option<u32>,                // identity row the gumball draws with
-    bounded: Vec<BoundedRow>,           // rows with faces, for the inside test
-    bounded_at: Vec<u32>,               // index of each row in `bounded`, u32::MAX = none
-    world_bounds: Vec<AABB>,            // box per row in world space
-    clipping: Vec<u32>,                 // rows of clipping planes, sorted
-    closed: Vec<u32>,                   // rows of verified closed solids, sorted
-    last_origin: Option<Point>,         // origin the GPU positions are measured from
-    pub(super) buffer: GrowBuf,                    // Instance rows on the GPU
-    pub(super) translations: GrowBuf,              // positions minus the scene origin, on the GPU
-    last_rebase_ms: f64,                // when the origin last moved
-    pub group: wgpu::BindGroup,         // group 2: rows and translations
+    geometry_revision: u64,           // bumps when anything moves or hides
+    rows: Vec<Instance>,              // the rows, as uploaded
+    translation: Vec<[f64; 3]>,       // exact world position per row
+    local_bounds: Vec<AABB>,          // box per row, in the object's own space
+    hulls: Vec<Option<Hull>>,         // extreme points per row; empty until a row has some
+    widget: Option<u32>,              // identity row the gumball draws with
+    bounded: Vec<BoundedRow>,         // rows with faces, for the inside test
+    bounded_at: Vec<u32>,             // index of each row in `bounded`, u32::MAX = none
+    world_bounds: Vec<AABB>,          // box per row in world space
+    clipping: Vec<u32>,               // rows of clipping planes, sorted
+    closed: Vec<u32>,                 // rows of verified closed solids, sorted
+    last_origin: Option<Point>,       // origin the GPU positions are measured from
+    pub(super) buffer: GrowBuf,       // Instance rows on the GPU
+    pub(super) translations: GrowBuf, // positions minus the scene origin, on the GPU
+    last_rebase_ms: f64,              // when the origin last moved
+    pub group: wgpu::BindGroup,       // group 2: rows and translations
     pub(super) ink_group: Option<wgpu::BindGroup>, // group 2 for ink, with depth textures; register:ink
 }
 
@@ -228,7 +228,7 @@ impl InstanceTable {
     pub fn append(&mut self, ctx: &GpuCtx, l: &Layouts, up: &ObjectRows) {
         self.geometry_revision = self.geometry_revision.wrapping_add(1);
 
-        // drop the widget row first; it must stay last
+        // drop the widget row in O(1); it must stay last and is re-appended on demand
         if let Some(widget) = self.widget.take() {
             let keep = widget as usize;
             self.rows.truncate(keep);
@@ -237,26 +237,8 @@ impl InstanceTable {
             self.hulls.truncate(keep);
             self.world_bounds.truncate(keep);
             self.bounded_at.truncate(keep);
-            // rewind both buffers by re-appending the kept rows
-            self.buffer.reset();
-            self.translations.reset();
-
-            if keep > 0 {
-                let rows: Vec<Instance> = self.rows.clone();
-                let anchored_rows: Vec<[f32; 4]> = match &self.last_origin {
-                    Some(origin) => self
-                        .translation
-                        .iter()
-                        .map(|t| anchored(*t, origin))
-                        .collect(),
-                    None => vec![[0.0f32; 4]; keep],
-                };
-                let grew = self.buffer.append(ctx, &rows);
-
-                if self.translations.append(ctx, &anchored_rows) || grew {
-                    self.group = instance_group(ctx, l, &self.buffer.buf, &self.translations.buf);
-                }
-            }
+            self.buffer.truncate(widget);
+            self.translations.truncate(widget);
         }
 
         // first upload replaces the placeholder

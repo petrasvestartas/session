@@ -123,8 +123,8 @@ fn finish_offsets(@builtin(global_invocation_id) id: vec3<u32>) {
 
     let start = pool+offset;
     records[tile].values[1] = start;
-    // overflow flag when the list runs past the buffer
-    records[tile].values[3] = select(0u, 1u, start+records[tile].values[0]*2u>arrayLength(&records)*4u);
+    // high bit marks overflow when the list runs past the buffer; lower bits hold max depth bound
+    records[tile].values[3] = select(0u, 0x80000000u, start+records[tile].values[0]*2u>arrayLength(&records)*4u);
 
     // record 0 word 1: words needed; the CPU reads it back
     if (id.x==count-1u) {

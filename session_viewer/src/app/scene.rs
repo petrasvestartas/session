@@ -481,6 +481,14 @@ impl Scene {
         let tree_colors = node_colors(&session); // a colour panel or saved override stays on top
         let order = session.order();
         let mut placed: HashMap<&str, u32> = HashMap::with_capacity(count); // guid to row, for the node cache
+        let (from_ribbons, from_chains, from_vectors) = (
+            self.tables.seg.ribbons.len(),
+            self.tables.seg.ribbon_chains.len(),
+            self.tables
+                .lanes
+                .get::<crate::engine::gpu::vectors::VectorRows>()
+                .map_or(0, |v| v.rows.len()),
+        );
         let shapes = SharedWalks::begin(); // congruent BReps are walked once
 
         for guid in &order {
@@ -519,7 +527,6 @@ impl Scene {
             };
             let start = self.uploaded.plus(Counts::of(&self.tables));
             let r = walk_geometry(&mut Walk::of(&mut self.tables), &cx, geom);
-            crate::app::walk::curves::endpoint_clearance(&mut self.tables, &session);
             let end = self.uploaded.plus(Counts::of(&self.tables));
             self.feet[row as usize] = if matches!(geom, Geometry::PointCloud(_)) {
                 Footprint::Cloud
@@ -541,6 +548,13 @@ impl Scene {
         }
 
         self.add_instances(index, &session, &place, &world, &mut placed); // register:instancing
+        crate::app::walk::curves::endpoint_clearance_from(
+            &mut self.tables,
+            &session,
+            from_ribbons,
+            from_chains,
+            from_vectors,
+        );
         drop(shapes);
         lap.mark("objects");
 

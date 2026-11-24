@@ -1222,7 +1222,7 @@
   {
     "path": "src/app/inspection.rs",
     "owner": "application",
-    "sourceSha256": "fbbb0ce953df824e261a3062da450c13a3f05cfd42521e6abaef028168a3f5a3",
+    "sourceSha256": "1cac37835427c53ee7d918536fae582aa8e110dd0700e9de5400de6dcace65c4",
     "explanation": {
       "page": "journey/completion-debugging.md",
       "heading": "### Step 1: Browser diagnostics, feedback and `?inspect=1` snapshots",
@@ -1312,7 +1312,7 @@
   {
     "path": "src/app/loader.rs",
     "owner": "application",
-    "sourceSha256": "5da82e4156fc007c6b166c62b33ce72afd9ddd7553f06261fd7e90859b87bec7",
+    "sourceSha256": "de21f988a301f176d39bfad74abe9461deb226ad8b6cf7b1827e8a777517458e",
     "explanation": {
       "page": "journey/completion-loading.md",
       "heading": "### Step 2: Guard routes, load generations and `RangeGate` permits",
@@ -1392,7 +1392,7 @@
   {
     "path": "src/app/runtime.rs",
     "owner": "application",
-    "sourceSha256": "903db33d8275d900aa62f39caa70107cd0b13ce97e80c99bfc40b2dddfe341db",
+    "sourceSha256": "7c7d5cc7a36148fee39364de1ed8348780111cdded73b29b339136f630f86953",
     "explanation": {
       "page": "journey/completion-application.md",
       "heading": "### Step 1: Serialize async updates into one `State` owner",
@@ -1402,7 +1402,7 @@
   {
     "path": "src/app/scene.rs",
     "owner": "application",
-    "sourceSha256": "2606f846a03b1edbc8fde39f74720fd1d826e5c6aafd7350e3b7f96537046105",
+    "sourceSha256": "b056ffae791e077031cf2fcd233783bf86aa79995d176266034543e7f0152ad9",
     "explanation": {
       "page": "journey/completion-documents.md",
       "heading": "### Step 1: Map `(doc_idx, GUID)` placements onto GPU rows and `Footprint` spans",
@@ -1962,7 +1962,7 @@
   {
     "path": "src/app/ui/layers.rs",
     "owner": "application",
-    "sourceSha256": "3ed1b04e06c3b56d6ff39c0880be39c0944dcb4fc5847bce2adb127050da96ba",
+    "sourceSha256": "01aa0964b9bdf034ba2ec419f85a0e8e9f6cdeea910f57611980720539e53924",
     "explanation": {
       "page": "journey/completion-documents.md",
       "heading": "### Step 4: Flatten hierarchies, move layers and isolate panel actions",
@@ -2012,7 +2012,7 @@
   {
     "path": "src/app/ui/pointer.rs",
     "owner": "application",
-    "sourceSha256": "7172927a19316efaa813fff3b3963d68fb5228e968f2c6e9ee55bb26cd60323e",
+    "sourceSha256": "5de93ea99e821fc2c01ca3417492ff1398685f04317b1e37404c97cf3ce8a430",
     "explanation": {
       "page": "journey/completion-input.md",
       "heading": "### Step 1: Isolate UI panels from canvas gestures",
@@ -2142,7 +2142,7 @@
   {
     "path": "src/app/walk/curves.rs",
     "owner": "geometry",
-    "sourceSha256": "61bd0666fe83ea3a83cd8944976079e96d681e908736802b9af5732e830e2b73",
+    "sourceSha256": "848f0939e24577dd6146f55776a50971f7d4ca9957b241c7c849f784eb34d41c",
     "explanation": {
       "page": "journey/completion-geometry.md",
       "heading": "### Step 2. Extrude mitered ribbons, `0.30` arrows, planes, grids and backdrop (`ribbon.wgsl`, `arrow.wgsl`, `vector.wgsl`, `plane.wgsl`, `grid.wgsl`, `background.wgsl`)",
@@ -2372,7 +2372,7 @@
   {
     "path": "src/engine/gpu/buffers.rs",
     "owner": "rows",
-    "sourceSha256": "8c14a571bdf888857fa499e6531f9091743ec6c09fe37ab12e373c3635eb94a7",
+    "sourceSha256": "ba61d2ebd5c827c5df1a53712af09a193fa58f8b5be71038ce9534ef4185808b",
     "explanation": {
       "page": "journey/completion-rows.md",
       "heading": "### Step 2. Pin the `112`-byte `Instance` layout and `GrowBuf` table",
@@ -2562,7 +2562,7 @@
   {
     "path": "src/engine/gpu/lod.rs",
     "owner": "geometry",
-    "sourceSha256": "75dc349e43f44ca3bbbcc26a88f7bc3d56189a4268b0a2e3523e7903e9148a08",
+    "sourceSha256": "9b9f73ef95f53c3ed02d50b818a8b87649de42c7d206c015e2a850d055af5961",
     "explanation": {
       "page": "journey/completion-geometry.md",
       "heading": "### Step 3. Shade SDF dots, vertex markers, point-cloud splats, scene text and the private gumball (`glyph`, `sphere`, `splat`, `splat_resolve`, `text_*`, `widget`)",
@@ -2622,7 +2622,7 @@
   {
     "path": "src/engine/gpu/objects/table.rs",
     "owner": "rows",
-    "sourceSha256": "b63255c98016c145a613f5af464510afbb3a0e9d9f34792d8dbf8636433c1c2f",
+    "sourceSha256": "489455dfc3733d1effcb27f8eed49e0d2ec1e345199f05c62d0ed949da9bc0e6",
     "explanation": {
       "page": "journey/completion-rows.md",
       "heading": "### Step 2. Pin the `112`-byte `Instance` layout and `GrowBuf` table",
@@ -2632,7 +2632,7 @@
   {
     "path": "src/engine/gpu/pacing.rs",
     "owner": "geometry",
-    "sourceSha256": "d434d3912af99a74bd4b80441eb34eb0d627e88cab9948e45f9ce7567d0e9450",
+    "sourceSha256": "5eb420b5d34fe5aa0ea569e5652f6dc1fe74b228ec9d6a3787e71f28b8661e68",
     "explanation": {
       "page": "journey/completion-geometry.md",
       "heading": "### Step 4. Pace submissions and assemble the `3`-object scene (`present.rs`, `pacing.rs`, `geometry.rs`)",
@@ -2702,7 +2702,7 @@
   {
     "path": "src/engine/gpu/segments.rs",
     "owner": "geometry",
-    "sourceSha256": "b798fe15ba6c40e5823d3545ebe5d298e708b024c5189d782815030e3c0b2ae0",
+    "sourceSha256": "6dc7c5370ccaf439ea6fd6918373297cfbb5ac177c6421e1738ed88b299217ca",
     "explanation": {
       "page": "journey/completion-geometry.md",
       "heading": "### Step 2. Extrude mitered ribbons, `0.30` arrows, planes, grids and backdrop (`ribbon.wgsl`, `arrow.wgsl`, `vector.wgsl`, `plane.wgsl`, `grid.wgsl`, `background.wgsl`)",
@@ -2722,7 +2722,7 @@
   {
     "path": "src/engine/gpu/splat.rs",
     "owner": "geometry",
-    "sourceSha256": "378f8b97c64859e1a0d4c45f58dd01f4f0af844645dd8af31eac69954e35276f",
+    "sourceSha256": "e720717d7bbbf39fdc4eb4fbeafca510a3270a93f06a54896fdedc2a6c6fbe9c",
     "explanation": {
       "page": "journey/completion-geometry.md",
       "heading": "### Step 3. Shade SDF dots, vertex markers, point-cloud splats, scene text and the private gumball (`glyph`, `sphere`, `splat`, `splat_resolve`, `text_*`, `widget`)",
@@ -2862,7 +2862,7 @@
   {
     "path": "src/engine/gpu/triangle_tiles.rs",
     "owner": "geometry",
-    "sourceSha256": "45b5bb3a8427700f764febc1df363841a167e50949781d3ddbac76b1bd6ce3c3",
+    "sourceSha256": "ef04aee5d7f0623e83a6196eba7fc5344ed03334a4884d65ff8e215c522103d7",
     "explanation": {
       "page": "journey/completion-visibility.md",
       "heading": "### Step 2. Project triangles, bin screen tiles and run the `256`-lane prefix sum (`project_triangles.wgsl`, `triangle_tiles.wgsl`, `scan_triangle_tiles.wgsl`)",
@@ -2912,7 +2912,7 @@
   {
     "path": "src/engine/gpu/view.rs",
     "owner": "geometry",
-    "sourceSha256": "80a4835600415bc3431776ed164cfc02f2f99ac6d1e70d201a3b9b187720ac32",
+    "sourceSha256": "689459bb35c0a73ca6b25bc80cd93738c341eb033cc3932a6d1f032f46767431",
     "explanation": {
       "page": "journey/completion-geometry.md",
       "heading": "### Step 1. Walk meshes, BRep trims and shared `20`-byte arena vertices (`slot_table.wgsl`)",
@@ -3042,7 +3042,7 @@
   {
     "path": "src/selftest.rs",
     "owner": "application",
-    "sourceSha256": "3693bc790fa906f4bfb7aef77fb88bb12594b6d9247adbc274ef4c491c6af45a",
+    "sourceSha256": "9565df79a9d0bcdb3239a8cd39685a5681aececf1e1224af2f981aa87b2ea471",
     "explanation": {
       "page": "journey/completion-debugging.md",
       "heading": "### Step 2: Headless `selftest` CPU ray oracle and software witnesses",
@@ -3192,7 +3192,7 @@
   {
     "path": "src/shaders/ink_visibility.wgsl",
     "owner": "rows",
-    "sourceSha256": "17111b9fc09de6d3f344f39f83f31d4dfbb8c57f92fe1763f635f73cb0a3a475",
+    "sourceSha256": "f7fa36b621ba82294d6d10c8e938fb1e76307ce465775dfbb1ae34445c014321",
     "explanation": {
       "page": "journey/completion-visibility.md",
       "heading": "### Step 3. Shade solid faces, extract MSAA coverage and test ink visibility (`triangle.wgsl`, `face_coverage.wgsl`, `ink_visibility.wgsl`)",
@@ -3262,7 +3262,7 @@
   {
     "path": "src/shaders/scan_triangle_tiles.wgsl",
     "owner": "geometry",
-    "sourceSha256": "5fb767bd32a68fb56546c4d59341c394bce1b4c84b4bc2110f2623b178a6e80a",
+    "sourceSha256": "638021b4b5b20039649294fc8e203e87933922fcc9decb90e24ea2e883fcd8b2",
     "explanation": {
       "page": "journey/completion-visibility.md",
       "heading": "### Step 2. Project triangles, bin screen tiles and run the `256`-lane prefix sum (`project_triangles.wgsl`, `triangle_tiles.wgsl`, `scan_triangle_tiles.wgsl`)",
@@ -3382,7 +3382,7 @@
   {
     "path": "src/shaders/triangle_tiles.wgsl",
     "owner": "geometry",
-    "sourceSha256": "21bf7777d18bf7e506f97c0a31d4ab5a64bf6e062ffe0698dd67402806876c0f",
+    "sourceSha256": "00f1cf75bd299989d568060d7389c0c815c9c01b6624cab66753835ded074ba9",
     "explanation": {
       "page": "journey/completion-visibility.md",
       "heading": "### Step 2. Project triangles, bin screen tiles and run the `256`-lane prefix sum (`project_triangles.wgsl`, `triangle_tiles.wgsl`, `scan_triangle_tiles.wgsl`)",
@@ -3472,7 +3472,7 @@
   {
     "path": "src/state/edit.rs",
     "owner": "application",
-    "sourceSha256": "e9069c10379cad51566f3cf4e8a11e1a57ab4c6b58542e4a62c39dfa0cfa1ea0",
+    "sourceSha256": "3fc52f6638ab99086882e23378aad6092d6322441bba26785787833d3e431ff3",
     "explanation": {
       "page": "journey/completion-modeling.md",
       "heading": "### Step 2: Drafts, tools, delayed drags and in-place subobject deformation",

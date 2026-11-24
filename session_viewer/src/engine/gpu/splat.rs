@@ -70,9 +70,9 @@ struct Key {
 
 /// Textures the point pass draws into, made when the first cloud arrives.
 struct SplatTargets {
-    depth: Attachment,              // nearest point per pixel
-    color: Attachment,              // its color
-    size: (u32, u32),               // texture size, px
+    depth: Attachment, // nearest point per pixel
+    color: Attachment, // its color
+    size: (u32, u32),  // texture size, px
     samples: u32,
     resolve_group: wgpu::BindGroup, // both textures, for the resolve
 }
@@ -103,7 +103,11 @@ impl SplatTargets {
                 usage,
             },
         );
-        let (layout, first) = if samples == 4 { (&l.resolve_msaa, 2) } else { (&l.resolve, 0) };
+        let (layout, first) = if samples == 4 {
+            (&l.resolve_msaa, 2)
+        } else {
+            (&l.resolve, 0)
+        };
         let resolve_group = resource_group(
             ctx,
             layout,
@@ -144,16 +148,19 @@ pub struct Splat {
     resolve_shader: Shader,        // resolve shader
     point_shader: Shader,
     samples: u32,
-    point_pipeline: Pipeline,      // points in color
-    resolve_pipeline: Pipeline,    // point texture into the scene
-    id_pipeline: Pipeline,         // points as ids
+    point_pipeline: Pipeline,   // points in color
+    resolve_pipeline: Pipeline, // point texture into the scene
+    id_pipeline: Pipeline,      // points as ids
+    warned_cap: bool,           // logged MAX_RECORDS overflow once
 }
 
 impl Splat {
     /// Bytes reserved on the GPU: (buffers, textures).
     pub fn allocated_bytes(&self) -> (u64, u64) {
         let pixels = match &self.targets {
-            Some(target) => u64::from(target.size.0) * u64::from(target.size.1) * u64::from(target.samples),
+            Some(target) => {
+                u64::from(target.size.0) * u64::from(target.size.1) * u64::from(target.samples)
+            }
             None => 0,
         };
         (self.record_buf.size(), pixels * 8)
@@ -180,7 +187,11 @@ impl Splat {
                     samples: target.samples,
                 },
                 label: "splat.points",
-                fs: if target.samples == 4 { "fs_point_aa" } else { "fs_point" },
+                fs: if target.samples == 4 {
+                    "fs_point_aa"
+                } else {
+                    "fs_point"
+                },
             },
         );
         let id_pipeline = build_point(
@@ -211,6 +222,7 @@ impl Splat {
             point_pipeline,
             resolve_pipeline,
             id_pipeline,
+            warned_cap: false,
         }
     }
 
@@ -231,11 +243,23 @@ impl Splat {
     pub fn retarget(&mut self, ctx: &GpuCtx, l: &Layouts, target: Target) {
         if self.samples != target.samples {
             self.samples = target.samples;
-            self.point_pipeline = build_point(ctx, l, &self.point_shader, &PointVariant {
-                target: Target { format: COLOR_FORMAT, samples: self.samples },
-                label: "splat.points",
-                fs: if self.samples == 4 { "fs_point_aa" } else { "fs_point" },
-            });
+            self.point_pipeline = build_point(
+                ctx,
+                l,
+                &self.point_shader,
+                &PointVariant {
+                    target: Target {
+                        format: COLOR_FORMAT,
+                        samples: self.samples,
+                    },
+                    label: "splat.points",
+                    fs: if self.samples == 4 {
+                        "fs_point_aa"
+                    } else {
+                        "fs_point"
+                    },
+                },
+            );
             self.targets = None;
             self.key = None;
         }
@@ -307,7 +331,8 @@ impl Splat {
         }
 
         // remake the textures when the size changed
-        if !matches!(&self.targets, Some(targets) if targets.size == cx.size && targets.samples == self.samples) {
+        if !matches!(&self.targets, Some(targets) if targets.size == cx.size && targets.samples == self.samples)
+        {
             self.targets = Some(SplatTargets::new(ctx, l, cx.size, self.samples));
         }
 
@@ -396,11 +421,11 @@ impl Splat {
             } else {
                 cx.lod_px
             };
-            self.walk.select(&p, c, &model);
             // camera times object, one matrix per point
             let m = (&Xform::from_matrix(cx.mvp.map(f64::from))
                 * &Xform::from_matrix(model.map(f64::from)))
                 .to_f32();
+            self.walk.select_frustum(&p, c, &model, Some(&m));
             // rotation for the normals; the fourth words place points for the clipping planes
             let rot = [
                 model[0], model[1], model[2], model[12], model[4], model[5], model[6], model[13],
@@ -428,7 +453,16 @@ impl Splat {
                     let a = r.first.max(chunk.from);
                     let b = (r.first + r.count).min(chunk.to);
 
-                    if a >= b || self.records.len() >= MAX_RECORDS {
+                    if a >= b {
+                        continue;
+                    }
+                    if self.records.len() >= MAX_RECORDS {
+                        if !self.warned_cap {
+                            self.warned_cap = true;
+                            log::warn!(
+                                "point-cloud splat runs hit MAX_RECORDS ({MAX_RECORDS}); extra runs omitted"
+                            );
+                        }
                         continue;
                     }
 
@@ -512,7 +546,11 @@ fn build_point(ctx: &GpuCtx, l: &Layouts, shader: &Shader, v: &PointVariant) -> 
     let groups = [&l.line, &l.points];
     let desc = PipelineDesc::new(shader, &groups, &[], TriangleList)
         .with(v.label, v.fs)
-        .vertex(if v.target.samples == 4 { "vs_point_aa" } else { "vs_point" });
+        .vertex(if v.target.samples == 4 {
+            "vs_point_aa"
+        } else {
+            "vs_point"
+        });
     let desc = if v.target == Target::ID {
         desc.physical()
     } else {
@@ -523,9 +561,23 @@ fn build_point(ctx: &GpuCtx, l: &Layouts, shader: &Shader, v: &PointVariant) -> 
 
 /// Resolve pipeline: a fullscreen triangle writing color and depth.
 fn build_resolve(ctx: &GpuCtx, l: &Layouts, shader: &Shader, target: Target) -> Pipeline {
-    let groups = [&l.line, if target.samples == 4 { &l.resolve_msaa } else { &l.resolve }];
+    let groups = [
+        &l.line,
+        if target.samples == 4 {
+            &l.resolve_msaa
+        } else {
+            &l.resolve
+        },
+    ];
     let desc = PipelineDesc::new(shader, &groups, &[], TriangleList)
-        .with("splat.resolve", if target.samples == 4 { "fs_main_aa" } else { "fs_main" })
+        .with(
+            "splat.resolve",
+            if target.samples == 4 {
+                "fs_main_aa"
+            } else {
+                "fs_main"
+            },
+        )
         .physical()
         .depth(DepthMode::Opaque);
     build(ctx, target, &desc)

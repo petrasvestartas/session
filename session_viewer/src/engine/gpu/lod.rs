@@ -39,7 +39,19 @@ pub struct LodWalk {
 
 impl LodWalk {
     /// Pick which runs of one cloud to draw at this camera.
+    #[cfg_attr(target_arch = "wasm32", allow(dead_code))]
     pub fn select(&mut self, p: &Projection, c: &Cloud, model: &[f32; 16]) {
+        self.select_frustum(p, c, model, None);
+    }
+
+    /// Pick which runs of one cloud to draw, optionally culling octree boxes outside `mvp_model`.
+    pub fn select_frustum(
+        &mut self,
+        p: &Projection,
+        c: &Cloud,
+        model: &[f32; 16],
+        mvp_model: Option<&[f32; 16]>,
+    ) {
         self.ranges.clear();
 
         // no octree or small cloud: draw everything
@@ -67,6 +79,12 @@ impl LodWalk {
             };
 
             if node.first >= c.resident {
+                continue;
+            }
+
+            if let Some(m) = mvp_model
+                && node_outside_frustum(node, m)
+            {
                 continue;
             }
 
@@ -154,4 +172,144 @@ pub fn radius_factor(r: &Range, px: f32, scale: f64, ortho_h: f32) -> f32 {
         world_r * 1.7320508 * 0.5
     };
     k as f32
+}
+
+/// True when all 8 corners of the octree box (inflated by 2 spacings for disc reach) lie outside one clip half-space.
+fn node_outside_frustum(node: &LodNode, m: &[f32; 16]) -> bool {
+    if node.size <= 0.0 {
+        return false;
+    }
+    let h = node.size * 0.5 + node.spacing.max(0.0) * 2.0;
+    let [cx, cy, cz] = node.center;
+    let mut out_mask = 0x3fu8;
+
+    for corner in 0..8u8 {
+        let x = cx + if corner & 1 != 0 { h } else { -h };
+        let y = cy + if corner & 2 != 0 { h } else { -h };
+        let z = cz + if corner & 4 != 0 { h } else { -h };
+        let px = m[0] * x + m[4] * y + m[8] * z + m[12];
+        let py = m[1] * x + m[5] * y + m[9] * z + m[13];
+        let pz = m[2] * x + m[6] * y + m[10] * z + m[14];
+        let pw = m[3] * x + m[7] * y + m[11] * z + m[15];
+        let mut c_out = 0u8;
+        if px < -pw {
+            c_out |= 1 << 0;
+        }
+        if px > pw {
+            c_out |= 1 << 1;
+        }
+        if py < -pw {
+            c_out |= 1 << 2;
+        }
+        if py > pw {
+            c_out |= 1 << 3;
+        }
+        if pz < 0.0 {
+            c_out |= 1 << 4;
+        }
+        if pz > pw {
+            c_out |= 1 << 5;
+        }
+        out_mask &= c_out;
+        if out_mask == 0 {
+            return false;
+        }
+    }
+
+    true
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn identity() -> [f32; 16] {
+        [
+            1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0,
+        ]
+    }
+
+    fn test_nodes() -> Vec<LodNode> {
+        vec![
+            LodNode {
+                center: [0.0, 0.0, 0.0],
+                size: 1000.0,
+                spacing: 100.0,
+                first: 0,
+                count: 1_000_000,
+                children: [1, 2, -1, -1, -1, -1, -1, -1],
+            },
+            LodNode {
+                center: [0.2, 0.0, 0.5],
+                size: 200.0,
+                spacing: 10.0,
+                first: 1_000_000,
+                count: 800_000,
+                children: [-1; 8],
+            },
+            LodNode {
+                center: [5000.0, 0.0, 0.5],
+                size: 200.0,
+                spacing: 10.0,
+                first: 1_800_000,
+                count: 800_000,
+                children: [-1; 8],
+            },
+        ]
+    }
+
+    #[test]
+    fn small_clouds_and_disabled_lod_draw_single_full_run() {
+        let nodes = test_nodes();
+        let cloud = Cloud {
+            instance: 0,
+            spacing: 50.0,
+            node_first: 0,
+            node_count: nodes.len() as u32,
+            resident: 500_000,
+            chunks: Vec::new(),
+        };
+        let p = Projection {
+            eye: [0.0, 0.0, 1000.0],
+            ortho_h: 0.0,
+            height_px: 1000,
+            lod_px: 2.0,
+            nodes: &nodes,
+        };
+        let mut walk = LodWalk::default();
+        walk.select(&p, &cloud, &identity());
+        assert_eq!(walk.ranges.len(), 1);
+        assert!(!walk.ranges[0].tile);
+        assert_eq!(walk.ranges[0].count, 500_000);
+    }
+
+    #[test]
+    fn octree_lod_splits_coarse_nodes_propagates_spacing_and_culls_outside_frustum() {
+        let nodes = test_nodes();
+        let cloud = Cloud {
+            instance: 0,
+            spacing: 100.0,
+            node_first: 0,
+            node_count: nodes.len() as u32,
+            resident: 2_600_000,
+            chunks: Vec::new(),
+        };
+        let p = Projection {
+            eye: [0.0, 0.0, 500.0],
+            ortho_h: 500.0,
+            height_px: 1000,
+            lod_px: 2.0,
+            nodes: &nodes,
+        };
+        let mut walk = LodWalk::default();
+        // Without frustum matrix: root + both children visited; root spacing refined to 10.0.
+        walk.select(&p, &cloud, &identity());
+        assert_eq!(walk.ranges.len(), 3);
+        assert_eq!(walk.ranges[0].spacing, 10.0);
+
+        // With identity clip frustum [-1..1, -1..1, 0..1]: child 2 at x=5000 (size 200) is culled.
+        walk.select_frustum(&p, &cloud, &identity(), Some(&identity()));
+        assert_eq!(walk.ranges.len(), 2);
+        assert_eq!(walk.ranges[1].first, 1_000_000);
+    }
 }

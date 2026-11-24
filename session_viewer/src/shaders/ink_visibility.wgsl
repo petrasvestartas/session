@@ -379,6 +379,24 @@ fn ink_visible(pixel: vec2<f32>, axis: InkAxis, sample: u32, boundary: bool) -> 
     // a boundary stroke also checks every triangle in its tile
     if (plane_visible) { return true; }
 
+    if (SCENE_MSAA && axis.at.x >= 0.0 && axis.at.y >= 0.0 && axis.at.x < line.vp_w && axis.at.y < line.vp_h) {
+        let center_texel = vec2<i32>(axis.at);
+        for (var s = 0u; s < 4u; s++) {
+            if (s == sample) {
+                continue;
+            }
+            let halves = textureLoad(scene_primitive_msaa, center_texel, i32(s)).xy;
+            let primitive = halves.x | (halves.y << 16u);
+            if (primitive == 0u || primitive == fringe || (clip_active() && clip_is_cap(primitive))) {
+                continue;
+            }
+            let hit = projected_triangle_at(projected[primitive - 1u], at);
+            if (hit.y > 0.5 && hit.x > ink_exact_floor(axis, projected[primitive - 1u]) && !ink_hit_cut(at, hit.x)) {
+                return false;
+            }
+        }
+    }
+
     if (any(at<vec2<f32>(0.0)) || any(at>=line.frame)) {
         return false;
     }
@@ -388,21 +406,30 @@ fn ink_visible(pixel: vec2<f32>, axis: InkAxis, sample: u32, boundary: bool) -> 
     let cell = vec2<u32>(at/span);
     let head = triangle_tiles[1u+cell.y*size.x+cell.x];
 
-    // tile record: x count, y list start, z written, w overflow
-    if (head.w!=0u || head.z!=head.x) {
+    // tile record: x count, y list start, z written, w max nearest bound (high bit = overflow)
+    if ((head.w & 0x80000000u)!=0u || head.z!=head.x) {
         return false;
     }
 
-    for (var i = 0u;i<head.x;i++) {
+    let depth_floor = axis.depth+abs(axis.depth)*DEPTH_REL_TOL;
+    if (head.x==0u || bitcast<f32>(head.w)<=depth_floor) {
+        return true;
+    }
+
+    let tile_cap = 128u;
+    let count = min(head.x, tile_cap);
+    for (var i = 0u;i<count;i++) {
         let offset = head.y+i*2u;
-        let nearest = bitcast<f32>(triangle_tiles[(offset+1u)/4u][(offset+1u)%4u]);
+        let quad = triangle_tiles[offset>>2u];
+        let pair = select(quad.xy, quad.zw, (offset & 2u)!=0u);
+        let nearest = bitcast<f32>(pair.y);
 
         // triangle no nearer than the ink: skip
-        if (nearest<=axis.depth+abs(axis.depth)*DEPTH_REL_TOL) {
+        if (nearest<=depth_floor) {
             continue;
         }
 
-        let primitive = triangle_tiles[offset/4u][offset%4u];
+        let primitive = pair.x;
         let bounds = projected[primitive-1u].bounds;
 
         if (any(at<bounds.xy-SLOPE_PX) || any(at>bounds.zw+SLOPE_PX)) {
@@ -414,6 +441,10 @@ fn ink_visible(pixel: vec2<f32>, axis: InkAxis, sample: u32, boundary: bool) -> 
         if (hit.y>0.5 && hit.x>ink_exact_floor(axis, projected[primitive-1u]) && !ink_hit_cut(at, hit.x)) {
             return false;
         }
+    }
+
+    if (head.x>tile_cap) {
+        return ink_visible_plane(source_pixel, axis, sample);
     }
 
     return true;

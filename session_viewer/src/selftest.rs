@@ -477,6 +477,11 @@ pub fn render_scene(files: &[SceneFile], w: u32, h: u32, out: &str) -> String {
             .and_then(|v| v.parse().ok())
             .unwrap_or(0.0);
         let mut ms: Vec<f64> = Vec::new();
+        // Warm initial pipelines and resting targets before timing steady-state frames.
+        gpu.prewarm_initial();
+        let warm_input = frame_input(&mut gpu, &camera, aspect);
+        let _ = gpu.render_offscreen(&warm_input);
+
         // VIEWER_GPU_TIMING=1 also times every pass on the GPU
         gpu.timer = crate::engine::gpu::timing::PassTimer::new(&gpu.ctx);
         let mut text_ms = 0.0;

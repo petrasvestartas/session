@@ -322,7 +322,11 @@ impl State {
         }
 
         if let Some(active) = self.features.control_drag.take() {
-            self.restore_source_render(active.parent);
+            if let Some(preview) = active.mesh_preview.as_ref() {
+                preview.apply(&mut self.gpu, &Xform::identity(), true);
+            } else {
+                self.restore_source_render(active.parent);
+            }
             self.scene.drop_preview();
             if let Some(geometry) = self.scene.geometry(active.parent) {
                 self.controls = crate::app::selection::Controls::from_geometry(geometry);
@@ -542,11 +546,14 @@ impl State {}
 
 /// A control point drag in progress.
 pub struct ControlDrag {
-    parent: u32,   // the object's row
-    index: usize,  // which dot in `controls.points`
-    id: ControlId, // which control in the geometry
-    plane: CPlane, // the plane the point moves in
-    origin: Point, // where the point was at the grab
+    parent: u32,                                             // the object's row
+    index: usize,                                            // which dot in `controls.points`
+    id: ControlId,                                           // which control in the geometry
+    plane: CPlane,                                           // the plane the point moves in
+    origin: Point,                                           // where the point was at the grab
+    from_local: [f64; 3],                                    // initial local control coordinates
+    source: Option<session_rust::Geometry>, // Rc handle captured once at drag start
+    mesh_preview: Option<crate::app::mesh_preview::Gesture>, // GPU-side mesh vertex preview
 }
 
 impl State {
@@ -579,12 +586,20 @@ impl State {
 
         let forward = self.camera.orientation.rotate_vector(Vector::y_axis());
         self.scene.capture_preview(parent);
+        let source = self.scene.geometry(parent).cloned();
+        let target = crate::app::deform::Target::Control(id);
+        let mesh_preview = source
+            .as_ref()
+            .and_then(|geom| self.scene.mesh_preview(parent)?.begin(geom, target));
         self.features.control_drag = Some(ControlDrag {
             parent,
             index,
             id,
             plane: CPlane::facing(&forward),
             origin,
+            from_local: at,
+            source,
+            mesh_preview,
         });
         true
     }
@@ -608,17 +623,14 @@ impl State {
         let index = active.index;
         let parent = active.parent;
         let id = active.id;
-        // preview the geometry with the point moved
-        if let Some(source) = self.scene.geometry(parent) {
+        let from = active.from_local;
+        let local_delta =
+            Xform::translation(point[0] - from[0], point[1] - from[1], point[2] - from[2]);
+        if let Some(preview) = active.mesh_preview.as_ref() {
+            preview.apply(&mut self.gpu, &local_delta, false);
+        } else if let Some(source) = active.source.clone() {
             let target = crate::app::deform::Target::Control(id);
-            if let Ok(points) = crate::app::deform::points(source, target)
-                && let Some(from) = points.first()
-                && let Ok(edited) = crate::app::deform::transform(
-                    source,
-                    target,
-                    &Xform::translation(point[0] - from[0], point[1] - from[1], point[2] - from[2]),
-                )
-            {
+            if let Ok(edited) = crate::app::deform::transform(&source, target, &local_delta) {
                 let _ = self.scene.preview_geometry(parent, edited, &mut self.gpu);
             }
         }
@@ -633,6 +645,9 @@ impl State {
         let Some(active) = self.features.control_drag.take() else {
             return false;
         };
+        if let Some(preview) = active.mesh_preview.as_ref() {
+            preview.apply(&mut self.gpu, &Xform::identity(), true);
+        }
         let result = match self.control_target(&active, x, y) {
             Some(point) => self
                 .scene
@@ -643,7 +658,11 @@ impl State {
         // the document draws the committed geometry; a refused edit puts the source back
         match &result {
             Ok(()) => self.commit_rows(),
-            Err(_) => self.restore_source_render(active.parent),
+            Err(_) => {
+                if active.mesh_preview.is_none() {
+                    self.restore_source_render(active.parent);
+                }
+            }
         }
 
         self.scene.drop_preview();

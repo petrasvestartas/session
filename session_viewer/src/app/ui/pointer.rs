@@ -23,11 +23,21 @@ impl Ui {
                     .is_some_and(|layer| layer.order != egui::Order::Background)
         };
 
+        let mut repaint = response.repaint;
         match event {
             WindowEvent::CursorMoved { position, .. } => {
+                let was_over_panel = self.over_panel;
                 self.pointer = egui::pos2(position.x as f32 / ratio, position.y as f32 / ratio);
                 self.over_panel = in_popup(self.pointer) || !scene_rect.contains(self.pointer);
                 consumed = self.ui_drag || self.over_panel;
+                if !self.over_panel
+                    && !was_over_panel
+                    && !self.ui_drag
+                    && !self.context.egui_is_using_pointer()
+                    && !self.context.has_requested_repaint()
+                {
+                    repaint = false;
+                }
             }
             WindowEvent::MouseInput { state, button, .. } => {
                 if *state == ElementState::Pressed {
@@ -83,7 +93,7 @@ impl Ui {
         if matches!(event, WindowEvent::KeyboardInput { .. }) && keys_taken() {
             consumed = true;
         }
-        (consumed || escape, response.repaint || escape)
+        (consumed || escape, repaint || escape)
     }
 
     /// A press: the panel whose field it lands on opens it.

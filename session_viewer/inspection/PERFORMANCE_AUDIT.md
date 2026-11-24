@@ -153,6 +153,24 @@ Measured via `python3 tests/native-benchmark.py --runs 5 --frames 60` (`examples
 
 **M1 finding (confirms H14):** **`ink.strokes` (`ribbon.wgsl` + `ink_visibility.wgsl`) accounts for 99.4–99.5% of total ink GPU time** (`7.339 / 7.377 ms` on `timber-floor.pb`, `17.297 / 17.398 ms` at rest and `21.531 / 21.647 ms` in tier-0 orbit on `view_local.yaml`). Outlines (`0.003 ms`), vectors/lanes (`0.003 ms`), markers (`0.024–0.099 ms`), and text (`0.008–0.009 ms`) are negligible. During `view_local.yaml` orbit, un-LOD'd point clouds add `0.810 ms` (`points`) and tile binning adds `0.329 ms` (`tiles`). Browser WebGPU timing remains unmeasured on this Linux workstation because local Chrome WebGPU selects a software path that renders black (`AGENT_BRIEF.md §4`); `tests/orbit-benchmark.cjs` (`?inspect=perf`) and `tests/soak.cjs` are implemented and syntax-verified for hardware WebGPU runs.
 
+### 3.6 Milestone M2 measured optimizations — before vs after (2026-11-24)
+
+Measured with the identical 5-run × 60-frame harness (`python3 tests/native-benchmark.py --runs 5 --frames 60`, NVIDIA RTX 4080 Laptop, Vulkan, `900x700`, CPU at `5,200,000 / 5,200,000` kHz):
+
+| Scenario / Metric | M1 Baseline | M2 After | Delta |
+|---|---:|---:|---:|
+| `timber-floor.pb`, rest — `ink.strokes` / `ink_total` / wall p50 | `7.339` / `7.377` / `8.40 ms` | **`2.456` / `2.493` / `3.40 ms`** | **`-66.5%` ink (`2.99×` faster)** |
+| `timber-floor.pb`, orbit drag — `ink.strokes` / wall p50 / drag p95 | `7.134` / `8.60` / `10.00 ms` | **`2.519` / `3.90` / `4.10 ms`** | **`-64.7%` ink, `-59.0%` p95** |
+| `assets/view_local.yaml`, rest — `ink.strokes` / `ink_total` / wall p50 | `17.297` / `17.398` / `18.50 ms` | **`6.957` / `7.056` / `8.00 ms`** | **`-59.8%` ink (`2.49×` faster, `< 16.7 ms`)** |
+| `assets/view_local.yaml`, orbit drag — `ink.strokes` / wall p50 / drag p95 | `21.531` / `24.00` / `29.20 ms` | **`7.487` / `9.70` / `10.50 ms`** (stays at full quality Tier 0!) | **`-65.2%` ink, `-64.0%` p95 (`< 20 ms`)** |
+| `view_local_sheet_treppenhaus.pb` (48.6 MB, 90,015 objects) CPU walk | **`3,367.3 ms`** | **`133.1 ms`** | **`-96.0%` (`25.3×` faster)** |
+| `view_local_sheet_querschnitt.pb` (32.0 MB, 58,539 objects) CPU walk | **`495.6 ms`** | **`140.5 ms`** | **`-71.7%` (`3.53×` faster)** |
+
+Summary of M2 root causes resolved:
+1. **M2.1 (`ink_visibility.wgsl`, `triangle_tiles.wgsl`, `scan_triangle_tiles.wgsl`, `triangle_tiles.rs`):** Tracked per-tile max nearest-depth bound via unsigned `atomicMax` in `TileRecord.values[3]` (bit 31 reserved for overflow) for an O(1) front-only early-out when no triangle in the tile is nearer than `axis.depth`; checked remaining `4x` MSAA primitive samples at `vec2<i32>(axis.at)` before walking global tile memory; vectorized `(primitive, nearest)` loads into a single `vec4<u32>`; capped sub-pixel micro-polygon tile walks at `128` triangles (falling back to `ink_visible_plane` at `source_pixel`); avoided recreating the `R8Unorm` tile target texture when only the reference pool grew.
+2. **M2.3 (`scene.rs`, `walk/curves.rs`, `loader.rs`):** Discovered that `endpoint_clearance` was called inside `Scene::add_file`'s per-object loop (`O(N^2)` over `90,015` objects in `treppenhaus.pb`, reallocating `ribbon_trims` `90,015` times!). Hoisted `endpoint_clearance_from` outside the object loop with a 0-visible-points fast path and 3D spatial grid hashing (`3.37 s → 133 ms`), lowered `STREAM_CHUNK_POINTS` from `2M` to `250k`, and added `sleep_ms(0).await` yields between posted documents and streamed cloud chunks.
+3. **M2.4–M2.12:** Suppressed bare `CursorMoved` redraws over the 3D canvas (`pointer.rs`), virtualized the layer tree with `ScrollArea::show_rows` (`layers.rs`), added `?inflight=1..=4` frame-pacing depth (`pacing.rs`), truncated the gumball row in O(1) via `GrowBuf::truncate` (`buffers.rs`, `objects/table.rs`), enabled GPU `mesh_preview` and cached local coordinates in `ControlDrag` (`state/edit.rs`), cached `?dpr=` and `?inspect=` in `OnceLock` and moved `pacing.ready()` before DOM size reads (`view.rs`, `inspection.rs`, `runtime.rs`), defaulted `lod_px = 2.0` (`>= 2M` points) with 8-corner clip-space frustum culling + `MAX_RECORDS` warning + unit tests (`lod.rs`, `splat.rs`), warmed pipelines before `VIEWER_FRAMES` (`selftest.rs`), and deduplicated pipeline/bind-group state across consecutive `SegTable` draws (`segments.rs`).
+
 ### 3.3 Perf-related history (`git log --oneline --grep=perf -i`, viewer-relevant)
 
 | Commit | Date | Subject |

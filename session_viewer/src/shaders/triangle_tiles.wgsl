@@ -95,7 +95,7 @@ fn fs_fill(v: TileVertex) -> @location(0) f32 {
     let tile = covered_tile(v);
 
     // list overflowed: stop
-    if (atomicLoad(&tile_records[tile].values[3])!=0u) {
+    if ((atomicLoad(&tile_records[tile].values[3]) & 0x80000000u)!=0u) {
         return 0.0;
     }
 
@@ -103,7 +103,7 @@ fn fs_fill(v: TileVertex) -> @location(0) f32 {
 
     // more writes than counted: mark overflow
     if (cursor>=atomicLoad(&tile_records[tile].values[0])) {
-        atomicStore(&tile_records[tile].values[3], 1u);
+        atomicOr(&tile_records[tile].values[3], 0x80000000u);
         return 0.0;
     }
 
@@ -111,11 +111,11 @@ fn fs_fill(v: TileVertex) -> @location(0) f32 {
     atomicStore(&tile_records[offset/4u].values[offset%4u], v.primitive);
     let centre = (floor(v.clip.xy)+0.5)*f32(visibility_tile_span());
     let slope = abs(v.gradient.x)+abs(v.gradient.y);
-    // nearest depth the triangle reaches in this tile
+    // nearest depth the triangle reaches in this tile, plus float and snap tolerance
     let nearest = min(v.gradient.z, v.reference.z+dot(v.gradient.xy, centre-v.reference.xy)+0.5*f32(visibility_tile_span())*slope);
-    // plus float and vertex-snap tolerance
-    let bound = nearest+abs(nearest)*1.9073486e-6+slope*0.00390625;
-    atomicStore(&tile_records[(offset+1u)/4u].values[(offset+1u)%4u], bitcast<u32>(bound));
+    let bound_bits = bitcast<u32>(max(nearest+abs(nearest)*1.9073486e-6+slope*0.00390625, 0.0));
+    atomicMax(&tile_records[tile].values[3], bound_bits);
+    atomicStore(&tile_records[(offset+1u)/4u].values[(offset+1u)%4u], bound_bits);
     return 0.0;
 }
 

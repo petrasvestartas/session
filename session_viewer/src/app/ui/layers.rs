@@ -14,8 +14,8 @@ pub(crate) struct Layers {
     pub(crate) graph_open: bool,         // graph table unfolded
     pub(crate) renaming: Option<Rename>, // a layer name edited in its row
     layers_collapsed: bool,              // layers panel folded to its title
-    pub(crate) panel_left: Option<f32>,  // the open panel's left edge in CSS px, for fitting beside it
-    keyboard_rects: Vec<egui::Rect>,     // a layer name field or an item opening one
+    pub(crate) panel_left: Option<f32>, // the open panel's left edge in CSS px, for fitting beside it
+    keyboard_rects: Vec<egui::Rect>,    // a layer name field or an item opening one
 }
 
 thread_local! { pub(crate) static STATE: RefCell<Layers> = RefCell::default(); } // kept between frames
@@ -149,52 +149,59 @@ fn draw(
         } else {
             rest
         };
-        // one line per row
-        egui::ScrollArea::vertical()
+        // one line per visible row; full sweep only when recording test controls
+        let scroll = egui::ScrollArea::vertical()
             .id_salt("layer-rows")
             .max_height(tree)
-            .auto_shrink([false, false])
-            .show(ui, |ui| {
-                ui.spacing_mut().item_spacing.y = 0.;
-                ui.spacing_mut().interact_size.y = height;
-                ui.spacing_mut().button_padding.y = 0.;
-                let Layers {
-                    rows,
-                    renaming,
-                    keyboard_rects,
-                    ..
-                } = &mut *model;
+            .auto_shrink([false, false]);
+        let row_count = model.rows.len();
+        let record_all = controls.is_some();
+        let mut draw_slice = |ui: &mut egui::Ui, range: std::ops::Range<usize>| {
+            ui.spacing_mut().item_spacing.y = 0.;
+            ui.spacing_mut().interact_size.y = height;
+            ui.spacing_mut().button_padding.y = 0.;
+            let Layers {
+                rows,
+                renaming,
+                keyboard_rects,
+                ..
+            } = &mut *model;
 
-                for row in rows.iter() {
-                    // painted under the row once its height is known
-                    let strip = ui.painter().add(egui::Shape::Noop);
-                    let line = ui.horizontal(|ui| {
-                        if let Some(index) = row.key.strip_prefix("select/") {
-                            layer_row(ui, row, index, height, controls, action, renaming)
-                        } else {
-                            let response = ui.button(&row.label);
-                            record(controls, &row.key, &row.label, &response);
+            for row in &rows[range] {
+                // painted under the row once its height is known
+                let strip = ui.painter().add(egui::Shape::Noop);
+                let line = ui.horizontal(|ui| {
+                    if let Some(index) = row.key.strip_prefix("select/") {
+                        layer_row(ui, row, index, height, controls, action, renaming)
+                    } else {
+                        let response = ui.button(&row.label);
+                        record(controls, &row.key, &row.label, &response);
 
-                            if response.clicked() {
-                                *action = Some(row.key.clone());
-                            }
-
-                            Vec::new()
+                        if response.clicked() {
+                            *action = Some(row.key.clone());
                         }
-                    });
-                    keyboard_rects.extend(line.inner);
 
-                    // the whole strip, buttons included
-                    if row.selected {
-                        let rect = egui::Rect::from_x_y_ranges(
-                            ui.max_rect().x_range(),
-                            line.response.rect.y_range(),
-                        );
-                        ui.painter()
-                            .set(strip, egui::Shape::rect_filled(rect, 0., SELECTED));
+                        Vec::new()
                     }
+                });
+                keyboard_rects.extend(line.inner);
+
+                // the whole strip, buttons included
+                if row.selected {
+                    let rect = egui::Rect::from_x_y_ranges(
+                        ui.max_rect().x_range(),
+                        line.response.rect.y_range(),
+                    );
+                    ui.painter()
+                        .set(strip, egui::Shape::rect_filled(rect, 0., SELECTED));
                 }
-            });
+            }
+        };
+        if record_all {
+            scroll.show(ui, |ui| draw_slice(ui, 0..row_count));
+        } else {
+            scroll.show_rows(ui, height, row_count, |ui, range| draw_slice(ui, range));
+        }
 
         if graph {
             super::graph::show(ui, model, height, controls, action);

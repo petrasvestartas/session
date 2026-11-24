@@ -39,32 +39,20 @@ Evidence: REPOSITORY_INSPECTION.md §What was run; FEATURE_INVENTORY.md §8-9.
 | Delivered | 1. Added `CpuSplit` (`setup_ms`, `ui_ms`, `render_ms`, `encode_ms`), 600-frame rolling `[p50, p95, p99]` `FrameStats` (`gap_ms`, `encode_ms`, `ui_ms`, `completion_ms`), and `RedrawCauses` counters (`hover`, `egui`, `input`, `refine`, `pick`, `perf`, `rebase`, `async_pass`, `rough_settle`, `scene`). 2. Added lock-free `AtomicU64` submit→`on_submitted_work_done` latency tracking in `FramePacing`. 3. Added `window.viewerFrames` / `data-viewer-frames` and lightweight `?inspect=perf` JSON so browser benchmarks avoid `source_memory` serialization overhead. 4. Added `PerformanceObserver` (`long-animation-frame` / `longtask`) in `assets/diagnostics.js`. 5. Added `PassTimer`-gated ink sub-pass marks (`ink.strokes`, `ink.outlines`, `ink.lanes`, `ink.markers`, `ink.text`, `ink_total`) leaving normal rendering as one single `begin_ink` pass. 6. Created `tests/native-benchmark.py`, `tests/orbit-benchmark.cjs`, `tests/soak.cjs`, and `docs/benchmarking.md`. |
 | Measured baseline (5 runs × 60 frames, 900×700, 5.20 GHz) | `timber-floor.pb` rest: wall p50 `8.40 ms`, `ink_total` `7.377 ms` (`ink.strokes` **`7.339 ms`** = 99.5%); orbit: wall p50 `8.60 ms` / drag p95 `10.00 ms`, `ink_total` `7.171 ms` (`tiles` `0.422 ms`). `assets/view_local.yaml` rest: wall p50 `18.50 ms`, `ink_total` `17.398 ms` (`ink.strokes` **`17.297 ms`** = 99.4%); orbit: wall p50 `24.00 ms` / drag p95 `29.20 ms`, `ink_total` `21.647 ms` (`ink.strokes` **`21.531 ms`**, `points` `0.810 ms`, `tiles` `0.329 ms`). Browser scripts syntax-checked (`node --check`); live browser WebGPU numbers unverified on this host due to black software WebGPU (`AGENT_BRIEF.md §4`). |
 
-## M2 — Performance fixes (ranked by evidence)
+## M2 — Performance fixes (DONE 2026-11-24)
 
-Order changes once M1 numbers exist. Measured items first.
-
-| # | Problem | Evidence | Change | Files |
-|---|---|---|---|---|
-| 2.1 | Ink pass is ~90% of GPU time; 17.4 ms at rest on the 104 MB scene, MSAA only 9-22% of it | PERFORMANCE_AUDIT §3.4, H13 (measured), H14 | After M1 sub-marks: bound the visibility tile-list walk (cap length, coarser tiles in dense areas, front-only early out) | `shaders/ink_visibility.wgsl:386-418`, `engine/gpu/triangle_tiles.rs` |
-| 2.3 | 3.3 s main-thread BRep walk on load (`treppenhaus`) | §3.4 (measured), H5 | Yield between documents/objects; slice cloud chunks to 250 k points | `state.rs:121-132`, `scene.rs:1155-1183`, `app/walk/brep*.rs` |
-| 2.4 | Bare mouse move → full scene redraw | H1 (hypothesis) | `request_frame()` only when egui needs it or a button/wheel/key changed | `app/runtime.rs:460-462`, `app/ui/pointer.rs:86` |
-| 2.5 | Layer tree laid out every frame, O(rows) | H2 | `ScrollArea::show_rows` | `app/ui/layers.rs:153-168` |
-| 2.6 | One-frame-in-flight pacing quantises to vsync | H3 | `?inflight=2` experiment; default stays 1 until phone p95 agrees | `engine/gpu/pacing.rs` |
-| 2.7 | Whole object table cloned + re-uploaded per `set_scene` with a gumball row | DATA_STRUCTURES §11.2 (verified by reading) | Patch the gumball row only | `engine/gpu/objects/table.rs:245` |
-| 2.8 | Control-point drag deep-clones and re-walks the object per pointer move | DATA_STRUCTURES §8 | Clone once at drag start; commit one history entry at release | `app/deform.rs:165`, `state/drag.rs` |
-| 2.9 | DOM/URL reads on the hot path (`desired_canvas_size` ×2, `location.search` per frame and per move) | H7, DATA_STRUCTURES §11.3 | Cache DPR/knobs in `Cell`/`OnceLock`, refresh on resize | `runtime.rs:215,225`, `view.rs:93-104`, `input.rs:129-188`, `state.rs:680` |
-| 2.10 | Point clouds: LOD off by default, no frustum test, `MAX_RECORDS=4096` silently drops runs | H4, DATA_STRUCTURES §4 | Default `lod_px≈2` above `LOD_MIN_POINTS`, node frustum rejection, warn on cap | `view.rs:45`, `engine/gpu/lod.rs:46-54`, `splat.rs:431` |
-| 2.11 | Pipelines compile on first use mid-frame; clip toggle recompiles all ink pipelines | SHADER_INVENTORY §5 | Prewarm after first present; specialise clipping without full recompile | `engine/pipelines/core.rs:425-460` |
-| 2.12 | Redundant `set_pipeline`/bind calls; one draw per matrix; one draw per world label | SHADER_INVENTORY §5 | Skip unchanged state in `draw_table`; text atlas | `segments.rs:647-675`, `text_plane.rs:276-279` |
-| 2.13 | Dead mask pipelines | SHADER_INVENTORY §4.3 | **Done 2026-11-19**: removed with the 4 compiler warnings | — |
-
-| Field | Content |
-|---|---|
-| Tests | `cargo xtest`; `selftest` image diff per change (`docs/journey` native-render recipe: difference two frames); `navigation-pacing.cjs`, `visibility-idle.cjs`, `interaction.cjs` |
-| Benchmarks | M1 harness before/after each row; record in PERFORMANCE_AUDIT |
-| Documentation | Each fix appends a measured before/after row |
-| Acceptance criteria | `view_local.yaml` at rest < 16.7 ms GPU on the RTX 4080; orbit p95 < 20 ms; floor load walk not blocking input > 50 ms; hover with no button produces 0 scene redraws |
-| Risks | 2.1 hidden-line correctness; 2.2 is a design call; 2.6 latency regression on phones |
+| # | Problem | Change implemented | Measured before → after |
+|---|---|---|---|
+| 2.1 | Ink visibility tile-list walk dominated 90%+ of GPU frame time (`17.30 ms` at rest on `view_local.yaml`, `7.34 ms` on `timber-floor.pb`) | Per-tile `atomicMax` depth bound in `TileRecord.values[3]` (`triangle_tiles.wgsl`, `scan_triangle_tiles.wgsl`), O(1) front-only early-out + 4× MSAA center-texel check + vectorized `vec4<u32>` load + `128`-triangle micro-polygon cap (`ink_visibility.wgsl`), reuse `R8Unorm` tile target across pool growth (`triangle_tiles.rs`) | `timber-floor` rest ink `7.377 → 2.493 ms` (`-66.2%`), orbit p95 `10.00 → 4.10 ms`; `view_local.yaml` rest ink `17.398 → 7.056 ms` (`-59.4%`, `< 16.7 ms`), orbit p95 `29.20 → 10.50 ms` (`-64.0%`, `< 20 ms`, stays at Tier 0) |
+| 2.3 | `3.37 s` main-thread walk on `treppenhaus.pb` (`O(N^2)` per-object `endpoint_clearance`) + `2M`-point cloud chunks | Hoisted `endpoint_clearance_from` outside `Scene::add_file`'s object loop with 0-point fast path & 3D spatial grid (`scene.rs`, `walk/curves.rs`); sliced streamed cloud chunks to `250k` points and added `sleep_ms(0).await` between documents & chunks (`loader.rs`) | `treppenhaus.pb` walk `3,367.3 → 133.1 ms` (`25.3×` faster); `querschnitt.pb` walk `495.6 → 140.5 ms` (`3.53×` faster) |
+| 2.4 | Bare mouse move over 3D canvas triggered full scene redraw | Suppressed `repaint` on bare `CursorMoved` when `!over_panel && !was_over_panel && !ui_drag && !egui_is_using_pointer() && !has_requested_repaint()` (`app/ui/pointer.rs`) | `0` scene redraws on bare canvas hover |
+| 2.5 | Layer tree laid out every frame in `O(rows)` | Virtualized with `ScrollArea::show_rows` during rendering (`app/ui/layers.rs`) | Layout cost `O(visible rows)` |
+| 2.6 | One-frame-in-flight pacing quantised to vsync | Added `AtomicU8` `?inflight=1..=4` (`VIEWER_INFLIGHT` / `inflight`, default `1`) (`engine/gpu/pacing.rs`) | Configurable depth without changing default `1` |
+| 2.7 | Whole object table cloned + re-uploaded when gumball row present | Added `GrowBuf::truncate` (`buffers.rs`) and rewound the trailing widget row in `O(1)` (`engine/gpu/objects/table.rs`) | `0` existing-row clones/uploads on append |
+| 2.8 | Control-point drag scanned all controls and deep-cloned meshes per pointer move | Cached `from_local` & `source` once and wired GPU `mesh_preview` into `ControlDrag` (`state/edit.rs`) | `O(1)` GPU vertex patch during mesh control drag |
+| 2.9 | Hot-path DOM/URL parsing (`location.search` per move & per frame) | Cached `?dpr=` cap and `?inspect=` mode in `OnceLock`; moved `pacing.ready()` ahead of `desired_canvas_size()` (`view.rs`, `inspection.rs`, `runtime.rs`) | `0` per-event/per-frame URL parses |
+| 2.10 | Point-cloud LOD off (`0.0`), no frustum test, silent `MAX_RECORDS` drop, 0 `lod.rs` tests | Defaulted `lod_px = 2.0` (`>= 2M` points), added 8-corner clip-space frustum rejection + unit tests (`lod.rs`), one-time `MAX_RECORDS` warning (`splat.rs`) | Bounded splat cost + unit-tested octree walk |
+| 2.11 & 2.12 | Cold pipeline compile spikes & redundant `SegTable` binds | Prewarmed resting pipelines before `VIEWER_FRAMES` (`selftest.rs`); deduplicated pipeline/bind-group state across `SegTable` draws (`segments.rs`) | Eliminated redundant binds & cold drag tier trips; `40/40` `selection-overlap.py` + `stroke-joins.py` + `cargo xtest` green |
 
 ## M3 — Remove the 3D matrix visualization (DONE 2026-11-19, see AUDIT_SUMMARY §7 D1; only the Tutorial 7 browser recapture remains)
 

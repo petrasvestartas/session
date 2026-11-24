@@ -21,8 +21,13 @@ pub fn publish(state: &State) {
         }
     });
 
-    let inspect = super::route::query("inspect");
-    if !matches!(inspect.as_deref(), Some("1" | "perf")) {
+    static INSPECT_MODE: std::sync::OnceLock<u8> = std::sync::OnceLock::new();
+    let mode = *INSPECT_MODE.get_or_init(|| match super::route::query("inspect").as_deref() {
+        Some("1") => 1,
+        Some("perf") => 2,
+        _ => 0,
+    });
+    if mode == 0 {
         return; // only with ?inspect=1 or ?inspect=perf
     }
 
@@ -35,7 +40,7 @@ pub fn publish(state: &State) {
     let Some(canvas) = document.get_element_by_id("canvas") else {
         return;
     };
-    if inspect.as_deref() == Some("perf") {
+    if mode == 2 {
         let light = serde_json::json!({
             "submitted_at_ms": crate::engine::performance::now_ms(),
             "frames": state.gpu.performance.frames,

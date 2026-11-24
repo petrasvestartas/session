@@ -88,6 +88,11 @@ impl GrowBuf {
         grew
     }
 
+    /// Rewind the active row count without reallocating or re-uploading kept rows.
+    pub fn truncate(&mut self, len: u32) {
+        self.len = self.len.min(len);
+    }
+
     /// Room for `rows` more rows; a full buffer grows to exactly `rows + spare` more. True if replaced.
     pub fn reserve(&mut self, ctx: &GpuCtx, rows: u64, spare: u64) -> bool {
         let need = u64::from(self.len) + rows;

@@ -552,18 +552,15 @@ impl SegmentLane {
         pipes: bool,
         ribbons: bool,
     ) -> u32 {
-        let mut draws = 0;
-
+        let mut tables = Vec::with_capacity(3);
         if pipes {
-            draws += self.draw_table(pass, b, &self.gpu.unselected, &self.pipes);
+            tables.push(&self.pipes);
         }
-
         if ribbons {
-            draws += self.draw_table(pass, b, &self.gpu.unselected, &self.ribbons);
-            draws += self.draw_table(pass, b, &self.gpu.unselected, &self.sheet_table);
+            tables.push(&self.ribbons);
+            tables.push(&self.sheet_table);
         }
-
-        draws
+        self.draw_tables(pass, b, &self.gpu.unselected, &tables)
     }
 
     /// Draw the selected objects' lines.
@@ -578,79 +575,91 @@ impl SegmentLane {
             return 0;
         }
 
-        let mut draws = 0;
-
+        let mut tables = Vec::with_capacity(3);
         if pipes {
-            draws += self.draw_table(pass, b, &self.gpu.selected, &self.pipes);
+            tables.push(&self.pipes);
         }
-
         if ribbons {
-            draws += self.draw_table(pass, b, &self.gpu.selected, &self.ribbons);
-            draws += self.draw_table(pass, b, &self.gpu.selected, &self.sheet_table);
+            tables.push(&self.ribbons);
+            tables.push(&self.sheet_table);
         }
-
-        draws
+        self.draw_tables(pass, b, &self.gpu.selected, &tables)
     }
 
     /// Draw the lines and curves in color.
     pub fn draw_ribbons(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
-        self.draw_table(pass, b, &self.gpu.ribbon, &self.ribbons)
-            + self.draw_table(pass, b, &self.gpu.ribbon, &self.sheet_table)
+        self.draw_tables(
+            pass,
+            b,
+            &self.gpu.ribbon,
+            &[&self.ribbons, &self.sheet_table],
+        )
     }
 
     /// Draw edge object ids.
     pub fn draw_pipe_ids(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
-        self.draw_table(pass, b, &self.gpu.id_ribbon, &self.pipes)
+        self.draw_tables(pass, b, &self.gpu.id_ribbon, &[&self.pipes])
     }
 
     /// Draw source edge ids.
     pub fn draw_edge_ids(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
-        self.draw_table(pass, b, &self.gpu.id_edge, &self.pipes)
+        self.draw_tables(pass, b, &self.gpu.id_edge, &[&self.pipes])
     }
 
     /// Draw line object ids.
     pub fn draw_ribbon_ids(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
-        self.draw_table(pass, b, &self.gpu.id_ribbon, &self.ribbons)
-            + self.draw_table(pass, b, &self.gpu.id_ribbon, &self.sheet_table)
+        self.draw_tables(
+            pass,
+            b,
+            &self.gpu.id_ribbon,
+            &[&self.ribbons, &self.sheet_table],
+        )
     }
 
-    /// Draw one table with `pipeline`; returns the draw count.
-    fn draw_table(
+    /// Draw non-empty tables sharing `pipeline` and `@group(0..2)` bindings once; returns the draw count.
+    fn draw_tables(
         &self,
         pass: &mut wgpu::RenderPass<'_>,
         b: &Binds,
         pipeline: &Pipeline,
-        table: &SegTable,
+        tables: &[&SegTable],
     ) -> u32 {
-        if table.buf.is_empty() {
-            return 0;
-        }
+        let mut draws = 0;
+        let mut bound = false;
 
-        pass.set_pipeline(pipeline);
-        b.set(pass);
-        pass.set_bind_group(3, &table.group, &[]);
-        self.slots.bind(pass, 0);
-        // six vertices per segment, placed by the shader
-        pass.draw(0..RIBBON_VERTS * table.buf.len(), 0..1);
-        let mut draws = 1;
-
-        // each definition once more per instance, its rows from the slots
-        for draw in self.slots.draws() {
-            let rows = if std::ptr::eq(table, &self.pipes) {
-                &draw.pipes
-            } else if std::ptr::eq(table, &self.ribbons) {
-                &draw.ribbons
-            } else {
+        for &table in tables {
+            if table.buf.is_empty() {
                 continue;
-            };
-            let rows = clamp(rows, table.buf.len());
+            }
+            if !bound {
+                pass.set_pipeline(pipeline);
+                b.set(pass);
+                self.slots.bind(pass, 0);
+                bound = true;
+            }
+            pass.set_bind_group(3, &table.group, &[]);
+            // six vertices per segment, placed by the shader
+            pass.draw(0..RIBBON_VERTS * table.buf.len(), 0..1);
+            draws += 1;
 
-            if !rows.is_empty() {
-                pass.draw(
-                    RIBBON_VERTS * rows.start..RIBBON_VERTS * rows.end,
-                    draw.slots.clone(),
-                );
-                draws += 1;
+            // each definition once more per instance, its rows from the slots
+            for draw in self.slots.draws() {
+                let rows = if std::ptr::eq(table, &self.pipes) {
+                    &draw.pipes
+                } else if std::ptr::eq(table, &self.ribbons) {
+                    &draw.ribbons
+                } else {
+                    continue;
+                };
+                let rows = clamp(rows, table.buf.len());
+
+                if !rows.is_empty() {
+                    pass.draw(
+                        RIBBON_VERTS * rows.start..RIBBON_VERTS * rows.end,
+                        draw.slots.clone(),
+                    );
+                    draws += 1;
+                }
             }
         }
 

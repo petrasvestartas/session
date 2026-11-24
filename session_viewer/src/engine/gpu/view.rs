@@ -42,7 +42,7 @@ impl View {
             markers: knob("BENCH_NO_MARKERS", "nomarkers").is_none(),
             cloud_size: knob_f32("VIEWER_CLOUD_SCALE", "cloud", 1.0),
             edl_strength: knob_f32("VIEWER_EDL", "edl", 0.25),
-            lod_px: knob_f32("VIEWER_LOD", "lod", 0.0),
+            lod_px: knob_f32("VIEWER_LOD", "lod", 2.0),
             thickness_px: knob_f32("VIEWER_THICKNESS", "thickness", 1.0).max(0.1),
             feather_px: knob_f32("VIEWER_AA", "aa", 1.0).clamp(0.5, 4.0),
             lit: knob("VIEWER_LIT", "lit").is_some(),
@@ -90,6 +90,16 @@ fn phones_start_solid_and_desktops_keep_nearly_solid_faces() {
     assert_eq!(default_opacity(false), 0.95);
 }
 
+/// Cached `?dpr=` cap so hot mouse-move and frame paths never re-parse `location.search`.
+#[cfg(target_arch = "wasm32")]
+fn cached_dpr_cap() -> f64 {
+    static DPR_CAP: std::sync::OnceLock<f64> = std::sync::OnceLock::new();
+    *DPR_CAP.get_or_init(|| {
+        let cap = f64::from(knob_f32("VIEWER_DPR", "dpr", 0.0));
+        if cap >= 0.5 { cap } else { DEFAULT_MAX_DPR }
+    })
+}
+
 /// Framebuffer pixels per CSS pixel, capped by `?dpr=` or else at `DEFAULT_MAX_DPR`.
 pub fn device_pixel_ratio() -> f64 {
     #[cfg(target_arch = "wasm32")]
@@ -97,9 +107,8 @@ pub fn device_pixel_ratio() -> f64 {
         let ratio = web_sys::window()
             .map(|window| window.device_pixel_ratio())
             .filter(|ratio| *ratio > 0.0)
-            .unwrap_or(1.0);
-        let cap = f64::from(knob_f32("VIEWER_DPR", "dpr", 0.0));
-        let ratio = ratio.min(if cap >= 0.5 { cap } else { DEFAULT_MAX_DPR });
+            .unwrap_or(1.0)
+            .min(cached_dpr_cap());
 
         if reduced() { ratio.min(1.0) } else { ratio }
     }

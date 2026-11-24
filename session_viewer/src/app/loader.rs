@@ -19,7 +19,7 @@ use winit::window::Window;
 const STREAM_PREFIX_POINTS: u32 = 2_000_000;
 
 /// Points per follow-up slice.
-const STREAM_CHUNK_POINTS: u32 = 2_000_000;
+const STREAM_CHUNK_POINTS: u32 = 250_000;
 
 /// Most streamed points on the page, `?points=` overrides.
 const STREAM_MAX_POINTS: u32 = 6_000_000;
@@ -226,6 +226,7 @@ async fn post_live(src: &mut LiveSource) -> bool {
 
     for doc in docs {
         post(Msg::File(doc, None));
+        sleep_ms(0).await;
     }
 
     post(Msg::Texts(texts)); // register:scene_text
@@ -491,6 +492,7 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>, early: Option<
             pending.push(PendingDocument::Whole(doc, source));
         } else {
             post(Msg::File(doc, source));
+            sleep_ms(0).await;
         }
     }
 
@@ -512,7 +514,10 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>, early: Option<
 
         for document in pending {
             match document {
-                PendingDocument::Whole(doc, source) => _ = post(Msg::File(doc, source)),
+                PendingDocument::Whole(doc, source) => {
+                    _ = post(Msg::File(doc, source));
+                    sleep_ms(0).await;
+                }
                 PendingDocument::Streamed(stream) => _ = post(Msg::StreamedCloud(stream)), // register:stream
                 PendingDocument::Sheet(sheet) => _ = post(Msg::Sheet(sheet)), // register:sheets
             }
@@ -871,6 +876,7 @@ async fn stream_rest(c: StreamCursor) {
             return;
         }
         at = to;
+        sleep_ms(0).await;
     }
 }
 

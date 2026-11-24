@@ -361,8 +361,9 @@ impl TriangleTiles {
             self.invalidate();
         }
 
-        // new grid or bigger pool: new tile buffer
-        if self.layout != Some(layout) || grow {
+        // new grid or bigger pool: new tile buffer; target texture only when grid dimensions changed
+        let grid_changed = self.layout != Some(layout);
+        if grid_changed || grow {
             self.pool_words = pool_words;
             replace_buffer(
                 &mut self.buffer,
@@ -373,16 +374,18 @@ impl TriangleTiles {
                     ROWS,
                 ),
             );
-            self.target = Some(Attachment::new(
-                ctx,
-                "triangle.tiles.target",
-                &TextureSpec {
-                    size: (layout.width, layout.height),
-                    format: wgpu::TextureFormat::R8Unorm, // one byte per pixel
-                    samples: 1,
-                    usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-                },
-            ));
+            if grid_changed || self.target.is_none() {
+                self.target = Some(Attachment::new(
+                    ctx,
+                    "triangle.tiles.target",
+                    &TextureSpec {
+                        size: (layout.width, layout.height),
+                        format: wgpu::TextureFormat::R8Unorm, // one byte per pixel
+                        samples: 1,
+                        usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+                    },
+                ));
+            }
             self.layout = Some(layout);
             self.invalidate();
             changed = true;
