@@ -1,30 +1,38 @@
-title: '3 · Render Engine and WGSL Prelude'
-split: 0.50
+title: '3 · Octahedral Normal Encoding and Cofactor Transform'
+split: 0.52
+palette: {accent: '#3057b1'}
+grid: {center: [0, 0], size: 4, step: 1, z: -1.2}
+camera: {yaw: -42, pitch: 24, fit: [PX, NX, PY, NY, PZ, NZ, N1]}
+points:
+  O: [0, 0, 0]
+  PX: [1.5, 0, 0]
+  NX: [-1.5, 0, 0]
+  PY: [0, 1.5, 0]
+  NY: [0, -1.5, 0]
+  PZ: [0, 0, 1.5]
+  NZ: [0, 0, -1.1]
+  N1: [0.85, 0.55, 1.12]
+  NP: [0.49, 0.32, 0.0]
 slides:
-  - title: 'PASSES AND PIPELINE CACHE'
+  - title: 'UNIT OCTAHEDRON TO 32-BIT SNORM PAIR'
     steps:
-      - say: 'build.rs expands shader headers into OUT_DIR so every lane compiles once against PRELUDE.'
+      - say: 'Unit normals project from the $\ell_1$ octahedron $|x|+|y|+|z|=1$ onto the $[-1,1]^2$ square.'
         add:
-          - {id: flow, drawing: [
-              {polygon: [[110, 145], [700, 145], [700, 229], [110, 229]], fill: cell, color: ink, width: 2.0},
-              {point: [110, 187], color: accent, size: 5.0},
-              {arrow: [[405, 233], [405, 306]], color: blue, width: 3.0},
-              {polygon: [[110, 310], [700, 310], [700, 394], [110, 394]], fill: blue_band, color: ink, width: 2.0},
-              {point: [110, 352], color: accent, size: 5.0},
-              {arrow: [[405, 398], [405, 471]], color: blue, width: 3.0},
-              {polygon: [[110, 475], [700, 475], [700, 559], [110, 559]], fill: yellow_light, color: ink, width: 2.0},
-              {point: [110, 517], color: accent, size: 5.0},
-              {arrow: [[405, 563], [405, 636]], color: blue, width: 3.0},
-              {polygon: [[110, 640], [700, 640], [700, 724], [110, 724]], fill: pink_band, color: ink, width: 2.0},
-              {point: [110, 682], color: accent, size: 5.0}
-            ], at: [0, 0]}
-          - {id: h0, tex: '\text{build.rs #include -> OUT_DIR}', at: [136, 179], size: 21, color: ink}
-          - {id: s0, tex: '\text{scene.wgsl + clip.wgsl + ink_visibility.wgsl}', at: [136, 209], size: 16, color: navy}
-          - {id: h1, tex: '\text{Layouts (groups 0..=3)}', at: [136, 344], size: 21, color: ink}
-          - {id: s1, tex: '\text{frame, line/clip, instance, lane rows}', at: [136, 374], size: 16, color: navy}
-          - {id: h2, tex: '\text{Pipelines::core lazy OnceLock}', at: [136, 509], size: 21, color: ink}
-          - {id: s2, tex: '\text{compiled on first use per MSAA count}', at: [136, 539], size: 16, color: navy}
-          - {id: h3, tex: '\text{render.rs pass sequence}', at: [136, 674], size: 21, color: ink}
-          - {id: s3, tex: '\text{backdrop -> faces -> tiles -> ink -> ui}', at: [136, 704], size: 16, color: navy}
-        eq: {tex: 'G_0=\mathrm{Frame},\quad G_1=\mathrm{Clip},\quad G_2=\mathrm{Instance},\quad G_3=\mathrm{Lane}', align: left}
-        text: '**Invariant:** Every lane shares PRELUDE (scene.wgsl + clip.wgsl) so camera rebasing and section cuts never drift.'
+          - {id: eqLoop, polyline: [PX, PY, NX, NY, PX], color: '#3057b1', width: 2.8}
+          - {id: r1, line: [PZ, PX], color: '#3057b1', width: 2.0}
+          - {id: r2, line: [PZ, PY], color: '#3057b1', width: 2.0}
+          - {id: r3, line: [PZ, NX], color: '#3057b1', width: 2.0}
+          - {id: r4, line: [PZ, NY], color: '#3057b1', width: 2.0}
+          - {id: b1, line: [NZ, PX], color: grey, width: 1.5, dash: true}
+          - {id: b2, line: [NZ, PY], color: grey, width: 1.5, dash: true}
+          - {id: b3, line: [NZ, NX], color: grey, width: 1.5, dash: true}
+          - {id: b4, line: [NZ, NY], color: grey, width: 1.5, dash: true}
+          - {id: pZ, point: PZ, color: '#3057b1', label: '+z'}
+        eq: '\mathbf{e} = \frac{(n_x, n_y)}{|n_x| + |n_y| + |n_z|} \in [-1, 1]^2'
+      - say: 'Packing $\mathbf{e}$ into two 16-bit signed norms replaces a 12-byte normal vector with one 4-byte word.'
+        add:
+          - {id: nVec, arrow: [O, N1], color: pink, width: 3.4, label: '\mathbf{n}'}
+          - {id: drop, line: [N1, NP], color: grey, width: 1.6, dash: true}
+          - {id: pProj, point: NP, color: pink, label: '\mathbf{e}'}
+        eq: '\mathbf{n}\prime = \mathrm{normalize}\!\left(\mathrm{cof}(\mathbf{M})\,\mathbf{n}\cdot\mathrm{sgn}(\det\mathbf{M})\right)'
+        text: 'At compile time, build.rs expands WGSL shader includes into OUT_DIR before Naga validation.'

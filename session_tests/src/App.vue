@@ -22,22 +22,27 @@ const buildLabel = builtAt.replace('T', ' ').replace(/\.\d{3}Z$/, ' UTC')
   z-index: 201;
   padding: 3px 6px;
   background: #ffffff;
-  color: #555555;
-  font: 11px/1.4 system-ui, sans-serif;
+  color: #6f7290;
+  font: 11px/1.4 var(--sans);
   white-space: nowrap;
   pointer-events: none;
 }
 
-/* Plain look: system fonts, black text, greys for rules and muted text, white background. */
+/* BRG CAS palette & typography: Open Sans, deep navy ink on white paper, blue->pink chapter ramp. */
 :root {
-  --fg: #000000;
-  --muted: #000000;
-  --faint: #000000;
-  --rule: #e2e2e2;
-  --hover: #f2f2f2;
-  --code-bg: #f6f6f6;
-  --fail: #a00000;
-  --sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --fg: #141b3d;
+  --ink: #141b3d;
+  --paper: #ffffff;
+  --muted: #6f7290;
+  --faint: #9295b0;
+  --rule: #dcd9e4;
+  --wash: #f2f1f5;
+  --hover: #f2f1f5;
+  --accent: #3057b1;
+  --pink: #dc4b8d;
+  --code-bg: #f6f6fa;
+  --fail: #b42318;
+  --sans: 'Open Sans', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
@@ -52,9 +57,10 @@ html {
 body {
   margin: 0;
   padding: 0;
-  background: #ffffff;
+  background: var(--paper);
   color: var(--fg);
-  font-size: 15px;
+  font-size: 15.5px;
+  -webkit-font-smoothing: antialiased;
 }
 
 button,

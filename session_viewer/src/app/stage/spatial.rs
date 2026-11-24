@@ -373,3 +373,136 @@ impl Scene3 {
     }
     // --8<-- [end:stage-camera-projection]
 }
+
+/// Compute the orthographic `Lens` mapping 3D world coordinates to slide pixels without a GPU.
+pub fn lens_headless(
+    stage: &super::run::Stage,
+    camera: &mut crate::camera::Camera,
+    f: &Frame,
+    canvas: [f64; 2],
+    now: f64,
+) -> (Lens, f64) {
+    camera.perspective = false;
+    camera.unit = crate::camera::Unit::Meters;
+    let origin = stage.origin();
+    let (cx, cy) = (
+        (f.ox + origin[0] * f.k) as f64 / canvas[0].max(1.0),
+        (f.oy + origin[1] * f.k) as f64 / canvas[1].max(1.0),
+    );
+    let span = |m: f64| {
+        if m <= 0.5 {
+            [0.0, 2.0 * m]
+        } else {
+            [2.0 * m - 1.0, 1.0]
+        }
+    };
+    let (fx, fy) = (span(cx), span(cy));
+    camera.frame = [fx[0], fy[0], fx[1], fy[1]];
+    let (cam, _) = stage.camera(now);
+    let yaw = (cam.yaw + 90.0).to_radians();
+    let yaw_q = Quaternion::from_axis_angle(Vector::z_axis(), yaw);
+    let right = yaw_q.rotate_vector(Vector::x_axis());
+    let pitch_q = Quaternion::from_axis_angle(right, -cam.pitch.to_radians());
+    camera.orientation = (pitch_q * yaw_q).normalized();
+    camera.target = cam.center;
+    let half = canvas[1] / (2.0 * cam.zoom * f64::from(f.k));
+    camera.distance = half / std::f64::consts::FRAC_PI_6.tan();
+    camera.update_position();
+
+    let right_v = camera.orientation.rotate_vector(Vector::x_axis());
+    let up_v = camera.up;
+    let k = f64::from(f.k);
+    let s = canvas[1] / (2.0 * half) / k;
+    let centre = [
+        ((camera.frame[0] + camera.frame[2]) / 2.0 * canvas[0] - f64::from(f.ox)) / k,
+        ((camera.frame[1] + camera.frame[3]) / 2.0 * canvas[1] - f64::from(f.oy)) / k,
+    ];
+    let a = [
+        [right_v[0] * s, right_v[1] * s, right_v[2] * s],
+        [-up_v[0] * s, -up_v[1] * s, -up_v[2] * s],
+    ];
+    let t = camera.target;
+    (
+        Lens {
+            a,
+            b: [
+                centre[0] - (a[0][0] * t[0] + a[0][1] * t[1] + a[0][2] * t[2]),
+                centre[1] - (a[1][0] * t[0] + a[1][1] * t[1] + a[1][2] * t[2]),
+            ],
+        },
+        half,
+    )
+}
+
+/// Sync a `Stage`'s 3D `objects3` and orthographic camera directly onto a headless `(Scene, Gpu, Camera)` triple.
+pub fn sync_headless(
+    stage: &mut super::run::Stage,
+    scene: &mut crate::app::scene::Scene,
+    gpu: &mut crate::engine::gpu::Gpu,
+    camera: &mut crate::camera::Camera,
+    f: &Frame,
+    canvas: [f64; 2],
+    now: f64,
+) {
+    let (lens, half) = lens_headless(stage, camera, f, canvas, now);
+    stage.lens = Some(lens);
+
+    scene.clear(gpu);
+    scene.arrowhead_pens = 24.0;
+    gpu.view.thickness_px = f.k;
+    gpu.view.show_grid = false;
+    gpu.view.lit = false;
+    gpu.view.dark = true;
+    let bg = stage.palette("bg");
+    let px = 2.0 * half / canvas[1].max(1.0);
+    let scale = f64::from(f.k);
+
+    let mut reveals: Vec<(u32, f32, f32)> = Vec::new();
+    for (idx, sp) in stage.objects3.iter().enumerate() {
+        if sp.color[3] <= 0.02 || sp.reveal <= 0.001 {
+            continue;
+        }
+        let Some(g) = geometry(sp, bg, px, 1.0, scale) else {
+            continue;
+        };
+        let mut session = Session::new(&sp.id);
+        match &g {
+            Geometry::Point(p) => {
+                session.add_point((**p).clone(), None);
+                let mut inner = (**p).clone();
+                inner.width *= 0.58;
+                inner.pointcolor = Color::new(bg[0], bg[1], bg[2], 1.0);
+                session.add_point(inner, None);
+            }
+            Geometry::Line(l) => {
+                session.add_line((**l).clone(), None);
+            }
+            Geometry::Polyline(p) => {
+                session.add_polyline((**p).clone(), None);
+            }
+            _ => continue,
+        }
+        let first = scene.row_count() as u32;
+        scene.add_file(FileDoc {
+            name: format!("stage/{idx}/{}", sp.id),
+            place: Xform::identity(),
+            session: Rc::new(session),
+            point_px: 0.0,
+            display_only: false,
+        });
+        let end = scene.row_count() as u32;
+        let dot_rev = if sp.kind == SpatialKind::Point {
+            sp.reveal
+        } else {
+            1.0
+        };
+        for row in first..end {
+            reveals.push((row, sp.reveal, dot_rev));
+        }
+    }
+    scene.upload_to(gpu);
+    for (row, rev, dot_rev) in reveals {
+        gpu.set_non_pickable(row, true);
+        gpu.set_reveal(row, rev, dot_rev);
+    }
+}

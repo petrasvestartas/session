@@ -1,30 +1,33 @@
-title: '16 · Pacing Tiers, Timers and Self-Tests'
-split: 0.50
+title: '16 · GPU Pass Timing, Hysteresis Tiers and Edge-Continuity Oracle'
+split: 0.52
+palette: {accent: '#3057b1'}
+camera: {view: top, fit: [LO, HI]}
+points:
+  LO: [-0.6, -0.8, 0]
+  HI: [6.4, 4.2, 0]
+  O: [0, 0, 0]
+  XMAX: [5.8, 0, 0]
+  YMAX: [0, 3.5, 0]
+  T14_0: [3.9, 0, 0]
+  T14_1: [3.9, 3.3, 0]
+  M1_A: [0.4, 2.55, 0]
+  M1_B: [5.2, 2.55, 0]
+  M2_A: [0.4, 1.25, 0]
+  M2_B: [2.35, 1.25, 0]
 slides:
-  - title: 'INSTRUMENTATION AND ORACLE HARNESS'
+  - title: 'MEASURED M1 TO M2 INK SPEEDUP AND HYSTERESIS'
     steps:
-      - say: 'Track rolling p50/p95/p99 frame stats, step navigation quality tiers only on sustained slow drags, and verify pixels.'
+      - say: 'GPU timestamp queries isolated $99.4\%$ of frame time inside ink strokes ($17.40\,\mathrm{ms}$ before tile depth bounds).'
         add:
-          - {id: flow, drawing: [
-              {polygon: [[110, 145], [700, 145], [700, 229], [110, 229]], fill: cell, color: ink, width: 2.0},
-              {point: [110, 187], color: accent, size: 5.0},
-              {arrow: [[405, 233], [405, 306]], color: blue, width: 3.0},
-              {polygon: [[110, 310], [700, 310], [700, 394], [110, 394]], fill: blue_band, color: ink, width: 2.0},
-              {point: [110, 352], color: accent, size: 5.0},
-              {arrow: [[405, 398], [405, 471]], color: blue, width: 3.0},
-              {polygon: [[110, 475], [700, 475], [700, 559], [110, 559]], fill: yellow_light, color: ink, width: 2.0},
-              {point: [110, 517], color: accent, size: 5.0},
-              {arrow: [[405, 563], [405, 636]], color: blue, width: 3.0},
-              {polygon: [[110, 640], [700, 640], [700, 724], [110, 724]], fill: pink_band, color: ink, width: 2.0},
-              {point: [110, 682], color: accent, size: 5.0}
-            ], at: [0, 0]}
-          - {id: h0, tex: '\text{FrameStats [p50, p95, p99]}', at: [136, 179], size: 21, color: ink}
-          - {id: s0, tex: '\text{CpuSplit + RedrawCauses + AtomicU64 GPU}', at: [136, 209], size: 16, color: navy}
-          - {id: h1, tex: '\text{NavigationQuality (tiers 0..=3)}', at: [136, 344], size: 21, color: ink}
-          - {id: s1, tex: '\text{drops costly passes only on slow drag runs}', at: [136, 374], size: 16, color: navy}
-          - {id: h2, tex: '\text{PassTimer + ?inspect=perf}', at: [136, 509], size: 21, color: ink}
-          - {id: s2, tex: '\text{ink sub-pass GPU timestamps + LoAF}', at: [136, 539], size: 16, color: navy}
-          - {id: h3, tex: '\text{selftest::oracle + witness}', at: [136, 674], size: 21, color: ink}
-          - {id: s3, tex: '\text{100% visible edge continuity checks}', at: [136, 704], size: 16, color: navy}
-        eq: {tex: 'T_{\mathrm{ink}}(\text{view_local}):\quad 17.40\,\mathrm{ms} \longrightarrow 7.06\,\mathrm{ms}\ \ (-59.4\%)', align: left}
-        text: '**Invariant:** Bare pointer hover over the 3D canvas triggers zero scene redraws unless a >= 50 ms hover pick changes row.'
+          - {id: axX, arrow: [O, XMAX], color: ink, width: 2.2, label: '\mathrm{ms}'}
+          - {id: axY, line: [O, YMAX], color: grey, width: 1.8}
+          - {id: budget, line: [T14_0, T14_1], color: pink, width: 1.8, dash: true}
+          - {id: lBud, label: T14_1, tex: '14\,\mathrm{ms}', color: pink}
+          - {id: barBefore, arrow: [M1_A, M1_B], color: grey, width: 4.2, label: '17.40\,\mathrm{ms}\;(\mathrm{M1})'}
+        eq: 't_{\mathrm{ink}}:\; 17.40\,\mathrm{ms} \longrightarrow 7.06\,\mathrm{ms}\;(-59.4\%), \qquad p_{95}^{\mathrm{orbit}}:\; 29.2 \longrightarrow 10.5\,\mathrm{ms}'
+      - say: 'Per-tile atomic front-depth culling cut ink cost by $60\%$, keeping orbit smoothly inside full-quality Tier 0.'
+        add:
+          - {id: barAfter, arrow: [M2_A, M2_B], color: '#3057b1', width: 4.6, label: '7.06\,\mathrm{ms}\;(\mathrm{M2})'}
+        code: |
+          FrameStats:        600-frame [p50, p95, p99] + AtomicU64 submit->done
+          selftest::oracle:  100.0000% visible CAD edge continuity (phone + desktop)

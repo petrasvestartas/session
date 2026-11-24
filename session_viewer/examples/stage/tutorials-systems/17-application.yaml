@@ -1,30 +1,24 @@
-title: '17 · Complete Application and Scene3 Stage'
-split: 0.50
+title: '17 · Real-Scene 3D Stage and Complete 388-File Viewer'
+split: 0.52
+palette: {accent: '#3057b1', free: ink}
+grid: {center: [3.0, 3.0], size: 8, step: 1, z: 0}
+camera: {yaw: -52, pitch: 28}
+net:
+  grid: [7, 7]
+  fixed: corners
+  lift: {n0_0: 2.4, n6_6: 2.4}
+  q: 1
+  rim: 4
+  load: [0, 0, 0.18]
 slides:
-  - title: 'PRODUCTION SHELL AND 3D STAGE LENS'
+  - title: 'STAGEAPP AND SCENE3 IN THE PRODUCTION VIEWER'
     steps:
-      - say: 'Bridge StageApp to real 3D kernel rows through Scene3, project TeX labels through Camera, and ship all 388 sources.'
-        add:
-          - {id: flow, drawing: [
-              {polygon: [[110, 145], [700, 145], [700, 229], [110, 229]], fill: cell, color: ink, width: 2.0},
-              {point: [110, 187], color: accent, size: 5.0},
-              {arrow: [[405, 233], [405, 306]], color: blue, width: 3.0},
-              {polygon: [[110, 310], [700, 310], [700, 394], [110, 394]], fill: blue_band, color: ink, width: 2.0},
-              {point: [110, 352], color: accent, size: 5.0},
-              {arrow: [[405, 398], [405, 471]], color: blue, width: 3.0},
-              {polygon: [[110, 475], [700, 475], [700, 559], [110, 559]], fill: yellow_light, color: ink, width: 2.0},
-              {point: [110, 517], color: accent, size: 5.0},
-              {arrow: [[405, 563], [405, 636]], color: blue, width: 3.0},
-              {polygon: [[110, 640], [700, 640], [700, 724], [110, 724]], fill: pink_band, color: ink, width: 2.0},
-              {point: [110, 682], color: accent, size: 5.0}
-            ], at: [0, 0]}
-          - {id: h0, tex: '\text{Trunk.toml + index.html}', at: [136, 179], size: 21, color: ink}
-          - {id: s0, tex: '\text{production entry + postMessage op bridge}', at: [136, 209], size: 16, color: navy}
-          - {id: h1, tex: '\text{App -> State -> Mode<State>}', at: [136, 344], size: 21, color: ink}
-          - {id: s1, tex: '\text{unified winit, WebGPU, egui and CLI core}', at: [136, 374], size: 16, color: navy}
-          - {id: h2, tex: '\text{StageApp + spatial::Scene3}', at: [136, 509], size: 21, color: ink}
-          - {id: s2, tex: '\text{3D cable nets/arrows + 2D camera Lens}', at: [136, 539], size: 16, color: navy}
-          - {id: h3, tex: '\text{388 Production Files Verified}', at: [136, 674], size: 21, color: ink}
-          - {id: s3, tex: '\text{197 viewer + 182 viewer-core + 9 support}', at: [136, 704], size: 16, color: navy}
-        eq: {tex: 'N_{\mathrm{prod}} = 197 + 182 + 9 = 388,\qquad N_{\mathrm{tutorials}} = 17', align: left}
-        text: '**Invariant:** Every production source file appears in full once across Tutorials 1–17 with zero rewrites between checkpoints.'
+      - say: 'StageApp drives kernel Point, Line, and Polyline rows directly inside the production 3D Scene.'
+        show: [cables, fixed]
+        eq: '\mathbf{D}_N\,\mathbf{x}_N = \mathbf{p} - \mathbf{D}_F\,\mathbf{x}_F'
+      - say: 'Solving equilibrium moves the 3D scene rows and colours member forces while the orthographic lens projects TeX.'
+        solve: true
+        show: forces
+        code: |
+          197 session_viewer/src + 182 viewer-core/src + 9 support = 388/388 files
+          active-audit: passed: true   |   teaching: 388/388   |   cargo xtest: 626 ok

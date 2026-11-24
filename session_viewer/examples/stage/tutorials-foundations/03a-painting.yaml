@@ -1,30 +1,33 @@
-title: '3.1 · Compositing egui Shapes'
-split: 0.50
+title: '3.1 · Tessellated egui Mesh and Scissor Composite'
+split: 0.52
+palette: {accent: '#3057b1'}
+camera: {view: top, fit: [LO, HI]}
+points:
+  LO: [-0.6, -0.6, 0]
+  HI: [6.4, 4.4, 0]
+  S0: [0, 0, 0]
+  S1: [5.8, 0, 0]
+  S2: [5.8, 3.8, 0]
+  S3: [0, 3.8, 0]
+  T0: [2.9, 3.1, 0]
+  T1: [1.5, 1.0, 0]
+  T2: [4.3, 1.0, 0]
+  C0: [0.35, 0.35, 0]
+  C1: [2.45, 0.35, 0]
 slides:
-  - title: 'EGUI OVERLAY PAINTER'
+  - title: 'CLIPPED PRIMITIVES OVER THE 3D SURFACE'
     steps:
-      - say: 'Tessellate 2D shapes and font deltas into clipped triangles and draw with LoadOp::Load over the scene.'
+      - say: 'Tessellation converts 2D shapes and font glyphs into indexed $(x, y, u, v, \mathrm{rgba})$ triangles.'
         add:
-          - {id: flow, drawing: [
-              {polygon: [[110, 145], [700, 145], [700, 229], [110, 229]], fill: cell, color: ink, width: 2.0},
-              {point: [110, 187], color: accent, size: 5.0},
-              {arrow: [[405, 233], [405, 306]], color: blue, width: 3.0},
-              {polygon: [[110, 310], [700, 310], [700, 394], [110, 394]], fill: blue_band, color: ink, width: 2.0},
-              {point: [110, 352], color: accent, size: 5.0},
-              {arrow: [[405, 398], [405, 471]], color: blue, width: 3.0},
-              {polygon: [[110, 475], [700, 475], [700, 559], [110, 559]], fill: yellow_light, color: ink, width: 2.0},
-              {point: [110, 517], color: accent, size: 5.0},
-              {arrow: [[405, 563], [405, 636]], color: blue, width: 3.0},
-              {polygon: [[110, 640], [700, 640], [700, 724], [110, 724]], fill: pink_band, color: ink, width: 2.0},
-              {point: [110, 682], color: accent, size: 5.0}
-            ], at: [0, 0]}
-          - {id: h0, tex: '\text{egui::Context::run_ui}', at: [136, 179], size: 21, color: ink}
-          - {id: s0, tex: '\text{logical CSS points + pixels_per_point}', at: [136, 209], size: 16, color: navy}
-          - {id: h1, tex: '\text{textures_delta.set}', at: [136, 344], size: 21, color: ink}
-          - {id: s1, tex: '\text{upload glyph/image atlases before draw}', at: [136, 374], size: 16, color: navy}
-          - {id: h2, tex: '\text{tessellate -> update_buffers}', at: [136, 509], size: 21, color: ink}
-          - {id: s2, tex: '\text{ClippedPrimitive vertex/index uploads}', at: [136, 539], size: 16, color: navy}
-          - {id: h3, tex: '\text{RenderPass (LoadOp::Load)}', at: [136, 674], size: 21, color: ink}
-          - {id: s3, tex: '\text{composites UI over 3D colour target}', at: [136, 704], size: 16, color: navy}
-        eq: {tex: 'x_{\mathrm{px}} = x_{\mathrm{pt}} \cdot \mathrm{ppp},\qquad \mathrm{free}_{t} \rightarrow \mathrm{drop}_{t+1}', align: left}
-        text: '**Invariant:** Defer textures_delta.free until the start of the next frame so in-flight draw calls never sample freed textures.'
+          - {id: frame, polyline: [S0, S1, S2, S3, S0], color: grey, width: 2.0, dash: true}
+          - {id: tri, polyline: [T0, T1, T2, T0], color: pink, width: 3.2}
+          - {id: p0, point: T0, color: pink, label: 'v_0'}
+          - {id: p1, point: T1, color: pink, label: 'v_1'}
+          - {id: p2, point: T2, color: pink, label: 'v_2'}
+        eq: 'x_{\mathrm{ndc}} = \frac{2 x_{\mathrm{pt}}}{W_{\mathrm{pt}}} - 1, \qquad y_{\mathrm{ndc}} = 1 - \frac{2 y_{\mathrm{pt}}}{H_{\mathrm{pt}}}'
+      - say: 'Upload font atlas deltas before encoding the pass, and free retired textures only after queue submission.'
+        add:
+          - {id: baseline, arrow: [C0, C1], color: '#3057b1', width: 2.8, label: '\mathrm{atlas\;UV}'}
+        code: |
+          ui.prepare(&device, &queue, &ctx, output, [w, h]);  # upload font deltas
+          ui.draw(&mut encoder, &surface_view);               # LoadOp::Load composite

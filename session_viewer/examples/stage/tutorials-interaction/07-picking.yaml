@@ -1,30 +1,36 @@
-title: '7 · GPU ID Picking and Selection'
-split: 0.50
+title: '7 · Cursor Pick Window and Stroke-First Priority'
+split: 0.52
+palette: {accent: '#3057b1'}
+grid: {center: [1.8, 1.2], size: 5, step: 1, z: 0}
+camera: {yaw: -44, pitch: 26, fit: [EYE, W0, W2, S0, S1, F0, F1, F2]}
+points:
+  EYE: [-1.1, -0.7, 2.3]
+  W0: [0.55, 0.15, 1.25]
+  W1: [1.75, 0.15, 1.25]
+  W2: [1.75, 0.15, 2.05]
+  W3: [0.55, 0.15, 2.05]
+  S0: [1.45, 0.45, 0.45]
+  S1: [3.15, 2.05, 1.55]
+  S_HIT: [2.20, 1.15, 0.93]
+  F0: [2.25, 0.70, 0.15]
+  F1: [3.65, 1.35, 0.15]
+  F2: [2.95, 2.35, 1.10]
+  F_HIT: [2.95, 1.48, 0.48]
 slides:
-  - title: 'PICK WINDOW AND SELECTION STATE'
+  - title: 'RG32UINT WINDOW READBACK AND PRIORITY'
     steps:
-      - say: 'Render (row + 1, sub) into Rg32Uint around the cursor, stamp generations, and update SelectionState.'
+      - say: 'Clicking or pausing $\ge 50\,\mathrm{ms}$ renders a $(2r+1)^2$ integer ID window around the cursor.'
         add:
-          - {id: flow, drawing: [
-              {polygon: [[110, 145], [700, 145], [700, 229], [110, 229]], fill: cell, color: ink, width: 2.0},
-              {point: [110, 187], color: accent, size: 5.0},
-              {arrow: [[405, 233], [405, 306]], color: blue, width: 3.0},
-              {polygon: [[110, 310], [700, 310], [700, 394], [110, 394]], fill: blue_band, color: ink, width: 2.0},
-              {point: [110, 352], color: accent, size: 5.0},
-              {arrow: [[405, 398], [405, 471]], color: blue, width: 3.0},
-              {polygon: [[110, 475], [700, 475], [700, 559], [110, 559]], fill: yellow_light, color: ink, width: 2.0},
-              {point: [110, 517], color: accent, size: 5.0},
-              {arrow: [[405, 563], [405, 636]], color: blue, width: 3.0},
-              {polygon: [[110, 640], [700, 640], [700, 724], [110, 724]], fill: pink_band, color: ink, width: 2.0},
-              {point: [110, 682], color: accent, size: 5.0}
-            ], at: [0, 0]}
-          - {id: h0, tex: '\text{Cursor / Hover (>= 50 ms)}', at: [136, 179], size: 21, color: ink}
-          - {id: s0, tex: '\text{non-cancelling hover + click pick}', at: [136, 209], size: 16, color: navy}
-          - {id: h1, tex: '\text{Rg32Uint ID pass window}', at: [136, 344], size: 21, color: ink}
-          - {id: s1, tex: '\text{ink priority first, then nearest solid}', at: [136, 374], size: 16, color: navy}
-          - {id: h2, tex: '\text{Generation-stamped map_async}', at: [136, 509], size: 21, color: ink}
-          - {id: s2, tex: '\text{stale completions discarded on camera move}', at: [136, 539], size: 16, color: navy}
-          - {id: h3, tex: '\text{SelectionState (viewer-core)}', at: [136, 674], size: 21, color: ink}
-          - {id: s3, tex: '\text{Object, Face, Edge, Control, Box, Lasso}', at: [136, 704], size: 16, color: navy}
-        eq: {tex: '\mathrm{id}_0 = \mathrm{row} + 1,\qquad \mathrm{id}_1 = \mathrm{sub}\ \ (\text{edge bit } 2^{31})', align: left}
-        text: '**Invariant:** All selection fields live in one SelectionState struct so HeadlessHost and browser State share identical rules.'
+          - {id: triBehind, polyline: [F0, F1, F2, F0], color: grey, width: 2.0, dash: true}
+          - {id: win, polyline: [W0, W1, W2, W3, W0], color: '#3057b1', width: 2.8}
+          - {id: edgeSeg, line: [S0, S1], color: pink, width: 3.8}
+          - {id: ray, arrow: [EYE, S_HIT], color: '#3057b1', width: 3.0}
+          - {id: pStroke, point: S_HIT, color: pink, label: '\mathrm{stroke}'}
+          - {id: pFace, point: F_HIT, color: grey, label: '\mathrm{face}'}
+          - {id: lWin, label: W2, tex: '(2r+1)^2', color: '#3057b1'}
+        eq: '\mathrm{Id}(x, y) = (\mathrm{row}+1,\; \mathrm{sub}) \in \mathrm{Rg32Uint}'
+      - say: 'Visible strokes within the $6\,\mathrm{px}$ radius beat faces behind them; stale async maps are dropped.'
+        code: |
+          sub & 0x8000_0000 != 0  =>  CAD edge / curve segment
+          hover >= 50 ms          =>  FLAG_HOVERED (cyan tint, non-cancelling)
+          click / box / lasso     =>  SelectionState (yellow highlight)

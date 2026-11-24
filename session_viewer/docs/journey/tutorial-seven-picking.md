@@ -4,11 +4,17 @@
 
 Read a generation-stamped `(row + 1, sub)` GPU ID window around the cursor for hover pre-selection and click picks, and unify object, face, edge, control-point, window/crossing box, lasso, name, and size selection in `SelectionState`.
 
-## Diagram
+![Interactive viewport showing yellow selected solid and cyan hovered solid](../screenshots/tutorials/t07-selected.png) ![Offscreen Rg32Uint pick-ID buffer visualised in false colour per (row + 1, sub_id)](../screenshots/tutorials/t07-idbuffer.png)
 
-![Rate-limited hover and click ID-window readback (`Rg32Uint`), generation stamp filtering, and unified `SelectionState` (native wgpu readback of stage deck)](../../examples/stage/tutorials-interaction/07-picking.png)
+**What we achieve:** Pixel-exact single-click, sub-object (`Ctrl+Shift`), and crossing/window marquee selection powered by an offscreen `Rg32Uint` GPU ID pass.
 
-Stage deck source: [`07-picking.yaml`](../../examples/stage/tutorials-interaction/07-picking.yaml).
+## How it works
+
+Instead of approximate CPU bounding-box raycasts, an on-demand `Rg32Uint` pass renders `(row + 1, sub_id)` at exact cursor or marquee pixels, biasing stroke depth slightly forward so boundary curves win cleanly over their adjacent faces and returning `0` on empty background.
+
+![Rate-limited hover and click ID-window readback (`Rg32Uint`), generation stamp filtering, and unified `SelectionState` (1600x900 Session Viewer stage plate)](../../examples/stage/tutorials-interaction/07-picking.png)
+
+Interactive stage source: [`07-picking.yaml`](../../examples/stage/tutorials-interaction/07-picking.yaml).
 
 ## Prerequisites and files
 

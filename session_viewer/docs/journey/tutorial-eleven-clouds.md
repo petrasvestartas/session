@@ -4,11 +4,17 @@
 
 Traverse precomputed `LodNode` point-cloud octrees with 8-corner clip-space frustum culling and `2.0 px` screen-spacing cutoffs, shade splats with Eye-Dome Lighting (EDL), stream `250k`-point chunks, and query cloud/sheet elements lazily.
 
-## Diagram
+![Million-point Lion scan rendered as camera-facing splats with Eye-Dome Lighting](../screenshots/tutorials/t11-lion-edl.png) ![Nested 3D octree spatial cells driving out-of-core point-cloud level of detail](../screenshots/tutorials/t11-octree.png)
 
-![Octree frustum culling and `lod_px = 2.0` cutoffs (`lod.rs`), screen-disc splats + EDL resolve, `250k` streamed pages, and cancellable queries (native wgpu readback of stage deck)](../../examples/stage/tutorials-interaction/11-clouds.png)
+**What we achieve:** Interactive million-point LiDAR and photogrammetry rendering with Eye-Dome Lighting (`EDL`) surface relief and out-of-core octree level-of-detail streaming.
 
-Stage deck source: [`11-clouds.yaml`](../../examples/stage/tutorials-interaction/11-clouds.yaml).
+## How it works
+
+`splats.wgsl` expands each `16`-byte packed point (`xyz + rgba8`) into a circular screen-space quad writing radial depth, `edl.wgsl` shades logarithmic neighbour depth jumps `∑ max(0, log₂ z_c − log₂ z_i)` without requiring normals, and `cloud_stream` refines visible octree cells whose screen-space error `ρ = (r_k · H) / (2 · d · tan(θ / 2))` exceeds threshold.
+
+![Octree frustum culling and `lod_px = 2.0` cutoffs (`lod.rs`), screen-disc splats + EDL resolve, `250k` streamed pages, and cancellable queries (1600x900 Session Viewer stage plate)](../../examples/stage/tutorials-interaction/11-clouds.png)
+
+Interactive stage source: [`11-clouds.yaml`](../../examples/stage/tutorials-interaction/11-clouds.yaml).
 
 ## Prerequisites and files
 

@@ -4,11 +4,17 @@
 
 Parse declarative YAML stage decks, typeset OpenType MATH formulas, rounded sign-coloured 2D matrices, and `24x0.30` flat vector constructions on a `1600x900` frame, and animate symbol morphs with zero-overlap verification.
 
-## Diagram
+![OpenType MATH force-density equilibrium slide rendered natively in Session Viewer](../screenshots/tutorials/t03b-math.png)
 
-![YAML stage deck parser, OpenType MATH layout engine, rounded 2D stage matrix (`[[2, -1], [-1, 2]]`), and overlap checker (native wgpu readback of stage deck)](../../examples/stage/tutorials-foundations/03b-mathematics.png)
+**What we achieve:** Publication-grade OpenType MATH typesetting (`LatinModernMath`) and sign-coloured matrix tables synchronized step-by-step with 2D and 3D geometric constructions.
 
-Stage deck source: [`03b-mathematics.yaml`](../../examples/stage/tutorials-foundations/03b-mathematics.yaml).
+## How it works
+
+`tex.rs` parses TeX expressions into nested `Boxed` nodes (`width`, `ascent`, `descent`) measured directly from `LatinModernMath-Regular.otf` glyph metrics, while `matrix.rs` aligns column widths and tints positive, negative, and zero entries so algebraic structure (`K_f = C_fᵀ Q C_f`) reads visually alongside the geometry.
+
+![YAML stage deck parser, OpenType MATH layout engine, rounded 2D stage matrix (`[[2, -1], [-1, 2]]`), and overlap checker (1600x900 Session Viewer stage plate)](../../examples/stage/tutorials-foundations/03b-mathematics.png)
+
+Interactive stage source: [`03b-mathematics.yaml`](../../examples/stage/tutorials-foundations/03b-mathematics.yaml).
 
 ## Prerequisites and files
 
@@ -148,7 +154,7 @@ Create `src/app/mode.rs` to define `Frame`, `Mode<Host>` and `Loaded<Host>` so a
 
 ### Step 14 · `src/app/stage/tween.rs`
 
-`src/app/stage/tween.rs` samples `Tween<T>` analytically at `now` via quintic smootherstep $s(t) = t^3(10(1-t)^2 + 5(1-t)t + t^2)$ and retargets mid-flight from `self.at(now)` rather than accumulating per-frame deltas.
+`src/app/stage/tween.rs` samples `Tween<T>` analytically at `now` via quintic smootherstep `s(t) = t³(10(1 − t)² + 5(1 − t)t + t²)` and retargets mid-flight from `self.at(now)` rather than accumulating per-frame deltas.
 
 ```rust
 --8<-- "session_viewer/src/app/stage/tween.rs"

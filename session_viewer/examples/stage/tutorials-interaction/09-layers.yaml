@@ -1,30 +1,35 @@
-title: '9 · Layers, Panels and Instancing'
-split: 0.50
+title: '9 · Shared Mesh Definition and Instanced Placements'
+split: 0.52
+palette: {accent: '#3057b1'}
+grid: {center: [1.8, 1.0], size: 6, step: 1, z: 0}
+camera: {yaw: -48, pitch: 26, fit: [D0, D1, I1B, I2B, I3B]}
+points:
+  D0: [-1.2, -0.5, 0]
+  D1: [-0.2, 0.5, 1.2]
+  DC: [-0.7, 0.0, 0.6]
+  I1A: [1.2, -1.2, 0]
+  I1B: [2.2, -0.2, 1.2]
+  I1C: [1.7, -0.7, 0.6]
+  I2A: [1.6, 0.6, 0]
+  I2B: [2.6, 1.6, 1.6]
+  I2C: [2.1, 1.1, 0.8]
+  I3A: [3.2, -0.2, 0]
+  I3B: [4.2, 0.8, 1.2]
+  I3C: [3.7, 0.3, 0.6]
 slides:
-  - title: 'HIERARCHY, VIRTUALIZED UI AND INSTANCES'
+  - title: 'SHARED ARENA MESH AND INSTANCE ROWS'
     steps:
-      - say: 'Index document trees and element graphs once per load, virtualize visible panel rows, and share definitions.'
+      - say: 'An InstanceDefinition uploads its vertex and segment buffers once into the shared GPU arena.'
         add:
-          - {id: flow, drawing: [
-              {polygon: [[110, 145], [700, 145], [700, 229], [110, 229]], fill: cell, color: ink, width: 2.0},
-              {point: [110, 187], color: accent, size: 5.0},
-              {arrow: [[405, 233], [405, 306]], color: blue, width: 3.0},
-              {polygon: [[110, 310], [700, 310], [700, 394], [110, 394]], fill: blue_band, color: ink, width: 2.0},
-              {point: [110, 352], color: accent, size: 5.0},
-              {arrow: [[405, 398], [405, 471]], color: blue, width: 3.0},
-              {polygon: [[110, 475], [700, 475], [700, 559], [110, 559]], fill: yellow_light, color: ink, width: 2.0},
-              {point: [110, 517], color: accent, size: 5.0},
-              {arrow: [[405, 563], [405, 636]], color: blue, width: 3.0},
-              {polygon: [[110, 640], [700, 640], [700, 724], [110, 724]], fill: pink_band, color: ink, width: 2.0},
-              {point: [110, 682], color: accent, size: 5.0}
-            ], at: [0, 0]}
-          - {id: h0, tex: '\text{hierarchy.rs + layers.rs}', at: [136, 179], size: 21, color: ink}
-          - {id: s0, tex: '\text{tree nodes, type buckets, graph edges}', at: [136, 209], size: 16, color: navy}
-          - {id: h1, tex: '\text{ScrollArea::show_rows}', at: [136, 344], size: 21, color: ink}
-          - {id: s1, tex: '\text{O(visible rows) egui layout + Properties}', at: [136, 374], size: 16, color: navy}
-          - {id: h2, tex: '\text{APPEARANCE undo stack}', at: [136, 509], size: 21, color: ink}
-          - {id: s2, tex: '\text{hide, show, lock, RGB colour, alpha}', at: [136, 539], size: 16, color: navy}
-          - {id: h3, tex: '\text{scene_instances.rs + instanced.rs}', at: [136, 674], size: 21, color: ink}
-          - {id: s3, tex: '\text{1 definition walk -> N placed instances}', at: [136, 704], size: 16, color: navy}
-        eq: {tex: 'C_{\mathrm{panel}} = O(R_{\mathrm{visible}}),\qquad \mathrm{Key} = (\mathrm{doc},\,\mathrm{guid})', align: left}
-        text: '**Invariant:** Lamps, locks, colours and alphas key on (doc, guid) rather than transient row indices so rebuilds preserve state.'
+          - {id: defBox, cuboid: [D0, D1], color: ink, width: 2.2}
+          - {id: pDef, point: DC, color: ink, label: 'D_0'}
+        eq: '\mathbf{M}_{\mathrm{world}} = \mathbf{M}_{\mathrm{parent}} \cdot \mathbf{M}_{\mathrm{child}}, \qquad N_{\mathrm{verts}} = O(1)'
+      - say: 'Each InstanceRef writes only a 112-byte Instance row with its own matrix, layer visibility, and colour.'
+        add:
+          - {id: b1, cuboid: [I1A, I1B], color: '#3057b1', width: 2.0}
+          - {id: b2, cuboid: [I2A, I2B], color: pink, width: 2.0}
+          - {id: b3, cuboid: [I3A, I3B], color: green, width: 2.0}
+          - {id: r1, arrow: [DC, I1C], color: '#3057b1', width: 2.4, label: '\mathbf{M}_1'}
+          - {id: r2, arrow: [DC, I2C], color: pink, width: 2.4, label: '\mathbf{M}_2'}
+          - {id: r3, arrow: [DC, I3C], color: green, width: 2.4, label: '\mathbf{M}_3'}
+        text: 'The Layers panel virtualizes row layout; appearance edits make hide, lock, colour, and alpha undoable.'

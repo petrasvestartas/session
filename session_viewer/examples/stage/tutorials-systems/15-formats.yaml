@@ -1,30 +1,32 @@
-title: '15 · File Formats, Streaming and Live Reload'
-split: 0.50
+title: '15 · Bounded Wire Validation and Canonical .session Archives'
+split: 0.52
+palette: {accent: '#3057b1'}
+grid: {center: [1.8, 0.8], size: 6, step: 1, z: 0}
+camera: {yaw: -48, pitch: 26, fit: [A0, A1, B0, B1, C0, C1]}
+points:
+  A0: [0.0, 0.0, 0]
+  A1: [1.1, 1.1, 1.1]
+  B0: [1.8, 0.0, 0]
+  B1: [2.9, 1.1, 1.5]
+  C0: [3.6, 0.0, 0]
+  C1: [4.7, 1.1, 0.9]
+  CA: [0.55, 0.55, 1.1]
+  CB: [2.35, 0.55, 1.5]
+  CC: [4.15, 0.55, 0.9]
 slides:
-  - title: 'MANIFESTS, PROTOBUF AND ARCHIVES'
+  - title: '512 MIB WIRE VALIDATOR AND CANONICAL SAVE'
     steps:
-      - say: 'Validate untrusted protobuf wire bounds before allocation, yield every 25,000 objects, and persist .session state.'
+      - say: 'Wire validation checks protobuf field lengths and finite coordinates before allocating kernel structs.'
         add:
-          - {id: flow, drawing: [
-              {polygon: [[110, 145], [700, 145], [700, 229], [110, 229]], fill: cell, color: ink, width: 2.0},
-              {point: [110, 187], color: accent, size: 5.0},
-              {arrow: [[405, 233], [405, 306]], color: blue, width: 3.0},
-              {polygon: [[110, 310], [700, 310], [700, 394], [110, 394]], fill: blue_band, color: ink, width: 2.0},
-              {point: [110, 352], color: accent, size: 5.0},
-              {arrow: [[405, 398], [405, 471]], color: blue, width: 3.0},
-              {polygon: [[110, 475], [700, 475], [700, 559], [110, 559]], fill: yellow_light, color: ink, width: 2.0},
-              {point: [110, 517], color: accent, size: 5.0},
-              {arrow: [[405, 563], [405, 636]], color: blue, width: 3.0},
-              {polygon: [[110, 640], [700, 640], [700, 724], [110, 724]], fill: pink_band, color: ink, width: 2.0},
-              {point: [110, 682], color: accent, size: 5.0}
-            ], at: [0, 0]}
-          - {id: h0, tex: '\text{route.rs + manifest.rs}', at: [136, 179], size: 21, color: ink}
-          - {id: s0, tex: '\text{YAML / JSON / TOML identical semantics}', at: [136, 209], size: 16, color: navy}
-          - {id: h1, tex: '\text{fetch.rs + RangeGate (4 slots)}', at: [136, 344], size: 21, color: ink}
-          - {id: s1, tex: '\text{bounded HTTP Range reads + early hydrate}', at: [136, 374], size: 16, color: navy}
-          - {id: h2, tex: '\text{validate.rs + decode.rs}', at: [136, 509], size: 21, color: ink}
-          - {id: s2, tex: '\text{<= 512 MiB cap, 25k-object browser yields}', at: [136, 539], size: 16, color: navy}
-          - {id: h3, tex: '\text{session_io.rs + live.rs}', at: [136, 674], size: 21, color: ink}
-          - {id: s3, tex: '\text{SavedCamera/SavedView + ETag/SSE reload}', at: [136, 704], size: 16, color: navy}
-        eq: {tex: '\mathrm{File} = \text{SESSION-VIEWER} \mid \mathrm{Archive}(\mathrm{docs},\,\mathrm{Metadata})', align: left}
-        text: '**Invariant:** validate.rs checks declared array counts and finite coordinates before any session_rust allocation.'
+          - {id: doc0, cuboid: [A0, A1], color: '#3057b1', width: 2.4}
+          - {id: doc1, cuboid: [B0, B1], color: pink, width: 2.4}
+          - {id: doc2, cuboid: [C0, C1], color: green, width: 2.4}
+          - {id: l0, label: CA, tex: '\mathrm{doc}_0', color: '#3057b1'}
+          - {id: l1, label: CB, tex: '\mathrm{doc}_1', color: pink}
+          - {id: l2, label: CC, tex: '\mathrm{doc}_2', color: green}
+        eq: '\mathrm{len}(\mathrm{pb}) \le 512\,\mathrm{MiB}, \qquad \forall x_i \;(|x_i| < \infty)'
+      - say: 'Sorting mesh protobuf map entries (tags $3, 4, 17$) makes saved archives byte-identical across runs.'
+        code: |
+          .pb / .json    ->  validate.rs + 25k-object browser yield
+          .session       ->  SavedCamera + SavedView + Appearance + Undo
+          .obj           ->  Import & Export mesh interoperability

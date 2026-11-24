@@ -1,4 +1,4 @@
-name: 'Tutorials 1–5 · Browser, WebGPU, Shaders, Rows and Camera'
+title: 'Session Viewer · Foundations (Tutorials 1–5)'
 theme: light
 chapters:
   - 01-startup.yaml

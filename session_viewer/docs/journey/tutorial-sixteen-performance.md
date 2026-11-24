@@ -4,11 +4,17 @@
 
 Record rolling 600-frame `[p50, p95, p99]` CPU/GPU frame statistics, step `NavigationQuality` tiers (`0..=3`) only on sustained slow drags, time ink sub-passes via `PassTimer`, expose `?inspect=perf` + LoAF diagnostics, and verify pixel continuity in `selftest`.
 
-## Diagram
+![Live Performance Tier 0 HUD reporting frame p50/p95 and GPU PassTimer budgets](../screenshots/tutorials/t16-perf.png) ![Close-up inspection of timber cassette joinery and continuous BRep silhouette edges](../screenshots/tutorials/t16-oracle.png)
 
-![Rolling `FrameStats [p50, p95, p99]`, `NavigationQuality` hysteresis tiers, `PassTimer` GPU timestamps, and `selftest::oracle` edge-continuity harness (native wgpu readback of stage deck)](../../examples/stage/tutorials-systems/16-performance.png)
+**What we achieve:** Quantitative GPU `PassTimer` profiling, adaptive frame-budget tiering (`Tier 0..3`), zero idle redraws on bare pointer hover, and automated headless pixel/edge-continuity regression oracles.
 
-Stage deck source: [`16-performance.yaml`](../../examples/stage/tutorials-systems/16-performance.yaml).
+## How it works
+
+Hardware timestamp queries measure per-pass GPU milliseconds while `performance.rs` sheds secondary passes (GTAO, MSAA sample count, splat budget) only during heavy orbit spikes and restores full `Tier 0` quality on camera rest; `selftest.rs` locks stroke culling (`-66%` offscreen segment work) and BRep edge ID continuity in `cargo xtest`.
+
+![Rolling `FrameStats [p50, p95, p99]`, `NavigationQuality` hysteresis tiers, `PassTimer` GPU timestamps, and `selftest::oracle` edge-continuity harness (1600x900 Session Viewer stage plate)](../../examples/stage/tutorials-systems/16-performance.png)
+
+Interactive stage source: [`16-performance.yaml`](../../examples/stage/tutorials-systems/16-performance.yaml).
 
 ## Prerequisites and files
 

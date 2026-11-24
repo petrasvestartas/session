@@ -4,11 +4,17 @@
 
 Acquire a WebGPU adapter and bounded device (`256 MiB` storage buffer cap, first-error latch), configure MSAA, reverse-Z `Depth32Float`, and `Rg32Uint` pick targets, and present a paced white frame across viewport resizes.
 
-## Diagram
+![Desktop 1280x800 WebGPU 4x MSAA multi-part CAD viewport](../screenshots/tutorials/t02-desktop.png) ![Mobile 540x800 portrait viewport after live swapchain resize](../screenshots/tutorials/t02-mobile.png)
 
-![Adapter, device limit negotiation, first-error capture latch, render target attachments, and atomic frame pacing (native wgpu readback of stage deck)](../../examples/stage/tutorials-foundations/02-wgpu.png)
+**What we achieve:** An asynchronous WebGPU device and `4x` MSAA attachment pipeline that renders crisp CAD solids on desktop (`1280×800`) and survives live portrait resizes (`540×800`) without stretching, clipping, or zero-size surface panics.
 
-Stage deck source: [`02-wgpu.yaml`](../../examples/stage/tutorials-foundations/02-wgpu.yaml).
+## How it works
+
+Every frame draws into `4x` multisampled colour and `Depth32Float` targets (`1.0` at the near plane, `0.0` at infinity) and resolves into the single-sample swapchain texture. Whenever CSS size or `devicePixelRatio` changes, framebuffer pixel dimensions are clamped to `[1, max_texture_dimension_2d]` and `Targets` are rebuilt in lockstep with `Surface::configure`.
+
+![Adapter, device limit negotiation, first-error capture latch, render target attachments, and atomic frame pacing (1600x900 Session Viewer stage plate)](../../examples/stage/tutorials-foundations/02-wgpu.png)
+
+Interactive stage source: [`02-wgpu.yaml`](../../examples/stage/tutorials-foundations/02-wgpu.yaml).
 
 ## Prerequisites and files
 

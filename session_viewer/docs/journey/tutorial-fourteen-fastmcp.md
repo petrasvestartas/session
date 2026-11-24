@@ -4,11 +4,17 @@
 
 Unify typed JSON operations (`49` `Op` variants addressed by stable `(doc, guid)` `ObjectRef` and `(doc, name)` `LayerRef`) across `CommandHost`, browser `#[wasm_bindgen] execute_op` + `postMessage`, `session-viewer-cli serve --stdio`, and the Python `session_mcp` FastMCP server.
 
-## Diagram
+![Double-layer parabolic 3D space-truss with 35 joint blocks generated 100% through viewer_core::op::execute](../screenshots/tutorials/t14-mcp-truss.png)
 
-![Python `FastMCP` server (`31` tools, `3` resources), JSONL stdio / browser `postMessage`, `viewer_core::op::execute`, and 3-way byte-identical `.session` output (native wgpu readback of stage deck)](../../examples/stage/tutorials-systems/14-fastmcp.png)
+**What we achieve:** Full programmatic CAD automation via `session-viewer-cli serve --stdio` and the Python `session-mcp` FastMCP server—capable of building, colouring, inspecting, and rendering parametric 3D structures without opening a browser.
 
-Stage deck source: [`14-fastmcp.yaml`](../../examples/stage/tutorials-systems/14-fastmcp.yaml).
+## How it works
+
+A single `#[serde(tag = "op")]` `Op` schema (`viewer-core/src/op.rs`) dispatches identically across WASM `postMessage`, CLI `--op`/`--cmd`, and persistent JSONL stdio (`session-mcp`), guaranteeing bit-identical `.session` state across interactive and AI-agent workflows.
+
+![Python `FastMCP` server (`31` tools, `3` resources), JSONL stdio / browser `postMessage`, `viewer_core::op::execute`, and 3-way byte-identical `.session` output (1600x900 Session Viewer stage plate)](../../examples/stage/tutorials-systems/14-fastmcp.png)
+
+Interactive stage source: [`14-fastmcp.yaml`](../../examples/stage/tutorials-systems/14-fastmcp.yaml).
 
 ## Prerequisites and files
 

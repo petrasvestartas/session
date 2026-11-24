@@ -4,11 +4,17 @@
 
 Index per-document layer trees, type buckets, and element graphs once per load, render virtualized `Layers`, `Graph`, `Properties`, and numeric-entry `egui` panels, record undoable appearance edits, and instance shared definitions.
 
-## Diagram
+![Multi-layer timber cassette scene with Layers & Properties inspection panel](../screenshots/tutorials/t09-layers.png) ![4x3 rotated colonnade sharing GPU geometry buffers across placed FileDoc instances](../screenshots/tutorials/t09-instanced.png)
 
-![Document tree/graph indexing, `O(visible rows)` virtualized `egui` panels, `(doc, guid)` `APPEARANCE` undo, and shared definition instancing (native wgpu readback of stage deck)](../../examples/stage/tutorials-interaction/09-layers.png)
+**What we achieve:** Hierarchical layer visibility/lock/colour inheritance, live object property inspection, and lightweight `FileDoc` instancing across repeated assemblies.
 
-Stage deck source: [`09-layers.yaml`](../../examples/stage/tutorials-interaction/09-layers.yaml).
+## How it works
+
+`Tree` resolves parent-to-child visibility, lock masks, and display colour overrides into flat GPU row flags (`rows.rs`), while repeated `FileDoc` placements reuse shared vertex/segment ranges with distinct `place: Xform` world matrices.
+
+![Document tree/graph indexing, `O(visible rows)` virtualized `egui` panels, `(doc, guid)` `APPEARANCE` undo, and shared definition instancing (1600x900 Session Viewer stage plate)](../../examples/stage/tutorials-interaction/09-layers.png)
+
+Interactive stage source: [`09-layers.yaml`](../../examples/stage/tutorials-interaction/09-layers.yaml).
 
 ## Prerequisites and files
 

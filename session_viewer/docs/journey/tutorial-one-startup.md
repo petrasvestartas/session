@@ -4,11 +4,17 @@
 
 Create the two-crate Rust + WebAssembly workspace (`viewer-core` and `session_viewer`), configure Trunk's full-viewport `#canvas`, and start the `winit` browser event loop cleanly before asynchronous GPU initialization.
 
-## Diagram
+![Session Viewer startup shell with reference grid, RGB world axes, and Ready command dock](../screenshots/tutorials/t01-startup.png)
 
-![Startup sequence and workspace split from `index.html` and `Trunk.toml` through `run_web()` and `EventLoopProxy<Msg>` into `viewer-core` and `session_viewer` (native wgpu readback of stage deck)](../../examples/stage/tutorials-foundations/01-startup.png)
+**What we achieve:** A clean full-viewport `#canvas` shell splitting pure-Rust domain state (`viewer-core`) from browser/GPU glue (`session_viewer`), ready to mount the reference grid, world coordinate triad, and bottom command dock as soon as WebGPU initializes.
 
-Stage deck source: [`01-startup.yaml`](../../examples/stage/tutorials-foundations/01-startup.yaml).
+## How it works
+
+In the browser, `Trunk.toml` compiles the workspace to WebAssembly while `winit::EventLoop` must start synchronously before `navigator.gpu.requestAdapter()` resolves. Cloning `EventLoopProxy<Msg>` prior to `spawn_app` gives the async WebGPU task a typed channel back into the live window loop, keeping `viewer-core` completely independent of DOM and GPU handles.
+
+![Startup sequence and workspace split from `index.html` and `Trunk.toml` through `run_web()` and `EventLoopProxy<Msg>` into `viewer-core` and `session_viewer` (1600x900 Session Viewer stage plate)](../../examples/stage/tutorials-foundations/01-startup.png)
+
+Interactive stage source: [`01-startup.yaml`](../../examples/stage/tutorials-foundations/01-startup.yaml).
 
 ## Prerequisites and files
 
@@ -43,11 +49,9 @@ Owned files in build order (`14` files):
 
 ### Step 2 · `Cargo.lock`
 
-`Cargo.lock` pins exact dependency versions across the workspace (`wgpu 29.0.4`, `naga 29.0.4`, `winit 0.30.13`, `egui 0.34.3`, `glyphon 0.11.0`, `prost 0.14`) so every checkpoint and CI run resolves identical crate sources. Trap: upgrading `wgpu`, `egui-wgpu` or `glyphon` independently breaks `TextureFormat` and `RenderPass` lifetime compatibility.
+`Cargo.lock` records the resolved workspace dependency graph (`wgpu 29.0.4`, `naga 29.0.4`, `winit 0.30.13`, `egui 0.34.3`, `glyphon 0.11.0`, `prost 0.14`); Cargo always writes transitive platform crates (`ash` Vulkan, `objc2` macOS, `wayland-client`, `android-activity`) into one cross-platform lockfile, whereas `cargo build --target wasm32-unknown-unknown` compiles only the WebGPU/WebAssembly `cfg` subgraph into `.wasm`. Trap: upgrading `wgpu`, `egui-wgpu`, or `glyphon` independently breaks `TextureFormat` and `RenderPass` compatibility.
 
-```toml
---8<-- "session_viewer/Cargo.lock"
-```
+*Cargo generates `Cargo.lock` automatically from `Cargo.toml`; the auto-generated lockfile is omitted inline so this tutorial stays focused on handwritten source.*
 
 ### Step 3 · `.cargo/config.toml`
 

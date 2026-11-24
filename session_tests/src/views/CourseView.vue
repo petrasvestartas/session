@@ -99,7 +99,7 @@ const onClick = (e: MouseEvent) => {
 
 <style scoped>
 .course-page {
-  padding: 1.5rem 0 3rem;
+  padding: 1.75rem 0.5rem 3.5rem;
 }
 
 .missing {
@@ -115,40 +115,45 @@ const onClick = (e: MouseEvent) => {
 .doc {
   flex: 1 1 auto;
   min-width: 0;
-  max-width: 100%;
+  max-width: 1040px;
   overflow-wrap: anywhere;
-  line-height: 1.6;
+  line-height: 1.62;
   font-size: 15.5px;
 }
 
 .toc {
   position: sticky;
   top: 1rem;
-  flex: 0 0 230px;
+  flex: 0 0 236px;
   max-height: calc(100vh - 2rem);
   overflow-y: auto;
-  font-size: 13px;
-  line-height: 1.35;
+  font-size: 12.5px;
+  line-height: 1.38;
+  padding: 0.65rem 0.75rem;
+  border-left: 2px solid var(--rule);
   scrollbar-width: thin;
 }
 
 .toc-title {
   margin: 0 0 0.5rem;
-  color: var(--fg);
-  font-size: 12px;
+  color: var(--accent);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 11.5px;
 }
 
 .toc a,
 .toc-inline a {
   display: block;
-  padding: 0.18rem 0;
-  color: var(--fg);
+  padding: 0.2rem 0;
+  color: var(--muted);
   text-decoration: none;
 }
 
 .toc a:hover,
 .toc-inline a:hover {
-  color: var(--fg);
+  color: var(--accent);
 }
 
 .toc a.l3,
@@ -183,27 +188,38 @@ const onClick = (e: MouseEvent) => {
   display: flex;
   justify-content: space-between;
   gap: 1rem;
-  max-width: 100%;
+  max-width: 1040px;
   margin-top: 3rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--rule);
+  padding-top: 1.25rem;
+  border-top: 2px solid var(--rule);
 }
 
 .pager a {
   display: flex;
   flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.7rem 1rem;
+  border: 2px solid var(--rule);
+  background: var(--paper);
   color: var(--fg);
+  font-weight: 600;
   text-decoration: none;
   max-width: 48%;
+  transition: border-color 0.15s ease, background 0.15s ease;
 }
 
 .pager a span {
-  font-size: 12px;
-  color: var(--fg);
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--accent);
 }
 
 .pager a:hover {
-  text-decoration: underline;
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 6%, #ffffff);
+  text-decoration: none;
 }
 
 .pager .next {
@@ -213,24 +229,29 @@ const onClick = (e: MouseEvent) => {
 
 /* Rendered markdown (v-html): reach in with :deep. */
 .doc :deep(h1) {
-  font-size: 26px;
-  font-weight: 600;
-  line-height: 1.25;
-  margin: 0 0 1rem;
+  font-size: clamp(26px, 3vw, 34px);
+  font-weight: 800;
+  letter-spacing: -0.022em;
+  line-height: 1.18;
+  color: var(--fg);
+  margin: 0 0 1.1rem;
 }
 
 .doc :deep(h2) {
-  font-size: 19px;
-  font-weight: 600;
-  margin: 2.4rem 0 0.6rem;
-  padding-bottom: 0.3rem;
-  border-bottom: 1px solid var(--rule);
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.012em;
+  color: var(--fg);
+  margin: 2.3rem 0 0.65rem;
+  padding-bottom: 0.32rem;
+  border-bottom: 2px solid var(--rule);
 }
 
 .doc :deep(h3) {
   font-size: 16px;
-  font-weight: 600;
-  margin: 1.8rem 0 0.4rem;
+  font-weight: 700;
+  color: var(--accent);
+  margin: 1.8rem 0 0.45rem;
 }
 
 .doc :deep(h4) {
@@ -274,40 +295,50 @@ const onClick = (e: MouseEvent) => {
 }
 
 .doc :deep(a) {
-  color: var(--fg);
+  color: var(--accent);
+  font-weight: 600;
   text-decoration: underline;
-  text-decoration-color: #b8b8b8;
-  text-underline-offset: 2px;
+  text-decoration-color: color-mix(in srgb, var(--accent) 45%, transparent);
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 3px;
 }
 
 .doc :deep(a:hover) {
-  text-decoration-color: var(--fg);
+  color: var(--pink);
+  text-decoration-color: var(--pink);
 }
 
 .doc :deep(img) {
   max-width: 100%;
+  width: 100%;
   height: auto;
   display: block;
   margin: 1rem 0;
-  border-radius: 6px;
-  border: 1px solid var(--rule);
+  border: 1.5px solid var(--rule);
+  background: #ffffff;
+  box-shadow: 0 4px 16px rgba(20, 27, 61, 0.06);
 }
 
 .doc :deep(img[src*=".svg"]) {
   border: 0;
+  box-shadow: none;
 }
 
 @media (min-width: 680px) {
-  .doc :deep(p:has(> a:first-child > img):has(> a:nth-child(2) > img)) {
+  .doc :deep(p:has(> a:first-child > img):has(> a:nth-child(2) > img)),
+  .doc :deep(p:has(> img:first-child):has(> img:nth-child(2))) {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 0.75rem;
-    align-items: start;
-    margin: 1rem 0;
+    gap: 1rem;
+    align-items: stretch;
+    margin: 1.1rem 0;
   }
 
-  .doc :deep(p:has(> a:first-child > img):has(> a:nth-child(2) > img) img) {
+  .doc :deep(p:has(> a:first-child > img):has(> a:nth-child(2) > img) img),
+  .doc :deep(p:has(> img:first-child):has(> img:nth-child(2)) img) {
     margin: 0;
+    height: 100%;
+    object-fit: contain;
   }
 }
 

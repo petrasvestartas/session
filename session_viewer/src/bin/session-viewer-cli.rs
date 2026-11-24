@@ -30,12 +30,13 @@ mod cli {
             Some("serve") => run_serve(&args[1..]),
             Some("schema") => run_schema(&args[1..]),
             Some("render-stage") => run_render_stage(&args[1..]),
+            Some("render-tutorials") => run_render_tutorials(&args[1..]),
             Some("-h" | "--help" | "help") | None => {
                 print_usage();
                 Ok(())
             }
             Some(other) => Err(format!(
-                "unknown subcommand `{other}` (expected `exec`, `serve`, `schema`, or `render-stage`)"
+                "unknown subcommand `{other}` (expected `exec`, `serve`, `schema`, `render-stage`, or `render-tutorials`)"
             )),
         }
     }
@@ -46,8 +47,18 @@ mod cli {
              session-viewer-cli exec [<scene>...] [--open <path>] [--op <json>]... [--cmd <line>]... [--save <out.session>] [--export-obj <out.obj>] [--render <out.ppm>] [--width <W>] [--height <H>]\n  \
              session-viewer-cli serve [--stdio] [--open <path>]\n  \
              session-viewer-cli schema [--markdown]\n  \
-             session-viewer-cli render-stage <deck_dir>... [--width <W>] [--height <H>]"
+             session-viewer-cli render-stage <deck_dir>... [--width <W>] [--height <H>]\n  \
+             session-viewer-cli render-tutorials <out_dir>"
         );
+    }
+
+    fn run_render_tutorials(args: &[String]) -> Result<(), String> {
+        let dir = args.first().ok_or("render-tutorials requires <out_dir>")?;
+        let written = session_viewer::selftest::render_tutorial_gallery(dir)?;
+        for path in written {
+            println!("{path}");
+        }
+        Ok(())
     }
 
     fn run_render_stage(args: &[String]) -> Result<(), String> {

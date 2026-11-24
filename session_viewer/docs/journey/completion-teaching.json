@@ -6,7 +6,7 @@
     "explanation": {
       "page": "journey/tutorial-one-startup.md",
       "heading": "### Step 2 \u00b7 `Cargo.lock`",
-      "paragraph": "`Cargo.lock` pins exact dependency versions across the workspace (`wgpu 29.0.4`, `naga 29.0.4`, `winit 0.30.13`, `egui 0.34.3`, `glyphon 0.11.0`, `prost 0.14`) so every checkpoint and CI run resolves identical crate sources. Trap: upgrading `wgpu`, `egui-wgpu` or `glyphon` independently breaks `TextureFormat` and `RenderPass` lifetime compatibility."
+      "paragraph": "`Cargo.lock` records the resolved workspace dependency graph (`wgpu 29.0.4`, `naga 29.0.4`, `winit 0.30.13`, `egui 0.34.3`, `glyphon 0.11.0`, `prost 0.14`); Cargo always writes transitive platform crates (`ash` Vulkan, `objc2` macOS, `wayland-client`, `android-activity`) into one cross-platform lockfile, whereas `cargo build --target wasm32-unknown-unknown` compiles only the WebGPU/WebAssembly `cfg` subgraph into `.wasm`. Trap: upgrading `wgpu`, `egui-wgpu`, or `glyphon` independently breaks `TextureFormat` and `RenderPass` compatibility."
     }
   },
   {
@@ -532,7 +532,7 @@
   {
     "path": "src/app/stage/spatial.rs",
     "owner": "application",
-    "sourceSha256": "81e4b62a2f921f870273f59493821c15cea3db1eb3fd34371fee35fe2868c537",
+    "sourceSha256": "8359455fe128ec15478d8c011056823842bd33bc0fa41eb51b12b44a13b3e8f6",
     "explanation": {
       "page": "journey/tutorial-seventeen-application.md",
       "heading": "### Step 4 \u00b7 `src/app/stage/spatial.rs`",
@@ -566,7 +566,7 @@
     "explanation": {
       "page": "journey/tutorial-three-mathematics.md",
       "heading": "### Step 14 \u00b7 `src/app/stage/tween.rs`",
-      "paragraph": "`src/app/stage/tween.rs` samples `Tween<T>` analytically at `now` via quintic smootherstep $s(t) = t^3(10(1-t)^2 + 5(1-t)t + t^2)$ and retargets mid-flight from `self.at(now)` rather than accumulating per-frame deltas."
+      "paragraph": "`src/app/stage/tween.rs` samples `Tween<T>` analytically at `now` via quintic smootherstep `s(t) = t\u00b3(10(1 \u2212 t)\u00b2 + 5(1 \u2212 t)t + t\u00b2)` and retargets mid-flight from `self.at(now)` rather than accumulating per-frame deltas."
     }
   },
   {
@@ -722,7 +722,7 @@
   {
     "path": "src/bin/session-viewer-cli.rs",
     "owner": "application",
-    "sourceSha256": "0dcaadb23593231ff44acac3e5583c1da9d89c5c1189261f4e3b24b45f7d559a",
+    "sourceSha256": "89373560ed72bfc1f3f70b633f10bd49d9b410cbd220d9409741621f84cef0e0",
     "explanation": {
       "page": "journey/tutorial-thirteen-commands.md",
       "heading": "### Step 16 \u00b7 `src/bin/session-viewer-cli.rs`",
@@ -1512,7 +1512,7 @@
   {
     "path": "src/selftest.rs",
     "owner": "application",
-    "sourceSha256": "ced9d1f945f0e03fb3dd5bc941d791a85e76746275be22ecc73c7eded8902a93",
+    "sourceSha256": "1e8f40853089e6b6faad13b3ed61dbe4b0321fcb7781573ff327c1239e8e28f6",
     "explanation": {
       "page": "journey/tutorial-sixteen-performance.md",
       "heading": "### Step 7 \u00b7 `src/selftest.rs`",
@@ -1676,7 +1676,7 @@
     "explanation": {
       "page": "journey/tutorial-three-rendering.md",
       "heading": "### Step 10 \u00b7 `src/shaders/normals.wgsl`",
-      "paragraph": "2. **`src/shaders/normals.wgsl`** transforms normals by the cofactor inverse-transpose matrix (preserving perpendicularity under non-uniform scale and flipping sign when $\\det(\\mathbf{M}) < 0$) and decodes octahedral `16`-bit and `32`-bit normals while reserving `0x80008000` for absent normals."
+      "paragraph": "2. **`src/shaders/normals.wgsl`** transforms normals by the cofactor inverse-transpose matrix (preserving perpendicularity under non-uniform scale and flipping sign when `det(M) < 0`) and decodes octahedral `16`-bit and `32`-bit normals while reserving `0x80008000` for absent normals."
     }
   },
   {

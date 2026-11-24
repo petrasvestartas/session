@@ -4,11 +4,17 @@
 
 Switch seamlessly between shaded CAD edges, dilated coverage-mask silhouettes (`Outline`), horizon-integrated GTAO clay shading (`Arctic`), toggleable element `Attributes`, and shaped `glyphon` world-plane, screen-plate, and outlined text.
 
-## Diagram
+![Selected timber bay with Jump-Flood silhouette outline and rounded 3D glyphon labels](../screenshots/tutorials/t10-outline-text.png) ![Arctic display mode isolating pure white clay geometry with multi-slice GTAO contact shadows](../screenshots/tutorials/t10-arctic.png)
 
-![Coverage-mask silhouette dilation, GTAO horizon-slice `ssao.wgsl` + spatial composite, and `glyphon` 3D/2D text lanes (native wgpu readback of stage deck)](../../examples/stage/tutorials-interaction/10-display.png)
+**What we achieve:** Four studio display presets (`Shaded`, `Wireframe`, `Arctic`, `Ghost`), Ground-Truth Ambient Occlusion (`GTAO`), Jump-Flood selection silhouettes, and crisp `glyphon` 3D scene annotations.
 
-Stage deck source: [`10-display.yaml`](../../examples/stage/tutorials-interaction/10-display.yaml).
+## How it works
+
+GTAO integrates horizon angles `(θ_1, θ_2)` in half-resolution linear view-space depth and filters bilaterally across creases; Jump-Flood (`jfa.wgsl`) propagates selected-mask seeds at strides `N/2, …, 1` for constant-cost outlines; and `glyphon` snaps projected 3D `Nameplate` and `Anchor` labels to physical pixels.
+
+![Coverage-mask silhouette dilation, GTAO horizon-slice `ssao.wgsl` + spatial composite, and `glyphon` 3D/2D text lanes (1600x900 Session Viewer stage plate)](../../examples/stage/tutorials-interaction/10-display.png)
+
+Interactive stage source: [`10-display.yaml`](../../examples/stage/tutorials-interaction/10-display.yaml).
 
 ## Prerequisites and files
 

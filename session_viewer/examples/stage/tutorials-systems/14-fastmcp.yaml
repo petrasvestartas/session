@@ -1,30 +1,31 @@
-title: '14 · Shared Op API and FastMCP Server'
-split: 0.50
+title: '14 · Shared Serde Op Layer and FastMCP Parity'
+split: 0.52
+palette: {accent: '#3057b1'}
+grid: {center: [1.5, 1.5], size: 5, step: 1, z: 0}
+camera: {yaw: -46, pitch: 26, fit: [S0, S1, S2, S3, TOP]}
+points:
+  S0: [0, 0, 0]
+  S1: [3.0, 0, 0]
+  S2: [3.0, 3.0, 0]
+  S3: [0, 3.0, 0]
+  TOP: [1.5, 1.5, 2.2]
 slides:
-  - title: 'TYPED JSON OPS, WASM AND MCP'
+  - title: '49-VARIANT OP ENUM AND FASTMCP PARITY'
     steps:
-      - say: 'Route command verbs, browser execute_op, native CLI and Python FastMCP tools through viewer_core::op::execute.'
+      - say: 'Agents, scripts, and browser messages address every object by stable $(\mathrm{doc}, \mathrm{guid})$ identity.'
         add:
-          - {id: flow, drawing: [
-              {polygon: [[110, 145], [700, 145], [700, 229], [110, 229]], fill: cell, color: ink, width: 2.0},
-              {point: [110, 187], color: accent, size: 5.0},
-              {arrow: [[405, 233], [405, 306]], color: blue, width: 3.0},
-              {polygon: [[110, 310], [700, 310], [700, 394], [110, 394]], fill: blue_band, color: ink, width: 2.0},
-              {point: [110, 352], color: accent, size: 5.0},
-              {arrow: [[405, 398], [405, 471]], color: blue, width: 3.0},
-              {polygon: [[110, 475], [700, 475], [700, 559], [110, 559]], fill: yellow_light, color: ink, width: 2.0},
-              {point: [110, 517], color: accent, size: 5.0},
-              {arrow: [[405, 563], [405, 636]], color: blue, width: 3.0},
-              {polygon: [[110, 640], [700, 640], [700, 724], [110, 724]], fill: pink_band, color: ink, width: 2.0},
-              {point: [110, 682], color: accent, size: 5.0}
-            ], at: [0, 0]}
-          - {id: h0, tex: '\text{FastMCP (session_mcp)}', at: [136, 179], size: 21, color: ink}
-          - {id: s0, tex: '\text{31 @mcp.tool() + 3 scene:// resources}', at: [136, 209], size: 16, color: navy}
-          - {id: h1, tex: '\text{JSONL stdio / postMessage}', at: [136, 344], size: 21, color: ink}
-          - {id: s1, tex: '\text{ViewerCliClient + wasm execute_op}', at: [136, 374], size: 16, color: navy}
-          - {id: h2, tex: '\text{viewer_core::op::execute}', at: [136, 509], size: 21, color: ink}
-          - {id: s2, tex: '\text{49 serde Op variants, (doc, guid) refs}', at: [136, 539], size: 16, color: navy}
-          - {id: h3, tex: '\text{Canonical .session output}', at: [136, 674], size: 21, color: ink}
-          - {id: s3, tex: '\text{4,076 ops/s + 3-way byte-exact parity}', at: [136, 704], size: 16, color: navy}
-        eq: {tex: '\mathrm{bytes}(\mathrm{cmd}) \equiv \mathrm{bytes}(\mathrm{cli}) \equiv \mathrm{bytes}(\mathrm{mcp})', align: left}
-        text: '**Invariant:** Sorting Mesh protobuf map<uint64, ...> keys in session_io guarantees byte-identical .session saves across processes.'
+          - {id: p0, point: S0, color: '#3057b1', label: 'n_0'}
+          - {id: p1, point: S1, color: '#3057b1', label: 'n_1'}
+          - {id: p2, point: S2, color: '#3057b1', label: 'n_2'}
+          - {id: p3, point: S3, color: '#3057b1', label: 'n_3'}
+          - {id: pT, point: TOP, color: pink, label: 'n_{\mathrm{apex}}'}
+          - {id: e0, line: [S0, TOP], color: '#3057b1', width: 3.0}
+          - {id: e1, line: [S1, TOP], color: '#3057b1', width: 3.0}
+          - {id: e2, line: [S2, TOP], color: '#3057b1', width: 3.0}
+          - {id: e3, line: [S3, TOP], color: '#3057b1', width: 3.0}
+          - {id: ring, polyline: [S0, S1, S2, S3, S0], color: ink, width: 2.2}
+        eq: '\mathrm{bytes}_{\mathrm{cmd}} \equiv \mathrm{bytes}_{\mathrm{cli}} \equiv \mathrm{bytes}_{\mathrm{mcp}}'
+      - say: 'Python FastMCP exposes 31 typed tools and 3 scene resources over JSON-line standard I/O.'
+        code: |
+          viewer_core::op::execute  ->  4,076 ops/s headless
+          session_mcp (FastMCP)     ->  zero duplicate Python geometry math

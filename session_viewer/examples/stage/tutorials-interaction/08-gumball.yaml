@@ -1,30 +1,37 @@
-title: '8 · Screen-Constant Gumball Widget'
-split: 0.50
+title: '8 · 13-Handle 3D Gumball and Ray-Axis Projection'
+split: 0.52
+palette: {accent: '#3057b1'}
+grid: {center: [0, 0], size: 5, step: 1, z: -0.8}
+camera: {yaw: -45, pitch: 26, fit: [C, GX, GY, GZ, RO, R1]}
+points:
+  C: [0, 0, 0]
+  GX: [2.2, 0, 0]
+  GY: [0, 2.2, 0]
+  GZ: [0, 0, 2.2]
+  PXY0: [0.55, 0.55, 0]
+  PXY1: [1.05, 0.55, 0]
+  PXY2: [1.05, 1.05, 0]
+  PXY3: [0.55, 1.05, 0]
+  RO: [-1.4, -1.5, 1.9]
+  R1: [1.45, 0.15, 0.1]
+  PROJ: [1.45, 0, 0]
+  B0: [-0.7, -0.5, -0.5]
+  B1: [0.7, 0.5, 0.5]
 slides:
-  - title: 'GIZMO HANDLES AND DRAG LAWS'
+  - title: 'WORLD, OBJECT AND CPLANE BASIS HANDLES'
     steps:
-      - say: 'Project 13 analytic handles at constant CSS pixel size, hit-test on CPU, and commit one transaction on release.'
+      - say: 'The gumball places 3 axis arrows, 3 planar squares, 3 arcs, and 3 scale boxes at pivot $\mathbf{c}$.'
         add:
-          - {id: flow, drawing: [
-              {polygon: [[110, 145], [700, 145], [700, 229], [110, 229]], fill: cell, color: ink, width: 2.0},
-              {point: [110, 187], color: accent, size: 5.0},
-              {arrow: [[405, 233], [405, 306]], color: blue, width: 3.0},
-              {polygon: [[110, 310], [700, 310], [700, 394], [110, 394]], fill: blue_band, color: ink, width: 2.0},
-              {point: [110, 352], color: accent, size: 5.0},
-              {arrow: [[405, 398], [405, 471]], color: blue, width: 3.0},
-              {polygon: [[110, 475], [700, 475], [700, 559], [110, 559]], fill: yellow_light, color: ink, width: 2.0},
-              {point: [110, 517], color: accent, size: 5.0},
-              {arrow: [[405, 563], [405, 636]], color: blue, width: 3.0},
-              {polygon: [[110, 640], [700, 640], [700, 724], [110, 724]], fill: pink_band, color: ink, width: 2.0},
-              {point: [110, 682], color: accent, size: 5.0}
-            ], at: [0, 0]}
-          - {id: h0, tex: '\text{Gizmo frame (World/Object/CPlane)}', at: [136, 179], size: 21, color: ink}
-          - {id: s0, tex: '\text{3 arrows, 3 arcs, 3 planes, 4 scale balls}', at: [136, 209], size: 16, color: navy}
-          - {id: h1, tex: '\text{CPU 2D aperture hit test}', at: [136, 344], size: 21, color: ink}
-          - {id: s1, tex: '\text{8 CSS px grab radius, instant press}', at: [136, 374], size: 16, color: navy}
-          - {id: h2, tex: '\text{widget.rs + widget.wgsl}', at: [136, 509], size: 21, color: ink}
-          - {id: s2, tex: '\text{private DepthMode::Always overlay}', at: [136, 539], size: 16, color: navy}
-          - {id: h3, tex: '\text{state/drag.rs axis/plane ray}', at: [136, 674], size: 21, color: ink}
-          - {id: s3, tex: '\text{live GPU preview -> single release commit}', at: [136, 704], size: 16, color: navy}
-        eq: {tex: 's_{\mathrm{world/px}} = \frac{2\,d\tan(\theta_y / 2)}{H_{\mathrm{px}}}', align: left}
-        text: '**Invariant:** GrowBuf::truncate rewinds the trailing gumball row in O(1) when appending documents without re-uploading the scene.'
+          - {id: body, cuboid: [B0, B1], color: grey, width: 1.4}
+          - {id: axX, arrow: [C, GX], color: pink, width: 3.6, label: '\mathbf{e}_x'}
+          - {id: axY, arrow: [C, GY], color: green, width: 3.6, label: '\mathbf{e}_y'}
+          - {id: axZ, arrow: [C, GZ], color: '#3057b1', width: 3.6, label: '\mathbf{e}_z'}
+          - {id: sqXY, polyline: [PXY0, PXY1, PXY2, PXY3, PXY0], color: '#3057b1', width: 2.4}
+          - {id: pC, point: C, color: ink, label: '\mathbf{c}'}
+        eq: '\Delta\mathbf{t} = (s - s_0)\,\mathbf{e}_x, \qquad s = \operatorname{arg}\min_s \|\mathbf{c} + s\,\mathbf{e}_x - (\mathbf{o} + t\,\mathbf{d})\|'
+      - say: 'Dragging updates GPU instance matrices in $O(1)$ per frame and commits one undo step on release.'
+        add:
+          - {id: dragRay, arrow: [RO, R1], color: yellow, width: 2.8, dash: true}
+          - {id: dropSeg, line: [R1, PROJ], color: ink, width: 2.0, dash: true}
+          - {id: pProj, point: PROJ, color: pink, label: 's\,\mathbf{e}_x'}
+        text: 'World, Object, and CPlane modes rotate $(\mathbf{e}_x, \mathbf{e}_y, \mathbf{e}_z)$ while preserving constant pixel size.'

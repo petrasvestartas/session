@@ -1,30 +1,33 @@
-title: '1 · Startup and Workspace Split'
-split: 0.50
+title: '1 · CSS Viewport to Physical Framebuffer'
+split: 0.52
+palette: {accent: '#3057b1'}
+camera: {view: top, fit: [LO, HI]}
+points:
+  LO: [-0.9, -0.9, 0]
+  HI: [7.1, 4.7, 0]
+  O: [0, 0, 0]
+  CX: [3.2, 0, 0]
+  CY: [0, 2.0, 0]
+  CC: [3.2, 2.0, 0]
+  PX: [6.0, 0, 0]
+  PY: [0, 3.75, 0]
+  PC: [6.0, 3.75, 0]
 slides:
-  - title: 'PROJECT AND BROWSER START'
+  - title: 'VIEWPORT SCALING AND WORKSPACE SPLIT'
     steps:
-      - say: 'Trunk compiles the workspace to WebAssembly and hands the canvas to winit before async GPU setup.'
+      - say: 'The browser reports the canvas element in CSS layout pixels $(W_{\mathrm{css}}, H_{\mathrm{css}})$.'
         add:
-          - {id: flow, drawing: [
-              {polygon: [[110, 145], [700, 145], [700, 229], [110, 229]], fill: cell, color: ink, width: 2.0},
-              {point: [110, 187], color: accent, size: 5.0},
-              {arrow: [[405, 233], [405, 306]], color: blue, width: 3.0},
-              {polygon: [[110, 310], [700, 310], [700, 394], [110, 394]], fill: blue_band, color: ink, width: 2.0},
-              {point: [110, 352], color: accent, size: 5.0},
-              {arrow: [[405, 398], [405, 471]], color: blue, width: 3.0},
-              {polygon: [[110, 475], [700, 475], [700, 559], [110, 559]], fill: yellow_light, color: ink, width: 2.0},
-              {point: [110, 517], color: accent, size: 5.0},
-              {arrow: [[405, 563], [405, 636]], color: blue, width: 3.0},
-              {polygon: [[110, 640], [700, 640], [700, 724], [110, 724]], fill: pink_band, color: ink, width: 2.0},
-              {point: [110, 682], color: accent, size: 5.0}
-            ], at: [0, 0]}
-          - {id: h0, tex: '\text{index.html + Trunk.toml}', at: [136, 179], size: 21, color: ink}
-          - {id: s0, tex: '\text{full-viewport #canvas, data-wasm-opt=0}', at: [136, 209], size: 16, color: navy}
-          - {id: h1, tex: '\text{wasm_bindgen(start) -> run_web}', at: [136, 344], size: 21, color: ink}
-          - {id: s1, tex: '\text{src/lib.rs + app/launch.rs}', at: [136, 374], size: 16, color: navy}
-          - {id: h2, tex: '\text{EventLoopProxy<Msg>}', at: [136, 509], size: 21, color: ink}
-          - {id: s2, tex: '\text{cloned before async GPU handshake}', at: [136, 539], size: 16, color: navy}
-          - {id: h3, tex: '\text{viewer-core + session_viewer}', at: [136, 674], size: 21, color: ink}
-          - {id: s3, tex: '\text{zero UI/GPU crates in viewer-core}', at: [136, 704], size: 16, color: navy}
-        eq: {tex: 'W_{\mathrm{px}} = W_{\mathrm{css}} \cdot \mathrm{dpr},\qquad H_{\mathrm{px}} = H_{\mathrm{css}} \cdot \mathrm{dpr}', align: left}
-        text: '**Invariant:** viewer-core links zero wgpu, winit, egui or web-sys crates; .cargo/config.toml defaults builds to wasm32.'
+          - {id: css, polyline: [O, CX, CC, CY, O], color: '#3057b1', width: 2.8}
+          - {id: pO, point: O, color: ink, label: 'O'}
+          - {id: pCC, point: CC, color: '#3057b1', label: 'W_{\mathrm{css}}\times H_{\mathrm{css}}'}
+        eq: 'W_{\mathrm{px}} = \mathrm{round}(W_{\mathrm{css}} \cdot \mathrm{dpr}), \qquad H_{\mathrm{px}} = \mathrm{round}(H_{\mathrm{css}} \cdot \mathrm{dpr})'
+      - say: 'Multiplying by $\mathrm{dpr}$ expands the WebGPU backing texture without stretching CSS layout.'
+        add:
+          - {id: phys, polyline: [CX, PX, PC, PY, CY], color: pink, width: 3.2}
+          - {id: physBase, polyline: [CY, O, CX], color: '#3057b1', width: 2.8}
+          - {id: scaleRay, arrow: [CC, PC], color: pink, width: 3.0, label: '\times\,\mathrm{dpr}'}
+          - {id: pPC, point: PC, color: pink, label: 'W_{\mathrm{px}}\times H_{\mathrm{px}}'}
+        code: |
+          viewer-core     # pure Rust: scene, camera, walk, command, op
+          session_viewer  # winit + wgpu + egui + wasm_bindgen shell
+        text: 'Clone the typed EventLoopProxy before spawn_app so async WebGPU init wakes the event loop.'

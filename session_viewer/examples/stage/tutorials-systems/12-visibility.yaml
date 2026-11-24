@@ -1,30 +1,36 @@
-title: '12 · Tile Visibility, Transparency and Caps'
-split: 0.50
+title: '12 · Section Plane Winding Cap and Tile Depth Bounds'
+split: 0.52
+palette: {accent: '#3057b1'}
+grid: {center: [0, 0], size: 5, step: 1, z: -1.0}
+camera: {yaw: -44, pitch: 25, fit: [B0, B1, PL0, PL2, N_TIP]}
+points:
+  B0: [-1.4, -1.1, -1.0]
+  B1: [1.4, 1.1, 1.4]
+  PL0: [-1.9, -1.6, 0.25]
+  PL1: [1.9, -1.6, 0.25]
+  PL2: [1.9, 1.6, 0.25]
+  PL3: [-1.9, 1.6, 0.25]
+  CAP0: [-1.4, -1.1, 0.25]
+  CAP1: [1.4, -1.1, 0.25]
+  CAP2: [1.4, 1.1, 0.25]
+  CAP3: [-1.4, 1.1, 0.25]
+  PC: [0, 0, 0.25]
+  N_TIP: [0, 0, 1.65]
 slides:
-  - title: 'PREFIX-SUM TILES AND SECTION PLANES'
+  - title: 'STENCILED SECTION CAPS AND TILE DEPTH'
     steps:
-      - say: 'Bin projected triangles into screen tiles with atomicMax depth bounds, test stroke ink, and stencil-cap section cuts.'
+      - say: 'Up to 6 clipping planes discard fragments with $\mathbf{n}_k\cdot\mathbf{x} + d_k < 0$ across all solid and ink lanes.'
         add:
-          - {id: flow, drawing: [
-              {polygon: [[110, 145], [700, 145], [700, 229], [110, 229]], fill: cell, color: ink, width: 2.0},
-              {point: [110, 187], color: accent, size: 5.0},
-              {arrow: [[405, 233], [405, 306]], color: blue, width: 3.0},
-              {polygon: [[110, 310], [700, 310], [700, 394], [110, 394]], fill: blue_band, color: ink, width: 2.0},
-              {point: [110, 352], color: accent, size: 5.0},
-              {arrow: [[405, 398], [405, 471]], color: blue, width: 3.0},
-              {polygon: [[110, 475], [700, 475], [700, 559], [110, 559]], fill: yellow_light, color: ink, width: 2.0},
-              {point: [110, 517], color: accent, size: 5.0},
-              {arrow: [[405, 563], [405, 636]], color: blue, width: 3.0},
-              {polygon: [[110, 640], [700, 640], [700, 724], [110, 724]], fill: pink_band, color: ink, width: 2.0},
-              {point: [110, 682], color: accent, size: 5.0}
-            ], at: [0, 0]}
-          - {id: h0, tex: '\text{project_triangles.wgsl}', at: [136, 179], size: 21, color: ink}
-          - {id: s0, tex: '\text{screen AABB + per-tile atomicMax depth}', at: [136, 209], size: 16, color: navy}
-          - {id: h1, tex: '\text{scan_triangle_tiles.wgsl}', at: [136, 344], size: 21, color: ink}
-          - {id: s1, tex: '\text{prefix-sum offsets into shared pool}', at: [136, 374], size: 16, color: navy}
-          - {id: h2, tex: '\text{ink_visibility.wgsl}', at: [136, 509], size: 21, color: ink}
-          - {id: s2, tex: '\text{O(1) front early-out + vec4 load + 128 cap}', at: [136, 539], size: 16, color: navy}
-          - {id: h3, tex: '\text{clip.wgsl + cap.wgsl + Alpha}', at: [136, 674], size: 21, color: ink}
-          - {id: s3, tex: '\text{6 half-spaces, stencil caps, blended alpha}', at: [136, 704], size: 16, color: navy}
-        eq: {tex: 'd_i(\mathbf{p}) = \mathbf{n}_i \cdot \mathbf{p} - w_i < 0 \implies \mathrm{discard}', align: left}
-        text: '**Invariant:** Per-tile atomicMax depth cut resting ink time on view_local.yaml from 17.40 ms to 7.06 ms (-59.4%).'
+          - {id: box, cuboid: [B0, B1], color: grey, width: 1.5}
+          - {id: plane, polyline: [PL0, PL1, PL2, PL3, PL0], color: '#3057b1', width: 2.2, dash: true}
+          - {id: nVec, arrow: [PC, N_TIP], color: '#3057b1', width: 3.4, label: '\mathbf{n}'}
+        eq: '\mathbf{n}_k \cdot \mathbf{x} + d_k \ge 0, \qquad k \in \{0,\dots,5\}'
+      - say: 'Counting back-face minus front-face crossings behind the plane fills watertight hatched cross-sections.'
+        add:
+          - {id: capLoop, polyline: [CAP0, CAP1, CAP2, CAP3, CAP0], color: pink, width: 3.6}
+          - {id: h1, line: [CAP0, CAP2], color: pink, width: 1.8}
+          - {id: h2, line: [CAP1, CAP3], color: pink, width: 1.8}
+          - {id: pC, point: PC, color: pink, label: '\Delta w \neq 0'}
+        code: |
+          triangle_tiles: 16x16 px bins + atomicMax(z_front) early-out (-64% orbit ms)
+          Alpha 0..1:     per-object translucency on faces and strokes

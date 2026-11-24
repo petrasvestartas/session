@@ -4,11 +4,17 @@
 
 Mount the decoupled `command_dock` widget (`Commands` trait, inline completion suffix, option chips, 200-line history, mobile IME proxy) and ship the native `session-viewer-cli` binary (`exec`, `serve --stdio`, `schema`, `render-stage`).
 
-## Diagram
+![Bottom command dock showing Mode/CPlane option chips, Tab completion, and 86 registered verbs](../screenshots/tutorials/t13-dock.png)
 
-![Mobile IME `agent.rs` + `command_dock::CommandLine` (`Commands` trait) and native `session-viewer-cli` converging on `CommandHost` (native wgpu readback of stage deck)](../../examples/stage/tutorials-systems/13-commands.png)
+**What we achieve:** A Rhino-style modeless command line (`command_dock`) and 86-verb `CommandHost` vocabulary unifying keyboard entry, clickable option chips, viewport picks, and `session-viewer-cli` batch scripts.
 
-Stage deck source: [`13-commands.yaml`](../../examples/stage/tutorials-systems/13-commands.yaml).
+## How it works
+
+Every verb declares a static `CommandSpec` (`name`, `aliases`, `options`, `run`) inside `viewer-core/src/command/verbs/`, driving prefix Tab-completion and option pills in the browser while executing identical validation and undo snapshots in `HeadlessHost`.
+
+![Mobile IME `agent.rs` + `command_dock::CommandLine` (`Commands` trait) and native `session-viewer-cli` converging on `CommandHost` (1600x900 Session Viewer stage plate)](../../examples/stage/tutorials-systems/13-commands.png)
+
+Interactive stage source: [`13-commands.yaml`](../../examples/stage/tutorials-systems/13-commands.yaml).
 
 ## Prerequisites and files
 

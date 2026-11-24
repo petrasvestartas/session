@@ -1,30 +1,44 @@
-title: '2 · WebGPU Device and Targets'
-split: 0.50
+title: '2 · Exploded Framebuffer Attachment Stack'
+split: 0.52
+palette: {accent: '#3057b1'}
+grid: {center: [0, 0], size: 6, step: 1, z: -0.6}
+camera: {yaw: -46, pitch: 26, fit: [A0, A2, D2, P2, RAY0, RAY1]}
+points:
+  A0: [-1.8, -1.1, 2.4]
+  A1: [1.8, -1.1, 2.4]
+  A2: [1.8, 1.1, 2.4]
+  A3: [-1.8, 1.1, 2.4]
+  D0: [-1.8, -1.1, 1.0]
+  D1: [1.8, -1.1, 1.0]
+  D2: [1.8, 1.1, 1.0]
+  D3: [-1.8, 1.1, 1.0]
+  P0: [-1.8, -1.1, -0.4]
+  P1: [1.8, -1.1, -0.4]
+  P2: [1.8, 1.1, -0.4]
+  P3: [-1.8, 1.1, -0.4]
+  RAY0: [0.0, 0.0, 3.3]
+  RAY1: [0.0, 0.0, -0.95]
+  H_MSAA: [0.0, 0.0, 2.4]
+  H_DEPTH: [0.0, 0.0, 1.0]
+  H_PICK: [0.0, 0.0, -0.4]
 slides:
-  - title: 'WGPU INITIALIZATION'
+  - title: 'TARGETS: 4X MSAA, REVERSED DEPTH AND PICK IDS'
     steps:
-      - say: 'Request adapter and 256 MiB storage limits, latch the first GPU error, and allocate frame targets.'
+      - say: 'Every resized frame owns three aligned GPU attachment planes.'
         add:
-          - {id: flow, drawing: [
-              {polygon: [[110, 145], [700, 145], [700, 229], [110, 229]], fill: blue_band, color: ink, width: 2.0},
-              {point: [110, 187], color: accent, size: 5.0},
-              {arrow: [[405, 233], [405, 306]], color: blue, width: 3.0},
-              {polygon: [[110, 310], [700, 310], [700, 394], [110, 394]], fill: pink_band, color: ink, width: 2.0},
-              {point: [110, 352], color: accent, size: 5.0},
-              {arrow: [[405, 398], [405, 471]], color: blue, width: 3.0},
-              {polygon: [[110, 475], [700, 475], [700, 559], [110, 559]], fill: yellow_light, color: ink, width: 2.0},
-              {point: [110, 517], color: accent, size: 5.0},
-              {arrow: [[405, 563], [405, 636]], color: blue, width: 3.0},
-              {polygon: [[110, 640], [700, 640], [700, 724], [110, 724]], fill: cell, color: ink, width: 2.0},
-              {point: [110, 682], color: accent, size: 5.0}
-            ], at: [0, 0]}
-          - {id: h0, tex: '\text{request_adapter -> request_device}', at: [136, 179], size: 21, color: ink}
-          - {id: s0, tex: '\text{engine/gpu/device.rs · 256 MiB cap}', at: [136, 209], size: 16, color: navy}
-          - {id: h1, tex: '\text{UncapturedError -> Arc<Mutex>}', at: [136, 344], size: 21, color: ink}
-          - {id: s1, tex: '\text{first GPU fault latched once}', at: [136, 374], size: 16, color: navy}
-          - {id: h2, tex: '\text{Targets (MSAA + Depth32Float)}', at: [136, 509], size: 21, color: ink}
-          - {id: s2, tex: '\text{reverse-Z clear 0.0 + Rg32Uint IDs}', at: [136, 539], size: 16, color: navy}
-          - {id: h3, tex: '\text{FramePacing -> Queue::submit}', at: [136, 674], size: 21, color: ink}
-          - {id: s3, tex: '\text{atomic in-flight gate (1..=4)}', at: [136, 704], size: 16, color: navy}
-        eq: {tex: 'z_{\mathrm{ndc}} \in [0, 1],\qquad z_{\mathrm{near}} = 1,\qquad z_{\mathrm{far}} = 0', align: left}
-        text: '**Invariant:** Desktop IntegratedGpu defaults to 1x MSAA while mobile and discrete adapters negotiate 4x MSAA.'
+          - {id: msaa, polyline: [A0, A1, A2, A3, A0], color: '#3057b1', width: 3.0}
+          - {id: depth, polyline: [D0, D1, D2, D3, D0], color: pink, width: 3.0}
+          - {id: pick, polyline: [P0, P1, P2, P3, P0], color: ink, width: 2.6, dash: true}
+          - {id: lM, label: A2, tex: '\mathrm{MSAA}\;4\times', color: '#3057b1'}
+          - {id: lD, label: D2, tex: '\mathrm{Depth32Float}', color: pink}
+          - {id: lP, label: P2, tex: '\mathrm{Rg32Uint}', color: ink}
+        eq: 'z_{\mathrm{clear}} = 0.0, \qquad z_{\mathrm{near}} = 1.0 \longrightarrow z_{\mathrm{far}} = 0.0'
+      - say: 'One pixel ray pierces $4\times$ MSAA colour, reversed-Z depth ($1\to 0$), and $(\mathrm{row}, \mathrm{sub})$ pick IDs.'
+        add:
+          - {id: ray, arrow: [RAY0, RAY1], color: '#3057b1', width: 3.2}
+          - {id: h0, point: H_MSAA, color: '#3057b1'}
+          - {id: h1, point: H_DEPTH, color: pink}
+          - {id: h2, point: H_PICK, color: ink}
+        code: |
+          max_storage_buffer_binding_size = 256 MiB
+          on_uncaptured_error -> Arc<Mutex<Option<String>>>  # latches first fault

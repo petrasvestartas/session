@@ -4,11 +4,17 @@
 
 Composite tessellated `egui` 2D primitives and font/image textures over the 3D WebGPU colour attachment using `LoadOp::Load` without disturbing scene depth or leaking GPU textures.
 
-## Diagram
+![Standalone 2D egui pink triangle and Command prompt composited over WebGPU](../screenshots/tutorials/t03a-painting.png)
 
-![`egui::Context` tessellation, atlas texture delta upload, vertex/index buffer preparation, and `LoadOp::Load` overlay pass (native wgpu readback of stage deck)](../../examples/stage/tutorials-foundations/03a-painting.png)
+**What we achieve:** Crisp 2D vector painting and font-atlas compositing (`egui` over `wgpu`) on top of the 3D swapchain, forming the foundation for HUD panels, command bars, and stage overlays.
 
-Stage deck source: [`03a-painting.yaml`](../../examples/stage/tutorials-foundations/03a-painting.yaml).
+## How it works
+
+Immediate-mode UI emits logical-point `ClippedPrimitive` meshes plus an alpha coverage atlas (`textures_delta`). Multiplying logical coordinates by `pixels_per_point` produces physical scissor rectangles and crisp glyph stems, uploaded before the single-sample UI render pass and freed only after `queue.submit` completes.
+
+![`egui::Context` tessellation, atlas texture delta upload, vertex/index buffer preparation, and `LoadOp::Load` overlay pass (1600x900 Session Viewer stage plate)](../../examples/stage/tutorials-foundations/03a-painting.png)
+
+Interactive stage source: [`03a-painting.yaml`](../../examples/stage/tutorials-foundations/03a-painting.yaml).
 
 ## Prerequisites and files
 

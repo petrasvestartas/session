@@ -1,31 +1,48 @@
-title: '3.2 · 2D Mathematics Stage'
+title: '3.2 · OpenType MATH Axis and Sign-Coloured Matrices'
 split: 0.50
+palette: {accent: '#3057b1'}
+camera: {view: top, fit: [LO, HI]}
+points:
+  LO: [-0.4, -1.35, 0]
+  HI: [6.0, 3.3, 0]
+  BL0: [0.2, 0, 0]
+  BL1: [5.4, 0, 0]
+  AX0: [0.2, 0.9, 0]
+  AX1: [5.4, 0.9, 0]
+  R0: [1.4, 0.9, 0]
+  R1: [4.2, 0.9, 0]
+  MID_AX: [2.8, 0.9, 0]
+  NUM0: [1.85, 1.35, 0]
+  NUM1: [3.75, 1.35, 0]
+  NUM2: [3.75, 2.55, 0]
+  NUM3: [1.85, 2.55, 0]
+  NUM_C: [2.8, 1.95, 0]
+  DEN0: [1.85, -0.85, 0]
+  DEN1: [3.75, -0.85, 0]
+  DEN2: [3.75, 0.35, 0]
+  DEN3: [1.85, 0.35, 0]
+  DEN_C: [2.8, -0.25, 0]
 slides:
-  - title: 'OPENTYPE MATH AND STAGE MATRICES'
+  - title: 'OPENTYPE MATH AXIS AND ROUNDED MATRICES'
     steps:
-      - say: 'Parse YAML slides, lay out OpenType MATH boxes on a 1600x900 frame, and draw rounded sign-coloured matrices.'
+      - say: 'Fraction rules, $+$, and $=$ align on the OpenType MATH axis $y_{\mathrm{axis}}$ above the text baseline.'
         add:
-          - {id: flow, drawing: [
-              {polygon: [[110, 145], [700, 145], [700, 229], [110, 229]], fill: cell, color: ink, width: 2.0},
-              {point: [110, 187], color: accent, size: 5.0},
-              {arrow: [[405, 233], [405, 306]], color: blue, width: 3.0},
-              {polygon: [[110, 310], [700, 310], [700, 394], [110, 394]], fill: blue_band, color: ink, width: 2.0},
-              {point: [110, 352], color: accent, size: 5.0},
-              {arrow: [[405, 398], [405, 471]], color: blue, width: 3.0},
-              {polygon: [[110, 475], [700, 475], [700, 559], [110, 559]], fill: pink_band, color: ink, width: 2.0},
-              {point: [110, 517], color: accent, size: 5.0},
-              {arrow: [[405, 563], [405, 636]], color: blue, width: 3.0},
-              {polygon: [[110, 640], [700, 640], [700, 724], [110, 724]], fill: yellow_light, color: ink, width: 2.0},
-              {point: [110, 682], color: accent, size: 5.0}
-            ], at: [0, 0]}
-          - {id: h0, tex: '\text{deck.rs YAML -> Stage}', at: [136, 179], size: 21, color: ink}
-          - {id: s0, tex: '\text{slides, steps, blocks, palette}', at: [136, 209], size: 16, color: navy}
-          - {id: h1, tex: '\text{font.rs + tex.rs boxes}', at: [136, 344], size: 21, color: ink}
-          - {id: s1, tex: '\text{OpenType MATH axis, fractions, radicals}', at: [136, 374], size: 16, color: navy}
-          - {id: h2, tex: '\text{matrix.rs + flat.rs}', at: [136, 509], size: 21, color: ink}
-          - {id: s2, tex: '\text{rounded cells + 24x0.30 arrowheads}', at: [136, 539], size: 16, color: navy}
-          - {id: h3, tex: '\text{morph.rs + check.rs}', at: [136, 674], size: 21, color: ink}
-          - {id: s3, tex: '\text{symbol travel + zero-overlap audit}', at: [136, 704], size: 16, color: navy}
-        matrix: {id: M, rows: [[2, -1], [-1, 2]]}
-        eq: {tex: 'y_{\mathrm{rule}} = -y_{\mathrm{axis}},\qquad F_{\mathrm{stage}} = 1600 \times 900', align: left}
-        text: '**Invariant:** Positive matrix entries tint pink, negative entries tint blue, and 2D stage matrices stay independent of 3D scene lanes.'
+          - {id: baseLine, line: [BL0, BL1], color: grey, width: 1.8, dash: true}
+          - {id: axisLine, line: [AX0, AX1], color: '#3057b1', width: 2.0, dash: true}
+          - {id: fracRule, line: [R0, R1], color: ink, width: 3.6}
+          - {id: numBox, polyline: [NUM0, NUM1, NUM2, NUM3, NUM0], color: pink, width: 2.4}
+          - {id: denBox, polyline: [DEN0, DEN1, DEN2, DEN3, DEN0], color: '#3057b1', width: 2.4}
+          - {id: pAxis, arrow: [BL0, AX0], color: '#3057b1', width: 2.8, label: 'y_{\mathrm{axis}}'}
+          - {id: upGap, arrow: [MID_AX, NUM_C], color: pink, width: 2.4}
+          - {id: dnGap, arrow: [MID_AX, DEN_C], color: '#3057b1', width: 2.4}
+          - {id: pNum, point: NUM_C, color: pink, label: 'f_k'}
+          - {id: pDen, point: DEN_C, color: '#3057b1', label: '\ell_k'}
+        eq: '\mathbf{D}_N\,\mathbf{x}_N = \mathbf{p} - \mathbf{D}_F\,\mathbf{x}_F, \qquad q_k = \frac{f_k}{\ell_k}'
+      - say: '2D stage matrices tint positive entries pink and negative entries blue with zero 3D scene coupling.'
+        matrix:
+          id: DN
+          signs: true
+          rows:
+            - ['4', '-1', '-1']
+            - ['-1', '4', '-1']
+            - ['-1', '-1', '4']
