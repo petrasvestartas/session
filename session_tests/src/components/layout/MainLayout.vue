@@ -95,13 +95,12 @@
         <router-link to="/course" class="nav-button" :class="{ active: currentRoute === 'course' }">Viewer course</router-link>
 
         <div v-if="currentRoute === 'course'" class="suites-section course-section">
-          <template v-for="(t, idx) in courseTutorials" :key="t.id">
+          <template v-for="t in courseTutorials" :key="t.id">
             <router-link
               :to="'/course/' + t.slug"
               class="suite-button course-link"
-              :style="{ '--c': rampColor(idx, courseTutorials.length) }"
               :class="{ active: t.slug === currentSlug }">
-              <span class="course-dot">{{ t.number }}</span>
+              <span class="course-num">{{ t.number }}</span>
               <span class="course-label">{{ t.title }}</span>
             </router-link>
             <div v-if="t.chapters.length" class="chapter-nav">
@@ -110,7 +109,6 @@
                 :key="c.slug"
                 :to="'/course/' + c.slug"
                 class="suite-button course-link chapter-nav-link"
-                :style="{ '--c': rampColor(idx, courseTutorials.length) }"
                 :class="{ active: c.slug === currentSlug }">
                 <span class="course-subnum">{{ c.number }}</span>
                 <span class="course-label">{{ c.title }}</span>
@@ -205,13 +203,6 @@ onBeforeUnmount(() => {
 });
 
 const currentSlug = computed(() => (route.path.startsWith('/course/') ? route.path.slice('/course/'.length) : ''));
-
-const CAS_RAMP = ['#3057b1', '#5552bb', '#7750c1', '#934abd', '#ae4bb2', '#c54b9f', '#dc4b8d'];
-const rampColor = (idx: number, total: number): string => {
-  if (total <= 1) return CAS_RAMP[0];
-  const pos = (idx / (total - 1)) * (CAS_RAMP.length - 1);
-  return CAS_RAMP[Math.round(pos)] ?? CAS_RAMP[0];
-};
 
 // Install page sub-sections — each install_sections/*.md is its own page via ?section=.
 const activeInstall = computed(() => {
@@ -572,60 +563,52 @@ watch(
 }
 
 .course-section {
-  padding-left: 0.65rem;
-  gap: 1px;
+  padding-left: 1rem;
+  gap: 0;
 }
 
 .course-link {
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.28rem 0.55rem;
+  align-items: baseline;
+  gap: 0.45rem;
+  padding: 0.26rem 0.55rem;
   line-height: 1.3;
-  color: var(--muted);
-  border-left: 3px solid transparent;
+  color: var(--fg);
+  border-left: 2px solid transparent;
   text-decoration: none;
 }
 
 .course-link:hover {
-  color: var(--fg);
+  color: var(--accent);
   text-decoration: none;
-  background: color-mix(in srgb, var(--c, var(--accent)) 6%, transparent);
 }
 
 .course-link.active {
-  color: var(--fg);
-  font-weight: 600;
-  border-left-color: var(--c, var(--accent));
-  background: color-mix(in srgb, var(--c, var(--accent)) 9%, transparent);
+  color: var(--accent);
+  font-weight: 500;
+  border-left-color: var(--accent);
+  background: transparent;
 }
 
-.course-dot {
-  width: 21px;
-  height: 21px;
-  flex: 0 0 21px;
-  display: grid;
-  place-items: center;
-  font-size: 11px;
-  font-weight: 700;
+.course-num {
+  font-size: 12.5px;
+  color: var(--muted);
   font-variant-numeric: tabular-nums;
-  border-radius: 50%;
-  border: 2px solid var(--c, var(--accent));
-  color: var(--c, var(--accent));
-  background: #ffffff;
+  min-width: 1.25rem;
 }
 
-.course-link.active .course-dot {
-  background: var(--c, var(--accent));
-  color: #ffffff;
+.course-link.active .course-num,
+.course-link:hover .course-num,
+.course-link.active .course-subnum,
+.course-link:hover .course-subnum {
+  color: var(--accent);
 }
 
 .course-subnum {
-  font-size: 11.5px;
-  font-weight: 700;
+  font-size: 12px;
   font-variant-numeric: tabular-nums;
-  color: var(--c, var(--accent));
-  min-width: 1.35rem;
+  color: var(--muted);
+  min-width: 1.45rem;
 }
 
 .course-label {
@@ -635,13 +618,14 @@ watch(
 .chapter-nav {
   display: flex;
   flex-direction: column;
-  padding-left: 1.5rem;
+  padding-left: 1.35rem;
 }
 
 .chapter-nav-link {
   font-size: 12.5px;
-  padding-top: 0.2rem;
-  padding-bottom: 0.2rem;
+  color: var(--muted);
+  padding-top: 0.18rem;
+  padding-bottom: 0.18rem;
 }
 
 .functions-section {

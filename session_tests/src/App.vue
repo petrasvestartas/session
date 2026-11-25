@@ -28,26 +28,27 @@ const buildLabel = builtAt.replace('T', ' ').replace(/\.\d{3}Z$/, ' UTC')
   pointer-events: none;
 }
 
-/* BRG CAS palette & typography: Open Sans, deep navy ink on white paper, blue->pink chapter ramp. */
+/* Wood documentation palette: white paper, 1px hairlines, wood green for active/links, square corners. */
 :root {
-  --fg: #141b3d;
-  --ink: #141b3d;
+  --fg: #16181a;
+  --ink: #16181a;
   --paper: #ffffff;
-  --muted: #6f7290;
-  --faint: #9295b0;
-  --rule: #dcd9e4;
-  --wash: #f2f1f5;
-  --hover: #f2f1f5;
-  --accent: #3057b1;
-  --pink: #dc4b8d;
-  --code-bg: #f6f6fa;
+  --muted: #5d5f58;
+  --faint: #a3a59d;
+  --rule: #dadad6;
+  --wash: #f5f6f6;
+  --hover: #f5f6f6;
+  --accent: #007c55;
+  --mark: #99cbbb;
+  --code-bg: #f5f6f6;
   --fail: #b42318;
-  --sans: 'Open Sans', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --sans: Outfit, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
-* {
+*, *::before, *::after {
   box-sizing: border-box;
+  border-radius: 0;
 }
 
 html {

@@ -1,19 +1,19 @@
 <template>
-  <div class="course-page" :style="{ '--c': chapterColor }">
+  <div class="course-page">
     <p v-if="missing" class="missing">
       There is no course page named "{{ slug }}". <router-link to="/course">All lessons</router-link>
     </p>
     <template v-else-if="page">
       <div v-if="activeMeta" class="tut-banner">
         <div class="tut-banner-left">
-          <span class="tut-eyebrow">ETH Zürich · Block Research Group · Tutorial {{ activeMeta.number }} of 17</span>
+          <span class="tut-eyebrow">Tutorial {{ activeMeta.number }} of 17</span>
           <span v-if="activeMeta.fileCount" class="tut-count">{{ activeMeta.fileCount }} source files</span>
         </div>
         <div class="tut-actions">
           <button
             v-if="longCodeCount > 0"
             type="button"
-            class="cas-btn"
+            class="wood-btn"
             @click="toggleAllCode">
             {{ allExpanded ? 'Collapse long files' : `Expand all ${longCodeCount} long files` }}
           </button>
@@ -44,7 +44,7 @@
 
       <dialog ref="plateDialog" class="presentation-dialog" @click.self="closePlateModal">
         <header class="presentation-header">
-          <span class="presentation-kicker">{{ lightboxAlt || `Tutorial ${activeMeta?.number} · Screenshot` }}</span>
+          <span class="presentation-kicker">{{ lightboxAlt || `Tutorial ${activeMeta?.number}` }}</span>
           <div class="presentation-controls">
             <a v-if="lightboxSrc" :href="lightboxSrc" target="_blank" rel="noopener" class="presentation-ext">Raw PNG ↗</a>
             <button type="button" class="presentation-close" aria-label="Close figure preview" @click="closePlateModal">×</button>
@@ -77,13 +77,6 @@ const allExpanded = ref(false);
 const slug = computed(() => String(route.params.slug || ''));
 const meta = computed(() => pages[slug.value]);
 
-const CAS_RAMP = ['#3057b1', '#5552bb', '#7750c1', '#934abd', '#ae4bb2', '#c54b9f', '#dc4b8d'];
-const rampColor = (idx: number, total: number): string => {
-  if (total <= 1) return CAS_RAMP[0];
-  const pos = (idx / (total - 1)) * (CAS_RAMP.length - 1);
-  return CAS_RAMP[Math.round(pos)] ?? CAS_RAMP[0];
-};
-
 const activeLookup = computed(() => {
   for (let i = 0; i < tutorials.length; i++) {
     const t = tutorials[i];
@@ -95,9 +88,6 @@ const activeLookup = computed(() => {
 });
 
 const activeMeta = computed(() => activeLookup.value?.item ?? null);
-const chapterColor = computed(() =>
-  activeLookup.value ? rampColor(activeLookup.value.idx, tutorials.length) : '#3057b1',
-);
 
 const openPlateModal = (src: string, alt: string) => {
   lightboxSrc.value = src;
@@ -250,7 +240,7 @@ const onClick = (e: MouseEvent) => {
 
 <style scoped>
 .course-page {
-  padding: 1.5rem 0.5rem 3.5rem;
+  padding: 1.25rem 0.75rem 4rem;
 }
 
 .missing {
@@ -264,34 +254,27 @@ const onClick = (e: MouseEvent) => {
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
-  padding: 0.55rem 0 0.75rem;
-  margin-bottom: 1.15rem;
-  border-top: 4px solid var(--c, var(--accent));
+  padding: 0 0 0.65rem;
+  margin-bottom: 1.25rem;
   border-bottom: 1px solid var(--rule);
 }
 
 .tut-banner-left {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
-  gap: 0.65rem;
+  align-items: baseline;
+  gap: 0.75rem;
 }
 
 .tut-eyebrow {
-  font-size: 12.5px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  color: var(--c, var(--accent));
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--fg);
 }
 
 .tut-count {
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 13px;
   color: var(--muted);
-  background: var(--wash);
-  padding: 0.1rem 0.5rem;
-  border: 1px solid var(--rule);
 }
 
 .tut-actions {
@@ -300,41 +283,29 @@ const onClick = (e: MouseEvent) => {
   gap: 0.5rem;
 }
 
-.cas-btn {
+.wood-btn {
   display: inline-flex;
   align-items: center;
-  padding: 0.34rem 0.75rem;
+  padding: 0.3rem 0.75rem;
   font-family: inherit;
-  font-size: 12.5px;
-  font-weight: 700;
-  border: 1.5px solid var(--c, var(--accent));
+  font-size: 13px;
+  font-weight: 400;
+  border: 1px solid var(--rule);
   background: #ffffff;
-  color: var(--c, var(--accent));
+  color: var(--fg);
   text-decoration: none;
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  transition: border-color 0.14s ease, color 0.14s ease;
 }
 
-.cas-btn:hover {
-  background: color-mix(in srgb, var(--c, var(--accent)) 10%, #ffffff);
-  color: var(--c, var(--accent));
-  text-decoration: none;
-}
-
-.cas-btn.primary {
-  background: var(--c, var(--accent));
-  color: #ffffff;
-}
-
-.cas-btn.primary:hover {
-  background: var(--fg);
-  border-color: var(--fg);
-  color: #ffffff;
+.wood-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 .columns {
   display: flex;
-  gap: 2.5rem;
+  gap: 2.75rem;
   align-items: flex-start;
 }
 
@@ -343,48 +314,50 @@ const onClick = (e: MouseEvent) => {
   min-width: 0;
   max-width: 1040px;
   overflow-wrap: anywhere;
-  line-height: 1.62;
+  line-height: 1.65;
   font-size: 15.5px;
 }
 
 .toc {
   position: sticky;
   top: 1rem;
-  flex: 0 0 236px;
+  flex: 0 0 232px;
   max-height: calc(100vh - 2rem);
   overflow-y: auto;
-  font-size: 12.5px;
-  line-height: 1.38;
-  padding: 0.65rem 0.75rem;
-  border-left: 2px solid var(--c, var(--rule));
-  scrollbar-width: thin;
+  font-size: 13px;
+  line-height: 1.42;
+  padding: 0.25rem 0 0.25rem 0.85rem;
+  border-left: 2px solid var(--rule);
+  scrollbar-width: none;
+}
+
+.toc::-webkit-scrollbar {
+  display: none;
 }
 
 .toc-title {
-  margin: 0 0 0.5rem;
-  color: var(--c, var(--accent));
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  font-size: 11.5px;
+  margin: 0 0 0.45rem;
+  color: var(--muted);
+  font-weight: 400;
+  font-size: 13px;
 }
 
 .toc a,
 .toc-inline a {
   display: block;
-  padding: 0.2rem 0;
+  padding: 0.18rem 0;
   color: var(--muted);
   text-decoration: none;
 }
 
 .toc a:hover,
 .toc-inline a:hover {
-  color: var(--c, var(--accent));
+  color: var(--accent);
 }
 
 .toc a.l3,
 .toc-inline a.l3 {
-  padding-left: 0.9rem;
+  padding-left: 0.85rem;
 }
 
 .toc-inline {
@@ -398,7 +371,7 @@ const onClick = (e: MouseEvent) => {
 .toc-inline summary {
   cursor: pointer;
   color: var(--fg);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 @media (max-width: 1100px) {
@@ -416,9 +389,9 @@ const onClick = (e: MouseEvent) => {
   justify-content: space-between;
   gap: 1rem;
   max-width: 1040px;
-  margin-top: 3rem;
+  margin-top: 3.5rem;
   padding-top: 1.25rem;
-  border-top: 2px solid var(--rule);
+  border-top: 1px solid var(--rule);
 }
 
 .pager a {
@@ -426,26 +399,25 @@ const onClick = (e: MouseEvent) => {
   flex-direction: column;
   gap: 0.15rem;
   padding: 0.7rem 1rem;
-  border: 2px solid var(--rule);
-  background: var(--paper);
+  border: 1px solid var(--rule);
+  background: #ffffff;
   color: var(--fg);
-  font-weight: 600;
+  font-weight: 500;
   text-decoration: none;
   max-width: 48%;
-  transition: border-color 0.15s ease, background 0.15s ease;
+  transition: border-color 0.14s ease, transform 0.14s ease, box-shadow 0.14s ease;
 }
 
 .pager a span {
-  font-size: 11.5px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--c, var(--accent));
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--muted);
 }
 
 .pager a:hover {
-  border-color: var(--c, var(--accent));
-  background: color-mix(in srgb, var(--c, var(--accent)) 6%, #ffffff);
+  border-color: var(--ink);
+  box-shadow: 4px 4px 0 var(--accent), 4px 4px 0 1.5px var(--ink);
+  transform: translate(-3px, -3px);
   text-decoration: none;
 }
 
@@ -454,17 +426,17 @@ const onClick = (e: MouseEvent) => {
   text-align: right;
 }
 
-/* Fullscreen BRG CAS Plate Lightbox Dialog */
+/* Lightbox Dialog */
 .presentation-dialog {
   inset: 0;
   width: min(96vw, 1680px);
   height: min(92vh, 980px);
   margin: auto;
   padding: 0;
-  border: 2px solid var(--c, var(--accent));
+  border: 1px solid var(--ink);
   background: #ffffff;
   color: var(--fg);
-  box-shadow: 0 24px 64px rgba(20, 27, 61, 0.35);
+  box-shadow: 0 10px 30px rgba(22, 24, 26, 0.16);
 }
 
 .presentation-dialog[open] {
@@ -473,8 +445,7 @@ const onClick = (e: MouseEvent) => {
 }
 
 .presentation-dialog::backdrop {
-  background: rgba(20, 27, 61, 0.8);
-  backdrop-filter: blur(4px);
+  background: rgba(22, 24, 26, 0.55);
 }
 
 .presentation-header {
@@ -485,19 +456,19 @@ const onClick = (e: MouseEvent) => {
   justify-content: space-between;
   gap: 0.75rem;
   padding: 0.55rem 1rem;
-  border-bottom: 2px solid var(--c, var(--accent));
+  border-bottom: 1px solid var(--rule);
   background: #ffffff;
 }
 
 .presentation-kicker {
-  font-size: 13.5px;
-  font-weight: 700;
+  font-size: 14px;
+  font-weight: 500;
   color: var(--fg);
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 58vw;
+  max-width: 65vw;
 }
 
 .presentation-controls {
@@ -506,15 +477,10 @@ const onClick = (e: MouseEvent) => {
   gap: 0.65rem;
 }
 
-.modal-stage-btn {
-  padding: 0.25rem 0.65rem;
-  font-size: 12px;
-}
-
 .presentation-ext {
-  font-size: 12.5px;
-  font-weight: 700;
-  color: var(--c, var(--accent));
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--accent);
   text-decoration: none;
 }
 
@@ -523,26 +489,25 @@ const onClick = (e: MouseEvent) => {
 }
 
 .presentation-close {
-  width: 34px;
-  height: 34px;
+  width: 32px;
+  height: 32px;
   padding: 0;
-  border: 1.5px solid var(--rule);
+  border: 1px solid var(--rule);
   background: #ffffff;
   color: var(--fg);
-  font-size: 22px;
+  font-size: 20px;
   line-height: 1;
   cursor: pointer;
 }
 
 .presentation-close:hover {
-  border-color: var(--fg);
-  background: var(--wash);
+  border-color: var(--ink);
 }
 
 .presentation-stage {
   flex: 1 1 auto;
   min-height: 0;
-  padding: 1rem;
+  padding: 1.25rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -559,36 +524,36 @@ const onClick = (e: MouseEvent) => {
   display: block;
 }
 
-/* Rendered markdown (v-html): reach in with :deep. */
+/* Rendered markdown (v-html) — wood.css typography & hairlines. */
 .doc :deep(h1) {
-  font-size: clamp(26px, 3vw, 35px);
-  font-weight: 800;
-  letter-spacing: -0.022em;
-  line-height: 1.16;
+  font-size: clamp(28px, 3vw, 38px);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
   color: var(--fg);
-  margin: 0 0 1.1rem;
+  margin: 0 0 1.2rem;
 }
 
 .doc :deep(h2) {
-  font-size: 20px;
-  font-weight: 700;
-  letter-spacing: -0.012em;
+  font-size: 23px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
   color: var(--fg);
-  margin: 2.35rem 0 0.7rem;
-  padding-bottom: 0.32rem;
-  border-bottom: 2px solid var(--rule);
+  margin: 2.6rem 0 0.75rem;
+  padding: 0;
+  border-bottom: none;
 }
 
 .doc :deep(h3) {
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--c, var(--accent));
-  margin: 1.85rem 0 0.45rem;
+  font-size: 17.5px;
+  font-weight: 500;
+  color: var(--fg);
+  margin: 1.9rem 0 0.45rem;
 }
 
 .doc :deep(h4) {
-  font-size: 15px;
-  font-weight: 600;
+  font-size: 15.5px;
+  font-weight: 500;
   margin: 1.4rem 0 0.4rem;
 }
 
@@ -602,7 +567,7 @@ const onClick = (e: MouseEvent) => {
 
 .doc :deep(.anchor) {
   margin-left: 0.4rem;
-  color: #c8c8c8;
+  color: var(--faint);
   text-decoration: none;
   font-weight: 400;
   visibility: hidden;
@@ -619,25 +584,25 @@ const onClick = (e: MouseEvent) => {
 .doc :deep(p),
 .doc :deep(ul),
 .doc :deep(ol) {
-  margin: 0.7rem 0;
+  margin: 0.75rem 0;
 }
 
 .doc :deep(li) {
-  margin: 0.2rem 0;
+  margin: 0.22rem 0;
 }
 
 .doc :deep(a) {
-  color: var(--c, var(--accent));
-  font-weight: 600;
-  text-decoration: underline;
-  text-decoration-color: color-mix(in srgb, var(--c, var(--accent)) 45%, transparent);
-  text-decoration-thickness: 1.5px;
-  text-underline-offset: 3px;
+  color: var(--accent);
+  font-weight: 500;
+  text-decoration: none;
 }
 
 .doc :deep(a:hover) {
-  color: var(--pink);
-  text-decoration-color: var(--pink);
+  color: var(--accent);
+  text-decoration: underline;
+  text-decoration-color: var(--mark);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
 }
 
 .doc :deep(img) {
@@ -645,38 +610,29 @@ const onClick = (e: MouseEvent) => {
   width: 100%;
   height: auto;
   display: block;
-  margin: 0.9rem 0;
-  border: 1.5px solid var(--rule);
+  margin: 1rem 0;
+  border: 1px solid var(--rule);
   background: #ffffff;
-  box-shadow: 0 3px 12px rgba(20, 27, 61, 0.05);
+  box-shadow: none;
   cursor: zoom-in;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .doc :deep(img:not([src*="explain-"])) {
   max-height: 310px;
   width: auto;
+  padding: 10px;
   object-fit: contain;
 }
 
 .doc :deep(img[src*="explain-"]) {
   border: 0;
-  box-shadow: none;
-  margin: 0.75rem 0 1.25rem;
-}
-
-.doc :deep(img:hover) {
-  border-color: var(--c, var(--accent));
-  box-shadow: 0 6px 20px rgba(20, 27, 61, 0.1);
-}
-
-.doc :deep(img[src*="explain-"]:hover) {
-  box-shadow: none;
+  padding: 0;
+  margin: 0.9rem 0 1.4rem;
 }
 
 .doc :deep(img[src*=".svg"]) {
   border: 0;
-  box-shadow: none;
+  padding: 0;
 }
 
 @media (min-width: 680px) {
@@ -684,59 +640,35 @@ const onClick = (e: MouseEvent) => {
   .doc :deep(p:has(> img:first-child):has(> img:nth-child(2))) {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 1rem;
+    gap: 16px;
     align-items: stretch;
     margin: 1.1rem 0;
+    padding: 14px;
+    border: 1px solid var(--rule);
+    background: #ffffff;
   }
 
   .doc :deep(p:has(> a:first-child > img):has(> a:nth-child(2) > img) img),
   .doc :deep(p:has(> img:first-child):has(> img:nth-child(2)) img) {
     margin: 0;
+    padding: 0;
+    border: 0;
+    width: 100%;
     height: 100%;
     object-fit: contain;
   }
-}
-
-.doc :deep(.stage-source-row) {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.75rem;
-  font-size: 13.5px;
-  color: var(--muted);
-}
-
-.doc :deep(.inline-stage-btn) {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.28rem 0.7rem;
-  font-family: inherit;
-  font-size: 12.5px;
-  font-weight: 700;
-  border: 1.5px solid var(--c, var(--accent));
-  background: color-mix(in srgb, var(--c, var(--accent)) 8%, #ffffff);
-  color: var(--c, var(--accent));
-  text-decoration: none;
-  transition: background 0.15s ease, color 0.15s ease;
-}
-
-.doc :deep(.inline-stage-btn:hover) {
-  background: var(--c, var(--accent));
-  color: #ffffff;
-  text-decoration: none;
 }
 
 .doc :deep(:not(pre) > code) {
   font-size: 0.88em;
   background: var(--code-bg);
   padding: 0.08em 0.3em;
-  border-radius: 3px;
   overflow-wrap: anywhere;
 }
 
 .doc :deep(.code) {
   position: relative;
-  margin: 0.75rem 0 1.25rem;
+  margin: 0.8rem 0 1.35rem;
   border: 1px solid var(--rule);
   background: var(--code-bg);
 }
@@ -745,8 +677,8 @@ const onClick = (e: MouseEvent) => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.28rem 0.65rem;
-  background: color-mix(in srgb, var(--wash) 80%, #ffffff);
+  padding: 0.3rem 0.75rem;
+  background: #ffffff;
   border-bottom: 1px solid var(--rule);
   font-size: 11.5px;
   color: var(--muted);
@@ -754,7 +686,6 @@ const onClick = (e: MouseEvent) => {
 
 .doc :deep(.code-lines) {
   font-variant-numeric: tabular-nums;
-  font-weight: 600;
 }
 
 .doc :deep(.code-bar-actions) {
@@ -769,7 +700,7 @@ const onClick = (e: MouseEvent) => {
   padding: 0.12rem 0.5rem;
   font-family: inherit;
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 400;
   color: var(--fg);
   background: #ffffff;
   border: 1px solid var(--rule);
@@ -779,8 +710,8 @@ const onClick = (e: MouseEvent) => {
 
 .doc :deep(.code-toggle:hover),
 .doc :deep(.copy:hover) {
-  border-color: var(--c, var(--accent));
-  color: var(--c, var(--accent));
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 .doc :deep(.code.is-collapsed pre) {
@@ -795,18 +726,18 @@ const onClick = (e: MouseEvent) => {
   right: 0;
   bottom: 0;
   height: 36px;
-  background: linear-gradient(to bottom, rgba(244, 245, 249, 0), rgba(244, 245, 249, 0.95));
+  background: linear-gradient(to bottom, rgba(245, 246, 246, 0), rgba(245, 246, 246, 0.95));
   pointer-events: none;
 }
 
 .doc :deep(pre) {
   margin: 0;
-  padding: 0.8rem 1rem;
+  padding: 16px 20px;
   background: var(--code-bg);
   overflow-x: auto;
   font-size: 13px;
-  line-height: 1.5;
-  color: #1a1a1a;
+  line-height: 1.55;
+  color: #26292b;
 }
 
 @media (hover: none) {
@@ -818,22 +749,22 @@ const onClick = (e: MouseEvent) => {
 .doc :deep(blockquote) {
   margin: 1rem 0;
   padding: 0.1rem 1rem;
-  border-left: 3px solid var(--c, var(--accent));
-  color: var(--fg);
+  border-left: 3px solid var(--mark);
+  color: var(--muted);
 }
 
 .doc :deep(.note) {
   margin: 0.9rem 0 1.2rem;
   padding: 0.65rem 1rem;
-  border: 1.5px solid color-mix(in srgb, var(--c, var(--accent)) 45%, var(--rule));
-  border-left: 4px solid var(--c, var(--accent));
-  background: color-mix(in srgb, var(--c, var(--accent)) 4%, #ffffff);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--accent);
+  background: rgba(0, 124, 85, 0.05);
 }
 
 .doc :deep(.note-title),
 .doc :deep(details.note summary) {
-  font-weight: 700;
-  color: var(--c, var(--accent));
+  font-weight: 500;
+  color: var(--fg);
   margin: 0.15rem 0;
 }
 
@@ -851,23 +782,29 @@ const onClick = (e: MouseEvent) => {
 .doc :deep(table) {
   width: 100%;
   border-collapse: collapse;
-  margin: 1rem 0;
+  border-top: 2px solid var(--fg);
+  border-bottom: 1px solid var(--rule);
+  margin: 1.2rem 0;
   font-size: 14px;
   display: block;
   overflow-x: auto;
-  overflow-wrap: break-word;
 }
 
 .doc :deep(th),
 .doc :deep(td) {
   text-align: left;
-  padding: 0.35rem 0.85rem 0.35rem 0;
-  border-bottom: 1px solid var(--rule);
+  padding: 10px 24px 10px 0;
+  border-top: 1px solid var(--rule);
   vertical-align: top;
 }
 
+.doc :deep(tr:first-child th) {
+  border-top: none;
+}
+
 .doc :deep(th) {
-  font-weight: 600;
+  font-weight: 500;
+  color: var(--muted);
   white-space: nowrap;
 }
 
@@ -882,8 +819,6 @@ const onClick = (e: MouseEvent) => {
 }
 
 .doc :deep(hr) {
-  border: none;
-  border-top: 1px solid var(--rule);
-  margin: 2rem 0;
+  display: none;
 }
 </style>
