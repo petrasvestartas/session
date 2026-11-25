@@ -12,9 +12,7 @@ Unify typed JSON operations (`49` `Op` variants addressed by stable `(doc, guid)
 
 A single `#[serde(tag = "op")]` `Op` schema (`viewer-core/src/op.rs`) dispatches identically across WASM `postMessage`, CLI `--op`/`--cmd`, and persistent JSONL stdio (`session-mcp`), guaranteeing bit-identical `.session` state across interactive and AI-agent workflows.
 
-![Python `FastMCP` server (`31` tools, `3` resources), JSONL stdio / browser `postMessage`, `viewer_core::op::execute`, and 3-way byte-identical `.session` output (1600x900 Session Viewer stage plate)](../../examples/stage/tutorials-systems/14-fastmcp.png)
-
-Interactive stage source: [`14-fastmcp.yaml`](../../examples/stage/tutorials-systems/14-fastmcp.yaml).
+![Parametric helical stepped pavilion constructed entirely from typed JSON Op requests](../screenshots/tutorials/t14-how-ops.png)
 
 ## Prerequisites and files
 

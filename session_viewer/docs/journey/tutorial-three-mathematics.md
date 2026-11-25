@@ -4,17 +4,15 @@
 
 Parse declarative YAML stage decks, typeset OpenType MATH formulas, rounded sign-coloured 2D matrices, and `24x0.30` flat vector constructions on a `1600x900` frame, and animate symbol morphs with zero-overlap verification.
 
-![OpenType MATH force-density equilibrium slide rendered natively in Session Viewer](../screenshots/tutorials/t03b-math.png)
+![Five-node 3D spatial cable-net equilibrium with four anchor blocks and vertical load arrow](../screenshots/tutorials/t03b-net3d.png)
 
-**What we achieve:** Publication-grade OpenType MATH typesetting (`LatinModernMath`) and sign-coloured matrix tables synchronized step-by-step with 2D and 3D geometric constructions.
+**What we achieve:** Interactive 2D/3D structural form-finding (`net.rs`), OpenType MATH glyph measurement (`tex.rs`), and sign-coloured stiffness matrices synchronized directly with 3D equilibrium geometry.
 
 ## How it works
 
-`tex.rs` parses TeX expressions into nested `Boxed` nodes (`width`, `ascent`, `descent`) measured directly from `LatinModernMath-Regular.otf` glyph metrics, while `matrix.rs` aligns column widths and tints positive, negative, and zero entries so algebraic structure (`K_f = C_fᵀ Q C_f`) reads visually alongside the geometry.
+Prescribing force-to-length ratios `q_k = f_k / l_k` linearizes 3D cable-net equilibrium into `(C_Nᵀ Q C_N) x_N = p_N − (C_Nᵀ Q C_F) x_F`, solving free node coordinates in one symmetric positive-definite pass while colouring each 3D cable member from low tension (blue) to high rim tension (magenta).
 
-![YAML stage deck parser, OpenType MATH layout engine, rounded 2D stage matrix (`[[2, -1], [-1, 2]]`), and overlap checker (1600x900 Session Viewer stage plate)](../../examples/stage/tutorials-foundations/03b-mathematics.png)
-
-Interactive stage source: [`03b-mathematics.yaml`](../../examples/stage/tutorials-foundations/03b-mathematics.yaml).
+![Solved 7x7 hyperbolic-paraboloid saddle cable-net coloured by member force in Session Viewer](../screenshots/tutorials/t03b-how-saddle.png)
 
 ## Prerequisites and files
 

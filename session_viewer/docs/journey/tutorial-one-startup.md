@@ -10,11 +10,9 @@ Create the two-crate Rust + WebAssembly workspace (`viewer-core` and `session_vi
 
 ## How it works
 
-In the browser, `Trunk.toml` compiles the workspace to WebAssembly while `winit::EventLoop` must start synchronously before `navigator.gpu.requestAdapter()` resolves. Cloning `EventLoopProxy<Msg>` prior to `spawn_app` gives the async WebGPU task a typed channel back into the live window loop, keeping `viewer-core` completely independent of DOM and GPU handles.
+In the browser, `Trunk.toml` compiles the workspace to WebAssembly while `winit::EventLoop` must start synchronously before `navigator.gpu.requestAdapter()` resolves. Cloning `EventLoopProxy<Msg>` prior to `spawn_app` gives the async WebGPU task a typed channel back into the live window loop, while physical backing dimensions scale CSS layout pixels by `devicePixelRatio`.
 
-![Startup sequence and workspace split from `index.html` and `Trunk.toml` through `run_web()` and `EventLoopProxy<Msg>` into `viewer-core` and `session_viewer` (1600x900 Session Viewer stage plate)](../../examples/stage/tutorials-foundations/01-startup.png)
-
-Interactive stage source: [`01-startup.yaml`](../../examples/stage/tutorials-foundations/01-startup.yaml).
+![3D origin triad and CSS-to-physical DPR surface framing rendered in Session Viewer](../screenshots/tutorials/t01-how-triad.png)
 
 ## Prerequisites and files
 

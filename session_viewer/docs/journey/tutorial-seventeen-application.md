@@ -4,17 +4,15 @@
 
 Connect `StageApp` to real 3D kernel geometry rows through `spatial::Scene3` and camera-projected 2D TeX lenses, wire the production `Trunk.toml` and `index.html` entry shell, and verify 100% parity across all `388` production files.
 
-![Interactive 3D saddle cable-net solved by Force Density Method inside StageApp + Scene3](../screenshots/tutorials/t17-stage-app.png)
+![Architectural vaulted timber bay loaded and shaded in the complete Session Viewer](../screenshots/tutorials/t17-app-scene.png)
 
-**What we achieve:** The complete shipped `session_viewer` web application uniting full 3D CAD (`SceneApp`), interactive 2D/3D mathematical presentations (`StageApp` + `Scene3`), mobile multi-touch gestures, R2 cloud streaming, and embedded `/docs/`.
+**What we achieve:** The complete shipped `session_viewer` web application uniting full 3D CAD (`SceneApp`), multi-document scene streaming, mobile multi-touch gestures, R2 cloud manifests, and embedded `/docs/`.
 
 ## How it works
 
-`mode.rs` routes URL parameters between the full CAD editor (`SceneApp`) and interactive slide decks (`?stage=...`), while `spatial.rs` synchronizes solved 3D stage primitives (`Point`, `Line`, `Arrow`, `Cuboid`, force-density `Net`s) directly into the hardware WebGPU `Scene` and `Camera`.
+`mode.rs` routes URL parameters across interactive 3D scenes (`?scene=...`), R2 cloud manifests, and embedded documentation, synchronizing all `388` verified Rust and WGSL source files into one single-page WebGPU application.
 
-![Production `Trunk.toml` + `index.html` shell, `App -> State -> Mode<State>`, `StageApp + spatial::Scene3` 3D cable-net/arrow bridge, and 388-file parity (1600x900 Session Viewer stage plate)](../../examples/stage/tutorials-systems/17-application.png)
-
-Interactive stage source: [`17-application.yaml`](../../examples/stage/tutorials-systems/17-application.yaml).
+![Multi-document CAD assembly combining imported BRep solids and procedural columns in one scene](../screenshots/tutorials/t17-how-multiview.png)
 
 ## Prerequisites and files
 

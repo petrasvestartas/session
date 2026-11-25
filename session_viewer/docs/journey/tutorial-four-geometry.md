@@ -4,7 +4,7 @@
 
 Walk `session_rust` meshes, BReps, curves, vectors, points, and planes into `20`-byte packed vertices, slot-addressed arenas, screen-space ribbons/arrows, and `112`-byte `Instance` rows synchronized incrementally by `(doc, guid)` identity.
 
-![All five geometry lanes in one scene: BRep teapot, Mesh box, NURBS arch, 3D Arrow, and Point markers](../screenshots/tutorials/t04-lanes.png) ![Dense Stanford Bunny mesh uploaded into shared octahedral-normal GPU buffers](../screenshots/tutorials/t04-bunny.png)
+![All five geometry lanes in one scene: BRep teapot, Mesh box, NURBS arch, 3D Arrow, and Point markers](../screenshots/tutorials/t04-lanes.png)
 
 **What we achieve:** All five `session_rust` CAD geometry primitives—`Mesh`, `BRep`, `NurbsCurve`/`NurbsSurface`, `Line`/`Polyline` arrows, and `Point`s—walked into compact, camera-anchored GPU arena buffers.
 
@@ -12,9 +12,7 @@ Walk `session_rust` meshes, BReps, curves, vectors, points, and planes into `20`
 
 Large world coordinates are rebased on the CPU (`p_rel = (p_world - anchor_f64) as f32`) before reaching `f32` vertex shaders, eliminating float32 jitter kilometres from the origin. Each scene row writes a `112`-byte `Instance` record indexing into shared `FaceVertex`, `Seg`, and `PointInstance` storage buffers rather than allocating per-object WebGPU buffers.
 
-![Source walk (`viewer-core::walk`) to `Upload` payloads, shared `20 B` vertex arena, `112 B` `Instance` table, GPU lanes, and `Scene` `(doc, guid)` tombstones (1600x900 Session Viewer stage plate)](../../examples/stage/tutorials-foundations/04-geometry.png)
-
-Interactive stage source: [`04-geometry.yaml`](../../examples/stage/tutorials-foundations/04-geometry.yaml).
+![Dense Stanford Bunny mesh uploaded into shared octahedral-normal GPU arena buffers](../screenshots/tutorials/t04-bunny.png)
 
 ## Prerequisites and files
 

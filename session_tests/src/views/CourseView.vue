@@ -10,14 +10,6 @@
           <span v-if="activeMeta.fileCount" class="tut-count">{{ activeMeta.fileCount }} source files</span>
         </div>
         <div class="tut-actions">
-          <a
-            v-if="stageHref"
-            :href="stageHref"
-            target="_blank"
-            rel="noopener"
-            class="cas-btn primary">
-            ▶ Interactive 3D Stage ↗
-          </a>
           <button
             v-if="longCodeCount > 0"
             type="button"
@@ -52,9 +44,8 @@
 
       <dialog ref="plateDialog" class="presentation-dialog" @click.self="closePlateModal">
         <header class="presentation-header">
-          <span class="presentation-kicker">{{ lightboxAlt || `Tutorial ${activeMeta?.number} · Visual Plate` }}</span>
+          <span class="presentation-kicker">{{ lightboxAlt || `Tutorial ${activeMeta?.number} · Screenshot` }}</span>
           <div class="presentation-controls">
-            <a v-if="stageHref" :href="stageHref" target="_blank" rel="noopener" class="cas-btn primary modal-stage-btn">▶ Launch Live 3D Stage ↗</a>
             <a v-if="lightboxSrc" :href="lightboxSrc" target="_blank" rel="noopener" class="presentation-ext">Raw PNG ↗</a>
             <button type="button" class="presentation-close" aria-label="Close figure preview" @click="closePlateModal">×</button>
           </div>
@@ -86,9 +77,6 @@ const allExpanded = ref(false);
 const slug = computed(() => String(route.params.slug || ''));
 const meta = computed(() => pages[slug.value]);
 
-const base = import.meta.env.BASE_URL;
-const viewerHref = new URL('../', window.location.origin + base).href;
-
 const CAS_RAMP = ['#3057b1', '#5552bb', '#7750c1', '#934abd', '#ae4bb2', '#c54b9f', '#dc4b8d'];
 const rampColor = (idx: number, total: number): string => {
   if (total <= 1) return CAS_RAMP[0];
@@ -109,9 +97,6 @@ const activeLookup = computed(() => {
 const activeMeta = computed(() => activeLookup.value?.item ?? null);
 const chapterColor = computed(() =>
   activeLookup.value ? rampColor(activeLookup.value.idx, tutorials.length) : '#3057b1',
-);
-const stageHref = computed(() =>
-  activeMeta.value?.stageQuery ? `${viewerHref}?${activeMeta.value.stageQuery}` : '',
 );
 
 const openPlateModal = (src: string, alt: string) => {
@@ -167,24 +152,6 @@ const enhanceArticle = () => {
     box.insertBefore(bar, box.firstChild);
   });
   longCodeCount.value = longCount;
-
-  // Add an inline "▶ Open interactive 3D stage ↗" link beside the stage YAML source link
-  if (stageHref.value) {
-    el.querySelectorAll<HTMLParagraphElement>('p').forEach((p) => {
-      if (p.dataset.stageBtn === '1') return;
-      if (p.textContent?.trim().startsWith('Interactive stage source:')) {
-        p.dataset.stageBtn = '1';
-        p.classList.add('stage-source-row');
-        const link = document.createElement('a');
-        link.href = stageHref.value;
-        link.target = '_blank';
-        link.rel = 'noopener';
-        link.className = 'inline-stage-btn';
-        link.textContent = '▶ Open interactive 3D stage ↗';
-        p.insertBefore(link, p.firstChild);
-      }
-    });
-  }
 };
 
 const toggleAllCode = () => {
@@ -264,9 +231,9 @@ const onClick = (e: MouseEvent) => {
     return;
   }
   const img = target.closest<HTMLImageElement>('img');
-  if (img && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
+  if (img && !e.ctrlKey && !e.metaKey && !e.shiftKey && !img.src.endsWith('.svg')) {
     const parentLink = img.closest<HTMLAnchorElement>('a');
-    if (parentLink && /\.(png|webp|jpg|jpeg)(\?|$)/i.test(parentLink.getAttribute('href') || '')) {
+    if (!parentLink || /\.(png|webp|jpg|jpeg)(\?|$)/i.test(parentLink.getAttribute('href') || '')) {
       e.preventDefault();
       openPlateModal(img.src, img.alt || '');
       return;

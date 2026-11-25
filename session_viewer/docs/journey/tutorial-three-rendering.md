@@ -4,7 +4,7 @@
 
 Preprocess WGSL `#include` headers at build time through `build.rs`, establish bind-group layouts `0..=3` and lazy `OnceLock` pipeline compilation, and execute the ordered frame render passes with background and construction-plane grid shaders.
 
-![Shaded BRep teapot with octahedral normals and GTAO crease darkening](../screenshots/tutorials/t03-shaded.png) ![Wireframe pass showing screen-space extruded curve ribbons](../screenshots/tutorials/t03-wireframe.png)
+![Shaded BRep teapot with octahedral normals and GTAO crease darkening](../screenshots/tutorials/t03-shaded.png)
 
 **What we achieve:** A unified two-pass CAD forward renderer combining octahedral-normal solid shading (`faces.wgsl`) with constant-pixel-width antialiased curve and boundary strokes (`strokes.wgsl`).
 
@@ -12,9 +12,7 @@ Preprocess WGSL `#include` headers at build time through `build.rs`, establish b
 
 Surface triangles decode 2-component octahedral unit normals for hemisphere lighting while pushing depth slightly away from the eye (`depth_bias`), allowing screen-space mitered stroke quads `q_i = p_ndc ± (w / 2) · n_⊥ · (2 / viewport)` to sit cleanly on top of coplanar faces without z-fighting.
 
-![`build.rs` `#include` assembly into `OUT_DIR`, shared `PRELUDE` bind groups `0..=3`, lazy pipeline cache, and ordered frame passes (1600x900 Session Viewer stage plate)](../../examples/stage/tutorials-foundations/03-rendering.png)
-
-Interactive stage source: [`03-rendering.yaml`](../../examples/stage/tutorials-foundations/03-rendering.yaml).
+![Wireframe pass isolating screen-space extruded curve ribbons in strokes.wgsl](../screenshots/tutorials/t03-wireframe.png)
 
 ## Prerequisites and files
 

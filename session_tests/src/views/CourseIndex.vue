@@ -4,7 +4,7 @@
     <div class="hero-top">
       <div>
         <h1>Viewer course</h1>
-        <p class="subhead">17 visual engineering tutorials · 388 verified Rust &amp; WGSL files · Live 3D geometric stage decks</p>
+        <p class="subhead">17 visual engineering tutorials · 388 verified Rust &amp; WGSL files</p>
       </div>
       <a class="launch-viewer-btn" :href="viewerHref">Open 3D Viewer ↗</a>
     </div>
@@ -38,14 +38,6 @@ cargo +1.97.1 install trunk --version 0.21.14 --locked</code></pre>
             <p v-if="t.summary" class="tutorial-summary">{{ t.summary }}</p>
             <div class="tutorial-meta">
               <span v-if="t.fileCount" class="meta-chip">{{ t.fileCount }} source files</span>
-              <a
-                v-if="t.stageQuery"
-                :href="viewerHref + '?' + t.stageQuery"
-                target="_blank"
-                rel="noopener"
-                class="meta-stage">
-                ▶ Interactive 3D stage ↗
-              </a>
             </div>
             <ol v-if="t.chapters.length" class="chapter-list">
               <li v-for="c in t.chapters" :key="c.slug" class="chapter-item">
@@ -55,14 +47,6 @@ cargo +1.97.1 install trunk --version 0.21.14 --locked</code></pre>
                     <span class="tutorial-title">{{ c.title }}</span>
                   </router-link>
                   <span v-if="c.fileCount" class="chapter-files">{{ c.fileCount }} files</span>
-                  <a
-                    v-if="c.stageQuery"
-                    :href="viewerHref + '?' + c.stageQuery"
-                    target="_blank"
-                    rel="noopener"
-                    class="meta-stage chapter-stage">
-                    ▶ 3D stage ↗
-                  </a>
                 </div>
               </li>
             </ol>

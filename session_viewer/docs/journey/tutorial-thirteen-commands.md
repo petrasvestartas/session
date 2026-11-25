@@ -12,9 +12,7 @@ Mount the decoupled `command_dock` widget (`Commands` trait, inline completion s
 
 Every verb declares a static `CommandSpec` (`name`, `aliases`, `options`, `run`) inside `viewer-core/src/command/verbs/`, driving prefix Tab-completion and option pills in the browser while executing identical validation and undo snapshots in `HeadlessHost`.
 
-![Mobile IME `agent.rs` + `command_dock::CommandLine` (`Commands` trait) and native `session-viewer-cli` converging on `CommandHost` (1600x900 Session Viewer stage plate)](../../examples/stage/tutorials-systems/13-commands.png)
-
-Interactive stage source: [`13-commands.yaml`](../../examples/stage/tutorials-systems/13-commands.yaml).
+![Multi-primitive 3D CAD scene constructed headlessly through CommandHost batch execution](../screenshots/tutorials/t13-how-batch.png)
 
 ## Prerequisites and files
 

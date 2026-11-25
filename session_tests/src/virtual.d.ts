@@ -11,7 +11,6 @@ declare module 'virtual:course' {
     heroImg?: string;
     summary?: string;
     fileCount?: number;
-    stageQuery?: string;
   }
   export interface CourseTutorial {
     number: string;
@@ -21,7 +20,6 @@ declare module 'virtual:course' {
     heroImg?: string;
     summary?: string;
     fileCount?: number;
-    stageQuery?: string;
     chapters: CourseChapter[];
   }
   export interface CoursePage {
