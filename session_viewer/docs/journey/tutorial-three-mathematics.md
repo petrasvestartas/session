@@ -12,7 +12,7 @@ Parse declarative YAML stage decks, typeset OpenType MATH formulas, rounded sign
 
 Prescribing force-to-length ratios `q_k = f_k / l_k` linearizes 3D cable-net equilibrium into `(C_Nᵀ Q C_N) x_N = p_N − (C_Nᵀ Q C_F) x_F`, solving free node coordinates in one symmetric positive-definite pass while colouring each 3D cable member from low tension (blue) to high rim tension (magenta).
 
-![Solved 7x7 hyperbolic-paraboloid saddle cable-net coloured by member force in Session Viewer](../screenshots/tutorials/t03b-how-saddle.png)
+![OpenType MATH fraction box metrics, C2 quintic tweening curve, and Schek 1974 linearized force-density stiffness matrix](../screenshots/tutorials/explain-03b-mathematics.png)
 
 ## Prerequisites and files
 

@@ -4,7 +4,7 @@
 
 Read a generation-stamped `(row + 1, sub)` GPU ID window around the cursor for hover pre-selection and click picks, and unify object, face, edge, control-point, window/crossing box, lasso, name, and size selection in `SelectionState`.
 
-![Interactive viewport showing yellow selected solid and cyan hovered solid](../screenshots/tutorials/t07-selected.png)
+![Interactive viewport showing yellow selected solid and cyan hovered solid](../screenshots/tutorials/t07-selected.png) ![Offscreen Rg32Uint pick-ID buffer visualised in false colour per (row + 1, sub_id)](../screenshots/tutorials/t07-idbuffer.png)
 
 **What we achieve:** Pixel-exact single-click, sub-object (`Ctrl+Shift`), and crossing/window marquee selection powered by an offscreen `Rg32Uint` GPU ID pass.
 
@@ -12,7 +12,7 @@ Read a generation-stamped `(row + 1, sub)` GPU ID window around the cursor for h
 
 Instead of approximate CPU bounding-box raycasts, an on-demand `Rg32Uint` pass renders `(row + 1, sub_id)` at exact cursor or marquee pixels, biasing stroke depth slightly forward so boundary curves win cleanly over their adjacent faces and returning `0` on empty background.
 
-![Offscreen Rg32Uint pick-ID buffer visualised in false colour per (row + 1, sub_id)](../screenshots/tutorials/t07-idbuffer.png)
+![64-bit Rg32Uint pixel bitpacking, 13x13 edge-priority aperture scoring, 256-byte staging alignment, and Window vs Crossing marquee rules](../screenshots/tutorials/explain-07-picking.png)
 
 ## Prerequisites and files
 

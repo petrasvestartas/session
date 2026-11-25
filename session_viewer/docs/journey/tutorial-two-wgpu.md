@@ -4,7 +4,7 @@
 
 Acquire a WebGPU adapter and bounded device (`256 MiB` storage buffer cap, first-error latch), configure MSAA, reverse-Z `Depth32Float`, and `Rg32Uint` pick targets, and present a paced white frame across viewport resizes.
 
-![Desktop 1280x800 WebGPU 4x MSAA multi-part CAD viewport](../screenshots/tutorials/t02-desktop.png)
+![Desktop 1280x800 WebGPU 4x MSAA multi-part CAD viewport](../screenshots/tutorials/t02-desktop.png) ![Mobile 540x800 portrait viewport after live swapchain and depth-target resize](../screenshots/tutorials/t02-mobile.png)
 
 **What we achieve:** An asynchronous WebGPU device and `4x` MSAA attachment pipeline that renders crisp CAD solids on desktop (`1280×800`) and survives live portrait resizes (`540×800`) without stretching, clipping, or zero-size surface panics.
 
@@ -12,7 +12,7 @@ Acquire a WebGPU adapter and bounded device (`256 MiB` storage buffer cap, first
 
 Every frame draws into `4x` multisampled colour and `Depth32Float` targets (`1.0` at the near plane, `0.0` at infinity) and resolves into the single-sample swapchain texture. Whenever CSS size or `devicePixelRatio` changes, framebuffer pixel dimensions are clamped to `[1, max_texture_dimension_2d]` and `Targets` are rebuilt in lockstep with `Surface::configure`.
 
-![Mobile 540x800 portrait viewport after live swapchain and depth-target resize](../screenshots/tutorials/t02-mobile.png)
+![4x MSAA synchronized attachment stack, Infinite Reverse-Z float32 precision curve, and bounded WebGPU device contract](../screenshots/tutorials/explain-02-wgpu.png)
 
 ## Prerequisites and files
 

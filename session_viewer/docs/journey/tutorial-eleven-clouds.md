@@ -4,7 +4,7 @@
 
 Traverse precomputed `LodNode` point-cloud octrees with 8-corner clip-space frustum culling and `2.0 px` screen-spacing cutoffs, shade splats with Eye-Dome Lighting (EDL), stream `250k`-point chunks, and query cloud/sheet elements lazily.
 
-![Million-point Lion scan rendered as camera-facing splats with Eye-Dome Lighting](../screenshots/tutorials/t11-lion-edl.png)
+![Million-point Lion scan rendered as camera-facing splats with Eye-Dome Lighting](../screenshots/tutorials/t11-lion-edl.png) ![Nested 3D octree spatial cells driving out-of-core point-cloud level of detail](../screenshots/tutorials/t11-octree.png)
 
 **What we achieve:** Interactive million-point LiDAR and photogrammetry rendering with Eye-Dome Lighting (`EDL`) surface relief and out-of-core octree level-of-detail streaming.
 
@@ -12,7 +12,7 @@ Traverse precomputed `LodNode` point-cloud octrees with 8-corner clip-space frus
 
 `splats.wgsl` expands each `16`-byte packed point (`xyz + rgba8`) into a circular screen-space quad writing radial depth, `edl.wgsl` shades logarithmic neighbour depth jumps `∑ max(0, log₂ z_c − log₂ z_i)` without requiring normals, and `cloud_stream` refines visible octree cells whose screen-space error `ρ = (r_k · H) / (2 · d · tan(θ / 2))` exceeds threshold.
 
-![Nested 3D octree spatial cells driving out-of-core point-cloud level of detail](../screenshots/tutorials/t11-octree.png)
+![16-byte PointSplat storage layout, spherical billboard depth cap, normal-free Eye-Dome Lighting, and octree Screen-Space Error streaming](../screenshots/tutorials/explain-11-clouds.png)
 
 ## Prerequisites and files
 

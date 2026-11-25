@@ -4,7 +4,7 @@
 
 Bin projected scene triangles into screen tiles with prefix-sum offsets and `atomicMax` per-tile depth bounds for fast hidden-line stroke visibility, render global `Opacity` and per-object `Alpha`, and fill section-plane cuts with watertight stencil caps.
 
-![Two-plane 3/4 cutaway through multi-part CAD solids with watertight stenciled section caps](../screenshots/tutorials/t12-section-cap.png)
+![Two-plane 3/4 cutaway through multi-part CAD solids with watertight stenciled section caps](../screenshots/tutorials/t12-section-cap.png) ![Opaque pink core visible through a per-object alpha = 0.28 translucent outer shell](../screenshots/tutorials/t12-alpha.png)
 
 **What we achieve:** `Hide`/`Isolate`/`Show` visibility sets, per-object alpha translucency, and interactive multi-plane section cuts sealed with watertight stenciled cross-section caps.
 
@@ -12,7 +12,7 @@ Bin projected scene triangles into screen tiles with prefix-sum offsets and `ato
 
 Up to 6 clip planes test `n_k · x_w + d_k < 0` in every geometry shader; for closed `BRep` and `Mesh` solids, front faces decrement and back faces increment an 8-bit stencil buffer (`StencilOperation::IncrementWrap` / `DecrementWrap`), and a section-plane quad fills `stencil != 0` to seal exposed interiors.
 
-![Opaque pink core visible through a per-object alpha = 0.28 translucent outer shell](../screenshots/tutorials/t12-alpha.png)
+![6-plane world clipping, 2-pass 8-bit stencil winding section caps over hollow solids, and CSR 16x16 tile transparency bins](../screenshots/tutorials/explain-12-visibility.png)
 
 ## Prerequisites and files
 

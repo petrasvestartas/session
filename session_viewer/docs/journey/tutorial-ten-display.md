@@ -4,7 +4,7 @@
 
 Switch seamlessly between shaded CAD edges, dilated coverage-mask silhouettes (`Outline`), horizon-integrated GTAO clay shading (`Arctic`), toggleable element `Attributes`, and shaped `glyphon` world-plane, screen-plate, and outlined text.
 
-![Selected timber bay with Jump-Flood silhouette outline and rounded 3D glyphon labels](../screenshots/tutorials/t10-outline-text.png)
+![Selected timber bay with Jump-Flood silhouette outline and rounded 3D glyphon labels](../screenshots/tutorials/t10-outline-text.png) ![Arctic display mode isolating pure white clay geometry with multi-slice GTAO contact shadows](../screenshots/tutorials/t10-arctic.png)
 
 **What we achieve:** Four studio display presets (`Shaded`, `Wireframe`, `Arctic`, `Ghost`), Ground-Truth Ambient Occlusion (`GTAO`), Jump-Flood selection silhouettes, and crisp `glyphon` 3D scene annotations.
 
@@ -12,7 +12,7 @@ Switch seamlessly between shaded CAD edges, dilated coverage-mask silhouettes (`
 
 GTAO integrates horizon angles `(θ_1, θ_2)` in half-resolution linear view-space depth and filters bilaterally across creases; Jump-Flood (`jfa.wgsl`) propagates selected-mask seeds at strides `N/2, …, 1` for constant-cost outlines; and `glyphon` snaps projected 3D `Nameplate` and `Anchor` labels to physical pixels.
 
-![Arctic display mode isolating pure white clay geometry with multi-slice GTAO contact shadows](../screenshots/tutorials/t10-arctic.png)
+![Four display presets, half-resolution GTAO horizon integral with bilateral depth blur, O(log R) Jump-Flood SDF outlines, and glyphon snapping](../screenshots/tutorials/explain-10-display.png)
 
 ## Prerequisites and files
 

@@ -12,7 +12,7 @@ Composite tessellated `egui` 2D primitives and font/image textures over the 3D W
 
 Immediate-mode UI emits logical-point `ClippedPrimitive` meshes plus an alpha coverage atlas (`textures_delta`). Multiplying logical coordinates by `pixels_per_point` produces physical scissor rectangles and crisp glyph stems, uploaded before the single-sample `LoadOp::Load` UI pass and freed only after `queue.submit` completes.
 
-![2D tessellated triangle and scissor rectangle layered above 3D CAD solids](../screenshots/tutorials/t03a-how-overlay.png)
+![Logical-to-physical scissor clipping, 20-byte epaint::Vertex layout, 3-stage font-atlas lifecycle, and premultiplied alpha blending](../screenshots/tutorials/explain-03a-painting.png)
 
 ## Prerequisites and files
 

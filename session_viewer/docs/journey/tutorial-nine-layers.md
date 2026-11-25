@@ -4,7 +4,7 @@
 
 Index per-document layer trees, type buckets, and element graphs once per load, render virtualized `Layers`, `Graph`, `Properties`, and numeric-entry `egui` panels, record undoable appearance edits, and instance shared definitions.
 
-![Multi-layer timber cassette scene with Layers & Properties inspection panel](../screenshots/tutorials/t09-layers.png)
+![Multi-layer timber cassette scene with Layers & Properties inspection panel](../screenshots/tutorials/t09-layers.png) ![4x3 rotated colonnade sharing GPU geometry buffers across placed FileDoc instances](../screenshots/tutorials/t09-instanced.png)
 
 **What we achieve:** Hierarchical layer visibility/lock/colour inheritance, live object property inspection, and lightweight `FileDoc` instancing across repeated assemblies.
 
@@ -12,7 +12,7 @@ Index per-document layer trees, type buckets, and element graphs once per load, 
 
 `Tree` resolves parent-to-child visibility, lock masks, and display colour overrides into flat GPU row flags (`rows.rs`), while repeated `FileDoc` placements reuse shared vertex/segment ranges with distinct `place: Xform` world matrices.
 
-![4x3 rotated colonnade sharing GPU geometry buffers across placed FileDoc instances](../screenshots/tutorials/t09-instanced.png)
+![Ancestor layer tree inheritance, packed Instance.flags bitmask, 3-tier RGB precedence, and O(1) VRAM shared-slice instancing](../screenshots/tutorials/explain-09-layers.png)
 
 ## Prerequisites and files
 

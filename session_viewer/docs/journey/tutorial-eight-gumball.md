@@ -4,7 +4,7 @@
 
 Render a screen-constant 13-handle 3D gumball (`World`, `Object`, or `CPlane` aligned, with custom pivot) in a private `DepthMode::Always` pass, hit-test handles instantaneously on the CPU, and commit axis/plane/arc/scale drags as single transactions.
 
-![13-handle 3D Gumball aligned to World XYZ axes on a rotated timber member](../screenshots/tutorials/t08-world.png)
+![13-handle 3D Gumball aligned to World XYZ axes on a rotated timber member](../screenshots/tutorials/t08-world.png) ![13-handle 3D Gumball switched into local Object basis with active X-translation handle](../screenshots/tutorials/t08-object.png)
 
 **What we achieve:** A constant-pixel-size 13-handle 3D Gumball manipulator (`Move` arrows, `Rotate` arcs, planar XY/YZ/XZ tabs, and `Scale` grips) supporting `World`, `Object`, and `CPlane` bases plus `Alt`-duplicate dragging.
 
@@ -12,7 +12,7 @@ Render a screen-constant 13-handle 3D gumball (`World`, `Object`, or `CPlane` al
 
 Widget geometry is scaled each frame by `s = 2 · d · tan(fov_y / 2) / H_px` so handles stay constant size on screen regardless of zoom. Dragging an axis projects the cursor ray onto the closest parameter `s*` along `p_0 + s · u`, previews smoothly on the GPU row transform, and commits one `f64` kernel update on mouse release.
 
-![13-handle 3D Gumball switched into local Object basis with active X-translation handle](../screenshots/tutorials/t08-object.png)
+![13 constant-pixel Gumball handles, closed-form 3D skew-ray closest-point projection, and 6-degree end-on grazing singularity guard](../screenshots/tutorials/explain-08-gumball.png)
 
 ## Prerequisites and files
 

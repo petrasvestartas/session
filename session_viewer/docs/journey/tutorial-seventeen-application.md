@@ -12,7 +12,7 @@ Connect `StageApp` to real 3D kernel geometry rows through `spatial::Scene3` and
 
 `mode.rs` routes URL parameters across interactive 3D scenes (`?scene=...`), R2 cloud manifests, and embedded documentation, synchronizing all `388` verified Rust and WGSL source files into one single-page WebGPU application.
 
-![Multi-document CAD assembly combining imported BRep solids and procedural columns in one scene](../screenshots/tutorials/t17-how-multiview.png)
+![Zero-waterfall URL mode router, coupled 3D Stage Lens projection, mobile multi-touch FSM, and 388-file dual-target CI closure](../screenshots/tutorials/explain-17-application.png)
 
 ## Prerequisites and files
 

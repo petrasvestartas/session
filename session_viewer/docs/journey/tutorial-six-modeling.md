@@ -4,7 +4,7 @@
 
 Register declarative `Spec` commands and interactive multi-point `Tool`s on construction planes (`CPlane`) with object snaps (`OSnap`), live zero-history previews, and atomic undoable creation, transform, surfacing, cutting, and measurement verbs.
 
-![Procedural CAD primitives (Box, Cylinder, Cone, Torus, Sphere) created via viewer-core ops](../screenshots/tutorials/t06-primitives.png)
+![Procedural CAD primitives (Box, Cylinder, Cone, Torus, Sphere) created via viewer-core ops](../screenshots/tutorials/t06-primitives.png) ![10-rib polar array placed and rotated via exact f64 rigid transforms](../screenshots/tutorials/t06-transformed.png)
 
 **What we achieve:** Direct 3D CAD primitive construction (`Box`, `Cylinder`, `Cone`, `Torus`, `Sphere`), surfacing (`Extrude`, `Revolve`, `Loft`), and exact `f64` `Move`/`Rotate`/`Scale`/`Array` transforms.
 
@@ -12,7 +12,7 @@ Register declarative `Spec` commands and interactive multi-point `Tool`s on cons
 
 Cursor rays intersect the active construction plane (`CPlane`) at `t = ((o_c − o_r) · n_c) / (d_r · n_c)` and pass through 6-priority object snaps (`Endpoint`, `Midpoint`, `Center`, `Intersection`, `Perp`, `Grid`) before constructing `session_rust` solids and appending reversible command-history entries.
 
-![10-rib polar array placed and rotated via exact f64 rigid transforms](../screenshots/tutorials/t06-transformed.png)
+![Ray-CPlane intersection, 12 px 6-priority OSnap winner selection, exact f64 pivot algebra, and zero-allocation preview vs atomic undo](../screenshots/tutorials/explain-06-modeling.png)
 
 ## Prerequisites and files
 

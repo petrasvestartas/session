@@ -12,7 +12,7 @@ Mount the decoupled `command_dock` widget (`Commands` trait, inline completion s
 
 Every verb declares a static `CommandSpec` (`name`, `aliases`, `options`, `run`) inside `viewer-core/src/command/verbs/`, driving prefix Tab-completion and option pills in the browser while executing identical validation and undo snapshots in `HeadlessHost`.
 
-![Multi-primitive 3D CAD scene constructed headlessly through CommandHost batch execution](../screenshots/tutorials/t13-how-batch.png)
+![Live command-dock tokenization, option chips, CommandHost browser/CLI homomorphism, and 86-verb prefix Tab completion](../screenshots/tutorials/explain-13-commands.png)
 
 ## Prerequisites and files
 

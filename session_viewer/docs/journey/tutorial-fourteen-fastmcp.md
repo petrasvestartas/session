@@ -12,7 +12,7 @@ Unify typed JSON operations (`49` `Op` variants addressed by stable `(doc, guid)
 
 A single `#[serde(tag = "op")]` `Op` schema (`viewer-core/src/op.rs`) dispatches identically across WASM `postMessage`, CLI `--op`/`--cmd`, and persistent JSONL stdio (`session-mcp`), guaranteeing bit-identical `.session` state across interactive and AI-agent workflows.
 
-![Parametric helical stepped pavilion constructed entirely from typed JSON Op requests](../screenshots/tutorials/t14-how-ops.png)
+![Three-transport Op architecture (postMessage, CLI, Python FastMCP), pointer-free ObjectRef identity, and JSONL wire protocol](../screenshots/tutorials/explain-14-fastmcp.png)
 
 ## Prerequisites and files
 

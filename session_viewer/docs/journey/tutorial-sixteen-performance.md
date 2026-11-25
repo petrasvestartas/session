@@ -4,7 +4,7 @@
 
 Record rolling 600-frame `[p50, p95, p99]` CPU/GPU frame statistics, step `NavigationQuality` tiers (`0..=3`) only on sustained slow drags, time ink sub-passes via `PassTimer`, expose `?inspect=perf` + LoAF diagnostics, and verify pixel continuity in `selftest`.
 
-![Live Performance Tier 0 HUD reporting frame p50/p95 and GPU PassTimer budgets](../screenshots/tutorials/t16-perf.png)
+![Live Performance Tier 0 HUD reporting frame p50/p95 and GPU PassTimer budgets](../screenshots/tutorials/t16-perf.png) ![Close-up inspection of timber cassette joinery and continuous BRep silhouette edges](../screenshots/tutorials/t16-oracle.png)
 
 **What we achieve:** Quantitative GPU `PassTimer` profiling, adaptive frame-budget tiering (`Tier 0..3`), zero idle redraws on bare pointer hover, and automated headless pixel/edge-continuity regression oracles.
 
@@ -12,7 +12,7 @@ Record rolling 600-frame `[p50, p95, p99]` CPU/GPU frame statistics, step `Navig
 
 Hardware timestamp queries measure per-pass GPU milliseconds while `performance.rs` sheds secondary passes (GTAO, MSAA sample count, splat budget) only during heavy orbit spikes and restores full `Tier 0` quality on camera rest; `selftest.rs` locks stroke culling (`-59.4%` offscreen segment work) and BRep edge ID continuity in `cargo xtest`.
 
-![Close-up inspection of timber cassette joinery and continuous BRep silhouette edges](../screenshots/tutorials/t16-oracle.png)
+![Early 16x16 tile occluder depth rejection (-59.4% curve GPU time), 4-tier asymmetric hysteresis quality automaton, and regression oracles](../screenshots/tutorials/explain-16-performance.png)
 
 ## Prerequisites and files
 

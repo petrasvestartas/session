@@ -4,7 +4,7 @@
 
 Parse YAML/JSON/TOML manifests with identical semantics, pre-validate untrusted `.pb` wire bounds (`<= 512 MiB`) before kernel allocation, yield every `25,000` objects on the browser thread, persist canonical `.session` archives (including camera/display state and `.obj` export), and hot-reload via ETag/SSE.
 
-![Three-asset YAML manifest placing Lion point cloud, CAD pedestal, and upright Bunny in one scene](../screenshots/tutorials/t15-manifest.png)
+![Three-asset YAML manifest placing Lion point cloud, CAD pedestal, and upright Bunny in one scene](../screenshots/tutorials/t15-manifest.png) ![Restored .session archive recovering saved camera, custom object colours, and live section cut](../screenshots/tutorials/t15-session.png)
 
 **What we achieve:** Safe wire-validated `.pb` protobuf decoding, multi-document placed YAML manifests, lossless `.session` workspace save/restore, and standard CAD mesh/point-cloud import/export (`OBJ`, `STL`, `PLY`).
 
@@ -12,7 +12,7 @@ Parse YAML/JSON/TOML manifests with identical semantics, pre-validate untrusted 
 
 `validate.rs` bounds-checks protobuf varints and finite `f64` coordinates before heap allocation, `stream.rs` yields to the browser every `25,000` objects so the UI stays responsive, and `.session` archives round-trip full scene geometry alongside camera, layer, colour, and clip-plane state.
 
-![Restored .session archive recovering saved camera, custom object colours, and live section cut](../screenshots/tutorials/t15-session.png)
+![Pre-allocation Protobuf varint wire scanner, cooperative 25,000-object browser chunk streaming, and canonical BTreeMap-sorted .session archives](../screenshots/tutorials/explain-15-formats.png)
 
 ## Prerequisites and files
 

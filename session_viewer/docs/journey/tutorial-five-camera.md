@@ -4,7 +4,7 @@
 
 Drive a reverse-Z perspective and orthographic `Camera` (stored in `f64` metres over a millimetre scene) from mouse, wheel, multi-touch, and keyboard input, and wire the central `State` and `app/runtime.rs` hubs.
 
-![Close-up perspective projection with natural depth foreshortening on vaulted timber bay](../screenshots/tutorials/t05-perspective.png)
+![Close-up perspective projection with natural depth foreshortening on vaulted timber bay](../screenshots/tutorials/t05-perspective.png) ![Parallel orthographic isometric projection preserving true parallel scale](../screenshots/tutorials/t05-ortho.png)
 
 **What we achieve:** Smooth turntable/trackball orbit, cursor-pinned zoom, Bounds-Fit (`F`), and seamless switching between foreshortened Perspective and true-scale Orthographic views.
 
@@ -12,7 +12,7 @@ Drive a reverse-Z perspective and orthographic `Camera` (stored in `f64` metres 
 
 Both projections share the same `target` and `distance` so toggling `Orthographic` preserves framing (`ortho_half_h = distance * tan(fov_y / 2)`). Infinite reverse-Z perspective maps the near plane `z_n` to `1.0` and `+∞` to `0.0`, distributing IEEE-754 mantissa precision evenly across architectural and city-scale spans.
 
-![Parallel orthographic isometric projection preserving true parallel scale](../screenshots/tutorials/t05-ortho.png)
+![Matched perspective/orthographic frustum geometry, cursor-pinned zoom invariant, Reverse-Z projection matrices, and turntable orbit](../screenshots/tutorials/explain-05-camera.png)
 
 ## Prerequisites and files
 
