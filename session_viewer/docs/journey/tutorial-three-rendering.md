@@ -4,15 +4,15 @@
 
 Preprocess WGSL `#include` headers at build time through `build.rs`, establish bind-group layouts `0..=3` and lazy `OnceLock` pipeline compilation, and execute the ordered frame render passes with background and construction-plane grid shaders.
 
-![Shaded BRep teapot with octahedral normals and GTAO crease darkening](../screenshots/tutorials/t03-shaded.png) ![Wireframe pass isolating screen-space extruded curve ribbons in strokes.wgsl](../screenshots/tutorials/t03-wireframe.png)
+![Shaded BRep teapot with octahedral normals and GTAO crease darkening](../screenshots/tutorials/t03-shaded.png) ![Wireframe pass isolating screen-space extruded curve ribbons](../screenshots/tutorials/t03-wireframe.png)
 
-**What we achieve:** A unified two-pass CAD forward renderer combining octahedral-normal solid shading (`faces.wgsl`) with constant-pixel-width antialiased curve and boundary strokes (`strokes.wgsl`).
+**What we achieve:** Compile-time WGSL `#include` preprocessing (`build.rs`), shared bind-group layouts `@group(0..=3)`, `Lazy<T>` on-demand pipeline specialization, and the ordered frame pass encoder (`render.rs`) with `background.wgsl` and `grid.wgsl`.
 
 ## How it works
 
-Surface triangles decode 2-component octahedral unit normals for hemisphere lighting while pushing depth slightly away from the eye (`depth_bias`), allowing screen-space mitered stroke quads `q_i = p_ndc ± (w / 2) · n_⊥ · (2 / viewport)` to sit cleanly on top of coplanar faces without z-fighting.
+`build.rs` expands `#include` headers (`scene.wgsl`, `clip.wgsl`, `physical.wgsl`, `normals.wgsl`, `projected_triangle.wgsl`, `ink_visibility.wgsl`) into `OUT_DIR/shaders/`, `scene.wgsl` places vertices via split `instances[i].model` + rebased `translations[i]`, `normals.wgsl` decodes octahedral normals through the cofactor matrix, and `ink_visibility.wgsl` adds `ink_sag_slack(sag, gradient)` so curved BRep chords stay unbroken over grazing mesh facets.
 
-![Build-time WGSL #include preprocessor, octahedral Snorm16x2 unit-normal folding, and screen-space extruded curve quads](../screenshots/tutorials/explain-03-rendering.png)
+![build.rs WGSL #include expansion, shared @group(0..3) layouts, Lazy<T> pipeline cache, octahedral normals, and curved-edge ink_sag_slack](../screenshots/tutorials/explain-03-rendering.png)
 
 ## Prerequisites and files
 
@@ -44,7 +44,7 @@ Owned files in build order (`19` files):
 
 ### Step 1 · `build.rs`
 
-`build.rs` (61 lines) implements `build` helpers (`expand()`, `minify()`) under `session_viewer`. It wires `fs`, `Path` without introducing cyclic `session_viewer` dependencies.
+`build.rs` expands `#include "..."` directives across `src/shaders/*.wgsl` into `OUT_DIR/shaders/`, strips comments and redundant whitespace, and emits `cargo:rerun-if-changed=src/shaders`. Trap: `build.rs` rejects `/*` block comments explicitly so nested shader includes stay deterministic across Naga validation.
 
 ```rust
 --8<-- "session_viewer/build.rs"
@@ -52,7 +52,7 @@ Owned files in build order (`19` files):
 
 ### Step 2 · `src/engine/pipelines/mod.rs`
 
-`src/engine/pipelines/mod.rs` (7 lines) coordinates submodules `bindings`, `layouts`, `core`, `geometry`. It keeps `mod` self-contained and deterministic across native and `wasm32` targets.
+`src/engine/pipelines/mod.rs` (7 lines) declares and re-exports module tree `bindings`, `layouts`, `core`, `geometry`. It keeps `mod` deterministic across native `cargo xtest` and `wasm32-unknown-unknown` builds.
 
 ```rust
 --8<-- "session_viewer/src/engine/pipelines/mod.rs"
@@ -84,7 +84,7 @@ Owned files in build order (`19` files):
 
 ### Step 6 · `src/engine/pipelines/geometry.rs`
 
-`src/engine/pipelines/geometry.rs` (71 lines) defines `vertex_layout()`. It implements internal helpers `pipelines_compile_on_first_use_and_once_per_target()`.
+`src/engine/pipelines/geometry.rs` (71 lines) defines `vertex_layout()`. It connects `created`, `gpu`, `session_rust` within `pipelines` across native and `wasm32` targets.
 
 ```rust
 --8<-- "session_viewer/src/engine/pipelines/geometry.rs"
@@ -172,7 +172,7 @@ Renders the fullscreen background triangle and anchor-rebased `f64` construction
 
 ### Step 17 · `src/engine/gpu/backdrop/application_tests.rs`
 
-`src/engine/gpu/backdrop/application_tests.rs` (165 lines) implements `application_tests` helpers (`grey_from_above()`, `actual_grid_pixels_keep_far_fractions_and_return_to_the_same_near_frame()`, `the_grid_lies_on_the_construction_plane()`) under `backdrop`. It wires `CPlane`, ``, ``, `` without introducing cyclic `backdrop` dependencies.
+`src/engine/gpu/backdrop/application_tests.rs` (165 lines) implements `application_tests` (`grey_from_above()`, `actual_grid_pixels_keep_far_fractions_and_return_to_the_same_near_frame()`, `the_grid_lies_on_the_construction_plane()`) inside `backdrop`. It connects `CPlane`, `scene`, `camera`, `gpu` within `backdrop` across native and `wasm32` targets.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/backdrop/application_tests.rs"

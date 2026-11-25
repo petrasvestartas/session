@@ -6,13 +6,13 @@ Connect `StageApp` to real 3D kernel geometry rows through `spatial::Scene3` and
 
 ![Architectural vaulted timber bay loaded and shaded in the complete Session Viewer](../screenshots/tutorials/t17-app-scene.png)
 
-**What we achieve:** The complete shipped `session_viewer` web application uniting full 3D CAD (`SceneApp`), multi-document scene streaming, mobile multi-touch gestures, R2 cloud manifests, and embedded `/docs/`.
+**What we achieve:** The complete `388`-file shipped `session_viewer` uniting full 3D CAD (`SceneApp`), the coupled 3D hardware math stage (`StageApp` + `spatial::Scene3` + `net.rs` force-density solver), zero-waterfall `index.html` R2 prefetch, and embedded `/docs/`.
 
 ## How it works
 
-`mode.rs` routes URL parameters across interactive 3D scenes (`?scene=...`), R2 cloud manifests, and embedded documentation, synchronizing all `388` verified Rust and WGSL source files into one single-page WebGPU application.
+`spatial.rs` bakes stage `Point`/`Line`/`Arrow`/`Polyline` primitives into live `Scene` rows (`scale.powf(0.3)` line widths and screen-constant dashes), `net.rs` solves `(C_Nᵀ Q C_N) x_N = p_N − (C_Nᵀ Q C_F) x_F` in real time while `view.rs` pins OpenType `MATH` labels to 3D nodes, and `index.html` + `Trunk.toml` (`wasm-opt -O3`, `no_sri = true`) ship the complete single-binary web application.
 
-![Zero-waterfall URL mode router, coupled 3D Stage Lens projection, mobile multi-touch FSM, and 388-file dual-target CI closure](../screenshots/tutorials/explain-17-application.png)
+![Scene3 coupled 3D hardware stage, Schek 1974 force-density cable-net solver, zero-waterfall index.html boot, and 388/388 source closure](../screenshots/tutorials/explain-17-application.png)
 
 ## Prerequisites and files
 

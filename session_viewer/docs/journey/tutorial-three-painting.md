@@ -6,11 +6,11 @@ Composite tessellated `egui` 2D primitives and font/image textures over the 3D W
 
 ![Standalone 2D egui pink triangle and Command prompt composited over WebGPU](../screenshots/tutorials/t03a-painting.png)
 
-**What we achieve:** Crisp 2D vector painting and font-atlas compositing (`egui` over `wgpu`) on top of the 3D swapchain, forming the foundation for HUD panels, command bars, and overlays.
+**What we achieve:** Crisp 2D vector painting and font-atlas compositing (`src/engine/gpu/ui.rs`) over the resolved `1×` swapchain, forming the foundation for HUD panels, command bars, and math stages.
 
 ## How it works
 
-Immediate-mode UI emits logical-point `ClippedPrimitive` meshes plus an alpha coverage atlas (`textures_delta`). Multiplying logical coordinates by `pixels_per_point` produces physical scissor rectangles and crisp glyph stems, uploaded before the single-sample `LoadOp::Load` UI pass and freed only after `queue.submit` completes.
+Immediate-mode `egui` emits logical-point `ClippedPrimitive` meshes plus font-atlas coverage patches (`textures_delta`). Scaling by `pixels_per_point` yields physical scissor rectangles uploaded before the single-sample `LoadOp::Load` pass (`depth: None`), while evicted `textures_delta.free` IDs retire only after draw encoding finishes.
 
 ![Logical-to-physical scissor clipping, 20-byte epaint::Vertex layout, 3-stage font-atlas lifecycle, and premultiplied alpha blending](../screenshots/tutorials/explain-03a-painting.png)
 

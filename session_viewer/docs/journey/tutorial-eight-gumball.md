@@ -6,13 +6,13 @@ Render a screen-constant 13-handle 3D gumball (`World`, `Object`, or `CPlane` al
 
 ![13-handle 3D Gumball aligned to World XYZ axes on a rotated timber member](../screenshots/tutorials/t08-world.png) ![13-handle 3D Gumball switched into local Object basis with active X-translation handle](../screenshots/tutorials/t08-object.png)
 
-**What we achieve:** A constant-pixel-size 13-handle 3D Gumball manipulator (`Move` arrows, `Rotate` arcs, planar XY/YZ/XZ tabs, and `Scale` grips) supporting `World`, `Object`, and `CPlane` bases plus `Alt`-duplicate dragging.
+**What we achieve:** A constant-pixel 13-handle 3D Gumball (`Translate 0..=2`, `Rotate 3..=5`, `Scale 6..=8`, `ScaleUniform 9`, `TranslatePlane 10..=12`) supporting `World`, `Object`, and `CPlane` alignment, numeric entry, and `Alt`-duplicate dragging.
 
 ## How it works
 
-Widget geometry is scaled each frame by `s = 2 · d · tan(fov_y / 2) / H_px` so handles stay constant size on screen regardless of zoom. Dragging an axis projects the cursor ray onto the closest parameter `s*` along `p_0 + s · u`, previews smoothly on the GPU row transform, and commits one `f64` kernel update on mouse release.
+`gizmo.rs` hit-tests all 13 handles instantaneously on the CPU (`GRAB = 8.0 px`), solves axis drags in closed form via `line_line_parameters` with end-on singularity fading and `SCALE_SOFTENING = 0.5`, renders always-on-top via `widget.wgsl`, and commits one combined `f64` `Xform` on mouse release.
 
-![13 constant-pixel Gumball handles, closed-form 3D skew-ray closest-point projection, and 6-degree end-on grazing singularity guard](../screenshots/tutorials/explain-08-gumball.png)
+![13 constant-pixel Gumball handles (Handle 0..=12), line_line_parameters skew-ray projection, end-on grazing guard, and ARROW_AT numeric input](../screenshots/tutorials/explain-08-gumball.png)
 
 ## Prerequisites and files
 
@@ -49,7 +49,7 @@ Computes `3`-axis arrow, quarter-ring arc and scale-ball `Xform` deltas from ray
 
 ### Step 3 · `src/engine/gpu/widget_mesh.rs`
 
-`src/engine/gpu/widget_mesh.rs` (158 lines) defines `struct Vertex`, `vertices()`, `COLORS`, `SIDES`. It implements internal helpers `orient()`, `lathe()`, `sphere()`.
+`src/engine/gpu/widget_mesh.rs` (158 lines) defines `struct Vertex`, `vertices()`, `COLORS`, `SIDES`. It provides `orient()`, `lathe()`, `sphere()`.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/widget_mesh.rs"

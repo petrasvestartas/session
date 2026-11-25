@@ -6,13 +6,13 @@ Register declarative `Spec` commands and interactive multi-point `Tool`s on cons
 
 ![Procedural CAD primitives (Box, Cylinder, Cone, Torus, Sphere) created via viewer-core ops](../screenshots/tutorials/t06-primitives.png) ![10-rib polar array placed and rotated via exact f64 rigid transforms](../screenshots/tutorials/t06-transformed.png)
 
-**What we achieve:** Direct 3D CAD primitive construction (`Box`, `Cylinder`, `Cone`, `Torus`, `Sphere`), surfacing (`Extrude`, `Revolve`, `Loft`), and exact `f64` `Move`/`Rotate`/`Scale`/`Array` transforms.
+**What we achieve:** Interactive CAD construction (`Point`, `Line`, `Polyline`, `Box`, `Cylinder`, `Cone`, `Torus`, `Sphere`, Platonic solids), NURBS surfacing (`Extrude`, `Loft`, `Revolve`, `Sweep1/2`), `Trim`/`Extend`/`Split`, and pivot `Move`/`Rotate`/`Scale`.
 
 ## How it works
 
-Cursor rays intersect the active construction plane (`CPlane`) at `t = ((o_c − o_r) · n_c) / (d_r · n_c)` and pass through 6-priority object snaps (`Endpoint`, `Midpoint`, `Center`, `Intersection`, `Perp`, `Grid`) before constructing `session_rust` solids and appending reversible command-history entries.
+Cursor rays intersect `CPlane` (`cplane.rs`) and rank 6-tier `OSnap` candidates within `12 px` (`snap.rs`); `command/tool/gather.rs` drives zero-allocation GPU previews (`surface_preview.rs` and `O(k)` 1-ring neighborhood patches in `mesh_preview.rs`) before committing one validated `session_rust` undo entry.
 
-![Ray-CPlane intersection, 12 px 6-priority OSnap winner selection, exact f64 pivot algebra, and zero-allocation preview vs atomic undo](../screenshots/tutorials/explain-06-modeling.png)
+![Ray-CPlane intersection, 12 px 6-priority OSnap, multi-step Tool::Gather state machine, local 1-ring mesh preview, and BRep/Mesh splitting](../screenshots/tutorials/explain-06-modeling.png)
 
 ## Prerequisites and files
 
@@ -208,7 +208,7 @@ Coordinates command dispatch, gumball drag preview/restore, whole-object vs subo
 
 ### Step 14 · `src/state/splitting.rs`
 
-`src/state/splitting.rs` (193 lines) defines `struct Pending`, `split_status()`, `split_command()`, `cancel_split()`. It implements internal helpers `finish_split()`.
+`src/state/splitting.rs` (193 lines) defines `struct Pending`, `split_status()`, `split_command()`, `cancel_split()`. It provides `finish_split()`.
 
 ```rust
 --8<-- "session_viewer/src/state/splitting.rs"
@@ -256,7 +256,7 @@ Deforms selected mesh vertices, first-appearance edges (including hole rims) and
 
 ### Step 20 · `viewer-core/src/splitting.rs`
 
-`viewer-core/src/splitting.rs` (405 lines) defines `is_cutter()`, `face_index()`, `split_rows()`. It implements internal helpers `brep_face()`, `curve()`, `top()`; and verified by `cargo xtest` (`split_preserves_tree_placement_and_other_shared_documents_and_undo`, `split_face_keeps_solid_joined_and_invalid_cut_preserves_source`).
+`viewer-core/src/splitting.rs` (405 lines) defines `is_cutter()`, `face_index()`, `split_rows()`. It provides `brep_face()`, `curve()`, `top()`; and locked by `cargo xtest` (`split_preserves_tree_placement_and_other_shared_documents_and_undo`, `split_face_keeps_solid_joined_and_invalid_cut_preserves_source`).
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/splitting.rs"
@@ -264,7 +264,7 @@ Deforms selected mesh vertices, first-appearance edges (including hole rims) and
 
 ### Step 21 · `viewer-core/src/mesh_preview.rs`
 
-`viewer-core/src/mesh_preview.rs` (325 lines) defines `struct MeshPreview`, `struct Gesture`, `mesh()`, `capture()`, `begin()`. It implements internal helpers `large_mesh_gesture_only_patches_local_neighborhood()`; and verified by `cargo xtest` (`large_mesh_gesture_only_patches_local_neighborhood`).
+`viewer-core/src/mesh_preview.rs` (325 lines) defines `struct MeshPreview`, `struct Gesture`, `mesh()`, `capture()`, `begin()`. It locked by `cargo xtest` (`large_mesh_gesture_only_patches_local_neighborhood`).
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/mesh_preview.rs"
@@ -304,7 +304,7 @@ Verifies `100`-point cloud tomb burial/unbury, forced tomb-cap release, post-com
 
 ### Step 26 · `viewer-core/src/scene_sync/split_tests.rs`
 
-`viewer-core/src/scene_sync/split_tests.rs` (454 lines) houses regression tests `incremental_matches_fresh_oracle`, `tombs_under_a_small_cap_match_fresh_oracle`, `hints_and_node_cache_are_only_a_cache`, `touch_all_keeps_a_synced_scene`. It implements internal helpers `edit()`, `incremental_matches_fresh_oracle()`, `tombs_under_a_small_cap_match_fresh_oracle()`; and verified by `cargo xtest` (`incremental_matches_fresh_oracle`, `tombs_under_a_small_cap_match_fresh_oracle`, `hints_and_node_cache_are_only_a_cache` (+6 more)).
+`viewer-core/src/scene_sync/split_tests.rs` (454 lines) verifies `incremental_matches_fresh_oracle`, `tombs_under_a_small_cap_match_fresh_oracle`, `hints_and_node_cache_are_only_a_cache`, `touch_all_keeps_a_synced_scene`. It provides `edit()`, `incremental_matches_fresh_oracle()`; and locked by `cargo xtest` (`incremental_matches_fresh_oracle`, `tombs_under_a_small_cap_match_fresh_oracle`, `hints_and_node_cache_are_only_a_cache` (+6 more)).
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/scene_sync/split_tests.rs"

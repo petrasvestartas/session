@@ -6,13 +6,13 @@ Read a generation-stamped `(row + 1, sub)` GPU ID window around the cursor for h
 
 ![Interactive viewport showing yellow selected solid and cyan hovered solid](../screenshots/tutorials/t07-selected.png) ![Offscreen Rg32Uint pick-ID buffer visualised in false colour per (row + 1, sub_id)](../screenshots/tutorials/t07-idbuffer.png)
 
-**What we achieve:** Pixel-exact single-click, sub-object (`Ctrl+Shift`), and crossing/window marquee selection powered by an offscreen `Rg32Uint` GPU ID pass.
+**What we achieve:** Sub-millisecond pixel-exact hover, click, sub-object (`Edge`/`Face`/`Point`), lasso, and directional Window (`L→R`) / Crossing (`R→L`) marquee selection.
 
 ## How it works
 
-Instead of approximate CPU bounding-box raycasts, an on-demand `Rg32Uint` pass renders `(row + 1, sub_id)` at exact cursor or marquee pixels, biasing stroke depth slightly forward so boundary curves win cleanly over their adjacent faces and returning `0` on empty background.
+`Picker` (`src/engine/gpu/pick.rs`) zooms clip space via `PickView::clip_transform` onto only the `(2·PICK_RADIUS + 1 + 2·PICK_HALO)² = 19×19 px` cursor neighbourhood (`PICK_RADIUS = 6`, `PICK_HALO = 3`), draws `(object_row + 1, (sub_id + 1) | FACE_TAG)` into cropped `IdTargets`, and guards `256`-byte aligned `map_async` readbacks with a monotonic `generation: u64` counter.
 
-![64-bit Rg32Uint pixel bitpacking, 13x13 edge-priority aperture scoring, 256-byte staging alignment, and Window vs Crossing marquee rules](../screenshots/tutorials/explain-07-picking.png)
+![Cropped PickView::clip_transform 19x19 halo pass, 256-byte aligned async readback, edge-over-face priority, and Window vs Crossing marquee](../screenshots/tutorials/explain-07-picking.png)
 
 ## Prerequisites and files
 

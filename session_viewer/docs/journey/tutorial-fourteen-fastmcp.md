@@ -6,13 +6,13 @@ Unify typed JSON operations (`49` `Op` variants addressed by stable `(doc, guid)
 
 ![Double-layer parabolic 3D space-truss with 35 joint blocks generated 100% through viewer_core::op::execute](../screenshots/tutorials/t14-mcp-truss.png)
 
-**What we achieve:** Full programmatic CAD automation via `session-viewer-cli serve --stdio` and the Python `session-mcp` FastMCP server—capable of building, colouring, inspecting, and rendering parametric 3D structures without opening a browser.
+**What we achieve:** Typed `49`-variant JSON `Op` automation (`viewer-core/src/op.rs`) shared across browser `execute_op` (`postMessage`), native CLI, and the Python `session_mcp` FastMCP server (`test_mcp_parity.py`).
 
 ## How it works
 
-A single `#[serde(tag = "op")]` `Op` schema (`viewer-core/src/op.rs`) dispatches identically across WASM `postMessage`, CLI `--op`/`--cmd`, and persistent JSONL stdio (`session-mcp`), guaranteeing bit-identical `.session` state across interactive and AI-agent workflows.
+`viewer_core::op::execute` runs against `&mut dyn CommandHost` (`src/state/host.rs` in WASM vs `HeadlessHost` in CLI/stdio), addressing objects by pointer-free `ObjectRef { doc, guid }`, classifying failures into 8 machine `ErrorCode`s, and producing SHA-256-identical `.session` state across CLI, JSON Ops, and Python FastMCP tools.
 
-![Three-transport Op architecture (postMessage, CLI, Python FastMCP), pointer-free ObjectRef identity, and JSONL wire protocol](../screenshots/tutorials/explain-14-fastmcp.png)
+![Three-transport Op::execute architecture (postMessage, CLI, Python FastMCP), Request/Response JSONL wire envelope, 8 ErrorCodes, and ObjectRef](../screenshots/tutorials/explain-14-fastmcp.png)
 
 ## Prerequisites and files
 
@@ -35,7 +35,7 @@ Owned files in build order (`10` files):
 
 ### Step 1 · `viewer-core/src/command/host.rs`
 
-`viewer-core/src/command/host.rs` (1830 lines) defines `enum ViewFlag`, `struct DisplaySettings`, `struct SelectionState`, `selected_rows()`, `ordered_rows()`. It implements internal helpers `scene()`, `scene_mut()`, `camera()`.
+`viewer-core/src/command/host.rs` (1830 lines) defines `enum ViewFlag`, `struct DisplaySettings`, `struct SelectionState`, `selected_rows()`, `ordered_rows()`. It provides `scene()`, `scene_mut()`, `camera()`.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/command/host.rs"
@@ -43,7 +43,7 @@ Owned files in build order (`10` files):
 
 ### Step 2 · `src/state/host.rs`
 
-`src/state/host.rs` (566 lines) implements `host` helpers (`scene()`, `scene_mut()`, `camera()`) under `state`. It wires `State`, `Mode`, ``, `Tool` without introducing cyclic `state` dependencies.
+`src/state/host.rs` (566 lines) implements `host` (`scene()`, `scene_mut()`, `camera()`) inside `state`. It connects `State`, `Mode`, `host`, `Tool` within `state` across native and `wasm32` targets.
 
 ```rust
 --8<-- "session_viewer/src/state/host.rs"
@@ -51,7 +51,7 @@ Owned files in build order (`10` files):
 
 ### Step 3 · `viewer-core/src/command/headless_tests.rs`
 
-`viewer-core/src/command/headless_tests.rs` (321 lines) houses regression tests `headless_host_executes_every_registered_verb_without_gpu_or_window`. It implements internal helpers `run()`, `run_follow()`, `headless_host_executes_every_registered_verb_without_gpu_or_window()`; and verified by `cargo xtest` (`headless_host_executes_every_registered_verb_without_gpu_or_window`).
+`viewer-core/src/command/headless_tests.rs` (321 lines) verifies `headless_host_executes_every_registered_verb_without_gpu_or_window`. It provides `run()`, `run_follow()`; and locked by `cargo xtest` (`headless_host_executes_every_registered_verb_without_gpu_or_window`).
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/command/headless_tests.rs"

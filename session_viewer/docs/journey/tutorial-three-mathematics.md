@@ -6,13 +6,13 @@ Parse declarative YAML stage decks, typeset OpenType MATH formulas, rounded sign
 
 ![Five-node 3D spatial cable-net equilibrium with four anchor blocks and vertical load arrow](../screenshots/tutorials/t03b-net3d.png)
 
-**What we achieve:** Interactive 2D/3D structural form-finding (`net.rs`), OpenType MATH glyph measurement (`tex.rs`), and sign-coloured stiffness matrices synchronized directly with 3D equilibrium geometry.
+**What we achieve:** A resolution-independent `1600×900` 2D mathematical presentation engine (`src/app/stage/`) featuring OpenType `MATH` formula typesetting (`tex.rs`), equals-aligned equation stacks (`layout.rs`), sign-coloured addressable 2D matrices (`matrix.rs`), and retargetable step animations (`tween.rs`).
 
 ## How it works
 
-Prescribing force-to-length ratios `q_k = f_k / l_k` linearizes 3D cable-net equilibrium into `(C_Nᵀ Q C_N) x_N = p_N − (C_Nᵀ Q C_F) x_F`, solving free node coordinates in one symmetric positive-definite pass while colouring each 3D cable member from low tension (blue) to high rim tension (magenta).
+`font.rs` and `tex.rs` read OpenType `MATH` axis, fraction-gap, radical, and script tables directly in `em` units, `matrix.rs` groups rounded 2D cells under row/column addresses (`"1,:"`, `":,0"`, switching to sparsity patterns above `14×14`), `tween.rs` samples retargetable `C²` quintic curves without jump-backs, and `check.rs` verifies zero resting AABB overlaps.
 
-![OpenType MATH fraction box metrics, C2 quintic tweening curve, and Schek 1974 linearized force-density stiffness matrix](../screenshots/tutorials/explain-03b-mathematics.png)
+![1600x900 letterboxed stage frame, OpenType MATH fraction and equals-alignment boxes, addressable 2D matrix cells, and retargetable quintic tweening](../screenshots/tutorials/explain-03b-mathematics.png)
 
 ## Prerequisites and files
 

@@ -66,7 +66,7 @@
     "explanation": {
       "page": "journey/tutorial-three-rendering.md",
       "heading": "### Step 1 \u00b7 `build.rs`",
-      "paragraph": "`build.rs` (61 lines) implements `build` helpers (`expand()`, `minify()`) under `session_viewer`. It wires `fs`, `Path` without introducing cyclic `session_viewer` dependencies."
+      "paragraph": "`build.rs` expands `#include \"...\"` directives across `src/shaders/*.wgsl` into `OUT_DIR/shaders/`, strips comments and redundant whitespace, and emits `cargo:rerun-if-changed=src/shaders`. Trap: `build.rs` rejects `/*` block comments explicitly so nested shader includes stay deterministic across Naga validation."
     }
   },
   {
@@ -96,7 +96,7 @@
     "explanation": {
       "page": "journey/tutorial-eleven-clouds.md",
       "heading": "### Step 10 \u00b7 `src/app/cloud_query.rs`",
-      "paragraph": "`src/app/cloud_query.rs` (174 lines) defines `fetch_page()`, `resolve_id()`. It implements internal helpers `source_request()`, `source_position()`, `page_candidates()`."
+      "paragraph": "`src/app/cloud_query.rs` (174 lines) defines `fetch_page()`, `resolve_id()`. It provides `source_request()`, `source_position()`, `page_candidates()`."
     }
   },
   {
@@ -106,7 +106,7 @@
     "explanation": {
       "page": "journey/tutorial-fifteen-formats.md",
       "heading": "### Step 4 \u00b7 `src/app/decode.rs`",
-      "paragraph": "`src/app/decode.rs` (67 lines) defines `struct JsBytes`, `enum Body`, `size()`, `session_from_bytes()`, `session_from_body()`. It implements internal helpers `len_bytes()`, `copy_range()`, `to_vec_bytes()`."
+      "paragraph": "`src/app/decode.rs` (67 lines) defines `struct JsBytes`, `enum Body`, `size()`, `session_from_bytes()`, `session_from_body()`. It provides `len_bytes()`, `copy_range()`, `to_vec_bytes()`."
     }
   },
   {
@@ -306,7 +306,7 @@
     "explanation": {
       "page": "journey/tutorial-fifteen-formats.md",
       "heading": "### Step 17 \u00b7 `src/app/session_io.rs`",
-      "paragraph": "`src/app/session_io.rs` (105 lines) defines `download()`, `download_text()`, `pick()`, `url`, `a`. It implements internal helpers `choose()`, `choose_import()`."
+      "paragraph": "`src/app/session_io.rs` (105 lines) defines `download()`, `download_text()`, `pick()`, `url`, `a`. It provides `choose()`, `choose_import()`."
     }
   },
   {
@@ -316,7 +316,7 @@
     "explanation": {
       "page": "journey/tutorial-eleven-clouds.md",
       "heading": "### Step 14 \u00b7 `src/app/sheet_query.rs`",
-      "paragraph": "`src/app/sheet_query.rs` (96 lines) defines `fetch_entity()`, `read_entity()`. It wires ``, `fetch_range`, `post`, `Cell` without introducing cyclic `app` dependencies."
+      "paragraph": "`src/app/sheet_query.rs` (96 lines) defines `fetch_entity()`, `read_entity()`. It connects `fetch_range`, `post`, `Cell`, `Rc` within `app` across native and `wasm32` targets."
     }
   },
   {
@@ -586,7 +586,7 @@
     "explanation": {
       "page": "journey/tutorial-fifteen-formats.md",
       "heading": "### Step 12 \u00b7 `src/app/stream.rs`",
-      "paragraph": "`src/app/stream.rs` (422 lines) defines `reset_range_gate()`, `read_window()`, `start_range()`, `POINT_BYTES`, `MAX_TABLE_BYTES`. It implements internal helpers `sheet_range()`."
+      "paragraph": "`src/app/stream.rs` (422 lines) defines `reset_range_gate()`, `read_window()`, `start_range()`, `POINT_BYTES`, `MAX_TABLE_BYTES`. It provides `sheet_range()`."
     }
   },
   {
@@ -806,7 +806,7 @@
     "explanation": {
       "page": "journey/tutorial-three-rendering.md",
       "heading": "### Step 17 \u00b7 `src/engine/gpu/backdrop/application_tests.rs`",
-      "paragraph": "`src/engine/gpu/backdrop/application_tests.rs` (165 lines) implements `application_tests` helpers (`grey_from_above()`, `actual_grid_pixels_keep_far_fractions_and_return_to_the_same_near_frame()`, `the_grid_lies_on_the_construction_plane()`) under `backdrop`. It wires `CPlane`, ``, ``, `` without introducing cyclic `backdrop` dependencies."
+      "paragraph": "`src/engine/gpu/backdrop/application_tests.rs` (165 lines) implements `application_tests` (`grey_from_above()`, `actual_grid_pixels_keep_far_fractions_and_return_to_the_same_near_frame()`, `the_grid_lies_on_the_construction_plane()`) inside `backdrop`. It connects `CPlane`, `scene`, `camera`, `gpu` within `backdrop` across native and `wasm32` targets."
     }
   },
   {
@@ -836,7 +836,7 @@
     "explanation": {
       "page": "journey/tutorial-twelve-visibility.md",
       "heading": "### Step 8 \u00b7 `src/engine/gpu/clip/editing_tests.rs`",
-      "paragraph": "`src/engine/gpu/clip/editing_tests.rs` (1146 lines) defines `SIZE`, `GREY`. It implements internal helpers `block()`, `solids()`, `cut()`."
+      "paragraph": "`src/engine/gpu/clip/editing_tests.rs` (1146 lines) defines `SIZE`, `GREY`. It provides `block()`, `solids()`, `cut()`."
     }
   },
   {
@@ -846,7 +846,7 @@
     "explanation": {
       "page": "journey/tutorial-twelve-visibility.md",
       "heading": "### Step 6 \u00b7 `src/engine/gpu/clip/pipelines.rs`",
-      "paragraph": "`src/engine/gpu/clip/pipelines.rs` (208 lines) defines `cap_source()`, `pick_pipelines()`, `pick_placed_pipelines()`, `SAMPLES`. It implements internal helpers `count_at()`, `primitive_at()`, `cap_texture_entry()`."
+      "paragraph": "`src/engine/gpu/clip/pipelines.rs` (208 lines) defines `cap_source()`, `pick_pipelines()`, `pick_placed_pipelines()`, `SAMPLES`. It provides `count_at()`, `primitive_at()`, `cap_texture_entry()`."
     }
   },
   {
@@ -926,7 +926,7 @@
     "explanation": {
       "page": "journey/tutorial-four-geometry.md",
       "heading": "### Step 22 \u00b7 `src/engine/gpu/hull.rs`",
-      "paragraph": "`src/engine/gpu/hull.rs` (2 lines) implements `hull` helpers (internal state) under `gpu`. It keeps `hull` self-contained and deterministic across native and `wasm32` targets."
+      "paragraph": "`src/engine/gpu/hull.rs` (2 lines) implements `hull` (module state) inside `gpu`. It keeps `hull` deterministic across native `cargo xtest` and `wasm32-unknown-unknown` builds."
     }
   },
   {
@@ -936,7 +936,7 @@
     "explanation": {
       "page": "journey/tutorial-four-geometry.md",
       "heading": "### Step 14 \u00b7 `src/engine/gpu/instance.rs`",
-      "paragraph": "`src/engine/gpu/instance.rs` (6 lines) coordinates submodules `layout`, `validation`. It keeps `instance` self-contained and deterministic across native and `wasm32` targets."
+      "paragraph": "`src/engine/gpu/instance.rs` (6 lines) declares and re-exports module tree `layout`, `validation`. It keeps `instance` deterministic across native `cargo xtest` and `wasm32-unknown-unknown` builds."
     }
   },
   {
@@ -1006,7 +1006,7 @@
     "explanation": {
       "page": "journey/tutorial-four-geometry.md",
       "heading": "### Step 17 \u00b7 `src/engine/gpu/objects.rs`",
-      "paragraph": "`src/engine/gpu/objects.rs` (9 lines) coordinates submodules `gpu_tests`, `ink`, `lane`, `table`. It keeps `objects` self-contained and deterministic across native and `wasm32` targets."
+      "paragraph": "`src/engine/gpu/objects.rs` (9 lines) declares and re-exports module tree `gpu_tests`, `ink`, `lane`, `table`. It keeps `objects` deterministic across native `cargo xtest` and `wasm32-unknown-unknown` builds."
     }
   },
   {
@@ -1036,7 +1036,7 @@
     "explanation": {
       "page": "journey/tutorial-four-geometry.md",
       "heading": "### Step 19 \u00b7 `src/engine/gpu/objects/lane.rs`",
-      "paragraph": "`src/engine/gpu/objects/lane.rs` (17 lines) implements `lane` helpers (`on_reset()`, `on_release()`, `bytes()`) under `objects`. It wires `InstanceTable`, `GpuCtx`, `Layouts` without introducing cyclic `objects` dependencies."
+      "paragraph": "`src/engine/gpu/objects/lane.rs` (17 lines) implements `lane` (`on_reset()`, `on_release()`, `bytes()`) inside `objects`. It connects `InstanceTable`, `GpuCtx`, `Layouts` within `objects` across native and `wasm32` targets."
     }
   },
   {
@@ -1126,7 +1126,7 @@
     "explanation": {
       "page": "journey/tutorial-four-geometry.md",
       "heading": "### Step 70 \u00b7 `src/engine/gpu/scene_gpu_tests/contacts.rs`",
-      "paragraph": "`src/engine/gpu/scene_gpu_tests/contacts.rs` (102 lines) implements `contacts` helpers (`contacts_on_their_face_draw_in_front_of_it()`) under `scene_gpu_tests`. It wires `ElementFeature`, ``, ``, `Camera` without introducing cyclic `scene_gpu_tests` dependencies."
+      "paragraph": "`src/engine/gpu/scene_gpu_tests/contacts.rs` (102 lines) implements `contacts` (`contacts_on_their_face_draw_in_front_of_it()`) inside `scene_gpu_tests`. It connects `ElementFeature`, `session_rust`, `scene`, `Camera` within `scene_gpu_tests` across native and `wasm32` targets."
     }
   },
   {
@@ -1136,7 +1136,7 @@
     "explanation": {
       "page": "journey/tutorial-four-geometry.md",
       "heading": "### Step 71 \u00b7 `src/engine/gpu/scene_gpu_tests/frames.rs`",
-      "paragraph": "`src/engine/gpu/scene_gpu_tests/frames.rs` (222 lines) houses regression tests `authored_line_widths_reach_the_pixels`. It implements internal helpers `top_view()`, `count()`, `grey()`; and verified by `cargo xtest` (`authored_line_widths_reach_the_pixels`)."
+      "paragraph": "`src/engine/gpu/scene_gpu_tests/frames.rs` (222 lines) verifies `authored_line_widths_reach_the_pixels`. It provides `top_view()`, `count()`, `grey()`; and locked by `cargo xtest` (`authored_line_widths_reach_the_pixels`)."
     }
   },
   {
@@ -1146,7 +1146,7 @@
     "explanation": {
       "page": "journey/tutorial-four-geometry.md",
       "heading": "### Step 72 \u00b7 `src/engine/gpu/scene_gpu_tests/instances.rs`",
-      "paragraph": "`src/engine/gpu/scene_gpu_tests/instances.rs` (409 lines) implements `instances` helpers (`file()`, `placed()`, `turned_grid()`) under `scene_gpu_tests`. It wires ``, `Camera`, ``, `ElementFeature` without introducing cyclic `scene_gpu_tests` dependencies."
+      "paragraph": "`src/engine/gpu/scene_gpu_tests/instances.rs` (409 lines) implements `instances` (`file()`, `placed()`, `turned_grid()`) inside `scene_gpu_tests`. It connects `scene`, `Camera`, `gpu`, `ElementFeature` within `scene_gpu_tests` across native and `wasm32` targets."
     }
   },
   {
@@ -1156,7 +1156,7 @@
     "explanation": {
       "page": "journey/tutorial-four-geometry.md",
       "heading": "### Step 69 \u00b7 `src/engine/gpu/scene_gpu_tests/mod.rs`",
-      "paragraph": "`src/engine/gpu/scene_gpu_tests/mod.rs` (4 lines) coordinates submodules `contacts`, `frames`, `instances`, `split`. It keeps `mod` self-contained and deterministic across native and `wasm32` targets."
+      "paragraph": "`src/engine/gpu/scene_gpu_tests/mod.rs` (4 lines) declares and re-exports module tree `contacts`, `frames`, `instances`, `split`. It keeps `mod` deterministic across native `cargo xtest` and `wasm32-unknown-unknown` builds."
     }
   },
   {
@@ -1166,7 +1166,7 @@
     "explanation": {
       "page": "journey/tutorial-four-geometry.md",
       "heading": "### Step 73 \u00b7 `src/engine/gpu/scene_gpu_tests/split.rs`",
-      "paragraph": "`src/engine/gpu/scene_gpu_tests/split.rs` (758 lines) implements `split` helpers (`file()`, `p()`, `arc()`) under `scene_gpu_tests`. It wires ``, ``, `Interval`, `` without introducing cyclic `scene_gpu_tests` dependencies."
+      "paragraph": "`src/engine/gpu/scene_gpu_tests/split.rs` (758 lines) implements `split` (`file()`, `p()`, `arc()`) inside `scene_gpu_tests`. It connects `clipping`, `verbs`, `Interval`, `scene` within `scene_gpu_tests` across native and `wasm32` targets."
     }
   },
   {
@@ -1186,7 +1186,7 @@
     "explanation": {
       "page": "journey/tutorial-four-geometry.md",
       "heading": "### Step 11 \u00b7 `src/engine/gpu/sink.rs`",
-      "paragraph": "`src/engine/gpu/sink.rs` (188 lines) implements `sink` helpers (`canvas_size()`, `geometry_revision()`, `object_row()`) under `gpu`. It wires `Gpu`, ``, ``, `GpuSink` without introducing cyclic `gpu` dependencies."
+      "paragraph": "`src/engine/gpu/sink.rs` (188 lines) implements `sink` (`canvas_size()`, `geometry_revision()`, `object_row()`) inside `gpu`. It connects `Gpu`, `rows`, `session_rust`, `GpuSink` within `gpu` across native and `wasm32` targets."
     }
   },
   {
@@ -1336,7 +1336,7 @@
     "explanation": {
       "page": "journey/tutorial-sixteen-performance.md",
       "heading": "### Step 2 \u00b7 `src/engine/gpu/timing.rs`",
-      "paragraph": "`src/engine/gpu/timing.rs` (127 lines) defines `struct PassTimer`, `mark()`, `resolve()`, `collect()`, `MARKS`. It wires `GpuCtx` without introducing cyclic `gpu` dependencies."
+      "paragraph": "`src/engine/gpu/timing.rs` (127 lines) defines `struct PassTimer`, `mark()`, `resolve()`, `collect()`, `MARKS`. It connects `GpuCtx` within `gpu` across native and `wasm32` targets."
     }
   },
   {
@@ -1406,7 +1406,7 @@
     "explanation": {
       "page": "journey/tutorial-eight-gumball.md",
       "heading": "### Step 3 \u00b7 `src/engine/gpu/widget_mesh.rs`",
-      "paragraph": "`src/engine/gpu/widget_mesh.rs` (158 lines) defines `struct Vertex`, `vertices()`, `COLORS`, `SIDES`. It implements internal helpers `orient()`, `lathe()`, `sphere()`."
+      "paragraph": "`src/engine/gpu/widget_mesh.rs` (158 lines) defines `struct Vertex`, `vertices()`, `COLORS`, `SIDES`. It provides `orient()`, `lathe()`, `sphere()`."
     }
   },
   {
@@ -1456,7 +1456,7 @@
     "explanation": {
       "page": "journey/tutorial-three-rendering.md",
       "heading": "### Step 6 \u00b7 `src/engine/pipelines/geometry.rs`",
-      "paragraph": "`src/engine/pipelines/geometry.rs` (71 lines) defines `vertex_layout()`. It implements internal helpers `pipelines_compile_on_first_use_and_once_per_target()`."
+      "paragraph": "`src/engine/pipelines/geometry.rs` (71 lines) defines `vertex_layout()`. It connects `created`, `gpu`, `session_rust` within `pipelines` across native and `wasm32` targets."
     }
   },
   {
@@ -1476,7 +1476,7 @@
     "explanation": {
       "page": "journey/tutorial-three-rendering.md",
       "heading": "### Step 2 \u00b7 `src/engine/pipelines/mod.rs`",
-      "paragraph": "`src/engine/pipelines/mod.rs` (7 lines) coordinates submodules `bindings`, `layouts`, `core`, `geometry`. It keeps `mod` self-contained and deterministic across native and `wasm32` targets."
+      "paragraph": "`src/engine/pipelines/mod.rs` (7 lines) declares and re-exports module tree `bindings`, `layouts`, `core`, `geometry`. It keeps `mod` deterministic across native `cargo xtest` and `wasm32-unknown-unknown` builds."
     }
   },
   {
@@ -1496,7 +1496,7 @@
     "explanation": {
       "page": "journey/tutorial-ten-display.md",
       "heading": "### Step 18 \u00b7 `src/engine/text/application_tests.rs`",
-      "paragraph": "`src/engine/text/application_tests.rs` (34 lines) houses regression tests `bundled_subsets_cover_the_viewer_and_whole_fonts_the_rest`. It implements internal helpers `bundled_subsets_cover_the_viewer_and_whole_fonts_the_rest()`; and verified by `cargo xtest` (`bundled_subsets_cover_the_viewer_and_whole_fonts_the_rest`)."
+      "paragraph": "`src/engine/text/application_tests.rs` (34 lines) verifies `bundled_subsets_cover_the_viewer_and_whole_fonts_the_rest`. It locked by `cargo xtest` (`bundled_subsets_cover_the_viewer_and_whole_fonts_the_rest`)."
     }
   },
   {
@@ -1966,7 +1966,7 @@
     "explanation": {
       "page": "journey/tutorial-fourteen-fastmcp.md",
       "heading": "### Step 2 \u00b7 `src/state/host.rs`",
-      "paragraph": "`src/state/host.rs` (566 lines) implements `host` helpers (`scene()`, `scene_mut()`, `camera()`) under `state`. It wires `State`, `Mode`, ``, `Tool` without introducing cyclic `state` dependencies."
+      "paragraph": "`src/state/host.rs` (566 lines) implements `host` (`scene()`, `scene_mut()`, `camera()`) inside `state`. It connects `State`, `Mode`, `host`, `Tool` within `state` across native and `wasm32` targets."
     }
   },
   {
@@ -2016,7 +2016,7 @@
     "explanation": {
       "page": "journey/tutorial-six-modeling.md",
       "heading": "### Step 14 \u00b7 `src/state/splitting.rs`",
-      "paragraph": "`src/state/splitting.rs` (193 lines) defines `struct Pending`, `split_status()`, `split_command()`, `cancel_split()`. It implements internal helpers `finish_split()`."
+      "paragraph": "`src/state/splitting.rs` (193 lines) defines `struct Pending`, `split_status()`, `split_command()`, `cancel_split()`. It provides `finish_split()`."
     }
   },
   {
@@ -2086,7 +2086,7 @@
     "explanation": {
       "page": "journey/tutorial-eleven-clouds.md",
       "heading": "### Step 9 \u00b7 `viewer-core/src/cloud_query.rs`",
-      "paragraph": "`viewer-core/src/cloud_query.rs` (503 lines) defines `struct QueryView`, `struct Candidate`, `struct Query`, `original_id()`, `project()`. It implements internal helpers `clip()`, `intersects()`, `invalid_clip()`, `PAGE_POINTS`; and verified by `cargo xtest` (`original_fixed32_ids_preserve_all_bits_and_reject_partial_ranges`, `nodes_after_six_million_remain_eligible_and_uncovered_rows_are_scanned`, `cube_eligibility_uses_the_same_pixel_center_as_candidate_projection` (+3 more))."
+      "paragraph": "`viewer-core/src/cloud_query.rs` (503 lines) defines `struct QueryView`, `struct Candidate`, `struct Query`, `original_id()`, `project()`. It provides `clip()`, `intersects()`, `invalid_clip()`, `PAGE_POINTS`; and locked by `cargo xtest` (`original_fixed32_ids_preserve_all_bits_and_reject_partial_ranges`, `nodes_after_six_million_remain_eligible_and_uncovered_rows_are_scanned`, `cube_eligibility_uses_the_same_pixel_center_as_candidate_projection` (+3 more))."
     }
   },
   {
@@ -2096,7 +2096,7 @@
     "explanation": {
       "page": "journey/tutorial-fourteen-fastmcp.md",
       "heading": "### Step 3 \u00b7 `viewer-core/src/command/headless_tests.rs`",
-      "paragraph": "`viewer-core/src/command/headless_tests.rs` (321 lines) houses regression tests `headless_host_executes_every_registered_verb_without_gpu_or_window`. It implements internal helpers `run()`, `run_follow()`, `headless_host_executes_every_registered_verb_without_gpu_or_window()`; and verified by `cargo xtest` (`headless_host_executes_every_registered_verb_without_gpu_or_window`)."
+      "paragraph": "`viewer-core/src/command/headless_tests.rs` (321 lines) verifies `headless_host_executes_every_registered_verb_without_gpu_or_window`. It provides `run()`, `run_follow()`; and locked by `cargo xtest` (`headless_host_executes_every_registered_verb_without_gpu_or_window`)."
     }
   },
   {
@@ -2106,7 +2106,7 @@
     "explanation": {
       "page": "journey/tutorial-fourteen-fastmcp.md",
       "heading": "### Step 1 \u00b7 `viewer-core/src/command/host.rs`",
-      "paragraph": "`viewer-core/src/command/host.rs` (1830 lines) defines `enum ViewFlag`, `struct DisplaySettings`, `struct SelectionState`, `selected_rows()`, `ordered_rows()`. It implements internal helpers `scene()`, `scene_mut()`, `camera()`."
+      "paragraph": "`viewer-core/src/command/host.rs` (1830 lines) defines `enum ViewFlag`, `struct DisplaySettings`, `struct SelectionState`, `selected_rows()`, `ordered_rows()`. It provides `scene()`, `scene_mut()`, `camera()`."
     }
   },
   {
@@ -3146,7 +3146,7 @@
     "explanation": {
       "page": "journey/tutorial-fifteen-formats.md",
       "heading": "### Step 3 \u00b7 `viewer-core/src/decode.rs`",
-      "paragraph": "`viewer-core/src/decode.rs` (1050 lines) defines `trait ByteSource`, `enum Body`, `size()`, `session_from_bytes()`, `session_from_bytes_yielding()`. It implements internal helpers `len_bytes()`, `copy_range()`, `to_vec_bytes()`, `CHUNK`; and verified by `cargo xtest` (`window_decode_keeps_node_colors`, `window_decode_matches_the_source`, `window_decode_keeps_interactions_on_their_edges` (+4 more))."
+      "paragraph": "`viewer-core/src/decode.rs` (1050 lines) defines `trait ByteSource`, `enum Body`, `size()`, `session_from_bytes()`, `session_from_bytes_yielding()`. It provides `len_bytes()`, `copy_range()`, `to_vec_bytes()`, `CHUNK`; and locked by `cargo xtest` (`window_decode_keeps_node_colors`, `window_decode_matches_the_source`, `window_decode_keeps_interactions_on_their_edges` (+4 more))."
     }
   },
   {
@@ -3256,7 +3256,7 @@
     "explanation": {
       "page": "journey/tutorial-six-modeling.md",
       "heading": "### Step 21 \u00b7 `viewer-core/src/mesh_preview.rs`",
-      "paragraph": "`viewer-core/src/mesh_preview.rs` (325 lines) defines `struct MeshPreview`, `struct Gesture`, `mesh()`, `capture()`, `begin()`. It implements internal helpers `large_mesh_gesture_only_patches_local_neighborhood()`; and verified by `cargo xtest` (`large_mesh_gesture_only_patches_local_neighborhood`)."
+      "paragraph": "`viewer-core/src/mesh_preview.rs` (325 lines) defines `struct MeshPreview`, `struct Gesture`, `mesh()`, `capture()`, `begin()`. It locked by `cargo xtest` (`large_mesh_gesture_only_patches_local_neighborhood`)."
     }
   },
   {
@@ -3296,7 +3296,7 @@
     "explanation": {
       "page": "journey/tutorial-four-geometry.md",
       "heading": "### Step 3 \u00b7 `viewer-core/src/rows/encode.rs`",
-      "paragraph": "`viewer-core/src/rows/encode.rs` (78 lines) defines `struct Pen`, `encode_width()`, `pack_rgba()`, `oct16()`, `BLACK`. It implements internal helpers `quant8()`, `sign_not_zero()`, `quant_snorm8()`, `FACING_UNKNOWN`."
+      "paragraph": "`viewer-core/src/rows/encode.rs` (78 lines) defines `struct Pen`, `encode_width()`, `pack_rgba()`, `oct16()`, `BLACK`. It provides `quant8()`, `sign_not_zero()`, `quant_snorm8()`, `FACING_UNKNOWN`."
     }
   },
   {
@@ -3306,7 +3306,7 @@
     "explanation": {
       "page": "journey/tutorial-four-geometry.md",
       "heading": "### Step 4 \u00b7 `viewer-core/src/rows/gizmo.rs`",
-      "paragraph": "`viewer-core/src/rows/gizmo.rs` (14 lines) defines `ARM`, `BALL_AT`. It keeps `gizmo` self-contained and deterministic across native and `wasm32` targets."
+      "paragraph": "`viewer-core/src/rows/gizmo.rs` (14 lines) defines `ARM`, `BALL_AT`. It keeps `gizmo` deterministic across native `cargo xtest` and `wasm32-unknown-unknown` builds."
     }
   },
   {
@@ -3316,7 +3316,7 @@
     "explanation": {
       "page": "journey/tutorial-four-geometry.md",
       "heading": "### Step 5 \u00b7 `viewer-core/src/rows/hull.rs`",
-      "paragraph": "`viewer-core/src/rows/hull.rs` (392 lines) defines `type Hull`, `struct Points`, `of()`, `extreme_points()`, `placed_box()`. It implements internal helpers `volume()`, `sub()`, `dot()`, `ABOVE`; and verified by `cargo xtest` (`a_turned_beam_is_boxed_by_its_extreme_points`, `every_direction_peaks_on_a_kept_point`, `a_round_set_gives_up` (+1 more))."
+      "paragraph": "`viewer-core/src/rows/hull.rs` (392 lines) defines `type Hull`, `struct Points`, `of()`, `extreme_points()`, `placed_box()`. It provides `volume()`, `sub()`, `dot()`, `ABOVE`; and locked by `cargo xtest` (`a_turned_beam_is_boxed_by_its_extreme_points`, `every_direction_peaks_on_a_kept_point`, `a_round_set_gives_up` (+1 more))."
     }
   },
   {
@@ -3326,7 +3326,7 @@
     "explanation": {
       "page": "journey/tutorial-four-geometry.md",
       "heading": "### Step 6 \u00b7 `viewer-core/src/rows/instance.rs`",
-      "paragraph": "`viewer-core/src/rows/instance.rs` (93 lines) defines `struct Instance`, `placeholder()`, `FLAG_SELECTED`, `FLAG_HIDDEN`. It wires `Xform` without introducing cyclic `rows` dependencies."
+      "paragraph": "`viewer-core/src/rows/instance.rs` (93 lines) defines `struct Instance`, `placeholder()`, `FLAG_SELECTED`, `FLAG_HIDDEN`. It connects `Xform` within `rows` across native and `wasm32` targets."
     }
   },
   {
@@ -3336,7 +3336,7 @@
     "explanation": {
       "page": "journey/tutorial-four-geometry.md",
       "heading": "### Step 7 \u00b7 `viewer-core/src/rows/lanes.rs`",
-      "paragraph": "`viewer-core/src/rows/lanes.rs` (557 lines) defines `struct Pick`, `enum PickMode`, `struct FaceSource`, `drop_rows()`, `is_silhouette()`. It implements internal helpers `plated()`, `lane_rows_by_type()`, `FACE_TAG`, `SILHOUETTE_SAG`; and verified by `cargo xtest` (`lane_rows_by_type`)."
+      "paragraph": "`viewer-core/src/rows/lanes.rs` (557 lines) defines `struct Pick`, `enum PickMode`, `struct FaceSource`, `drop_rows()`, `is_silhouette()`. It provides `plated()`, `lane_rows_by_type()`, `FACE_TAG`, `SILHOUETTE_SAG`; and locked by `cargo xtest` (`lane_rows_by_type`)."
     }
   },
   {
@@ -3346,7 +3346,7 @@
     "explanation": {
       "page": "journey/tutorial-four-geometry.md",
       "heading": "### Step 2 \u00b7 `viewer-core/src/rows/mod.rs`",
-      "paragraph": "`viewer-core/src/rows/mod.rs` (20 lines) coordinates submodules `encode`, `gizmo`, `hull`, `instance`, `lanes`, `objects`. It keeps `mod` self-contained and deterministic across native and `wasm32` targets."
+      "paragraph": "`viewer-core/src/rows/mod.rs` (20 lines) declares and re-exports module tree `encode`, `gizmo`, `hull`, `instance`, `lanes`, `objects`. It keeps `mod` deterministic across native `cargo xtest` and `wasm32-unknown-unknown` builds."
     }
   },
   {
@@ -3356,7 +3356,7 @@
     "explanation": {
       "page": "journey/tutorial-four-geometry.md",
       "heading": "### Step 8 \u00b7 `viewer-core/src/rows/objects.rs`",
-      "paragraph": "`viewer-core/src/rows/objects.rs` (50 lines) defines `struct ObjectRow`, `struct ObjectRows`, `world_box()`, `placed_bounds()`. It wires ``, `` without introducing cyclic `rows` dependencies."
+      "paragraph": "`viewer-core/src/rows/objects.rs` (50 lines) defines `struct ObjectRow`, `struct ObjectRows`, `world_box()`, `placed_bounds()`. It connects `hull`, `session_rust` within `rows` across native and `wasm32` targets."
     }
   },
   {
@@ -3366,7 +3366,7 @@
     "explanation": {
       "page": "journey/tutorial-four-geometry.md",
       "heading": "### Step 9 \u00b7 `viewer-core/src/rows/patch.rs`",
-      "paragraph": "`viewer-core/src/rows/patch.rs` (224 lines) defines `struct RowSpec`, `enum LaneId`, `struct Counts`, `all()`, `stride()`. It implements internal helpers `vector_rows_in()`, `vector_merge()`, `plane_rows_in()`, `ROW_REGISTRY`; and uses additive registration seams `register:markers`, `register:meshes`, `register:strokes`."
+      "paragraph": "`viewer-core/src/rows/patch.rs` (224 lines) defines `struct RowSpec`, `enum LaneId`, `struct Counts`, `all()`, `stride()`. It provides `vector_rows_in()`, `vector_merge()`, `plane_rows_in()`, `ROW_REGISTRY`; and exposes cumulative checkpoint seams `register:markers`, `register:meshes`, `register:strokes`."
     }
   },
   {
@@ -3376,7 +3376,7 @@
     "explanation": {
       "page": "journey/tutorial-four-geometry.md",
       "heading": "### Step 10 \u00b7 `viewer-core/src/rows/upload.rs`",
-      "paragraph": "`viewer-core/src/rows/upload.rs` (173 lines) defines `struct Upload`, `drop_uploaded()`, `merge()`, `shift_vertices()`. It implements internal helpers `merge_arena()`; and uses additive registration seams `register:clouds`, `register:markers`, `register:meshes`, `register:strokes`."
+      "paragraph": "`viewer-core/src/rows/upload.rs` (173 lines) defines `struct Upload`, `drop_uploaded()`, `merge()`, `shift_vertices()`. It provides `merge_arena()`; and exposes cumulative checkpoint seams `register:clouds`, `register:markers`, `register:meshes`, `register:strokes`."
     }
   },
   {
@@ -3466,7 +3466,7 @@
     "explanation": {
       "page": "journey/tutorial-four-geometry.md",
       "heading": "### Step 63 \u00b7 `viewer-core/src/scene_sync/compaction.rs`",
-      "paragraph": "`viewer-core/src/scene_sync/compaction.rs` (174 lines) defines `compaction_due()`, `purge_step()`, `cloud_compaction_due()`. It uses additive registration seams `register:editing`, `register:instancing`."
+      "paragraph": "`viewer-core/src/scene_sync/compaction.rs` (174 lines) defines `compaction_due()`, `purge_step()`, `cloud_compaction_due()`. It exposes cumulative checkpoint seams `register:editing`, `register:instancing`."
     }
   },
   {
@@ -3506,7 +3506,7 @@
     "explanation": {
       "page": "journey/tutorial-nine-layers.md",
       "heading": "### Step 25 \u00b7 `viewer-core/src/scene_sync/panel_tests.rs`",
-      "paragraph": "`viewer-core/src/scene_sync/panel_tests.rs` (38 lines) houses regression tests `hierarchy_follows_edits`. It implements internal helpers `hierarchy_follows_edits()`; and verified by `cargo xtest` (`hierarchy_follows_edits`)."
+      "paragraph": "`viewer-core/src/scene_sync/panel_tests.rs` (38 lines) verifies `hierarchy_follows_edits`. It provides `hierarchy_follows_edits()`; and locked by `cargo xtest` (`hierarchy_follows_edits`)."
     }
   },
   {
@@ -3526,7 +3526,7 @@
     "explanation": {
       "page": "journey/tutorial-six-modeling.md",
       "heading": "### Step 26 \u00b7 `viewer-core/src/scene_sync/split_tests.rs`",
-      "paragraph": "`viewer-core/src/scene_sync/split_tests.rs` (454 lines) houses regression tests `incremental_matches_fresh_oracle`, `tombs_under_a_small_cap_match_fresh_oracle`, `hints_and_node_cache_are_only_a_cache`, `touch_all_keeps_a_synced_scene`. It implements internal helpers `edit()`, `incremental_matches_fresh_oracle()`, `tombs_under_a_small_cap_match_fresh_oracle()`; and verified by `cargo xtest` (`incremental_matches_fresh_oracle`, `tombs_under_a_small_cap_match_fresh_oracle`, `hints_and_node_cache_are_only_a_cache` (+6 more))."
+      "paragraph": "`viewer-core/src/scene_sync/split_tests.rs` (454 lines) verifies `incremental_matches_fresh_oracle`, `tombs_under_a_small_cap_match_fresh_oracle`, `hints_and_node_cache_are_only_a_cache`, `touch_all_keeps_a_synced_scene`. It provides `edit()`, `incremental_matches_fresh_oracle()`; and locked by `cargo xtest` (`incremental_matches_fresh_oracle`, `tombs_under_a_small_cap_match_fresh_oracle`, `hints_and_node_cache_are_only_a_cache` (+6 more))."
     }
   },
   {
@@ -3566,7 +3566,7 @@
     "explanation": {
       "page": "journey/tutorial-ten-display.md",
       "heading": "### Step 26 \u00b7 `viewer-core/src/scene_text.rs`",
-      "paragraph": "`viewer-core/src/scene_text.rs` (228 lines) defines `struct SceneText`, `set_texts()`, `set_document_title()`, `register_text()`, `CREATED_TEXT`. It uses additive registration seams `register:editing`."
+      "paragraph": "`viewer-core/src/scene_text.rs` (228 lines) defines `struct SceneText`, `set_texts()`, `set_document_title()`, `register_text()`, `CREATED_TEXT`. It exposes cumulative checkpoint seams `register:editing`."
     }
   },
   {
@@ -3586,7 +3586,7 @@
     "explanation": {
       "page": "journey/tutorial-fifteen-formats.md",
       "heading": "### Step 16 \u00b7 `viewer-core/src/session_io.rs`",
-      "paragraph": "`viewer-core/src/session_io.rs` (967 lines) defines `struct SavedCamera`, `struct SavedView`, `struct OpenedSession`, `from_camera()`, `apply_to()`. It implements internal helpers `in_doc()`, `visible()`, `locked()`, `MAGIC`; and verified by `cargo xtest` (`lamps_load_from_and_save_to_is_visible`, `locks_load_from_and_save_to_is_locked`, `a_created_text_survives_save_and_open` (+3 more))."
+      "paragraph": "`viewer-core/src/session_io.rs` (967 lines) defines `struct SavedCamera`, `struct SavedView`, `struct OpenedSession`, `from_camera()`, `apply_to()`. It provides `in_doc()`, `visible()`, `locked()`, `MAGIC`; and locked by `cargo xtest` (`lamps_load_from_and_save_to_is_visible`, `locks_load_from_and_save_to_is_locked`, `a_created_text_survives_save_and_open` (+3 more))."
     }
   },
   {
@@ -3596,7 +3596,7 @@
     "explanation": {
       "page": "journey/tutorial-eleven-clouds.md",
       "heading": "### Step 13 \u00b7 `viewer-core/src/sheet_query.rs`",
-      "paragraph": "`viewer-core/src/sheet_query.rs` (161 lines) defines `struct EntityMeta`, `struct SheetTable`, `struct Query`, `table_count()`, `record()`. It implements internal helpers `drop()`, `table()`, `side_table_head_records_and_blobs_parse_from_a_hand_built_buffer()`, `HEAD_BYTES`; and verified by `cargo xtest` (`side_table_head_records_and_blobs_parse_from_a_hand_built_buffer`, `dropping_a_query_cancels_its_token`)."
+      "paragraph": "`viewer-core/src/sheet_query.rs` (161 lines) defines `struct EntityMeta`, `struct SheetTable`, `struct Query`, `table_count()`, `record()`. It provides `drop()`, `table()`, `HEAD_BYTES`, `RECORD_BYTES`; and locked by `cargo xtest` (`side_table_head_records_and_blobs_parse_from_a_hand_built_buffer`, `dropping_a_query_cancels_its_token`)."
     }
   },
   {
@@ -3606,7 +3606,7 @@
     "explanation": {
       "page": "journey/tutorial-four-geometry.md",
       "heading": "### Step 1 \u00b7 `viewer-core/src/sink.rs`",
-      "paragraph": "`viewer-core/src/sink.rs` (51 lines) defines `trait GpuSink`. It implements internal helpers `canvas_size()`, `geometry_revision()`, `object_row()`."
+      "paragraph": "`viewer-core/src/sink.rs` (51 lines) defines `trait GpuSink`. It provides `canvas_size()`, `geometry_revision()`, `object_row()`."
     }
   },
   {
@@ -3626,7 +3626,7 @@
     "explanation": {
       "page": "journey/tutorial-six-modeling.md",
       "heading": "### Step 20 \u00b7 `viewer-core/src/splitting.rs`",
-      "paragraph": "`viewer-core/src/splitting.rs` (405 lines) defines `is_cutter()`, `face_index()`, `split_rows()`. It implements internal helpers `brep_face()`, `curve()`, `top()`; and verified by `cargo xtest` (`split_preserves_tree_placement_and_other_shared_documents_and_undo`, `split_face_keeps_solid_joined_and_invalid_cut_preserves_source`)."
+      "paragraph": "`viewer-core/src/splitting.rs` (405 lines) defines `is_cutter()`, `face_index()`, `split_rows()`. It provides `brep_face()`, `curve()`, `top()`; and locked by `cargo xtest` (`split_preserves_tree_placement_and_other_shared_documents_and_undo`, `split_face_keeps_solid_joined_and_invalid_cut_preserves_source`)."
     }
   },
   {
@@ -3636,7 +3636,7 @@
     "explanation": {
       "page": "journey/tutorial-fifteen-formats.md",
       "heading": "### Step 11 \u00b7 `viewer-core/src/stream.rs`",
-      "paragraph": "`viewer-core/src/stream.rs` (839 lines) defines `struct CloudFields`, `struct SheetFields`, `struct Field`, `field_at()`, `set()`. It implements internal helpers `valid_node()`, `valid_children()`, `first_array()`, `SEGMENT_BYTES`; and verified by `cargo xtest` (`normals_pack_three_doubles_per_point`, `metadata_window_checks_ranges_without_copying_or_following_large_skips`, `lod_parallel_arrays_bounds_ranges_and_child_graph_are_validated` (+5 more))."
+      "paragraph": "`viewer-core/src/stream.rs` (839 lines) defines `struct CloudFields`, `struct SheetFields`, `struct Field`, `field_at()`, `set()`. It provides `valid_node()`, `valid_children()`, `first_array()`, `SEGMENT_BYTES`; and locked by `cargo xtest` (`normals_pack_three_doubles_per_point`, `metadata_window_checks_ranges_without_copying_or_following_large_skips`, `lod_parallel_arrays_bounds_ranges_and_child_graph_are_validated` (+5 more))."
     }
   },
   {

@@ -2,7 +2,7 @@
 
 Build the Session Viewer across **17 complete, code-first tutorials** (`408` whole-file `--8<--` source includes: `197` `session_viewer/src` files, `182` `viewer-core/src` files, `9` support files, `.cargo/config.toml`, `13` course checkpoint entries, and `6` `session_mcp` FastMCP files), backed by **9 acyclic cumulative Cargo assemblies** (`frame` through `application`).
 
-![Production shell, App -> State -> Mode, StageApp + Scene3 bridge, and 388 verified production files (native wgpu readback of stage deck)](../../examples/stage/tutorials-systems/17-application.png)
+![Scene3 coupled 3D hardware stage, Schek 1974 force-density cable-net solver, zero-waterfall index.html boot, and 388/388 source closure](../screenshots/tutorials/explain-17-application.png)
 
 ## 17 Tutorials (Sequential Reading Order)
 

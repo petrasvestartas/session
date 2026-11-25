@@ -4,15 +4,15 @@
 
 Traverse precomputed `LodNode` point-cloud octrees with 8-corner clip-space frustum culling and `2.0 px` screen-spacing cutoffs, shade splats with Eye-Dome Lighting (EDL), stream `250k`-point chunks, and query cloud/sheet elements lazily.
 
-![Million-point Lion scan rendered as camera-facing splats with Eye-Dome Lighting](../screenshots/tutorials/t11-lion-edl.png) ![Nested 3D octree spatial cells driving out-of-core point-cloud level of detail](../screenshots/tutorials/t11-octree.png)
+![Million-point Lion scan rendered as splats with Eye-Dome Lighting](../screenshots/tutorials/t11-lion-edl.png) ![Nested 3D octree spatial cells driving out-of-core point-cloud level of detail](../screenshots/tutorials/t11-octree.png)
 
-**What we achieve:** Interactive million-point LiDAR and photogrammetry rendering with Eye-Dome Lighting (`EDL`) surface relief and out-of-core octree level-of-detail streaming.
+**What we achieve:** Million-point LiDAR/photogrammetry rendering (`splat.wgsl` + `splat_resolve.wgsl`) with normal-free Eye-Dome Lighting, out-of-core HTTP `Range` octree streaming (`lod.rs`), exact `fixed32` point queries, and 3D-placed CAD drawing sheets.
 
 ## How it works
 
-`splats.wgsl` expands each `16`-byte packed point (`xyz + rgba8`) into a circular screen-space quad writing radial depth, `edl.wgsl` shades logarithmic neighbour depth jumps `∑ max(0, log₂ z_c − log₂ z_i)` without requiring normals, and `cloud_stream` refines visible octree cells whose screen-space error `ρ = (r_k · H) / (2 · d · tan(θ / 2))` exceeds threshold.
+`splat.wgsl` binary-searches cumulative point counts across `40`-word (`160 B`) `SplatRecord` headers (`record_of(gid)`) to project SoA `positions`/`colors`/`normals` with clamped screen radii `[r_min, 8 px]`, `splat_resolve.wgsl` shades 4-neighbour `log2` depth steps (`max(exp(-75 · edl · sum), 0.25)`), and `cloud_query.rs` / `sheet_query.rs` stream paged picks and side-table metadata.
 
-![16-byte PointSplat storage layout, spherical billboard depth cap, normal-free Eye-Dome Lighting, and octree Screen-Space Error streaming](../screenshots/tutorials/explain-11-clouds.png)
+![40-word SplatRecord binary search, two-pass 4-tap logarithmic Eye-Dome Lighting, HTTP Range octree LOD, and fixed32 cloud/sheet queries](../screenshots/tutorials/explain-11-clouds.png)
 
 ## Prerequisites and files
 
@@ -106,7 +106,7 @@ Packs kernel `PointCloud` positions, colours and complete normal arrays (`NO_NOR
 
 ### Step 9 · `viewer-core/src/cloud_query.rs`
 
-`viewer-core/src/cloud_query.rs` (503 lines) defines `struct QueryView`, `struct Candidate`, `struct Query`, `original_id()`, `project()`. It implements internal helpers `clip()`, `intersects()`, `invalid_clip()`, `PAGE_POINTS`; and verified by `cargo xtest` (`original_fixed32_ids_preserve_all_bits_and_reject_partial_ranges`, `nodes_after_six_million_remain_eligible_and_uncovered_rows_are_scanned`, `cube_eligibility_uses_the_same_pixel_center_as_candidate_projection` (+3 more)).
+`viewer-core/src/cloud_query.rs` (503 lines) defines `struct QueryView`, `struct Candidate`, `struct Query`, `original_id()`, `project()`. It provides `clip()`, `intersects()`, `invalid_clip()`, `PAGE_POINTS`; and locked by `cargo xtest` (`original_fixed32_ids_preserve_all_bits_and_reject_partial_ranges`, `nodes_after_six_million_remain_eligible_and_uncovered_rows_are_scanned`, `cube_eligibility_uses_the_same_pixel_center_as_candidate_projection` (+3 more)).
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/cloud_query.rs"
@@ -114,7 +114,7 @@ Packs kernel `PointCloud` positions, colours and complete normal arrays (`NO_NOR
 
 ### Step 10 · `src/app/cloud_query.rs`
 
-`src/app/cloud_query.rs` (174 lines) defines `fetch_page()`, `resolve_id()`. It implements internal helpers `source_request()`, `source_position()`, `page_candidates()`.
+`src/app/cloud_query.rs` (174 lines) defines `fetch_page()`, `resolve_id()`. It provides `source_request()`, `source_position()`, `page_candidates()`.
 
 ```rust
 --8<-- "session_viewer/src/app/cloud_query.rs"
@@ -138,7 +138,7 @@ Walks flat `6`-float segment slices into the dedicated sheet lane with scene-uni
 
 ### Step 13 · `viewer-core/src/sheet_query.rs`
 
-`viewer-core/src/sheet_query.rs` (161 lines) defines `struct EntityMeta`, `struct SheetTable`, `struct Query`, `table_count()`, `record()`. It implements internal helpers `drop()`, `table()`, `side_table_head_records_and_blobs_parse_from_a_hand_built_buffer()`, `HEAD_BYTES`; and verified by `cargo xtest` (`side_table_head_records_and_blobs_parse_from_a_hand_built_buffer`, `dropping_a_query_cancels_its_token`).
+`viewer-core/src/sheet_query.rs` (161 lines) defines `struct EntityMeta`, `struct SheetTable`, `struct Query`, `table_count()`, `record()`. It provides `drop()`, `table()`, `HEAD_BYTES`, `RECORD_BYTES`; and locked by `cargo xtest` (`side_table_head_records_and_blobs_parse_from_a_hand_built_buffer`, `dropping_a_query_cancels_its_token`).
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/sheet_query.rs"
@@ -146,7 +146,7 @@ Walks flat `6`-float segment slices into the dedicated sheet lane with scene-uni
 
 ### Step 14 · `src/app/sheet_query.rs`
 
-`src/app/sheet_query.rs` (96 lines) defines `fetch_entity()`, `read_entity()`. It wires ``, `fetch_range`, `post`, `Cell` without introducing cyclic `app` dependencies.
+`src/app/sheet_query.rs` (96 lines) defines `fetch_entity()`, `read_entity()`. It connects `fetch_range`, `post`, `Cell`, `Rc` within `app` across native and `wasm32` targets.
 
 ```rust
 --8<-- "session_viewer/src/app/sheet_query.rs"

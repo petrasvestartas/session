@@ -4,15 +4,15 @@
 
 Switch seamlessly between shaded CAD edges, dilated coverage-mask silhouettes (`Outline`), horizon-integrated GTAO clay shading (`Arctic`), toggleable element `Attributes`, and shaped `glyphon` world-plane, screen-plate, and outlined text.
 
-![Selected timber bay with Jump-Flood silhouette outline and rounded 3D glyphon labels](../screenshots/tutorials/t10-outline-text.png) ![Arctic display mode isolating pure white clay geometry with multi-slice GTAO contact shadows](../screenshots/tutorials/t10-arctic.png)
+![Selected timber bay with silhouette outline and rounded 3D scene text labels](../screenshots/tutorials/t10-outline-text.png) ![Arctic display mode isolating pure white clay geometry with SSAO contact shadows](../screenshots/tutorials/t10-arctic.png)
 
-**What we achieve:** Four studio display presets (`Shaded`, `Wireframe`, `Arctic`, `Ghost`), Ground-Truth Ambient Occlusion (`GTAO`), Jump-Flood selection silhouettes, and crisp `glyphon` 3D scene annotations.
+**What we achieve:** Dual global + selection coverage silhouettes (`surface_outline.wgsl`), half-resolution temporal horizon SSAO (`ssao.wgsl`, `Arctic` mode), and three crisp GPU scene-text lanes (`text_plane`, `text_plate`, `text_outline`).
 
 ## How it works
 
-GTAO integrates horizon angles `(θ_1, θ_2)` in half-resolution linear view-space depth and filters bilaterally across creases; Jump-Flood (`jfa.wgsl`) propagates selected-mask seeds at strides `N/2, …, 1` for constant-cost outlines; and `glyphon` snaps projected 3D `Nameplate` and `Anchor` labels to physical pixels.
+`face_coverage.wgsl` measures per-pixel MSAA solid coverage from `physical` triangle IDs, `surface_outline.wgsl` max-pools and `3×3`-dilates coarse blocks to skip empty/interior tiles before walking `512` distance-sorted radial `Taps` with early exit, `ssao.wgsl` integrates horizon occlusion scaled by `objects[id].ao_radius`, and `fonts.rs` cascades bundled Noto subsets with on-demand full fonts.
 
-![Four display presets, half-resolution GTAO horizon integral with bilateral depth blur, O(log R) Jump-Flood SDF outlines, and glyphon snapping](../screenshots/tutorials/explain-10-display.png)
+![Coarse-dilated Taps[512] coverage outlines, half-res temporal horizon SSAO, and 3-lane GPU scene text (text_plane, text_plate, text_outline)](../screenshots/tutorials/explain-10-display.png)
 
 ## Prerequisites and files
 
@@ -191,7 +191,7 @@ Checks bundled `Subset` glyph coverage (`need` / `need_names`) and triggers one 
 
 ### Step 18 · `src/engine/text/application_tests.rs`
 
-`src/engine/text/application_tests.rs` (34 lines) houses regression tests `bundled_subsets_cover_the_viewer_and_whole_fonts_the_rest`. It implements internal helpers `bundled_subsets_cover_the_viewer_and_whole_fonts_the_rest()`; and verified by `cargo xtest` (`bundled_subsets_cover_the_viewer_and_whole_fonts_the_rest`).
+`src/engine/text/application_tests.rs` (34 lines) verifies `bundled_subsets_cover_the_viewer_and_whole_fonts_the_rest`. It locked by `cargo xtest` (`bundled_subsets_cover_the_viewer_and_whole_fonts_the_rest`).
 
 ```rust
 --8<-- "session_viewer/src/engine/text/application_tests.rs"
@@ -255,7 +255,7 @@ Draws pre-triangulated arena sheet lettering with flat colour and object-ID pick
 
 ### Step 26 · `viewer-core/src/scene_text.rs`
 
-`viewer-core/src/scene_text.rs` (228 lines) defines `struct SceneText`, `set_texts()`, `set_document_title()`, `register_text()`, `CREATED_TEXT`. It uses additive registration seams `register:editing`.
+`viewer-core/src/scene_text.rs` (228 lines) defines `struct SceneText`, `set_texts()`, `set_document_title()`, `register_text()`, `CREATED_TEXT`. It exposes cumulative checkpoint seams `register:editing`.
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/scene_text.rs"

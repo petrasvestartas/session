@@ -4,15 +4,15 @@
 
 Mount the decoupled `command_dock` widget (`Commands` trait, inline completion suffix, option chips, 200-line history, mobile IME proxy) and ship the native `session-viewer-cli` binary (`exec`, `serve --stdio`, `schema`, `render-stage`).
 
-![Bottom command dock showing Mode/CPlane option chips, Tab completion, and 86 registered verbs](../screenshots/tutorials/t13-dock.png)
+![Bottom command dock showing Mode/CPlane option chips, Tab completion, and registered verbs](../screenshots/tutorials/t13-dock.png)
 
-**What we achieve:** A Rhino-style modeless command line (`command_dock`) and 86-verb `CommandHost` vocabulary unifying keyboard entry, clickable option chips, viewport picks, and `session-viewer-cli` batch scripts.
+**What we achieve:** A Rhino-style modeless `command_dock` with prefix `Tab` completion, clickable option chips, mobile `16 px` `#command-agent` IME bridging (`agent.rs`), `Undo`/`Redo`, and the native `session-viewer-cli` binary.
 
 ## How it works
 
-Every verb declares a static `CommandSpec` (`name`, `aliases`, `options`, `run`) inside `viewer-core/src/command/verbs/`, driving prefix Tab-completion and option pills in the browser while executing identical validation and undo snapshots in `HeadlessHost`.
+Static `CommandSpec` registrations in `viewer_core::command` drive both interactive browser prompts (`command_line.rs`, `phone.rs`) and headless `session-viewer-cli` (`--cmd` batch scripts, `--render` offscreen PNGs, and `serve --stdio`), guaranteeing zero behavioural drift.
 
-![Live command-dock tokenization, option chips, CommandHost browser/CLI homomorphism, and 86-verb prefix Tab completion](../screenshots/tutorials/explain-13-commands.png)
+![Modeless command_dock tokenization, 16 px #command-agent mobile IME bridge, Undo/Redo stack, and browser vs native session-viewer-cli parity](../screenshots/tutorials/explain-13-commands.png)
 
 ## Prerequisites and files
 

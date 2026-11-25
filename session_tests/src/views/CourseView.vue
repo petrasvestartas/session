@@ -645,17 +645,33 @@ const onClick = (e: MouseEvent) => {
   width: 100%;
   height: auto;
   display: block;
-  margin: 1rem 0;
+  margin: 0.9rem 0;
   border: 1.5px solid var(--rule);
   background: #ffffff;
-  box-shadow: 0 4px 16px rgba(20, 27, 61, 0.06);
+  box-shadow: 0 3px 12px rgba(20, 27, 61, 0.05);
   cursor: zoom-in;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.doc :deep(img:not([src*="explain-"])) {
+  max-height: 310px;
+  width: auto;
+  object-fit: contain;
+}
+
+.doc :deep(img[src*="explain-"]) {
+  border: 0;
+  box-shadow: none;
+  margin: 0.75rem 0 1.25rem;
 }
 
 .doc :deep(img:hover) {
   border-color: var(--c, var(--accent));
   box-shadow: 0 6px 20px rgba(20, 27, 61, 0.1);
+}
+
+.doc :deep(img[src*="explain-"]:hover) {
+  box-shadow: none;
 }
 
 .doc :deep(img[src*=".svg"]) {

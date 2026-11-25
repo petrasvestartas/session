@@ -6,13 +6,13 @@ Index per-document layer trees, type buckets, and element graphs once per load, 
 
 ![Multi-layer timber cassette scene with Layers & Properties inspection panel](../screenshots/tutorials/t09-layers.png) ![4x3 rotated colonnade sharing GPU geometry buffers across placed FileDoc instances](../screenshots/tutorials/t09-instanced.png)
 
-**What we achieve:** Hierarchical layer visibility/lock/colour inheritance, live object property inspection, and lightweight `FileDoc` instancing across repeated assemblies.
+**What we achieve:** Hierarchical layer/group visibility, lock, and colour inheritance (`hierarchy.rs`, `layers.rs`), `Layers`/`Properties`/`Graph` inspector panels, and `O(1)` VRAM shared-definition instancing (`instanced.rs`).
 
 ## How it works
 
-`Tree` resolves parent-to-child visibility, lock masks, and display colour overrides into flat GPU row flags (`rows.rs`), while repeated `FileDoc` placements reuse shared vertex/segment ranges with distinct `place: Xform` world matrices.
+Ancestor layer state compiles into per-row `Instance.flags` bits (`FLAG_SELECTED`, `FLAG_HIDDEN`, `FLAG_COLOR`, `FLAG_EDGE_COLOR`, `FLAG_HOVERED`), while repeated `FileDoc` / assembly placements bind `@location(4) slot: u32` (`OWN_ROW = 0xffffffff`) and `slot_table.wgsl` so one shared mesh/segment slice draws across `K` distinct pickable instances.
 
-![Ancestor layer tree inheritance, packed Instance.flags bitmask, 3-tier RGB precedence, and O(1) VRAM shared-slice instancing](../screenshots/tutorials/explain-09-layers.png)
+![Ancestor layer/group inheritance, Instance.flags bit positions, virtualized UI panels, and slot_table shared-definition instancing](../screenshots/tutorials/explain-09-layers.png)
 
 ## Prerequisites and files
 
@@ -242,7 +242,7 @@ Connects two editable objects in the relationship graph and pairs an `EdgeStep` 
 
 ### Step 25 · `viewer-core/src/scene_sync/panel_tests.rs`
 
-`viewer-core/src/scene_sync/panel_tests.rs` (38 lines) houses regression tests `hierarchy_follows_edits`. It implements internal helpers `hierarchy_follows_edits()`; and verified by `cargo xtest` (`hierarchy_follows_edits`).
+`viewer-core/src/scene_sync/panel_tests.rs` (38 lines) verifies `hierarchy_follows_edits`. It provides `hierarchy_follows_edits()`; and locked by `cargo xtest` (`hierarchy_follows_edits`).
 
 ```rust
 --8<-- "session_viewer/viewer-core/src/scene_sync/panel_tests.rs"

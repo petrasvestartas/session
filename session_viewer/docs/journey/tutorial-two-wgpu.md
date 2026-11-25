@@ -6,13 +6,13 @@ Acquire a WebGPU adapter and bounded device (`256 MiB` storage buffer cap, first
 
 ![Desktop 1280x800 WebGPU 4x MSAA multi-part CAD viewport](../screenshots/tutorials/t02-desktop.png) ![Mobile 540x800 portrait viewport after live swapchain and depth-target resize](../screenshots/tutorials/t02-mobile.png)
 
-**What we achieve:** An asynchronous WebGPU device and `4x` MSAA attachment pipeline that renders crisp CAD solids on desktop (`1280×800`) and survives live portrait resizes (`540×800`) without stretching, clipping, or zero-size surface panics.
+**What we achieve:** An asynchronous WebGPU device (`256 MiB` storage cap, first-error latch) and synchronized `Targets` stack (`msaa`, `Depth32Float`, and `Rg16Uint` triangle-ID attachments) that survives live desktop and portrait resizes without stretching or zero-size surface panics.
 
 ## How it works
 
-Every frame draws into `4x` multisampled colour and `Depth32Float` targets (`1.0` at the near plane, `0.0` at infinity) and resolves into the single-sample swapchain texture. Whenever CSS size or `devicePixelRatio` changes, framebuffer pixel dimensions are clamped to `[1, max_texture_dimension_2d]` and `Targets` are rebuilt in lockstep with `Surface::configure`.
+`Targets::new` allocates `Depth32Float` (`clear = 0.0`, `GreaterEqual`), optional `4×` MSAA colour (bounded by GPU pixel budgets and turned off at `DPR >= 2.0`), and `Rg16Uint` (`physical.primitive`, storing `triangle_id + 1` in two 16-bit halves) alongside `1×1` placeholder views so shaders bind both `1×` and `4×` textures unconditionally while `frame.rs` packs the `80`-byte `LineUniform`.
 
-![4x MSAA synchronized attachment stack, Infinite Reverse-Z float32 precision curve, and bounded WebGPU device contract](../screenshots/tutorials/explain-02-wgpu.png)
+![Targets stack (msaa, Depth32Float, Rg16Uint physical.primitive, 1x1 sample placeholders), Infinite Reverse-Z curve, and 80-byte LineUniform](../screenshots/tutorials/explain-02-wgpu.png)
 
 ## Prerequisites and files
 

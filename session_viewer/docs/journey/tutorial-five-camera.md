@@ -6,13 +6,13 @@ Drive a reverse-Z perspective and orthographic `Camera` (stored in `f64` metres 
 
 ![Close-up perspective projection with natural depth foreshortening on vaulted timber bay](../screenshots/tutorials/t05-perspective.png) ![Parallel orthographic isometric projection preserving true parallel scale](../screenshots/tutorials/t05-ortho.png)
 
-**What we achieve:** Smooth turntable/trackball orbit, cursor-pinned zoom, Bounds-Fit (`F`), and seamless switching between foreshortened Perspective and true-scale Orthographic views.
+**What we achieve:** Quaternion turntable/trackball orbit (`FOVY_DEG = 60°`), cursor-pinned wheel zoom, panel-aware viewport framing (`frame: [f64; 4]`), Bounds-Fit (`F`), and scale-locked Perspective↔Orthographic switching.
 
 ## How it works
 
-Both projections share the same `target` and `distance` so toggling `Orthographic` preserves framing (`ortho_half_h = distance * tan(fov_y / 2)`). Infinite reverse-Z perspective maps the near plane `z_n` to `1.0` and `+∞` to `0.0`, distributing IEEE-754 mantissa precision evenly across architectural and city-scale spans.
+`Camera` (`viewer-core/src/camera.rs`) stores `target`, `distance`, and `orientation: Quaternion` in `f64` metres (`NEAR_FRACTION = 10⁻⁴`), matching orthographic half-height `h_ortho = d · tan(30°)` at the target plane and shifting `target` along `(p_cur − t)` during wheel zoom so the 3D point under the cursor stays fixed.
 
-![Matched perspective/orthographic frustum geometry, cursor-pinned zoom invariant, Reverse-Z projection matrices, and turntable orbit](../screenshots/tutorials/explain-05-camera.png)
+![Matched perspective/orthographic frustum geometry, cursor-pinned zoom invariant, quaternion turntable orbit, and Reverse-Z matrices](../screenshots/tutorials/explain-05-camera.png)
 
 ## Prerequisites and files
 

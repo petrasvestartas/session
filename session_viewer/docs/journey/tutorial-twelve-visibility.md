@@ -4,15 +4,15 @@
 
 Bin projected scene triangles into screen tiles with prefix-sum offsets and `atomicMax` per-tile depth bounds for fast hidden-line stroke visibility, render global `Opacity` and per-object `Alpha`, and fill section-plane cuts with watertight stencil caps.
 
-![Two-plane 3/4 cutaway through multi-part CAD solids with watertight stenciled section caps](../screenshots/tutorials/t12-section-cap.png) ![Opaque pink core visible through a per-object alpha = 0.28 translucent outer shell](../screenshots/tutorials/t12-alpha.png)
+![Two-plane 3/4 cutaway through multi-part CAD solids with hatched section caps](../screenshots/tutorials/t12-section-cap.png) ![Opaque pink core visible through a per-object alpha = 0.28 translucent outer shell](../screenshots/tutorials/t12-alpha.png)
 
-**What we achieve:** `Hide`/`Isolate`/`Show` visibility sets, per-object alpha translucency, and interactive multi-plane section cuts sealed with watertight stenciled cross-section caps.
+**What we achieve:** Exact finite-triangle hidden-line curve visibility (`triangle_tiles.rs`), up to 6 interactive clipping planes sealed with analytical octave-hatched section caps (`cap.wgsl`), and per-object alpha / X-ray transparency.
 
 ## How it works
 
-Up to 6 clip planes test `n_k · x_w + d_k < 0` in every geometry shader; for closed `BRep` and `Mesh` solids, front faces decrement and back faces increment an 8-bit stencil buffer (`StencilOperation::IncrementWrap` / `DecrementWrap`), and a section-plane quad fills `stencil != 0` to seal exposed interiors.
+`project_triangles.wgsl` writes `96`-byte `ProjectedTriangle` records (inward edge half-planes + local-corner depth gradient) and `scan_triangle_tiles.wgsl` prefix-sums them into `<= 262,144` screen tiles for exact curve occlusion; `clip.rs` and `cap.wgsl` count signed ray-solid crossings (`count_at > 0.5`), trim sample masks against all other clip planes, and antialias power-of-two hatch lines via exact pixel-square `box_cdf` integration.
 
-![6-plane world clipping, 2-pass 8-bit stencil winding section caps over hollow solids, and CSR 16x16 tile transparency bins](../screenshots/tutorials/explain-12-visibility.png)
+![96-byte ProjectedTriangle screen-tile CSR binning for exact hidden-line visibility, ray-crossing section caps, and analytical box_cdf octave hatching](../screenshots/tutorials/explain-12-visibility.png)
 
 ## Prerequisites and files
 
@@ -79,7 +79,7 @@ Tests placed object bounds against active half-spaces with precision slack and b
 
 ### Step 6 · `src/engine/gpu/clip/pipelines.rs`
 
-`src/engine/gpu/clip/pipelines.rs` (208 lines) defines `cap_source()`, `pick_pipelines()`, `pick_placed_pipelines()`, `SAMPLES`. It implements internal helpers `count_at()`, `primitive_at()`, `cap_texture_entry()`.
+`src/engine/gpu/clip/pipelines.rs` (208 lines) defines `cap_source()`, `pick_pipelines()`, `pick_placed_pipelines()`, `SAMPLES`. It provides `count_at()`, `primitive_at()`, `cap_texture_entry()`.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/clip/pipelines.rs"
@@ -95,7 +95,7 @@ Parses WGSL via `naga` to verify `ClipUniform` byte offsets against `offset_of!`
 
 ### Step 8 · `src/engine/gpu/clip/editing_tests.rs`
 
-`src/engine/gpu/clip/editing_tests.rs` (1146 lines) defines `SIZE`, `GREY`. It implements internal helpers `block()`, `solids()`, `cut()`.
+`src/engine/gpu/clip/editing_tests.rs` (1146 lines) defines `SIZE`, `GREY`. It provides `block()`, `solids()`, `cut()`.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/clip/editing_tests.rs"

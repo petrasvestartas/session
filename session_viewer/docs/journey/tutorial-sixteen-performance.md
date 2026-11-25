@@ -6,13 +6,13 @@ Record rolling 600-frame `[p50, p95, p99]` CPU/GPU frame statistics, step `Navig
 
 ![Live Performance Tier 0 HUD reporting frame p50/p95 and GPU PassTimer budgets](../screenshots/tutorials/t16-perf.png) ![Close-up inspection of timber cassette joinery and continuous BRep silhouette edges](../screenshots/tutorials/t16-oracle.png)
 
-**What we achieve:** Quantitative GPU `PassTimer` profiling, adaptive frame-budget tiering (`Tier 0..3`), zero idle redraws on bare pointer hover, and automated headless pixel/edge-continuity regression oracles.
+**What we achieve:** `600`-frame rolling `[p50, p95, p99]` telemetry (`performance.rs`), adaptive drag quality tiers (`0..=2` + `RoughSettle`), GPU `PassTimer` queries (`timing.rs`), `Rc`-deduplicated memory accounting, and headless GPU pixel/lifecycle self-tests (`src/selftest/`).
 
 ## How it works
 
-Hardware timestamp queries measure per-pass GPU milliseconds while `performance.rs` sheds secondary passes (GTAO, MSAA sample count, splat budget) only during heavy orbit spikes and restores full `Tier 0` quality on camera rest; `selftest.rs` locks stroke culling (`-59.4%` offscreen segment work) and BRep edge ID continuity in `cargo xtest`.
+When 5-frame drag medians exceed `TIER_UP_MS = 33 ms`, `Performance` steps up to `Tier 1` (plane-only ink test) or `Tier 2` (also dropping outlines) without oscillating mid-drag, then schedules one `RedrawCause::RoughSettle` `Tier 0` frame on release; `selftest/{oracle,stroke_witness,lifecycle}.rs` lock `-59.4%` tile-culled stroke time, `100%` visible BRep edge continuity, and zero idle redraws.
 
-![Early 16x16 tile occluder depth rejection (-59.4% curve GPU time), 4-tier asymmetric hysteresis quality automaton, and regression oracles](../screenshots/tutorials/explain-16-performance.png)
+![600-frame rolling [p50,p95,p99] rings, drag quality hysteresis (Tiers 0..=2 + RoughSettle), hardware PassTimer, and headless selftest oracles](../screenshots/tutorials/explain-16-performance.png)
 
 ## Prerequisites and files
 
@@ -44,7 +44,7 @@ Separates wheel/drag interaction bursts from resting frames using median frame t
 
 ### Step 2 · `src/engine/gpu/timing.rs`
 
-`src/engine/gpu/timing.rs` (127 lines) defines `struct PassTimer`, `mark()`, `resolve()`, `collect()`, `MARKS`. It wires `GpuCtx` without introducing cyclic `gpu` dependencies.
+`src/engine/gpu/timing.rs` (127 lines) defines `struct PassTimer`, `mark()`, `resolve()`, `collect()`, `MARKS`. It connects `GpuCtx` within `gpu` across native and `wasm32` targets.
 
 ```rust
 --8<-- "session_viewer/src/engine/gpu/timing.rs"
