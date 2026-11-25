@@ -14,23 +14,112 @@ When 5-frame drag medians exceed `TIER_UP_MS = 33 ms`, `Performance` steps up to
 
 ![600-frame rolling [p50,p95,p99] rings, drag quality hysteresis (Tiers 0..=2 + RoughSettle), hardware PassTimer, and headless selftest oracles](../screenshots/tutorials/explain-16-performance.png)
 
+## Compilable checkpoint slice
+
+`performance.rs` and `diagnostics.rs` compile starting at `rows` (`80` files), `timing.rs` joins at `geometry`, and headless `selftest/*` pixel/culling witnesses complete `application`.
+
+Lines marked `+` show the exact module declarations unlocked between `camera` (`50` files) and `rows` (`80` files):
+
+```rust
+// viewer-core/src/lib.rs (camera -> rows)
+  pub mod camera;
++ pub mod rows;
++ pub mod sink;
++ pub use crate as app;
++ pub use sink as core;
++ pub use sink::GpuSink;
+
+// src/lib.rs (camera -> rows)
+  /// A WGSL file from src/shaders as build.rs wrote it: no comments, indentation or blank lines.
+  macro_rules! shader {
+      ($name:literal) => {
+          include_str!(concat!(env!("OUT_DIR"), "/shaders/", $name))
+      };
+  }
+  mod engine;
++ pub use viewer_core as core;
++ pub use viewer_core::rows;
+  pub use viewer_core::camera;
+  pub mod command_dock;
+  pub mod app;
+  #[cfg(all(target_arch = "wasm32", feature = "tutorial"))]
+  #[path = "../examples/course/entry.rs"]
+  mod course;
+
+// src/engine/mod.rs (camera -> rows)
++ pub mod diagnostics;
+  pub mod gpu;
++ pub mod performance;
++ pub mod pipelines;
+
+// src/engine/gpu/mod.rs (camera -> rows)
++ pub mod buffers; // register:buffers
+  pub mod device; // register:device
++ pub mod hull; // register:hull
++ pub mod instance; // register:instance
++ pub mod objects;
+  pub mod ui; // register:ui
+
+// examples/course/registration.rs (camera -> rows)
+  // --8<-- [start:course-registration]
+  #[path = "canvas.rs"]
+  mod canvas;
+  #[path = "frame.rs"]
+  mod frame;
+  #[path = "painting.rs"]
+  mod painting;
+  #[path = "mathematics.rs"]
+  mod mathematics;
+  #[path = "dock.rs"]
+  mod dock;
+  #[path = "camera.rs"]
+  mod camera;
++ #[path = "rows.rs"]
++ mod rows;
+  type Start = fn() -> Result<(), wasm_bindgen::JsValue>;
+  pub(super) const STARTS: &[(&str, Start)] = &[
+      ("frame", frame::start),
+      ("painting", painting::start),
+      ("mathematics", mathematics::start),
+      ("dock", dock::start),
+      ("camera", camera::start),
++     ("rows", rows::start),
+  ];
+  // --8<-- [end:course-registration]
+```
+
+## Core code walkthrough
+
+### Drag-median hysteresis & `RoughSettle` (`src/engine/performance.rs:82:138`)
+
+```rust
+--8<-- "session_viewer/src/engine/performance.rs:82:138"
+```
+
+Look at the five constants governing adaptive frame pacing (lines `83–102`): `Performance` waits at least `TIER_MIN_FRAMES = 3` (or `150 ms`) and inspects the `5`-frame median; if slower than `TIER_UP_MS = 33.0 ms`, `tier` steps up (`Tier 1` skips finite-triangle ink tests; `Tier 2` also drops silhouette outlines). Crucially, `TIER_RETRY_MS = 1000.0 ms` prevents immediate promotion oscillation mid-drag, and releasing the mouse schedules one `Tier 0` `RoughSettle` frame.
+
+### Hardware GPU `PassTimer` timestamp queries (`src/engine/gpu/timing.rs:6:64`)
+
+```rust
+--8<-- "session_viewer/src/engine/gpu/timing.rs:6:64"
+```
+
+`queue.submit()` measures CPU command marshalling, *not* GPU shader execution. When `TIMESTAMP_QUERY | TIMESTAMP_QUERY_INSIDE_ENCODERS` are available (`PassTimer::new`, lines `18–53`), `mark()` writes hardware GPU clock ticks into a `32`-slot `QuerySet` before/after each render pass and multiplies tick deltas by `queue.get_timestamp_period()` nanoseconds per tick to report sub-millisecond per-pass GPU costs.
+
 ## Prerequisites and files
 
 Requires [Tutorial 15](tutorial-fifteen-formats.md). Owns `src/engine/performance.rs`, `src/engine/gpu/timing.rs`, `src/app/inspection.rs`, `src/app/inspection/source_memory.rs`, `src/app/feedback.rs`, `assets/diagnostics.js`, and `src/selftest*`.
 
-Owned files in build order (`11` files):
+**Core files to type inline (6 files):**
 
 1. `src/engine/performance.rs`
 2. `src/engine/gpu/timing.rs`
 3. `src/app/inspection.rs`
-4. `src/app/inspection/source_memory.rs`
-5. `src/app/feedback.rs`
+4. `src/selftest/oracle.rs`
+5. `src/selftest/stroke_witness.rs`
 6. `assets/diagnostics.js`
-7. `src/selftest.rs`
-8. `src/selftest/oracle.rs`
-9. `src/selftest/lifecycle.rs`
-10. `src/selftest/profile.rs`
-11. `src/selftest/stroke_witness.rs`
+
+**Reference catalog & test files (5 files, folded below):** `src/app/inspection/source_memory.rs`, `src/app/feedback.rs`, `src/selftest.rs`, `src/selftest/lifecycle.rs`, `src/selftest/profile.rs`.
 
 ## Build
 
@@ -58,20 +147,20 @@ Serializes live camera matrices, row counts, selection, lane capacities and timi
 --8<-- "session_viewer/src/app/inspection.rs"
 ```
 
-### Step 4 · `src/app/inspection/source_memory.rs`
+### Step 4 · `src/selftest/oracle.rs`
 
-Sums unique `Rc<Session>` geometry vectors, strings, maps and history capacities via weak pointers to report scoped `known_bytes`.
+Casts independent CPU rays from stroke samples against placed triangles (with coplanar clearance) to verify GPU hidden-line occlusion.
 
 ```rust
---8<-- "session_viewer/src/app/inspection/source_memory.rs"
+--8<-- "session_viewer/src/selftest/oracle.rs"
 ```
 
-### Step 5 · `src/app/feedback.rs`
+### Step 5 · `src/selftest/stroke_witness.rs`
 
-Routes status text, non-clobbering download progress, canonical command history and fatal error reveals between `State`, DOM and native logs.
+Captures deterministic sheet/stroke pixels, pick IDs, expanded WGSL and adapter metadata on a verified software renderer.
 
 ```rust
---8<-- "session_viewer/src/app/feedback.rs"
+--8<-- "session_viewer/src/selftest/stroke_witness.rs"
 ```
 
 ### Step 6 · `assets/diagnostics.js`
@@ -82,7 +171,27 @@ Records bounded startup, adapter, viewport, phase-timing and first-fatal-error J
 --8<-- "session_viewer/assets/diagnostics.js"
 ```
 
-### Step 7 · `src/selftest.rs`
+## Reference catalog and test files (5 files)
+
+The 6 core files above implement the complete mechanism for this lesson. Expand this reference section whenever you want to inspect or copy the remaining 5 sibling verbs, adapters, and unit-test suites (`Step 7`–`Step 11`).
+
+### Step 7 · `src/app/inspection/source_memory.rs`
+
+Sums unique `Rc<Session>` geometry vectors, strings, maps and history capacities via weak pointers to report scoped `known_bytes`.
+
+```rust
+--8<-- "session_viewer/src/app/inspection/source_memory.rs"
+```
+
+### Step 8 · `src/app/feedback.rs`
+
+Routes status text, non-clobbering download progress, canonical command history and fatal error reveals between `State`, DOM and native logs.
+
+```rust
+--8<-- "session_viewer/src/app/feedback.rs"
+```
+
+### Step 9 · `src/selftest.rs`
 
 Boots a headless `Gpu`, settles bounded display refinement, and exports offscreen `PPM` (`RGB`) renders controlled by `VIEWER_*` env vars.
 
@@ -90,15 +199,7 @@ Boots a headless `Gpu`, settles bounded display refinement, and exports offscree
 --8<-- "session_viewer/src/selftest.rs"
 ```
 
-### Step 8 · `src/selftest/oracle.rs`
-
-Casts independent CPU rays from stroke samples against placed triangles (with coplanar clearance) to verify GPU hidden-line occlusion.
-
-```rust
---8<-- "session_viewer/src/selftest/oracle.rs"
-```
-
-### Step 9 · `src/selftest/lifecycle.rs`
+### Step 10 · `src/selftest/lifecycle.rs`
 
 `src/selftest/lifecycle.rs` (346 lines): Check that resize, a second walk, edits undone and reload draw the same pixels and ids. It exposes `run()`.
 
@@ -106,20 +207,12 @@ Casts independent CPU rays from stroke samples against placed triangles (with co
 --8<-- "session_viewer/src/selftest/lifecycle.rs"
 ```
 
-### Step 10 · `src/selftest/profile.rs`
+### Step 11 · `src/selftest/profile.rs`
 
 Times CPU `walk` stages by geometry kind (separating BRep meshing, edge chains and shell orientation) ahead of GPU submission.
 
 ```rust
 --8<-- "session_viewer/src/selftest/profile.rs"
-```
-
-### Step 11 · `src/selftest/stroke_witness.rs`
-
-Captures deterministic sheet/stroke pixels, pick IDs, expanded WGSL and adapter metadata on a verified software renderer.
-
-```rust
---8<-- "session_viewer/src/selftest/stroke_witness.rs"
 ```
 
 ## Integration
@@ -128,7 +221,13 @@ Captures deterministic sheet/stroke pixels, pick IDs, expanded WGSL and adapter 
 
 ## Run and observe
 
-Run `cargo xtest -p session_viewer engine::performance::`, `app::inspection::source_memory::tests`, and `selftest::oracle::`: percentile rings and hysteresis tiers pass, `source_memory` avoids double-counting shared `Rc` documents, and `selftest::oracle` verifies `100.0000%` visible edge ink continuity across phone (`824x1830`) and desktop (`1200x800`) viewports.
+Run the `600`-frame percentile ring, drag-tier hysteresis, `Rc`-deduplicated memory accounting, and headless GPU pixel-continuity oracle suites:
+
+```sh
+cargo xtest -p session_viewer engine::performance::
+cargo xtest -p session_viewer app::inspection::source_memory::tests
+cargo xtest -p session_viewer selftest::oracle::
+```
 
 ## Predict and try
 

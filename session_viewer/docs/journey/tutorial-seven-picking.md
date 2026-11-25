@@ -14,26 +14,300 @@ Read a generation-stamped `(row + 1, sub)` GPU ID window around the cursor for h
 
 ![Cropped PickView::clip_transform 19x19 halo pass, 256-byte aligned async readback, edge-over-face priority, and Window vs Crossing marquee](../screenshots/tutorials/explain-07-picking.png)
 
+## Compilable checkpoint slice
+
+Picking (`pick.rs`) compiles at `geometry` (`174` files), while `selection.rs` and marquee/lasso verbs join in `application`.
+
+Lines marked `+` show the exact module declarations unlocked between `decoding` (`179` files) and `application` (`398` files):
+
+```rust
+// viewer-core/src/lib.rs (decoding -> application)
++ //! UI- and GPU-independent core of Session Viewer.
++ //!
++ //! Zero dependencies on `wgpu`, `winit`, `egui`, `web-sys`, `wasm-bindgen`, or `glyphon`.
+  pub mod camera;
++ pub mod clipping;
++ pub mod cloud_query;
++ pub mod command;
++ pub mod coords;
++ pub mod cplane;
+  pub mod decode;
++ pub mod deform;
++ pub mod edit;
+  pub mod gizmo;
++ pub mod hierarchy;
+  pub mod interactions;
+  pub mod knobs;
++ pub mod layers;
++ pub mod live_revision;
++ pub mod manifest;
++ pub mod mesh_preview;
++ pub mod modeling;
++ pub mod op;
++ pub mod range_gate;
+  pub mod rows;
++ pub mod scene;
++ pub mod selection;
++ pub mod session_io;
++ pub mod sheet_query;
+  pub mod sink;
++ pub mod snap;
++ pub mod splitting;
++ pub mod stream;
++ pub mod surface_preview;
+  pub mod validate;
+  pub mod walk;
+  pub use crate as app;
+  pub use sink as core;
+  pub use sink::GpuSink;
+
+// src/lib.rs (decoding -> application)
+  /// A WGSL file from src/shaders as build.rs wrote it: no comments, indentation or blank lines.
+  macro_rules! shader {
+      ($name:literal) => {
+          include_str!(concat!(env!("OUT_DIR"), "/shaders/", $name))
+      };
+  }
+  mod engine;
+  pub use viewer_core as core;
++ pub use viewer_core::op;
+  pub use viewer_core::rows;
+  pub use viewer_core::camera;
+  pub mod command_dock;
+  pub mod app;
++ #[cfg(target_arch = "wasm32")]
++ pub mod text_quality;
++ mod state;
++ pub use state::State;
++ #[cfg(target_arch = "wasm32")]
++ pub(crate) use app::runtime::desired_canvas_size;
++ #[cfg(target_arch = "wasm32")]
++ pub use app::runtime::{App, execute_op, run_web};
++ pub use app::runtime::{CloudChunk, Msg, SheetChunk};
++ #[cfg(not(target_arch = "wasm32"))]
++ pub mod selftest;
+  #[cfg(all(target_arch = "wasm32", feature = "tutorial"))]
+  #[path = "../examples/course/entry.rs"]
+  mod course;
+
+// src/engine/gpu/mod.rs (decoding -> application)
+  pub mod arena; // register:arena
+  pub mod backdrop; // register:backdrop
+  pub mod buffers; // register:buffers
+  pub mod clip; // register:clip
+  pub mod cloud; // register:cloud
+  pub mod device; // register:device
+  pub mod faces; // register:faces
+  pub mod frame; // register:frame
+  pub mod glyphs; // register:glyphs
+  pub mod hull; // register:hull
+  pub mod instance; // register:instance
+  pub mod instanced; // register:instanced
+  pub mod lod; // register:lod
+  pub mod objects;
+  pub mod slots; // register:slots
+  pub mod lane; // register:lane
+  #[cfg(target_arch = "wasm32")]
+  mod pacing;
+  pub mod pass; // register:pass
+  pub(crate) mod patch; // register:patch
+  pub mod pick; // register:pick
+  pub mod planes; // register:planes
+  pub mod present; // register:present
+  pub mod render; // register:render
+  pub mod segments; // register:segments
+  pub mod splat; // register:splat
+  mod ssao; // register:ssao
+  pub mod surface_outline; // register:surface_outline
+  pub mod targets; // register:targets
+  pub mod text; // register:text
+  pub mod text_outline; // register:text_outline
+  pub mod timing; // register:timing
+  mod triangle_tiles; // register:triangle_tiles
+  pub mod ui; // register:ui
+  pub mod upload; // register:upload
+  pub mod vectors; // register:vectors
+  pub mod view; // register:view
+  mod widget; // register:widget
+  mod widget_mesh; // register:widget_mesh
+  mod context;
+  mod sink;
+  pub use context::Gpu;
+  #[cfg(test)]
+  pub(crate) use context::lane_shaders;
+  #[allow(unused_imports)]
+  pub use cloud::{CloudDraw, LodNode, NO_NORMALS}; // register:clouds
+  pub use frame::FrameInput;
+  pub use glyphs::GlyphPoint; // register:markers
+  pub use instance::Instance;
+  #[allow(unused_imports)]
+  pub use objects::{ObjectRow, Rebase};
+  pub use pick::Pick; // register:shell
+  pub use segments::CylinderSegment; // register:strokes
+  pub use upload::Upload;
+  pub use view::View;
++ #[cfg(all(test, not(target_arch = "wasm32")))] // register:application-tests
++ mod scene_gpu_tests; // register:application-tests
+
+// src/app/mod.rs (decoding -> application)
++ #[cfg(target_arch = "wasm32")] // register:agent
++ pub mod agent; // register:agent
++ pub use viewer_core::clipping; // register:clipping
++ pub mod cloud_query; // register:cloud_query
++ pub use viewer_core::command; // register:command
++ pub use viewer_core::coords; // register:coords
++ pub use viewer_core::cplane; // register:cplane
+  #[cfg(any(target_arch = "wasm32", test))] // register:decode
+  pub mod decode; // register:decode
++ pub use viewer_core::deform; // register:deform
++ pub use viewer_core::edit; // register:edit
++ pub mod feedback; // register:feedback
++ #[cfg(target_arch = "wasm32")] // register:fetch
++ pub mod fetch; // register:fetch
++ pub mod fonts; // register:fonts
++ pub mod gesture; // register:gesture
+  pub use viewer_core::gizmo; // register:gizmo
++ pub use viewer_core::hierarchy; // register:hierarchy
++ pub mod input; // register:input
++ #[cfg(any(target_arch = "wasm32", test))] // register:inspection
++ pub mod inspection; // register:inspection
+  pub use viewer_core::interactions; // register:interactions
++ pub mod keys; // register:keys
+  pub use viewer_core::knobs; // register:knobs
+  #[cfg(target_arch = "wasm32")]
+  pub mod launch;
++ pub use viewer_core::layers; // register:layers
++ #[cfg(target_arch = "wasm32")] // register:live
++ pub mod live; // register:live
++ #[cfg(any(target_arch = "wasm32", test))]
++ pub use viewer_core::live_revision;
++ #[cfg(target_arch = "wasm32")] // register:loader
++ pub mod loader; // register:loader
++ pub use viewer_core::manifest; // register:manifest
++ pub use viewer_core::mesh_preview; // register:mesh_preview
++ pub use viewer_core::modeling; // register:modeling
++ pub use viewer_core::op;
+  pub mod mode; // register:mode
+  pub mod stage;
++ #[cfg(any(target_arch = "wasm32", test))] // register:range_gate
++ pub use viewer_core::range_gate; // register:range_gate
++ #[cfg(target_arch = "wasm32")] // register:route
++ pub mod route; // register:route
++ pub(crate) mod runtime;
++ pub use viewer_core::scene; // register:scene
++ pub use viewer_core::selection; // register:selection
++ pub mod session_io; // register:session_io
++ pub mod sheet_query; // register:sheet_query
++ pub use viewer_core::snap; // register:snap
++ pub use viewer_core::splitting; // register:splitting
++ pub mod stream; // register:stream
++ pub use viewer_core::surface_preview; // register:surface_preview
++ pub mod touch; // register:touch
++ #[cfg(any(target_arch = "wasm32", test))] // register:ui
++ pub mod ui; // register:ui
+  pub use viewer_core::validate; // register:validate
+  pub use viewer_core::walk; // register:walk
+  #[cfg(target_arch = "wasm32")]
+  pub mod yielding;
+
+// src/app/stage/mod.rs (decoding -> application)
+  mod actions;
+  mod check;
+  pub mod deck;
+  mod draw;
+  pub mod eval;
+  mod flat;
+  pub mod font;
+  mod geometry;
+  mod layout;
+  mod math_mode;
+  mod matrix;
++ mod mode;
+  mod morph;
+  pub mod net;
+  mod object;
+  pub mod paint;
+  pub mod presentation;
+  #[cfg(test)]
+  mod presentation_tests;
+  pub mod run;
++ pub mod spatial;
+  #[cfg(test)]
+  mod tests;
+  pub mod tex;
+  mod tween;
+  mod view;
++ mod application;
++ pub use application::{Loaded, StageApp};
++ #[cfg(target_arch = "wasm32")]
++ pub use application::{open, route};
+
+// examples/course/registration.rs (decoding -> application)
+  // --8<-- [start:course-registration]
+  #[path = "canvas.rs"]
+  mod canvas;
+  #[path = "frame.rs"]
+  mod frame;
+  #[path = "painting.rs"]
+  mod painting;
+  #[path = "mathematics.rs"]
+  mod mathematics;
+  #[path = "dock.rs"]
+  mod dock;
+  #[path = "camera.rs"]
+  mod camera;
+  #[path = "rows.rs"]
+  mod rows;
+  #[path = "geometry.rs"]
+  mod geometry;
+  #[path = "decoding.rs"]
+  mod decoding;
+  type Start = fn() -> Result<(), wasm_bindgen::JsValue>;
+  pub(super) const STARTS: &[(&str, Start)] = &[
+      ("frame", frame::start),
+      ("painting", painting::start),
+      ("mathematics", mathematics::start),
+      ("dock", dock::start),
+      ("camera", camera::start),
+      ("rows", rows::start),
+      ("geometry", geometry::start),
+      ("decoding", decoding::start),
++     ("application", crate::run_web),
+  ];
+  // --8<-- [end:course-registration]
+```
+
+## Core code walkthrough
+
+### Clamped `13×13` cursor `Window` + `3 px` halo (`src/engine/gpu/pick.rs:36:85`)
+
+```rust
+--8<-- "session_viewer/src/engine/gpu/pick.rs:36:85"
+```
+
+Instead of rendering a full `4K` ID attachment on every click or `50 ms` hover tick, `Window::with_radius` (lines `54–69`) builds a `(2·6 + 1)² = 13×13 px` box clamped inside the canvas, and `Window::view` (lines `72–84`) expands it by `PICK_HALO = 3 px` (`19×19 px` max) so `PickView::clip_transform` zooms the projection matrix onto just those pixels while keeping finite-triangle visibility accurate at the window border.
+
+### Sub-object `SelectionMode` & `ControlId` (`viewer-core/src/selection.rs:5:65`)
+
+```rust
+--8<-- "session_viewer/viewer-core/src/selection.rs:5:65"
+```
+
+`SelectionMode` (lines `16–33`) models whole-object (`Object`) and sub-object (`Edge`, `Face`, `Controls`) modes as a single sum type rather than independent booleans that could desynchronize. Pressing `Escape` steps cleanly from `Controls`/`Edge`/`Face` back to the parent `Object` row (`parent()`, lines `37–44`), while `ControlId` addresses mesh vertices, `(curve, point)`, `(surface, u, v)`, and point-cloud indices uniformly.
+
 ## Prerequisites and files
 
 Requires [Tutorial 6](tutorial-six-modeling.md). Owns `src/engine/gpu/pick.rs`, `viewer-core/src/selection.rs`, `src/app/gesture/{object,box_select}.rs`, `src/state/box_select.rs`, and the 9 selection verbs.
 
-Owned files in build order (`14` files):
+**Core files to type inline (5 files):**
 
 1. `src/engine/gpu/pick.rs`
 2. `viewer-core/src/selection.rs`
 3. `src/app/gesture/object.rs`
 4. `src/app/gesture/box_select.rs`
 5. `src/state/box_select.rs`
-6. `viewer-core/src/command/verbs/selecting.rs`
-7. `viewer-core/src/command/verbs/select_all.rs`
-8. `viewer-core/src/command/verbs/select_by_name.rs`
-9. `viewer-core/src/command/verbs/select_lasso.rs`
-10. `viewer-core/src/command/verbs/select_small.rs`
-11. `viewer-core/src/command/verbs/object.rs`
-12. `viewer-core/src/command/verbs/edge.rs`
-13. `viewer-core/src/command/verbs/face.rs`
-14. `viewer-core/src/command/verbs/controls.rs`
+
+**Reference catalog & test files (9 files, folded below):** `viewer-core/src/command/verbs/selecting.rs`, `viewer-core/src/command/verbs/select_all.rs`, `viewer-core/src/command/verbs/select_by_name.rs`, `viewer-core/src/command/verbs/select_lasso.rs`, `viewer-core/src/command/verbs/select_small.rs`, `viewer-core/src/command/verbs/object.rs`, `viewer-core/src/command/verbs/edge.rs`, `viewer-core/src/command/verbs/face.rs`, `viewer-core/src/command/verbs/controls.rs`.
 
 ## Build
 
@@ -76,6 +350,10 @@ Applies `Ctrl`-remove before `Shift`-add on release (solid window left-to-right,
 ```rust
 --8<-- "session_viewer/src/state/box_select.rs"
 ```
+
+## Reference catalog and test files (9 files)
+
+The 5 core files above implement the complete mechanism for this lesson. Expand this reference section whenever you want to inspect or copy the remaining 9 sibling verbs, adapters, and unit-test suites (`Step 6`–`Step 14`).
 
 ### Step 6 · `viewer-core/src/command/verbs/selecting.rs`
 
@@ -155,7 +433,14 @@ Filters ascending selectable, unhidden rows and runs budgeted even-odd scanline 
 
 ## Run and observe
 
-Run `cargo xtest -p session_viewer engine::gpu::pick::tests`, `state::box_select::tests`, `state::order_tests`, and `cargo xtest -p viewer-core selection::tests` + `select_lasso::tests`: ink strokes win over faces within the `6 CSS px` pick window, left-to-right drags run window containment while right-to-left drags run crossing intersection, and `Select Lasso` agrees with ray-casting.
+Verify cropped `Rg32Uint` edge-over-face priority, stale-generation cancellation, Window (`L→R`) vs Crossing (`R→L`) marquees, and scanline `Select Lasso`:
+
+```sh
+cargo xtest -p session_viewer engine::gpu::pick::tests
+cargo xtest -p session_viewer state::box_select::tests
+cargo xtest -p viewer-core selection::tests
+cargo xtest -p viewer-core select_lasso::tests
+```
 
 ## Predict and try
 

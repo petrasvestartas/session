@@ -14,22 +14,88 @@ Drive a reverse-Z perspective and orthographic `Camera` (stored in `f64` metres 
 
 ![Matched perspective/orthographic frustum geometry, cursor-pinned zoom invariant, quaternion turntable orbit, and Reverse-Z matrices](../screenshots/tutorials/explain-05-camera.png)
 
+## Compilable checkpoint slice
+
+Tutorial 5's pure-Rust `camera.rs` + `examples/course/camera.rs` compile standalone at the `camera` assembly (`50` files, `?tutorial=camera`), while `state.rs` and `app/runtime.rs` join at `application`.
+
+Lines marked `+` show the exact module declarations unlocked between `dock` (`48` files) and `camera` (`50` files):
+
+```rust
+// viewer-core/src/lib.rs (dock -> camera)
++ pub mod camera;
+
+// src/lib.rs (dock -> camera)
+  /// A WGSL file from src/shaders as build.rs wrote it: no comments, indentation or blank lines.
+  macro_rules! shader {
+      ($name:literal) => {
+          include_str!(concat!(env!("OUT_DIR"), "/shaders/", $name))
+      };
+  }
+  mod engine;
++ pub use viewer_core::camera;
+  pub mod command_dock;
+  pub mod app;
+  #[cfg(all(target_arch = "wasm32", feature = "tutorial"))]
+  #[path = "../examples/course/entry.rs"]
+  mod course;
+
+// examples/course/registration.rs (dock -> camera)
+  // --8<-- [start:course-registration]
+  #[path = "canvas.rs"]
+  mod canvas;
+  #[path = "frame.rs"]
+  mod frame;
+  #[path = "painting.rs"]
+  mod painting;
+  #[path = "mathematics.rs"]
+  mod mathematics;
+  #[path = "dock.rs"]
+  mod dock;
++ #[path = "camera.rs"]
++ mod camera;
+  type Start = fn() -> Result<(), wasm_bindgen::JsValue>;
+  pub(super) const STARTS: &[(&str, Start)] = &[
+      ("frame", frame::start),
+      ("painting", painting::start),
+      ("mathematics", mathematics::start),
+      ("dock", dock::start),
++     ("camera", camera::start),
+  ];
+  // --8<-- [end:course-registration]
+```
+
+## Core code walkthrough
+
+### Metre-space `Camera` state & isometric quaternion (`viewer-core/src/camera.rs:44:95`)
+
+```rust
+--8<-- "session_viewer/viewer-core/src/camera.rs:44:95"
+```
+
+`Camera` (lines `45–57`) stores `target`, `distance`, and `scene_extent` in `f64` **metres** (`Unit::Millimeters => 0.001`) so near/far clip ratios (`NEAR_FRACTION = 10⁻⁴`) behave identically on millimetre joinery and metre-scale surveys, while `frame: [f64; 4]` offsets projection centers into the unobstructed canvas rectangle left open by side panels. `Camera::new` (lines `82–90`) composes `-30°` world-Z yaw with `-30°` local-right pitch into a drift-free unit `Quaternion`.
+
+### Plane-local vs world `w` coordinate parser (`viewer-core/src/coords.rs:21:65`)
+
+```rust
+--8<-- "session_viewer/viewer-core/src/coords.rs:21:65"
+```
+
+`Typed` (lines `23–28`) distinguishes four CAD coordinate idioms—`Absolute` (`100,200,0`), `Relative` (`@50,0`), `Polar` (`100<45`), and `Distance` (`100` along the rubber-band ray). `parse_world` and `absolute` (lines `46–65`) evaluate coordinates in the active `CPlane` frame unless prefixed with `w`/`W` (e.g. `w0,0,0`), which forces true world coordinates.
+
 ## Prerequisites and files
 
 Requires [Tutorial 4](tutorial-four-geometry.md). Introduces `viewer-core/src/{camera,coords}.rs` alongside `src/state.rs`, `src/state/features.rs`, `src/app/runtime.rs`, and `src/app/{input,touch,keys,gesture/mod}.rs`.
 
-Owned files in build order (`10` files):
+**Core files to type inline (6 files):**
 
 1. `viewer-core/src/camera.rs`
 2. `viewer-core/src/coords.rs`
 3. `src/state.rs`
-4. `src/state/features.rs`
-5. `src/app/runtime.rs`
-6. `src/app/input.rs`
-7. `src/app/touch.rs`
-8. `src/app/keys.rs`
-9. `src/app/gesture/mod.rs`
-10. `examples/course/camera.rs`
+4. `src/app/runtime.rs`
+5. `src/app/input.rs`
+6. `examples/course/camera.rs`
+
+**Reference catalog & test files (4 files, folded below):** `src/state/features.rs`, `src/app/touch.rs`, `src/app/keys.rs`, `src/app/gesture/mod.rs`.
 
 ## Build
 
@@ -57,15 +123,7 @@ Owned files in build order (`10` files):
 --8<-- "session_viewer/src/state.rs"
 ```
 
-### Step 4 · `src/state/features.rs`
-
-`src/state/features.rs` stores cross-frame interaction state (`Draft`, `ObjectDrag`, pending splits, cloud/sheet query generations, `Snap` and `Hierarchy`) and dispatches ordered `TAKE_PICK` hooks so active drags claim delayed GPU picks before ordinary selection runs.
-
-```rust
---8<-- "session_viewer/src/state/features.rs"
-```
-
-### Step 5 · `src/app/runtime.rs`
+### Step 4 · `src/app/runtime.rs`
 
 `src/app/runtime.rs` implements `ApplicationHandler<Msg>`: panels consume events before scene shortcuts, `Box<dyn Mode<State>>` temporarily moves out during callbacks to avoid double mutable borrows, `FramePacing` prevents submission backlogs, and `State::resize` throttles target rebuilds to `100 ms`.
 
@@ -73,7 +131,7 @@ Owned files in build order (`10` files):
 --8<-- "session_viewer/src/app/runtime.rs"
 ```
 
-### Step 6 · `src/app/input.rs`
+### Step 5 · `src/app/input.rs`
 
 Enforces `> 10 CSS px` (or `> 4 px` held `200 ms`) drag hysteresis, distinguishes right-click repeat from right-drag orbit, and cancels touch edits when a second finger lands.
 
@@ -81,7 +139,27 @@ Enforces `> 10 CSS px` (or `> 4 px` held `200 ms`) drag hysteresis, distinguishe
 --8<-- "session_viewer/src/app/input.rs"
 ```
 
-### Step 7 · `src/app/touch.rs`
+### Step 6 · `examples/course/camera.rs`
+
+`examples/course/camera.rs` runs the Tutorial 5 camera checkpoint (`?tutorial=camera`), wiring reverse-Z perspective/orthographic projection, orbit/pan/zoom gestures, ray unprojection, and `F` bounds fitting. Trap: keep `Camera::target` and `distance` in metres while converting scene millimetres through `unit.to_meters()` at the ray/frustum boundary.
+
+```rust
+--8<-- "session_viewer/examples/course/camera.rs"
+```
+
+## Reference catalog and test files (4 files)
+
+The 6 core files above implement the complete mechanism for this lesson. Expand this reference section whenever you want to inspect or copy the remaining 4 sibling verbs, adapters, and unit-test suites (`Step 7`–`Step 10`).
+
+### Step 7 · `src/state/features.rs`
+
+`src/state/features.rs` stores cross-frame interaction state (`Draft`, `ObjectDrag`, pending splits, cloud/sheet query generations, `Snap` and `Hierarchy`) and dispatches ordered `TAKE_PICK` hooks so active drags claim delayed GPU picks before ordinary selection runs.
+
+```rust
+--8<-- "session_viewer/src/state/features.rs"
+```
+
+### Step 8 · `src/app/touch.rs`
 
 `src/app/touch.rs` tracks active touch IDs (`1` finger orbits, `2` fingers pan by midpoint and clamped pinch-zoom, double-tap fits bounds) while resetting span baselines whenever finger count changes.
 
@@ -89,7 +167,7 @@ Enforces `> 10 CSS px` (or `> 4 px` held `200 ms`) drag hysteresis, distinguishe
 --8<-- "session_viewer/src/app/touch.rs"
 ```
 
-### Step 8 · `src/app/keys.rs`
+### Step 9 · `src/app/keys.rs`
 
 Maps unfocused canvas keys (`Escape`, `Enter`, `Delete`, `F`, `H`, `S`, `Ctrl/Cmd+Z/Y/A`) through the shared command dispatcher after text-focus checks.
 
@@ -97,20 +175,12 @@ Maps unfocused canvas keys (`Escape`, `Enter`, `Delete`, `F`, `H`, `S`, `Ctrl/Cm
 --8<-- "session_viewer/src/app/keys.rs"
 ```
 
-### Step 9 · `src/app/gesture/mod.rs`
+### Step 10 · `src/app/gesture/mod.rs`
 
 `src/app/gesture/mod.rs` tests registered handlers in priority order (`control` -> `gizmo` -> `object` -> `box_select`), converting CSS thresholds into physical pixels with wider touch hit radii so clicks never accidentally drag geometry.
 
 ```rust
 --8<-- "session_viewer/src/app/gesture/mod.rs"
-```
-
-### Step 10 · `examples/course/camera.rs`
-
-`examples/course/camera.rs` runs the Tutorial 5 camera checkpoint (`?tutorial=camera`), wiring reverse-Z perspective/orthographic projection, orbit/pan/zoom gestures, ray unprojection, and `F` bounds fitting. Trap: keep `Camera::target` and `distance` in metres while converting scene millimetres through `unit.to_meters()` at the ray/frustum boundary.
-
-```rust
---8<-- "session_viewer/examples/course/camera.rs"
 ```
 
 ## Integration
@@ -119,7 +189,16 @@ Maps unfocused canvas keys (`Escape`, `Enter`, `Delete`, `F`, `H`, `S`, `Ctrl/Cm
 
 ## Run and observe
 
-Run `cargo xtest -p viewer-core camera::` and `cargo xtest -p viewer-core coords::` plus `cargo xtest -p session_viewer app::input::` and `app::keys::`: orbit, cursor-anchored wheel zoom, `4 mm` distant orthographic depth separation, `4 px` click wobble tolerance, and `F`/`H`/`S`/`Ctrl+Z` shortcuts all pass.
+Run the quaternion turntable, cursor-pinned zoom, coordinate parser, and input gesture priority tests, or open `?tutorial=camera`:
+
+```sh
+cargo xtest -p viewer-core camera::
+cargo xtest -p viewer-core coords::
+cargo xtest -p session_viewer gestures_are_tried_control_then_gizmo_then_object_then_box
+trunk serve --features tutorial --open /?tutorial=camera
+```
+
+Right-drag to orbit, `Shift`+right-drag to pan, scroll over an off-center corner to verify cursor-pinned zoom, and press `P` to toggle scale-matched Perspective and Orthographic views.
 
 ## Predict and try
 

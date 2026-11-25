@@ -7,15 +7,16 @@
       <div v-if="activeMeta" class="tut-banner">
         <div class="tut-banner-left">
           <span class="tut-eyebrow">Tutorial {{ activeMeta.number }} of 17</span>
-          <span v-if="activeMeta.fileCount" class="tut-count">{{ activeMeta.fileCount }} source files</span>
+          <span v-if="catalogCount > 0" class="tut-count">{{ coreCount }} core files to type · {{ catalogCount }} reference &amp; test files (folded)</span>
+          <span v-else-if="activeMeta.fileCount" class="tut-count">{{ activeMeta.fileCount }} source files</span>
         </div>
         <div class="tut-actions">
           <button
-            v-if="longCodeCount > 0"
+            v-if="longCodeCount > 0 || catalogCount > 0"
             type="button"
             class="wood-btn"
             @click="toggleAllCode">
-            {{ allExpanded ? 'Collapse long files' : `Expand all ${longCodeCount} long files` }}
+            {{ allExpanded ? 'Collapse long & reference files' : `Expand all files (${activeMeta.fileCount || longCodeCount})` }}
           </button>
         </div>
       </div>
@@ -72,6 +73,8 @@ const plateDialog = ref<HTMLDialogElement | null>(null);
 const lightboxSrc = ref('');
 const lightboxAlt = ref('');
 const longCodeCount = ref(0);
+const coreCount = ref(0);
+const catalogCount = ref(0);
 const allExpanded = ref(false);
 
 const slug = computed(() => String(route.params.slug || ''));
@@ -104,6 +107,43 @@ const enhanceArticle = () => {
   const el = articleEl.value;
   if (!el) return;
   allExpanded.value = false;
+
+  // Fold "Reference catalog and test files" h2 section into a collapsible <details class="catalog-fold">
+  const catHeading = el.querySelector<HTMLElement>('h2[id^="reference-catalog"]');
+  if (catHeading && !catHeading.closest('details.catalog-fold')) {
+    const details = document.createElement('details');
+    details.className = 'catalog-fold';
+    const summary = document.createElement('summary');
+    summary.className = 'catalog-summary';
+    const titleSpan = document.createElement('span');
+    titleSpan.className = 'catalog-title';
+    titleSpan.id = catHeading.id;
+    titleSpan.textContent = (catHeading.textContent || '').replace(/#\s*$/, '').trim();
+    const hintSpan = document.createElement('span');
+    hintSpan.className = 'catalog-hint';
+    hintSpan.textContent = 'Click to expand reference & test files';
+    summary.appendChild(titleSpan);
+    summary.appendChild(hintSpan);
+    details.appendChild(summary);
+
+    const body = document.createElement('div');
+    body.className = 'catalog-body';
+    let cur = catHeading.nextSibling;
+    while (cur) {
+      const next = cur.nextSibling;
+      if (cur.nodeType === Node.ELEMENT_NODE && (cur as HTMLElement).tagName === 'H2') break;
+      body.appendChild(cur);
+      cur = next;
+    }
+    details.appendChild(body);
+    catHeading.replaceWith(details);
+  }
+
+  const allStepH3 = el.querySelectorAll<HTMLElement>('h3[id^="step-"]');
+  const catStepH3 = el.querySelectorAll<HTMLElement>('details.catalog-fold h3[id^="step-"]');
+  catalogCount.value = catStepH3.length;
+  coreCount.value = Math.max(0, allStepH3.length - catStepH3.length);
+
   let longCount = 0;
   const codeBlocks = el.querySelectorAll<HTMLElement>('.code');
   codeBlocks.forEach((box) => {
@@ -112,7 +152,7 @@ const enhanceArticle = () => {
     const pre = box.querySelector('pre');
     const text = pre?.textContent ?? '';
     const lines = text ? text.split('\n').length : 0;
-    const isLong = lines > 42;
+    const isLong = lines > 48;
     if (isLong) {
       longCount++;
       box.classList.add('is-long', 'is-collapsed');
@@ -149,6 +189,9 @@ const toggleAllCode = () => {
   if (!el) return;
   const nextExpanded = !allExpanded.value;
   allExpanded.value = nextExpanded;
+  el.querySelectorAll<HTMLDetailsElement>('details.catalog-fold').forEach((fold) => {
+    fold.open = nextExpanded;
+  });
   el.querySelectorAll<HTMLElement>('.code.is-long').forEach((box) => {
     box.classList.toggle('is-collapsed', !nextExpanded);
     const btn = box.querySelector<HTMLButtonElement>('button.code-toggle');
@@ -161,8 +204,13 @@ const toggleAllCode = () => {
 const scrollToHash = () => {
   const id = decodeURIComponent(route.hash.slice(1));
   const el = id ? document.getElementById(id) : null;
-  if (el) el.scrollIntoView({ block: 'start' });
-  else document.getElementById('content')?.scrollTo({ top: 0 });
+  if (el) {
+    const fold = el.closest<HTMLDetailsElement>('details.catalog-fold');
+    if (fold && !fold.open) fold.open = true;
+    el.scrollIntoView({ block: 'start' });
+  } else {
+    document.getElementById('content')?.scrollTo({ top: 0 });
+  }
 };
 
 const go = (id: string) => {
@@ -777,6 +825,50 @@ const onClick = (e: MouseEvent) => {
   margin-bottom: 0.55rem;
   padding-bottom: 0.35rem;
   border-bottom: 1px solid var(--rule);
+}
+
+.doc :deep(details.catalog-fold) {
+  margin: 2.2rem 0;
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--accent);
+  background: #ffffff;
+}
+
+.doc :deep(summary.catalog-summary) {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.8rem 1.1rem;
+  cursor: pointer;
+  user-select: none;
+  background: #fafaf9;
+}
+
+.doc :deep(summary.catalog-summary:hover) {
+  background: rgba(0, 124, 85, 0.04);
+}
+
+.doc :deep(.catalog-title) {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--fg);
+}
+
+.doc :deep(.catalog-hint) {
+  font-size: 12.5px;
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.doc :deep(details.catalog-fold[open] .catalog-hint) {
+  visibility: hidden;
+}
+
+.doc :deep(.catalog-body) {
+  padding: 0.5rem 1.25rem 1.25rem;
+  border-top: 1px solid var(--rule);
 }
 
 .doc :deep(table) {

@@ -14,11 +14,56 @@ Immediate-mode `egui` emits logical-point `ClippedPrimitive` meshes plus font-at
 
 ![Logical-to-physical scissor clipping, 20-byte epaint::Vertex layout, 3-stage font-atlas lifecycle, and premultiplied alpha blending](../screenshots/tutorials/explain-03a-painting.png)
 
+## Compilable checkpoint slice
+
+Tutorial 3.1 forms the standalone `painting` assembly (`17` files), adding `ui.rs` and `examples/course/painting.rs` directly onto `frame`.
+
+Lines marked `+` show the exact module declarations unlocked between `frame` (`15` files) and `painting` (`17` files):
+
+```rust
+// src/engine/gpu/mod.rs (frame -> painting)
+  pub mod device; // register:device
++ pub mod ui; // register:ui
+
+// examples/course/registration.rs (frame -> painting)
+  // --8<-- [start:course-registration]
+  #[path = "canvas.rs"]
+  mod canvas;
+  #[path = "frame.rs"]
+  mod frame;
++ #[path = "painting.rs"]
++ mod painting;
+  type Start = fn() -> Result<(), wasm_bindgen::JsValue>;
+  pub(super) const STARTS: &[(&str, Start)] = &[
+      ("frame", frame::start),
++     ("painting", painting::start),
+  ];
+  // --8<-- [end:course-registration]
+```
+
+## Core code walkthrough
+
+### Three-phase `egui` texture & vertex lifecycle (`src/engine/gpu/ui.rs:30:95`)
+
+```rust
+--8<-- "session_viewer/src/engine/gpu/ui.rs:30:95"
+```
+
+Follow the exact ordering inside `Ui::prepare` and `Ui::draw`: lines `39–42` free *last* frame's evicted textures (`self.free.drain(..)`), lines `45–48` upload this frame's glyph/image deltas (`textures_delta.set`), and line `50` defers `output.textures_delta.free` until next frame so a widget that drew its final frame and dropped its `TextureHandle` never triggers a GPU use-after-free. Lines `79–94` then composite over the `1×` swapchain view with `LoadOp::Load` and `depth_stencil_attachment: None`.
+
+### Logical-point screen rect vs physical DPR (`examples/course/painting.rs:39:65`)
+
+```rust
+--8<-- "session_viewer/examples/course/painting.rs:39:65"
+```
+
+`egui` lays out widgets in device-independent points (`screen_rect = [width / scale, height / scale]`, lines `48–56`), while `wgpu` scissor rectangles clip in physical framebuffer pixels. Passing `scale` (`devicePixelRatio`) to both `context.set_pixels_per_point(scale)` and `ScreenDescriptor` keeps `14 pt` Noto Sans stems sharp on `2×` Retina displays without changing layout coordinates.
+
 ## Prerequisites and files
 
 Sub-chapter `3.1` of [Tutorial 3](tutorial-three-rendering.md). Must precede [Tutorial 3.2 (2D mathematics)](tutorial-three-mathematics.md), the layer/properties panels (Tutorial 9), and the command dock (Tutorial 13).
 
-Owned files in build order (`2` files):
+**Core files in build order (2 files):**
 
 1. `src/engine/gpu/ui.rs`
 2. `examples/course/painting.rs`
@@ -47,7 +92,14 @@ Create `src/engine/gpu/ui.rs` and declare `pub mod ui;` in `src/engine/gpu/mod.r
 
 ## Run and observe
 
-Materialize `painting` (`npm --prefix ../session_tests run course -- checkpoint painting target/learn-painting`) and check with `cargo check --target wasm32-unknown-unknown -j8`: `ui.rs` compiles cleanly against `egui =0.34.3` and `egui-wgpu =0.34.3`, drawing a crisp pink triangle and crisp proportional Noto label in `?tutorial=painting`.
+Compile and open the standalone `painting` checkpoint (`17` files total) in your browser or run its native headless check:
+
+```sh
+cargo check --target wasm32-unknown-unknown --features tutorial -j8
+trunk serve --features tutorial --open /?tutorial=painting
+```
+
+Observe the antialiased pink triangle and crisp `NotoSans` label composited via `LoadOp::Load` over the cleared WebGPU frame, with `textures_delta.free` deferred safely across frames.
 
 ## Predict and try
 

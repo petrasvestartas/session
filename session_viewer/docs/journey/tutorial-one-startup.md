@@ -14,26 +14,85 @@ In the browser, `Trunk.toml` compiles the workspace to WebAssembly while `winit:
 
 ![Two-crate workspace boundary, CSS-to-Retina DPR framebuffer scaling, 4 GiB WASM memory cap, and async EventLoopProxy handshake](../screenshots/tutorials/explain-01-startup.png)
 
+## Compilable checkpoint slice
+
+Tutorials 1 and 2 together form the first standalone compilable assembly (`frame`, `15` files).
+
+When typing from an empty folder (`session_viewer/` + `viewer-core/`), start with these **minimal `frame` module roots** (`15` files total in the `frame` checkpoint) instead of the final 388-file `lib.rs`/`mod.rs` indexes below—that way `cargo check --target wasm32-unknown-unknown` compiles immediately at Tutorial 1:
+
+```rust
+// viewer-core/src/lib.rs (empty at checkpoint `frame`)
+
+// src/lib.rs (at checkpoint `frame`)
+/// A WGSL file from src/shaders as build.rs wrote it: no comments, indentation or blank lines.
+macro_rules! shader {
+    ($name:literal) => {
+        include_str!(concat!(env!("OUT_DIR"), "/shaders/", $name))
+    };
+}
+
+mod engine;
+pub mod app;
+#[cfg(all(target_arch = "wasm32", feature = "tutorial"))]
+#[path = "../examples/course/entry.rs"]
+mod course;
+
+// src/engine/mod.rs
+pub mod gpu;
+
+// src/engine/gpu/mod.rs
+pub mod device; // register:device
+
+// src/app/mod.rs
+#[cfg(target_arch = "wasm32")]
+pub mod launch;
+
+// examples/course/registration.rs
+// --8<-- [start:course-registration]
+#[path = "canvas.rs"]
+mod canvas;
+#[path = "frame.rs"]
+mod frame;
+
+type Start = fn() -> Result<(), wasm_bindgen::JsValue>;
+pub(super) const STARTS: &[(&str, Start)] = &[
+    ("frame", frame::start),
+];
+// --8<-- [end:course-registration]
+```
+
+## Core code walkthrough
+
+### Pre-spawn `EventLoopProxy` handshake (`src/app/launch.rs:1:12`)
+
+```rust
+--8<-- "session_viewer/src/app/launch.rs:1:12"
+```
+
+Lines `8–10` solve a subtle browser/WebGPU lifetime constraint: `EventLoop::<Message>::with_user_event().build()?` owns the typed event channel, and `event_loop.create_proxy()` **must** be called before `event_loop.spawn_app(app)` consumes `event_loop` by value. Inside `ApplicationHandler::resumed`, `winit` only hands you `&ActiveEventLoop`, which cannot mint a `Message`-typed proxy for `wasm_bindgen_futures::spawn_local`.
+
+### `Drawing` trait & `#canvas` error attribute (`examples/course/canvas.rs:13:46`)
+
+```rust
+--8<-- "session_viewer/examples/course/canvas.rs:13:46"
+```
+
+`Drawing` (lines `13–16`) isolates every tutorial checkpoint from `winit` plumbing: `draw()` receives the initialized `&DeviceSetup`, swapchain `&TextureView`, `devicePixelRatio` (`scale`), and monotonic timestamp (`now`), returning `true` only when animation requires another frame. If WebGPU adapter negotiation fails, `report()` (lines `38–46`) mirrors the error onto `#canvas[data-course-error]` so headless tests and users see the exact cause instead of a blank tab.
+
 ## Prerequisites and files
 
 None — this first tutorial establishes the Cargo workspace, `.cargo/config.toml` default `wasm32-unknown-unknown` target, module index roots, and course harness dispatcher.
 
-Owned files in build order (`14` files):
+**Core files to type inline (6 files):**
 
 1. `Cargo.toml`
-2. `Cargo.lock`
-3. `.cargo/config.toml`
-4. `viewer-core/Cargo.toml`
-5. `viewer-core/src/lib.rs`
-6. `src/lib.rs`
-7. `src/engine/mod.rs`
-8. `src/engine/gpu/mod.rs`
-9. `src/app/mod.rs`
-10. `src/app/launch.rs`
-11. `examples/course/index.html`
-12. `examples/course/canvas.rs`
-13. `examples/course/registration.rs`
-14. `examples/course/entry.rs`
+2. `.cargo/config.toml`
+3. `viewer-core/Cargo.toml`
+4. `src/app/launch.rs`
+5. `examples/course/index.html`
+6. `examples/course/canvas.rs`
+
+**Reference catalog & test files (8 files, folded below):** `Cargo.lock`, `viewer-core/src/lib.rs`, `src/lib.rs`, `src/engine/mod.rs`, `src/engine/gpu/mod.rs`, `src/app/mod.rs`, `examples/course/registration.rs`, `examples/course/entry.rs`.
 
 ## Build
 
@@ -45,13 +104,7 @@ Owned files in build order (`14` files):
 --8<-- "session_viewer/Cargo.toml"
 ```
 
-### Step 2 · `Cargo.lock`
-
-`Cargo.lock` records the resolved workspace dependency graph (`wgpu 29.0.4`, `naga 29.0.4`, `winit 0.30.13`, `egui 0.34.3`, `glyphon 0.11.0`, `prost 0.14`); Cargo always writes transitive platform crates (`ash` Vulkan, `objc2` macOS, `wayland-client`, `android-activity`) into one cross-platform lockfile, whereas `cargo build --target wasm32-unknown-unknown` compiles only the WebGPU/WebAssembly `cfg` subgraph into `.wasm`. Trap: upgrading `wgpu`, `egui-wgpu`, or `glyphon` independently breaks `TextureFormat` and `RenderPass` compatibility.
-
-*Cargo generates `Cargo.lock` automatically from `Cargo.toml`; the auto-generated lockfile is omitted inline so this tutorial stays focused on handwritten source.*
-
-### Step 3 · `.cargo/config.toml`
+### Step 2 · `.cargo/config.toml`
 
 `.cargo/config.toml` sets `build.target = "wasm32-unknown-unknown"`, caps WebAssembly linear memory at 4 GiB via `-C link-arg=--max-memory=4294967296`, and defines the `cargo xtest` alias (`test --workspace --target x86_64-unknown-linux-gnu`) for native CPU and Vulkan verification. Trap: running bare `cargo test` without `xtest` compiles tests for `wasm32`, where native-only `pollster` and filesystem fixtures do not exist.
 
@@ -59,7 +112,7 @@ Owned files in build order (`14` files):
 --8<-- "session_viewer/.cargo/config.toml"
 ```
 
-### Step 4 · `viewer-core/Cargo.toml`
+### Step 3 · `viewer-core/Cargo.toml`
 
 `viewer-core/Cargo.toml` defines the UI- and GPU-independent core crate, depending only on `session_rust`, `bytemuck`, `prost`, `serde`, `serde_json`, `serde_yaml_ng`, and optional `toml`. Trap: never add `wgpu`, `winit`, `egui`, `web-sys`, `wasm-bindgen`, or `glyphon` here—`cargo tree -p viewer-core` must stay pure Rust.
 
@@ -67,47 +120,7 @@ Owned files in build order (`14` files):
 --8<-- "session_viewer/viewer-core/Cargo.toml"
 ```
 
-### Step 5 · `viewer-core/src/lib.rs`
-
-`viewer-core/src/lib.rs` exports the 35 pure-Rust domain modules (`camera`, `command`, `op`, `rows`, `scene`, `selection`, `session_io`, `snap`, `walk`, and geometry helpers) plus `GpuSink`. Trap: keep module visibility `pub` across the `viewer_core` crate boundary so both `session_viewer` (browser) and `session-viewer-cli` (headless) call the same APIs.
-
-```rust
---8<-- "session_viewer/viewer-core/src/lib.rs"
-```
-
-### Step 6 · `src/lib.rs`
-
-`src/lib.rs` defines the `shader!` macro over `OUT_DIR`, mounts `engine`, `app`, `command_dock`, `state`, `text_quality`, and `selftest`, and exports `#[wasm_bindgen(start)] pub fn run_web()` plus `reload_scene` and `execute_op`. Trap: gate `examples/course/entry.rs` behind `#[cfg(all(target_arch = "wasm32", feature = "tutorial"))]` so production WASM starts `app::run_web()` directly.
-
-```rust
---8<-- "session_viewer/src/lib.rs"
-```
-
-### Step 7 · `src/engine/mod.rs`
-
-`src/engine/mod.rs` wires the four rendering-engine subsystems—`diagnostics`, `gpu`, `performance`, and `pipelines`—under `crate::engine`. Trap: keep `engine` free of `crate::state` imports so GPU pipelines and headless self-tests compile without interactive UI state.
-
-```rust
---8<-- "session_viewer/src/engine/mod.rs"
-```
-
-### Step 8 · `src/engine/gpu/mod.rs`
-
-`src/engine/gpu/mod.rs` declares all 33 WebGPU resource, lane, pass, target, text, outline, SSAO, splat, clip, and `GpuSink` adapter modules under `engine::gpu` and re-exports `Gpu`. Trap: `completion.ts` filters these `mod` declarations per cumulative assembly, so keep one `mod <name>;` declaration per line.
-
-```rust
---8<-- "session_viewer/src/engine/gpu/mod.rs"
-```
-
-### Step 9 · `src/app/mod.rs`
-
-`src/app/mod.rs` mounts browser shell modules (`launch`, `runtime`, `mode`, `stage`, `input`, `touch`, `keys`, `gesture`, `ui`, `loader`, `live`, `fetch`) and re-exports shared `viewer_core` modules into `crate::app`. Trap: keep thin browser adapters (`decode`, `session_io`, `stream`, `cloud_query`, `sheet_query`) delegating to `viewer_core` rather than duplicating logic.
-
-```rust
---8<-- "session_viewer/src/app/mod.rs"
-```
-
-### Step 10 · `src/app/launch.rs`
+### Step 4 · `src/app/launch.rs`
 
 `src/app/launch.rs` builds the `winit::event_loop::EventLoop<M>`, clones its `EventLoopProxy<M>` up front, and hands the constructed handler to `EventLoopExtWebSys::spawn_app`. Trap: `EventLoop::create_proxy` must run before `spawn_app` consumes the `EventLoop`, because `&ActiveEventLoop` inside `resumed` cannot mint typed user-event proxies.
 
@@ -115,7 +128,7 @@ Owned files in build order (`14` files):
 --8<-- "session_viewer/src/app/launch.rs"
 ```
 
-### Step 11 · `examples/course/index.html`
+### Step 5 · `examples/course/index.html`
 
 `examples/course/index.html` provides the minimal Trunk HTML shell used by cumulative tutorial checkpoints (`?tutorial=<id>`), mounting a full-viewport `#canvas` with `data-wasm-opt="0"` so debug and release tutorial bundles start identically. Trap: omitting `margin: 0` or `100vw`/`100vh` CSS sizing causes feedback resize loops when `devicePixelRatio` is fractional.
 
@@ -123,12 +136,62 @@ Owned files in build order (`14` files):
 --8<-- "session_viewer/examples/course/index.html"
 ```
 
-### Step 12 · `examples/course/canvas.rs`
+### Step 6 · `examples/course/canvas.rs`
 
 `examples/course/canvas.rs` implements the shared browser `#canvas` sizing, DPR clamping, and error-attribute reporting helper used by standalone tutorial checkpoints before `app/runtime.rs` arrives. Trap: always clamp framebuffer dimensions to `[1, max_texture_dimension_2d]` before `Surface::configure`, or a zero-sized hidden tab panics `wgpu`.
 
 ```rust
 --8<-- "session_viewer/examples/course/canvas.rs"
+```
+
+## Reference catalog and test files (8 files)
+
+The 6 core files above implement the complete mechanism for this lesson. Expand this reference section whenever you want to inspect or copy the remaining 8 sibling verbs, adapters, and unit-test suites (`Step 7`–`Step 14`).
+
+### Step 7 · `Cargo.lock`
+
+`Cargo.lock` records the resolved workspace dependency graph (`wgpu 29.0.4`, `naga 29.0.4`, `winit 0.30.13`, `egui 0.34.3`, `glyphon 0.11.0`, `prost 0.14`); Cargo always writes transitive platform crates (`ash` Vulkan, `objc2` macOS, `wayland-client`, `android-activity`) into one cross-platform lockfile, whereas `cargo build --target wasm32-unknown-unknown` compiles only the WebGPU/WebAssembly `cfg` subgraph into `.wasm`. Trap: upgrading `wgpu`, `egui-wgpu`, or `glyphon` independently breaks `TextureFormat` and `RenderPass` compatibility.
+
+*Cargo generates `Cargo.lock` automatically from `Cargo.toml`; the auto-generated lockfile is omitted inline so this tutorial stays focused on handwritten source.*
+
+### Step 8 · `viewer-core/src/lib.rs`
+
+`viewer-core/src/lib.rs` exports the 35 pure-Rust domain modules (`camera`, `command`, `op`, `rows`, `scene`, `selection`, `session_io`, `snap`, `walk`, and geometry helpers) plus `GpuSink`. Trap: keep module visibility `pub` across the `viewer_core` crate boundary so both `session_viewer` (browser) and `session-viewer-cli` (headless) call the same APIs.
+
+```rust
+--8<-- "session_viewer/viewer-core/src/lib.rs"
+```
+
+### Step 9 · `src/lib.rs`
+
+`src/lib.rs` defines the `shader!` macro over `OUT_DIR`, mounts `engine`, `app`, `command_dock`, `state`, `text_quality`, and `selftest`, and exports `#[wasm_bindgen(start)] pub fn run_web()` plus `reload_scene` and `execute_op`. Trap: gate `examples/course/entry.rs` behind `#[cfg(all(target_arch = "wasm32", feature = "tutorial"))]` so production WASM starts `app::run_web()` directly.
+
+```rust
+--8<-- "session_viewer/src/lib.rs"
+```
+
+### Step 10 · `src/engine/mod.rs`
+
+`src/engine/mod.rs` wires the four rendering-engine subsystems—`diagnostics`, `gpu`, `performance`, and `pipelines`—under `crate::engine`. Trap: keep `engine` free of `crate::state` imports so GPU pipelines and headless self-tests compile without interactive UI state.
+
+```rust
+--8<-- "session_viewer/src/engine/mod.rs"
+```
+
+### Step 11 · `src/engine/gpu/mod.rs`
+
+`src/engine/gpu/mod.rs` declares all 33 WebGPU resource, lane, pass, target, text, outline, SSAO, splat, clip, and `GpuSink` adapter modules under `engine::gpu` and re-exports `Gpu`. Trap: `completion.ts` filters these `mod` declarations per cumulative assembly, so keep one `mod <name>;` declaration per line.
+
+```rust
+--8<-- "session_viewer/src/engine/gpu/mod.rs"
+```
+
+### Step 12 · `src/app/mod.rs`
+
+`src/app/mod.rs` mounts browser shell modules (`launch`, `runtime`, `mode`, `stage`, `input`, `touch`, `keys`, `gesture`, `ui`, `loader`, `live`, `fetch`) and re-exports shared `viewer_core` modules into `crate::app`. Trap: keep thin browser adapters (`decode`, `session_io`, `stream`, `cloud_query`, `sheet_query`) delegating to `viewer_core` rather than duplicating logic.
+
+```rust
+--8<-- "session_viewer/src/app/mod.rs"
 ```
 
 ### Step 13 · `examples/course/registration.rs`
@@ -153,7 +216,14 @@ Owned files in build order (`14` files):
 
 ## Run and observe
 
-Materialize the `frame` assembly (`npm --prefix ../session_tests run course -- checkpoint frame target/learn-frame`) and run `cargo check --target wasm32-unknown-unknown -j8` plus `cargo tree -p viewer-core --depth 1`: `viewer-core` compiles with zero `wgpu`, `winit`, `egui`, `web-sys`, `wasm-bindgen`, or `glyphon` dependencies, and `#canvas` mounts at `clientWidth * devicePixelRatio` with no `data-course-error` attribute.
+From `session/session_viewer`, verify that the pure-Rust core crate has zero GPU/browser dependencies and compile the `wasm32` startup shell:
+
+```sh
+cargo tree -p viewer-core --depth 1
+cargo check --target wasm32-unknown-unknown --features tutorial -j8
+```
+
+`viewer-core` lists only `session_rust`, `bytemuck`, `prost`, and `serde*` (`0` `wgpu`/`winit`/`egui`/`web-sys` crates), and the `wasm32` target compiles cleanly. Once you add `frame.rs` in Tutorial 2, `trunk serve --features tutorial --open /?tutorial=frame` mounts `#canvas` at full `clientWidth × devicePixelRatio` resolution.
 
 ## Predict and try
 

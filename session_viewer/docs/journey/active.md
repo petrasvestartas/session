@@ -13,9 +13,13 @@ Build the Session Viewer across **17 complete, code-first tutorials** (`408` who
 | 3 | [Rendering engine and shared shaders](tutorial-three-rendering.md) | `rows` | `19` | `build.rs` `#include` assembly, `PRELUDE`, bind groups `0..=3` |
 | 3.1 | [Compositing `egui` shapes and text](tutorial-three-painting.md) | `painting` | `2` | `egui` overlay tessellation and deferred texture-free pass |
 | 3.2 | [Laying out and animating 2D mathematics](tutorial-three-mathematics.md) | `mathematics` | `23` | `1600×900` OpenType MATH, rounded 2D matrices, `24×0.30` arrows |
-| 4 | [Geometry and scene data structures](tutorial-four-geometry.md) | `rows` / `geometry` | `75` | `20 B` vertices, arenas, ribbons, arrows, `112 B` `Instance` rows |
+| 4 | [Scene rows, `112 B` instances and `f64` anchor rebasing](tutorial-four-geometry.md) | `rows` | `36` | `GpuSink`, `112 B` `Instance` rows, `f64` rebasing, `O(1)` tombstones |
+| 4.1 | [Mesh and BRep solid walkers (`triangle.wgsl`)](tutorial-four-meshes.md) | `geometry` | `25` | `20 B` `FaceVertex` arenas, `25°` creases, BRep trim & `dead_vertex()` |
+| 4.2 | [Curve ribbons, arrows, vectors and point glyphs (`ribbon.wgsl`)](tutorial-four-strokes.md) | `geometry` | `14` | `72 B` `StrokeSegment` ribbons, `tuck()` arrowheads, ray spheres |
 | 5 | [Camera and navigation](tutorial-five-camera.md) | `camera` / `application` | `10` | `f64` camera rebasing, reverse-Z orbit/pan/zoom, `State` hub |
-| 6 | [Object creation and transformations](tutorial-six-modeling.md) | `application` | `79` | `86`-spec `REGISTRY`, `CPlane`, `OSnap`, `0`-step preview, `Undo` |
+| 6 | [Construction planes (`CPlane`), `OSnap` and interactive `Tool`s](tutorial-six-modeling.md) | `application` | `23` | `CPlane`, 6-tier `OSnap`, `Tool::Gather`, `1`-ring `mesh_preview` |
+| 6.1 | [Parametric CAD primitives, rigid transforms and mass queries](tutorial-six-primitives.md) | `application` | `36` | `Shape` pipeline, BRep/Mesh solids, `Move`/`Rotate`/`Scale`, `Volume` |
+| 6.2 | [NURBS surfacing and `Split` / `Trim` / `Extend`](tutorial-six-surfacing.md) | `application` | `20` | `Extrude`/`Loft`/`Revolve`/`Sweep1-2`, seam alignment, BRep `Split` |
 | 7 | [Picking and selection](tutorial-seven-picking.md) | `application` | `14` | Hover + click `Rg32Uint` ID window and unified `SelectionState` |
 | 8 | [Gumball widget and interactive handles](tutorial-eight-gumball.md) | `geometry` / `application` | `8` | 13-handle `World`/`Object`/`CPlane` gizmo and single-commit drag |
 | 9 | [Layers, hierarchy, panels and instancing](tutorial-nine-layers.md) | `geometry` / `application` | `25` | Virtualized `Layers`/`Properties`/`Graph` panels and `InstanceRef` |
